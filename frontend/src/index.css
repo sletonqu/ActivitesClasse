@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f6fa;
+}
+
+h1 {
+  color: #2d3a4b;
+  text-align: center;
+  margin-top: 2rem;
+}

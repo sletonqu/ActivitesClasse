@@ -1,0 +1,323 @@
+// Import/Export de données (CSV)
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
+
+function parseCsvRows(csvText) {
+  const lines = (csvText || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+  const idxName = headers.indexOf('name');
+  const idxFirstname = headers.indexOf('firstname');
+  const idxClassId = headers.indexOf('class_id');
+
+  if (idxName === -1 || idxFirstname === -1) {
+    throw new Error('CSV invalide: colonnes name et firstname obligatoires');
+  }
+
+  return lines.slice(1).map((line) => {
+    const cols = line.split(',').map((c) => c.trim());
+    return {
+      name: cols[idxName] || '',
+      firstname: cols[idxFirstname] || '',
+      class_id: idxClassId === -1 || cols[idxClassId] === '' ? null : Number(cols[idxClassId]),
+    };
+  });
+}
+
+function allAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+function runAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(err) {
+      if (err) return reject(err);
+      resolve({ lastID: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+function parseGlobalCsvRows(csvText) {
+  const lines = (csvText || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+  const idxEntity = headers.indexOf('entity');
+  if (idxEntity === -1) {
+    throw new Error('CSV global invalide: colonne entity obligatoire');
+  }
+
+  const getVal = (cols, key) => {
+    const idx = headers.indexOf(key);
+    return idx === -1 ? '' : (cols[idx] || '').trim();
+  };
+
+  return lines.slice(1).map((line) => {
+    const cols = line.split(',').map((c) => c.trim());
+    return {
+      entity: getVal(cols, 'entity').toLowerCase(),
+      name: getVal(cols, 'name'),
+      email: getVal(cols, 'email'),
+      password: getVal(cols, 'password'),
+      firstname: getVal(cols, 'firstname'),
+      teacher_id: getVal(cols, 'teacher_id'),
+      class_id: getVal(cols, 'class_id'),
+      title: getVal(cols, 'title'),
+      description: getVal(cols, 'description'),
+      content: getVal(cols, 'content'),
+      status: getVal(cols, 'status'),
+      js_file: getVal(cols, 'js_file'),
+      student_id: getVal(cols, 'student_id'),
+      activity_id: getVal(cols, 'activity_id'),
+      score: getVal(cols, 'score'),
+      completed_at: getVal(cols, 'completed_at'),
+    };
+  });
+}
+
+router.post('/csv', (req, res) => {
+  (async () => {
+    try {
+      const { csv, students, class_id } = req.body || {};
+      const forcedClassId =
+        class_id === undefined || class_id === null || class_id === '' ? null : Number(class_id);
+      if (forcedClassId !== null && Number.isNaN(forcedClassId)) {
+        return res.status(400).json({ error: 'class_id invalide' });
+      }
+
+      let parsedRows = [];
+      if (Array.isArray(students)) {
+        parsedRows = students.map((s) => ({
+          name: String(s?.name || '').trim(),
+          firstname: String(s?.firstname || '').trim(),
+          class_id: s?.class_id === undefined || s?.class_id === null || s?.class_id === '' ? null : Number(s.class_id),
+        }));
+      } else if (typeof csv === 'string') {
+        parsedRows = parseCsvRows(csv);
+      } else {
+        return res.status(400).json({
+          error: 'Format invalide. Envoyer soit { csv: "..." } soit { students: [...] }',
+        });
+      }
+
+      const validRows = parsedRows
+        .filter((r) => r.name && r.firstname)
+        .map((r) => ({
+          ...r,
+          class_id: forcedClassId !== null ? forcedClassId : r.class_id,
+        }));
+      if (validRows.length === 0) {
+        return res.status(400).json({ error: 'Aucune ligne valide à importer' });
+      }
+
+      const existing = await allAsync('SELECT name, firstname FROM students');
+      const existingKeys = new Set(
+        existing.map((row) => `${String(row.name).toLowerCase()}::${String(row.firstname).toLowerCase()}`)
+      );
+
+      const payloadKeys = new Set();
+      let inserted = 0;
+      let skippedDuplicates = 0;
+
+      for (const row of validRows) {
+        const key = `${row.name.toLowerCase()}::${row.firstname.toLowerCase()}`;
+
+        if (existingKeys.has(key) || payloadKeys.has(key)) {
+          skippedDuplicates += 1;
+          continue;
+        }
+
+        await runAsync(
+          'INSERT INTO students (name, firstname, class_id) VALUES (?, ?, ?)',
+          [row.name, row.firstname, row.class_id]
+        );
+
+        payloadKeys.add(key);
+        inserted += 1;
+      }
+
+      return res.json({
+        imported: inserted,
+        skippedDuplicates,
+        received: parsedRows.length,
+        valid: validRows.length,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  })();
+});
+
+router.get('/csv', (req, res) => {
+  res.status(405).json({ error: 'Utiliser POST /api/import/csv pour importer' });
+});
+
+router.post('/global-csv', (req, res) => {
+  (async () => {
+    try {
+      const { csv } = req.body || {};
+      if (typeof csv !== 'string') {
+        return res.status(400).json({ error: 'Body attendu: { csv: "..." }' });
+      }
+
+      const rows = parseGlobalCsvRows(csv);
+      if (rows.length === 0) {
+        return res.status(400).json({ error: 'Aucune ligne à importer' });
+      }
+
+      const existingTeachers = await allAsync('SELECT email FROM teachers');
+      const existingTeacherEmails = new Set(existingTeachers.map((t) => String(t.email).toLowerCase()));
+      const teacherPayloadEmails = new Set();
+
+      const existingClasses = await allAsync('SELECT name FROM classes');
+      const existingClassNames = new Set(existingClasses.map((c) => String(c.name).toLowerCase()));
+      const classPayloadNames = new Set();
+
+      const existingStudents = await allAsync('SELECT name, firstname FROM students');
+      const existingStudentKeys = new Set(
+        existingStudents.map((s) => `${String(s.name).toLowerCase()}::${String(s.firstname).toLowerCase()}`)
+      );
+      const studentPayloadKeys = new Set();
+
+      const existingActivities = await allAsync('SELECT title FROM activities');
+      const existingActivityTitles = new Set(existingActivities.map((a) => String(a.title).toLowerCase()));
+      const activityPayloadTitles = new Set();
+
+      let teachersImported = 0;
+      let classesImported = 0;
+      let studentsImported = 0;
+      let activitiesImported = 0;
+      let resultsImported = 0;
+      let skippedDuplicates = 0;
+
+      for (const row of rows) {
+        if (row.entity === 'teacher') {
+          if (!row.name || !row.email || !row.password) continue;
+          const emailKey = row.email.toLowerCase();
+          if (existingTeacherEmails.has(emailKey) || teacherPayloadEmails.has(emailKey)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          await runAsync(
+            'INSERT INTO teachers (name, email, password) VALUES (?, ?, ?)',
+            [row.name, row.email, row.password]
+          );
+          teacherPayloadEmails.add(emailKey);
+          teachersImported += 1;
+          continue;
+        }
+
+        if (row.entity === 'class') {
+          if (!row.name) continue;
+          const classKey = row.name.toLowerCase();
+          if (existingClassNames.has(classKey) || classPayloadNames.has(classKey)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          const parsedTeacherId = row.teacher_id === '' ? null : Number(row.teacher_id);
+          const teacherId = parsedTeacherId === null || Number.isNaN(parsedTeacherId) ? null : parsedTeacherId;
+
+          await runAsync('INSERT INTO classes (name, teacher_id) VALUES (?, ?)', [row.name, teacherId]);
+          classPayloadNames.add(classKey);
+          classesImported += 1;
+          continue;
+        }
+
+        if (row.entity === 'student') {
+          if (!row.name || !row.firstname) continue;
+          const studentKey = `${row.name.toLowerCase()}::${row.firstname.toLowerCase()}`;
+          if (existingStudentKeys.has(studentKey) || studentPayloadKeys.has(studentKey)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          const parsedClassId = row.class_id === '' ? null : Number(row.class_id);
+          const classId = parsedClassId === null || Number.isNaN(parsedClassId) ? null : parsedClassId;
+
+          await runAsync(
+            'INSERT INTO students (name, firstname, class_id) VALUES (?, ?, ?)',
+            [row.name, row.firstname, classId]
+          );
+          studentPayloadKeys.add(studentKey);
+          studentsImported += 1;
+          continue;
+        }
+
+        if (row.entity === 'activity') {
+          if (!row.title) continue;
+          const activityKey = row.title.toLowerCase();
+          if (existingActivityTitles.has(activityKey) || activityPayloadTitles.has(activityKey)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          let parsedContent = {};
+          if (row.content) {
+            try {
+              parsedContent = JSON.parse(row.content);
+            } catch {
+              parsedContent = {};
+            }
+          }
+
+          await runAsync(
+            'INSERT INTO activities (title, description, content, status, js_file) VALUES (?, ?, ?, ?, ?)',
+            [row.title, row.description || '', JSON.stringify(parsedContent), row.status || 'Active', row.js_file || null]
+          );
+          activityPayloadTitles.add(activityKey);
+          activitiesImported += 1;
+          continue;
+        }
+
+        if (row.entity === 'result') {
+          if (!row.student_id || !row.activity_id) continue;
+          const parsedStudentId = Number(row.student_id);
+          const parsedActivityId = Number(row.activity_id);
+          if (Number.isNaN(parsedStudentId) || Number.isNaN(parsedActivityId)) continue;
+
+          const parsedScore = row.score === '' ? 0 : Number(row.score);
+          const score = Number.isNaN(parsedScore) ? 0 : parsedScore;
+
+          await runAsync(
+            'INSERT INTO results (student_id, activity_id, score, completed_at) VALUES (?, ?, ?, ?)',
+            [parsedStudentId, parsedActivityId, score, row.completed_at || new Date().toISOString()]
+          );
+          resultsImported += 1;
+        }
+      }
+
+      return res.json({
+        received: rows.length,
+        teachersImported,
+        classesImported,
+        studentsImported,
+        activitiesImported,
+        resultsImported,
+        skippedDuplicates,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  })();
+});
+
+module.exports = router;
