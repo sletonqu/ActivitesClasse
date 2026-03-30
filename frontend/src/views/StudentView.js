@@ -202,7 +202,7 @@ const StudentView = () => {
         </select>
       </div>
 
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-start">
+      <div className="w-full max-w-[1400px] px-4 flex flex-col lg:flex-row gap-8 items-start">
         {/* Liste des élèves */}
         <div className="bg-white rounded shadow p-4 min-w-[220px]">
           <h3 className="font-semibold mb-2">Élèves</h3>
@@ -233,7 +233,7 @@ const StudentView = () => {
         </div>
 
         {/* Zone d'activité */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 lg:min-w-[720px] xl:min-w-[840px]">
           {selectedStudent && selectedActivityId ? (
             <ActivityContainer
               key={selectedStudent.id}
