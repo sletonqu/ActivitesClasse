@@ -28,7 +28,7 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 max-w-xl mx-auto mt-8">
+    <div className="bg-white rounded-lg shadow p-6 w-full max-w-none mx-auto mt-8">
       {!completed ? (
         <SelectedActivityComponent content={content} onComplete={handleComplete} />
       ) : (
