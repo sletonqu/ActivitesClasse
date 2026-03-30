@@ -27,6 +27,7 @@ const TeacherView = () => {
   const [selectedResultId, setSelectedResultId] = useState("");
   const [deletingResultId, setDeletingResultId] = useState("");
   const [deletingAllResults, setDeletingAllResults] = useState(false);
+  const [calculatingAverageResultId, setCalculatingAverageResultId] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/classes`)
@@ -377,6 +378,71 @@ const TeacherView = () => {
     }
   };
 
+  const getActivityTypeKey = (activityId) => {
+    const activity = activities.find((a) => String(a.id) === String(activityId));
+    if (!activity) return `activity-id:${activityId}`;
+    if (activity.js_file && String(activity.js_file).trim()) {
+      return `js-file:${String(activity.js_file).trim()}`;
+    }
+    return `activity-id:${activityId}`;
+  };
+
+  const handleCalculateAverage = async (selectedResult) => {
+    setCalculatingAverageResultId(String(selectedResult.id));
+    setResultsError("");
+
+    try {
+      const selectedTypeKey = getActivityTypeKey(selectedResult.activity_id);
+      const sameTypeResults = studentResults.filter(
+        (result) => getActivityTypeKey(result.activity_id) === selectedTypeKey
+      );
+
+      if (sameTypeResults.length === 0) {
+        throw new Error("Aucun résultat du même type trouvé");
+      }
+
+      const totalScore = sameTypeResults.reduce((sum, result) => {
+        const numericScore = Number(result.score);
+        return sum + (Number.isNaN(numericScore) ? 0 : numericScore);
+      }, 0);
+      const averageScore = Math.round((totalScore / sameTypeResults.length) * 100) / 100;
+
+      await Promise.all(
+        sameTypeResults.map(async (result) => {
+          const res = await fetch(`${API_URL}/results/${result.id}`, {
+            method: "DELETE",
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Erreur lors de la suppression des résultats du même type");
+          }
+        })
+      );
+
+      const createRes = await fetch(`${API_URL}/results`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: Number(selectedResultStudentId),
+          activity_id: Number(selectedResult.activity_id),
+          score: averageScore,
+          completed_at: new Date().toISOString(),
+        }),
+      });
+      const createData = await createRes.json();
+      if (!createRes.ok) {
+        throw new Error(createData.error || "Erreur lors de la création du résultat moyen");
+      }
+
+      await loadResultsForStudent(selectedResultStudentId);
+      setSelectedResultId("");
+    } catch (err) {
+      setResultsError(err.message || "Erreur inconnue");
+    } finally {
+      setCalculatingAverageResultId("");
+    }
+  };
+
   return (
     <div id="teacher-view-root" className="min-h-screen bg-slate-100 p-6">
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Espace Enseignant</h2>
@@ -593,17 +659,40 @@ const TeacherView = () => {
                     <div id={`bloc-actions-resultat-${result.id}`} className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-slate-800">{getActivityLabel(result.activity_id)}</p>
                       {String(selectedResultId) === String(result.id) && (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleDeleteResult(result.id);
-                          }}
-                          disabled={deletingResultId === String(result.id) || deletingAllResults}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-                        >
-                          {deletingResultId === String(result.id) ? "Suppression..." : "Supprimer"}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleCalculateAverage(result);
+                            }}
+                            disabled={
+                              calculatingAverageResultId === String(result.id) ||
+                              deletingResultId === String(result.id) ||
+                              deletingAllResults
+                            }
+                            className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-60"
+                          >
+                            {calculatingAverageResultId === String(result.id)
+                              ? "Calcul..."
+                              : "Calculer Moyenne"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleDeleteResult(result.id);
+                            }}
+                            disabled={
+                              deletingResultId === String(result.id) ||
+                              deletingAllResults ||
+                              calculatingAverageResultId === String(result.id)
+                            }
+                            className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                          >
+                            {deletingResultId === String(result.id) ? "Suppression..." : "Supprimer"}
+                          </button>
+                        </div>
                       )}
                     </div>
                     <p className="text-sm text-slate-600">Score: {result.score}/20</p>
