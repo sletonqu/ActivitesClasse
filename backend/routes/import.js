@@ -3,17 +3,104 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-function parseCsvRows(csvText) {
-  const lines = (csvText || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+function parseCsvTable(csvText) {
+  const text = String(csvText || '');
+  const rows = [];
+  const rawLines = text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+  const delimiter =
+    rawLines.length > 0 && (rawLines[0].match(/;/g) || []).length > (rawLines[0].match(/,/g) || []).length
+      ? ';'
+      : ',';
 
-  if (lines.length < 2) {
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  let lineNumber = 1;
+  let rowStartLine = 1;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+
+    if (char === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        field += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      row.push(field);
+      field = '';
+      continue;
+    }
+
+    if (char === '\n' || char === '\r') {
+      if (inQuotes) {
+        field += '\n';
+      } else {
+        row.push(field);
+        field = '';
+
+        const hasAnyValue = row.some((cell) => String(cell).trim().length > 0);
+        if (hasAnyValue) {
+          rows.push({ cols: row, line: rowStartLine });
+        }
+        row = [];
+      }
+
+      if (char === '\r' && text[i + 1] === '\n') {
+        i += 1;
+      }
+
+      lineNumber += 1;
+      rowStartLine = lineNumber;
+      continue;
+    }
+
+    field += char;
+  }
+
+  if (inQuotes) {
+    throw new Error(`CSV invalide: guillemet non fermé (ligne ${rowStartLine})`);
+  }
+
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    const hasAnyValue = row.some((cell) => String(cell).trim().length > 0);
+    if (hasAnyValue) {
+      rows.push({ cols: row, line: rowStartLine });
+    }
+  }
+
+  if (rows.length < 2) {
+    return { headers: [], dataRows: [] };
+  }
+
+  const expectedColumnCount = rows[0].cols.length;
+  for (let i = 1; i < rows.length; i += 1) {
+    const currentColumnCount = rows[i].cols.length;
+    if (currentColumnCount !== expectedColumnCount) {
+      throw new Error(
+        `CSV invalide: nombre de colonnes incorrect a la ligne ${rows[i].line} (attendu ${expectedColumnCount}, recu ${currentColumnCount})`
+      );
+    }
+  }
+
+  const headers = rows[0].cols.map((h) => String(h).trim().toLowerCase().replace(/^\uFEFF/, ''));
+  const dataRows = rows.slice(1);
+
+  return { headers, dataRows };
+}
+
+function parseCsvRows(csvText) {
+  const { headers, dataRows } = parseCsvTable(csvText);
+  if (dataRows.length === 0) {
     return [];
   }
 
-  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
   const idxName = headers.indexOf('name');
   const idxFirstname = headers.indexOf('firstname');
   const idxClassId = headers.indexOf('class_id');
@@ -22,12 +109,17 @@ function parseCsvRows(csvText) {
     throw new Error('CSV invalide: colonnes name et firstname obligatoires');
   }
 
-  return lines.slice(1).map((line) => {
-    const cols = line.split(',').map((c) => c.trim());
+  return dataRows.map((row) => {
+    const cols = row.cols;
+    const getCol = (idx) => {
+      if (idx === -1 || idx >= cols.length) return '';
+      return String(cols[idx]).trim();
+    };
+
     return {
-      name: cols[idxName] || '',
-      firstname: cols[idxFirstname] || '',
-      class_id: idxClassId === -1 || cols[idxClassId] === '' ? null : Number(cols[idxClassId]),
+      name: getCol(idxName),
+      firstname: getCol(idxFirstname),
+      class_id: idxClassId === -1 || getCol(idxClassId) === '' ? null : Number(getCol(idxClassId)),
     };
   });
 }
@@ -51,14 +143,9 @@ function runAsync(sql, params = []) {
 }
 
 function parseGlobalCsvRows(csvText) {
-  const lines = (csvText || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+  const { headers, dataRows } = parseCsvTable(csvText);
+  if (dataRows.length === 0) return [];
 
-  if (lines.length < 2) return [];
-
-  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
   const idxEntity = headers.indexOf('entity');
   if (idxEntity === -1) {
     throw new Error('CSV global invalide: colonne entity obligatoire');
@@ -66,11 +153,12 @@ function parseGlobalCsvRows(csvText) {
 
   const getVal = (cols, key) => {
     const idx = headers.indexOf(key);
-    return idx === -1 ? '' : (cols[idx] || '').trim();
+    if (idx === -1 || idx >= cols.length) return '';
+    return String(cols[idx]).trim();
   };
 
-  return lines.slice(1).map((line) => {
-    const cols = line.split(',').map((c) => c.trim());
+  return dataRows.map((row) => {
+    const cols = row.cols;
     return {
       entity: getVal(cols, 'entity').toLowerCase(),
       name: getVal(cols, 'name'),
