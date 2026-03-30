@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from "react";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
+import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
+import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
 
 const API_URL = "http://localhost:4000/api";
 const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
 ];
+
+function getDefaultActivityContentText(jsFile) {
+  if (jsFile === "src/activities/SortNumbersActivity.js") {
+    return JSON.stringify(defaultSortNumbersActivityContent, null, 2);
+  }
+
+  if (jsFile === "src/activities/MatchAdditionsActivity.js") {
+    return JSON.stringify(defaultMatchAdditionsActivityContent, null, 2);
+  }
+
+  return "{}";
+}
 
 const AdminView = () => {
   const [teacherName, setTeacherName] = useState("");
@@ -27,13 +41,25 @@ const AdminView = () => {
   const [activityDescription, setActivityDescription] = useState("");
   const [activityStatus, setActivityStatus] = useState("Active");
   const [activityJsFile, setActivityJsFile] = useState(ACTIVITY_FILES[0]);
-  const [activityContentText, setActivityContentText] = useState('{"numbers":[8,2,5,1,7]}');
+  const [activityContentText, setActivityContentText] = useState(
+    getDefaultActivityContentText(ACTIVITY_FILES[0])
+  );
   const [activities, setActivities] = useState([]);
   const [showActivitiesList, setShowActivitiesList] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [submittingActivity, setSubmittingActivity] = useState(false);
   const [activityMessage, setActivityMessage] = useState("");
+  const [showActivityMessage, setShowActivityMessage] = useState(false);
+  const [fadeActivityMessage, setFadeActivityMessage] = useState(false);
   const [activityError, setActivityError] = useState("");
+  const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
+  const [editActivityTitle, setEditActivityTitle] = useState("");
+  const [editActivityDescription, setEditActivityDescription] = useState("");
+  const [editActivityStatus, setEditActivityStatus] = useState("Active");
+  const [editActivityJsFile, setEditActivityJsFile] = useState(ACTIVITY_FILES[0]);
+  const [editActivityContentText, setEditActivityContentText] = useState("{}");
+  const [submittingEditActivity, setSubmittingEditActivity] = useState(false);
+  const [editActivityError, setEditActivityError] = useState("");
 
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -100,6 +126,32 @@ const AdminView = () => {
     loadActivities();
   }, []);
 
+  useEffect(() => {
+    if (!activityMessage) {
+      setShowActivityMessage(false);
+      setFadeActivityMessage(false);
+      return;
+    }
+
+    setShowActivityMessage(true);
+    setFadeActivityMessage(false);
+
+    const fadeTimer = setTimeout(() => {
+      setFadeActivityMessage(true);
+    }, 3500);
+
+    const hideTimer = setTimeout(() => {
+      setShowActivityMessage(false);
+      setActivityMessage("");
+      setFadeActivityMessage(false);
+    }, 4000);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [activityMessage]);
+
   const handleToggleTeachersList = async () => {
     const next = !showTeachersList;
     setShowTeachersList(next);
@@ -123,6 +175,90 @@ const AdminView = () => {
     setShowActivitiesList(next);
     if (next) {
       await loadActivities();
+    } else {
+      setSelectedActivityEditId("");
+      setEditActivityError("");
+    }
+  };
+
+  const normalizeActivityContentForEditor = (content) => {
+    if (content === null || content === undefined || content === "") {
+      return "{}";
+    }
+
+    if (typeof content === "string") {
+      try {
+        return JSON.stringify(JSON.parse(content), null, 2);
+      } catch {
+        return content;
+      }
+    }
+
+    try {
+      return JSON.stringify(content, null, 2);
+    } catch {
+      return "{}";
+    }
+  };
+
+  const handleSelectActivityToEdit = (activity) => {
+    setSelectedActivityEditId(String(activity.id));
+    setEditActivityTitle(activity.title || "");
+    setEditActivityDescription(activity.description || "");
+    setEditActivityStatus(activity.status || "Active");
+    setEditActivityJsFile(activity.js_file || ACTIVITY_FILES[0]);
+    setEditActivityContentText(normalizeActivityContentForEditor(activity.content));
+    setEditActivityError("");
+    setActivityMessage("");
+    setActivityError("");
+  };
+
+  const handleUpdateActivity = async (e) => {
+    e.preventDefault();
+    setSubmittingEditActivity(true);
+    setEditActivityError("");
+    setActivityMessage("");
+    setActivityError("");
+
+    try {
+      if (!selectedActivityEditId) {
+        throw new Error("Aucune activité sélectionnée");
+      }
+
+      if (!editActivityTitle.trim()) {
+        throw new Error("Le titre de l'activité est obligatoire");
+      }
+
+      let parsedContent = {};
+      if (editActivityContentText.trim()) {
+        parsedContent = JSON.parse(editActivityContentText);
+      }
+
+      const resp = await fetch(`${API_URL}/activities/${selectedActivityEditId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editActivityTitle.trim(),
+          description: editActivityDescription.trim(),
+          content: parsedContent,
+          status: editActivityStatus,
+          js_file: editActivityJsFile || null,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la modification de l'activité");
+      }
+
+      setActivityMessage("Activité modifiée");
+      setSelectedActivityEditId("");
+      setEditActivityError("");
+      await loadActivities();
+    } catch (err) {
+      setEditActivityError(err.message || "Erreur inconnue");
+    } finally {
+      setSubmittingEditActivity(false);
     }
   };
 
@@ -274,7 +410,7 @@ const AdminView = () => {
       setActivityDescription("");
       setActivityStatus("Active");
       setActivityJsFile(ACTIVITY_FILES[0]);
-      setActivityContentText('{"numbers":[8,2,5,1,7]}');
+      setActivityContentText(getDefaultActivityContentText(ACTIVITY_FILES[0]));
       await loadActivities();
     } catch (err) {
       setActivityError(err.message || "Erreur inconnue");
@@ -284,15 +420,15 @@ const AdminView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div id="admin-view-root" className="min-h-screen bg-slate-100 p-6">
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
 
-      <div className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+      <div id="zone-gestion-enseignants" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+        <section id="section-gestion-enseignants" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
           <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
 
         <form onSubmit={handleAddTeacher} className="space-y-4">
-          <div>
+          <div id="bloc-form-enseignant-nom">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Nom</label>
             <input
               type="text"
@@ -303,7 +439,7 @@ const AdminView = () => {
             />
           </div>
 
-          <div>
+          <div id="bloc-form-enseignant-email">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
             <input
               type="email"
@@ -314,7 +450,7 @@ const AdminView = () => {
             />
           </div>
 
-          <div>
+          <div id="bloc-form-enseignant-mot-de-passe">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Mot de passe</label>
             <input
               type="password"
@@ -325,7 +461,7 @@ const AdminView = () => {
             />
           </div>
 
-          <div>
+          <div id="bloc-form-enseignant-classe-associee">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Associer à une classe</label>
             <select
               value={teacherSelectedClassId}
@@ -341,7 +477,7 @@ const AdminView = () => {
             </select>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div id="bloc-actions-enseignants" className="flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={submittingTeacher}
@@ -361,20 +497,20 @@ const AdminView = () => {
         </form>
 
         {teacherMessage && (
-          <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+          <div id="bloc-message-enseignant" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
             {teacherMessage}
           </div>
         )}
 
         {teacherError && (
-          <div className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+          <div id="bloc-erreur-enseignant" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
             {teacherError}
           </div>
         )}
         </section>
 
         {showTeachersList && (
-          <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+          <section id="section-liste-enseignants" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
             <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des Enseignants</h3>
 
             {loadingTeachers ? (
@@ -403,12 +539,12 @@ const AdminView = () => {
         )}
       </div>
 
-      <div className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+      <div id="zone-gestion-classes" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+        <section id="section-gestion-classes" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
           <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des classes</h3>
 
           <form onSubmit={handleAddClass} className="space-y-4">
-            <div>
+            <div id="bloc-form-classe-nom">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Nom de la classe</label>
               <input
                 type="text"
@@ -419,7 +555,7 @@ const AdminView = () => {
               />
             </div>
 
-            <div>
+            <div id="bloc-form-classe-enseignant">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Enseignant associé (teacher_id)</label>
               <select
                 value={classTeacherId}
@@ -435,7 +571,7 @@ const AdminView = () => {
               </select>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div id="bloc-actions-classes" className="flex flex-wrap gap-3">
               <button
                 type="submit"
                 disabled={submittingClass}
@@ -455,20 +591,20 @@ const AdminView = () => {
           </form>
 
           {classMessage && (
-            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+            <div id="bloc-message-classe" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
               {classMessage}
             </div>
           )}
 
           {classError && (
-            <div className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <div id="bloc-erreur-classe" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
               {classError}
             </div>
           )}
         </section>
 
         {showClassesList && (
-          <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+          <section id="section-liste-classes" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
             <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des classes</h3>
 
             {loadingClasses ? (
@@ -494,12 +630,15 @@ const AdminView = () => {
         )}
       </div>
 
-      <div className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+      <div id="zone-gestion-activites" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+        <section
+          id="section-gestion-activites"
+          className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+        >
           <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
 
           <form onSubmit={handleAddActivity} className="space-y-4">
-            <div>
+            <div id="bloc-form-activite-titre">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
               <input
                 type="text"
@@ -510,7 +649,7 @@ const AdminView = () => {
               />
             </div>
 
-            <div>
+            <div id="bloc-form-activite-description">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
               <input
                 type="text"
@@ -521,7 +660,7 @@ const AdminView = () => {
               />
             </div>
 
-            <div>
+            <div id="bloc-form-activite-statut">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
               <select
                 value={activityStatus}
@@ -533,11 +672,15 @@ const AdminView = () => {
               </select>
             </div>
 
-            <div>
+            <div id="bloc-form-activite-js-file">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
               <select
                 value={activityJsFile}
-                onChange={(e) => setActivityJsFile(e.target.value)}
+                onChange={(e) => {
+                  const nextJsFile = e.target.value;
+                  setActivityJsFile(nextJsFile);
+                  setActivityContentText(getDefaultActivityContentText(nextJsFile));
+                }}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
                 {ACTIVITY_FILES.map((file) => (
@@ -548,7 +691,7 @@ const AdminView = () => {
               </select>
             </div>
 
-            <div>
+            <div id="bloc-form-activite-contenu-json">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
               <textarea
                 value={activityContentText}
@@ -557,7 +700,7 @@ const AdminView = () => {
               />
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div id="bloc-actions-activites" className="flex flex-wrap gap-3">
               <button
                 type="submit"
                 disabled={submittingActivity}
@@ -576,21 +719,29 @@ const AdminView = () => {
             </div>
           </form>
 
-          {activityMessage && (
-            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+          {showActivityMessage && activityMessage && (
+            <div
+              id="bloc-message-activite"
+              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
+                fadeActivityMessage ? "opacity-0" : "opacity-100"
+              }`}
+            >
               {activityMessage}
             </div>
           )}
 
           {activityError && (
-            <div className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <div id="bloc-erreur-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
               {activityError}
             </div>
           )}
         </section>
 
         {showActivitiesList && (
-          <section className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+          <section
+            id="section-liste-activites"
+            className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+          >
             <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
 
             {loadingActivities ? (
@@ -600,13 +751,109 @@ const AdminView = () => {
             ) : (
               <ul className="space-y-3">
                 {activities.map((activity) => (
-                  <li key={activity.id} className="border border-slate-200 rounded-lg p-3">
+                  <li
+                    key={activity.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleSelectActivityToEdit(activity)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleSelectActivityToEdit(activity);
+                      }
+                    }}
+                    className={`border rounded-lg p-3 cursor-pointer ${
+                      String(selectedActivityEditId) === String(activity.id)
+                        ? "border-indigo-400 bg-indigo-50"
+                        : "border-slate-200"
+                    }`}
+                  >
                     <p className="font-semibold text-slate-800">{activity.title}</p>
                     <p className="text-sm text-slate-600">Statut: {activity.status || "Non défini"}</p>
                     <p className="text-sm text-slate-600">Fichier: {activity.js_file || "Aucun"}</p>
                   </li>
                 ))}
               </ul>
+            )}
+          </section>
+        )}
+
+        {showActivitiesList && selectedActivityEditId && (
+          <section id="section-edition-activite" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
+
+            <form onSubmit={handleUpdateActivity} className="space-y-4">
+              <div id="bloc-form-edition-activite-titre">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
+                <input
+                  type="text"
+                  value={editActivityTitle}
+                  onChange={(e) => setEditActivityTitle(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-form-edition-activite-description">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={editActivityDescription}
+                  onChange={(e) => setEditActivityDescription(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-form-edition-activite-statut">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
+                <select
+                  value={editActivityStatus}
+                  onChange={(e) => setEditActivityStatus(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div id="bloc-form-edition-activite-js-file">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
+                <select
+                  value={editActivityJsFile}
+                  onChange={(e) => setEditActivityJsFile(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                >
+                  {ACTIVITY_FILES.map((file) => (
+                    <option key={file} value={file}>
+                      {file}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div id="bloc-form-edition-activite-contenu-json">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
+                <textarea
+                  value={editActivityContentText}
+                  onChange={(e) => setEditActivityContentText(e.target.value)}
+                  className="w-full h-32 border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-actions-edition-activite" className="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={submittingEditActivity}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+                >
+                  {submittingEditActivity ? "Modification..." : "Modifier"}
+                </button>
+              </div>
+            </form>
+
+            {editActivityError && (
+              <div id="bloc-erreur-edition-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+                {editActivityError}
+              </div>
             )}
           </section>
         )}
