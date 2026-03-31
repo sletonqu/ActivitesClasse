@@ -270,11 +270,14 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
             key={levelKey}
             id={`match-additions-bouton-${levelKey}`}
             type="button"
+            disabled={finished}
             onClick={() => handleSelectLevel(levelKey)}
             className={`px-4 py-2 rounded font-semibold ${
               currentLevel === levelKey
                 ? "bg-indigo-600 text-white"
                 : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+            } ${
+              finished ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
             {configuredLevels[levelKey].label}
@@ -342,8 +345,8 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
         ))}
       </div>
 
-      <div id="match-additions-actions" className="flex justify-center gap-3">
-        {!finished && (
+      {!finished && (
+        <div id="match-additions-actions" className="flex justify-center gap-3">
           <button
             id="match-additions-bouton-valider"
             type="button"
@@ -353,7 +356,6 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
           >
             Valider
           </button>
-        )}
         <button
           id="match-additions-bouton-recommencer"
           type="button"
@@ -362,7 +364,8 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
         >
           Recommencer
         </button>
-      </div>
+        </div>
+      )}
 
       {finished && (
         <p id="match-additions-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
