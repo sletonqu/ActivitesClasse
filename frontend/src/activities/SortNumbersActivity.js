@@ -107,6 +107,8 @@ const SortNumbersActivity = ({ content, onComplete }) => {
   const [draggedIdx, setDraggedIdx] = useState(null);
   const [finished, setFinished] = useState(false);
 
+  const getExpectedValues = (tileList) => tileList.map((tile) => tile.value).slice().sort((a, b) => a - b);
+
   const handleDragStart = (idx) => setDraggedIdx(idx);
   const handleDragOver = (e) => e.preventDefault();
   const handleDrop = (idx) => {
@@ -119,7 +121,8 @@ const SortNumbersActivity = ({ content, onComplete }) => {
   };
 
   const handleValidate = () => {
-    const isSorted = tiles.every((t, i, arr) => i === 0 || arr[i - 1].value <= t.value);
+    const expectedValues = getExpectedValues(tiles);
+    const isSorted = tiles.every((tile, index) => tile.value === expectedValues[index]);
     setFinished(true);
     if (onComplete) onComplete(isSorted ? 20 : 0);
   };
@@ -147,11 +150,14 @@ const SortNumbersActivity = ({ content, onComplete }) => {
             key={levelKey}
             id={`sort-numbers-bouton-${levelKey}`}
             type="button"
+            disabled={finished}
             onClick={() => handleSelectLevel(levelKey)}
             className={`px-4 py-2 rounded font-semibold ${
               currentLevel === levelKey
                 ? "bg-indigo-600 text-white"
                 : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+            } ${
+              finished ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
             {configuredLevels[levelKey].label}
@@ -160,23 +166,35 @@ const SortNumbersActivity = ({ content, onComplete }) => {
       </div>
 
       <div id="sort-numbers-tuiles" className="flex gap-4 justify-center mb-6">
-        {tiles.map((t, idx) => (
-          <div
-            key={idx}
-            id={`sort-numbers-tuile-${idx}`}
-            className="w-16 h-16 flex items-center justify-center bg-blue-200 rounded shadow cursor-move text-2xl font-bold select-none hover:scale-105"
-            draggable={!finished}
-            onDragStart={() => handleDragStart(idx)}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(idx)}
-            style={{ opacity: finished ? 0.5 : 1, transform: `rotate(${t.rotation}deg)` }}
-          >
-            {t.value}
-          </div>
-        ))}
+        {tiles.map((t, idx) => {
+          const expectedValues = getExpectedValues(tiles);
+          const isCorrect = t.value === expectedValues[idx];
+
+          return (
+            <div
+              key={idx}
+              id={`sort-numbers-tuile-${idx}`}
+              className={`w-16 h-16 flex items-center justify-center rounded shadow text-2xl font-bold select-none ${
+                finished
+                  ? isCorrect
+                    ? "bg-emerald-100 border-2 border-emerald-500 text-emerald-800"
+                    : "bg-rose-100 border-2 border-rose-500 text-rose-800"
+                  : "bg-blue-200 cursor-move hover:scale-105"
+              }`}
+              draggable={!finished}
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(idx)}
+              style={{ opacity: finished ? 1 : 1, transform: `rotate(${t.rotation}deg)` }}
+            >
+              {t.value}
+            </div>
+          );
+        })}
       </div>
-      <div id="sort-numbers-actions" className="flex justify-center gap-3">
-        {!finished && (
+
+      {!finished && (
+        <div id="sort-numbers-actions" className="flex justify-center gap-3">
           <button
             id="sort-numbers-bouton-valider"
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold"
@@ -184,7 +202,6 @@ const SortNumbersActivity = ({ content, onComplete }) => {
           >
             Valider
           </button>
-        )}
         <button
           id="sort-numbers-bouton-recommencer"
           className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
@@ -192,10 +209,12 @@ const SortNumbersActivity = ({ content, onComplete }) => {
         >
           Recommencer
         </button>
-      </div>
+        </div>
+      )}
+
       {finished && (
         <p id="sort-numbers-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
-          {tiles.every((t, i, arr) => i === 0 || arr[i - 1].value <= t.value)
+          {tiles.every((tile, index) => tile.value === getExpectedValues(tiles)[index])
             ? "Bravo, c'est correct !"
             : "Ce n'est pas l'ordre croissant."}
         </p>
