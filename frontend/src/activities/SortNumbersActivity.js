@@ -9,6 +9,9 @@ export const defaultSortNumbersActivityContent = {
   },
 };
 
+const TILE_ROTATION_MIN_DEGREES = -10;
+const TILE_ROTATION_MAX_DEGREES = 10;
+
 // Utilitaire pour mélanger un tableau
 function shuffle(array) {
   let arr = array.slice();
@@ -45,6 +48,11 @@ function generateUniqueRandomNumbers(count, min, max) {
   }
 
   return Array.from(set);
+}
+
+function randomRotation() {
+  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
+  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
 }
 
 function normalizeLevelRule(rule, fallbackRule) {
@@ -85,10 +93,13 @@ const SortNumbersActivity = ({ content, onComplete }) => {
 
   const buildTilesForLevel = (levelKey) => {
     const level = configuredLevels[levelKey] || configuredLevels.level1;
+    let values;
     if (Array.isArray(content?.numbersByLevel?.[levelKey]) && content.numbersByLevel[levelKey].length > 0) {
-      return shuffle(content.numbersByLevel[levelKey].map((n) => Number(n)).filter((n) => Number.isFinite(n)));
+      values = shuffle(content.numbersByLevel[levelKey].map((n) => Number(n)).filter((n) => Number.isFinite(n)));
+    } else {
+      values = shuffle(generateUniqueRandomNumbers(level.count, level.min, level.max));
     }
-    return shuffle(generateUniqueRandomNumbers(level.count, level.min, level.max));
+    return values.map((v) => ({ value: v, rotation: randomRotation() }));
   };
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
@@ -108,7 +119,7 @@ const SortNumbersActivity = ({ content, onComplete }) => {
   };
 
   const handleValidate = () => {
-    const isSorted = tiles.every((n, i, arr) => i === 0 || arr[i - 1] <= n);
+    const isSorted = tiles.every((t, i, arr) => i === 0 || arr[i - 1].value <= t.value);
     setFinished(true);
     if (onComplete) onComplete(isSorted ? 20 : 0);
   };
@@ -127,13 +138,14 @@ const SortNumbersActivity = ({ content, onComplete }) => {
   };
 
   return (
-    <div>
-      <h3 className="text-lg font-bold mb-4">Classe les nombres dans l'ordre croissant</h3>
+    <div id="sort-numbers-activity">
+      <h3 id="sort-numbers-titre" className="text-lg font-bold mb-4">Classe les nombres dans l'ordre croissant</h3>
 
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
+      <div id="sort-numbers-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
         {allowedLevelKeys.map((levelKey) => (
           <button
             key={levelKey}
+            id={`sort-numbers-bouton-${levelKey}`}
             type="button"
             onClick={() => handleSelectLevel(levelKey)}
             className={`px-4 py-2 rounded font-semibold ${
@@ -147,24 +159,26 @@ const SortNumbersActivity = ({ content, onComplete }) => {
         ))}
       </div>
 
-      <div className="flex gap-4 justify-center mb-6">
-        {tiles.map((n, idx) => (
+      <div id="sort-numbers-tuiles" className="flex gap-4 justify-center mb-6">
+        {tiles.map((t, idx) => (
           <div
             key={idx}
-            className="w-16 h-16 flex items-center justify-center bg-blue-200 rounded shadow cursor-move text-2xl font-bold select-none transition-transform hover:scale-105"
+            id={`sort-numbers-tuile-${idx}`}
+            className="w-16 h-16 flex items-center justify-center bg-blue-200 rounded shadow cursor-move text-2xl font-bold select-none hover:scale-105"
             draggable={!finished}
             onDragStart={() => handleDragStart(idx)}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(idx)}
-            style={{ opacity: finished ? 0.5 : 1 }}
+            style={{ opacity: finished ? 0.5 : 1, transform: `rotate(${t.rotation}deg)` }}
           >
-            {n}
+            {t.value}
           </div>
         ))}
       </div>
-      <div className="flex justify-center gap-3">
+      <div id="sort-numbers-actions" className="flex justify-center gap-3">
         {!finished && (
           <button
+            id="sort-numbers-bouton-valider"
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold"
             onClick={handleValidate}
           >
@@ -172,6 +186,7 @@ const SortNumbersActivity = ({ content, onComplete }) => {
           </button>
         )}
         <button
+          id="sort-numbers-bouton-recommencer"
           className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
           onClick={handleRestart}
         >
@@ -179,8 +194,8 @@ const SortNumbersActivity = ({ content, onComplete }) => {
         </button>
       </div>
       {finished && (
-        <p className="mt-4 text-center text-lg font-medium text-gray-700">
-          {tiles.every((n, i, arr) => i === 0 || arr[i - 1] <= n)
+        <p id="sort-numbers-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
+          {tiles.every((t, i, arr) => i === 0 || arr[i - 1].value <= t.value)
             ? "Bravo, c'est correct !"
             : "Ce n'est pas l'ordre croissant."}
         </p>
