@@ -83,6 +83,16 @@ Principe:
 
 - l'eleve doit associer des additions simples a leur bon resultat.
 
+### 3. Dizaines et unites (crayons)
+
+Fichier associe:
+
+- frontend/src/activities/CountPencilsByTensActivity.js
+
+Principe:
+
+- l'eleve compte des pochettes de 10 crayons et des crayons seuls, puis renseigne dizaines et unites.
+
 ## Structure du Projet
 
 ```text

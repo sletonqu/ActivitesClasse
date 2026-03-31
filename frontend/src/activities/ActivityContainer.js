@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SortNumbersActivity from "./SortNumbersActivity";
 import MatchAdditionsActivity from "./MatchAdditionsActivity";
+import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -9,6 +10,9 @@ const componentRegistry = {
   "src/activities/MatchAdditionsActivity.js": MatchAdditionsActivity,
   "MatchAdditionsActivity": MatchAdditionsActivity,
   "MatchAdditionsActivity.js": MatchAdditionsActivity,
+  "src/activities/CountPencilsByTensActivity.js": CountPencilsByTensActivity,
+  "CountPencilsByTensActivity": CountPencilsByTensActivity,
+  "CountPencilsByTensActivity.js": CountPencilsByTensActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

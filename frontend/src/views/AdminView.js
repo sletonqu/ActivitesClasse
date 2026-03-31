@@ -3,11 +3,13 @@ import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
 import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
+import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
 
 const API_URL = "http://localhost:4000/api";
 const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
+  "src/activities/CountPencilsByTensActivity.js",
 ];
 
 function getDefaultActivityContentText(jsFile) {
@@ -17,6 +19,10 @@ function getDefaultActivityContentText(jsFile) {
 
   if (jsFile === "src/activities/MatchAdditionsActivity.js") {
     return JSON.stringify(defaultMatchAdditionsActivityContent, null, 2);
+  }
+
+  if (jsFile === "src/activities/CountPencilsByTensActivity.js") {
+    return JSON.stringify(defaultCountPencilsByTensActivityContent, null, 2);
   }
 
   return "{}";
