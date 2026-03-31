@@ -130,8 +130,6 @@ const StudentView = () => {
     } catch (err) {
       console.error("Erreur lors de l'enregistrement du résultat:", err);
     }
-
-    setSelectedStudent(null);
   };
 
   const handleExportLeaderboard = () => {

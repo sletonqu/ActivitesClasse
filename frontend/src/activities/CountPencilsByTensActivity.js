@@ -25,7 +25,7 @@ export const defaultCountPencilsByTensActivityContent = {
       minPouches: 2,
       maxPouches: 6,
       minUnits: 0,
-      maxUnits: 9,
+      maxUnits: 16,
     },
   },
 };
@@ -57,8 +57,8 @@ function normalizeLevelRule(rule, fallbackRule) {
   const exerciseCount = parsePositiveInt(source.exerciseCount, fallbackRule.exerciseCount);
   const minPouches = parseIntWithBounds(source.minPouches, fallbackRule.minPouches, 0, 30);
   const maxPouches = parseIntWithBounds(source.maxPouches, fallbackRule.maxPouches, 0, 30);
-  const minUnits = parseIntWithBounds(source.minUnits, fallbackRule.minUnits, 0, 9);
-  const maxUnits = parseIntWithBounds(source.maxUnits, fallbackRule.maxUnits, 0, 9);
+  const minUnits = parseIntWithBounds(source.minUnits, fallbackRule.minUnits, 0, 99);
+  const maxUnits = parseIntWithBounds(source.maxUnits, fallbackRule.maxUnits, 0, 99);
 
   return {
     label: source.label || fallbackRule.label,
@@ -145,6 +145,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
       [exerciseId]: {
         dizaines: prev[exerciseId]?.dizaines || "",
         unites: prev[exerciseId]?.unites || "",
+          total: prev[exerciseId]?.total || "",
         [field]: cleanValue,
       },
     }));
@@ -169,9 +170,11 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   const isExerciseCorrect = (exercise) => {
     const givenDizaines = Number(answers[exercise.id]?.dizaines);
     const givenUnites = Number(answers[exercise.id]?.unites);
+  const givenTotal = Number(answers[exercise.id]?.total);
+  const expectedTotal = exercise.pouches * 10 + exercise.units;
 
-    if (!Number.isFinite(givenDizaines) || !Number.isFinite(givenUnites)) return false;
-    return givenDizaines === exercise.pouches && givenUnites === exercise.units;
+  if (!Number.isFinite(givenDizaines) || !Number.isFinite(givenUnites) || !Number.isFinite(givenTotal)) return false;
+  return givenDizaines === exercise.pouches && givenUnites === exercise.units && givenTotal === expectedTotal;
   };
 
   const handleValidate = () => {
@@ -187,7 +190,12 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   const allAnswered = exercises.every((exercise) => {
     const dizaines = answers[exercise.id]?.dizaines;
     const unites = answers[exercise.id]?.unites;
-    return dizaines !== undefined && dizaines !== "" && unites !== undefined && unites !== "";
+    const total = answers[exercise.id]?.total;
+    return (
+      dizaines !== undefined && dizaines !== "" &&
+      unites !== undefined && unites !== "" &&
+      total !== undefined && total !== ""
+    );
   });
 
   return (
@@ -196,7 +204,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         Compte les crayons: pochettes de 10 et unites
       </h3>
       <p id="count-pencils-by-tens-consigne" className="text-sm text-slate-600 mb-5">
-        Chaque pochette contient 10 crayons. Ecris le nombre de dizaines et d'unites pour chaque case.
+        Chaque pochette contient 10 crayons. Ecris le nombre de dizaines, d'unites et le total de crayons pour chaque case.
       </p>
 
       <div id="count-pencils-by-tens-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
@@ -205,11 +213,14 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
             key={levelKey}
             id={`count-pencils-by-tens-bouton-${levelKey}`}
             type="button"
+            disabled={finished}
             onClick={() => handleSelectLevel(levelKey)}
             className={`px-4 py-2 rounded font-semibold ${
               currentLevel === levelKey
                 ? "bg-indigo-600 text-white"
                 : "bg-slate-200 text-slate-800 hover:bg-slate-300"
+            } ${
+              finished ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
             {configuredLevels[levelKey].label}
@@ -243,7 +254,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <label className="text-sm font-medium text-slate-700">
                   Dizaines
                   <input
@@ -264,9 +275,22 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                     id={`count-pencils-by-tens-unites-${exercise.id}`}
                     type="text"
                     inputMode="numeric"
-                    maxLength={1}
+                    maxLength={2}
                     value={answers[exercise.id]?.unites || ""}
                     onChange={(event) => updateAnswer(exercise.id, "unites", event.target.value)}
+                    disabled={finished}
+                    className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  Total
+                  <input
+                    id={`count-pencils-by-tens-total-${exercise.id}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    value={answers[exercise.id]?.total || ""}
+                    onChange={(event) => updateAnswer(exercise.id, "total", event.target.value)}
                     disabled={finished}
                     className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
                   />
@@ -275,7 +299,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
 
               {finished && !correct && (
                 <p className="mt-2 text-sm font-medium text-rose-700">
-                  Correction: {exercise.pouches} dizaines et {exercise.units} unites.
+                  Correction: {exercise.pouches} dizaines, {exercise.units} unites et {exercise.pouches * 10 + exercise.units} total.
                 </p>
               )}
             </div>
@@ -283,8 +307,8 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         })}
       </div>
 
-      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
-        {!finished && (
+      {!finished && (
+        <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
           <button
             id="count-pencils-by-tens-bouton-valider"
             type="button"
@@ -294,7 +318,6 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
           >
             Valider
           </button>
-        )}
         <button
           id="count-pencils-by-tens-bouton-recommencer"
           type="button"
@@ -303,7 +326,8 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         >
           Recommencer
         </button>
-      </div>
+        </div>
+      )}
 
       {finished && (
         <p id="count-pencils-by-tens-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
