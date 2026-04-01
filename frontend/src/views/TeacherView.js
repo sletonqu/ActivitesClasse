@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
+import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
+import StudentsManagementPanel from "../components/StudentsManagementPanel";
+import ResultsManagementPanel from "../components/ResultsManagementPanel";
 import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
 import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
@@ -624,399 +627,75 @@ const TeacherView = () => {
         </select>
       </div>
 
-      <div id="zone-gestion-eleves" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section id="section-gestion-eleves" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
+      <StudentsManagementPanel
+        studentName={studentName}
+        studentFirstname={studentFirstname}
+        submittingStudent={submittingStudent}
+        studentMessage={studentMessage}
+        studentError={studentError}
+        showStudentMessage={showStudentMessage}
+        fadeStudentMessage={fadeStudentMessage}
+        showStudentsList={showStudentsList}
+        students={students}
+        selectedClassId={selectedClassId}
+        selectedStudentId={selectedStudentId}
+        loadingStudents={loadingStudents}
+        deletingAllStudents={deletingAllStudents}
+        deletingStudentId={deletingStudentId}
+        onStudentNameChange={setStudentName}
+        onStudentFirstnameChange={setStudentFirstname}
+        onAddStudent={handleAddStudent}
+        onToggleStudentsList={handleToggleStudentsList}
+        onSelectStudent={setSelectedStudentId}
+        onDeleteStudent={handleDeleteStudent}
+        onDeleteAllStudents={handleDeleteAllStudents}
+      />
 
-          <form onSubmit={handleAddStudent} className="space-y-4">
-            <div id="bloc-form-eleve-nom">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Nom</label>
-              <input
-                type="text"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                placeholder="Ex: Dupont"
-              />
-            </div>
-
-            <div id="bloc-form-eleve-prenom">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Prénom</label>
-              <input
-                type="text"
-                value={studentFirstname}
-                onChange={(e) => setStudentFirstname(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                placeholder="Ex: Alice"
-              />
-            </div>
-
-            <div id="bloc-actions-eleves" className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={submittingStudent}
-                className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
-              >
-                {submittingStudent ? "Ajout en cours..." : "Ajouter"}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleToggleStudentsList}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-              >
-                {showStudentsList ? "Masquer la Liste des Élèves" : "Liste des Élèves"}
-              </button>
-            </div>
-          </form>
-
-          {showStudentMessage && studentMessage && (
-            <div
-              id="bloc-message-eleve"
-              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-                fadeStudentMessage ? "opacity-0" : "opacity-100"
-              }`}
-            >
-              {studentMessage}
-            </div>
-          )}
-
-          {studentError && (
-            <div id="bloc-erreur-eleve" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
-              {studentError}
-            </div>
-          )}
-        </section>
-
-        {showStudentsList && (
-          <section id="section-liste-eleves" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-            <div id="bloc-entete-liste-eleves" className="flex items-center justify-between mb-4 gap-3">
-              <h3 className="text-xl font-bold text-slate-800">Liste des Élèves</h3>
-              <button
-                type="button"
-                onClick={handleDeleteAllStudents}
-                disabled={!selectedClassId || students.length === 0 || deletingAllStudents}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-              >
-                {deletingAllStudents ? "Suppression..." : "Supprimer Tout"}
-              </button>
-            </div>
-
-            {!selectedClassId ? (
-              <p className="text-slate-500 text-sm">Sélectionnez une classe pour afficher les élèves.</p>
-            ) : loadingStudents ? (
-              <p className="text-slate-500 text-sm">Chargement...</p>
-            ) : students.length === 0 ? (
-              <p className="text-slate-500 text-sm">Aucun élève trouvé pour cette classe.</p>
-            ) : (
-              <ul id="liste-eleves-classe-active" className="space-y-3">
-                {students.map((student) => (
-                  <li
-                    id={`ligne-eleve-${student.id}`}
-                    key={student.id}
-                    onMouseEnter={() => setSelectedStudentId(String(student.id))}
-                    onFocus={() => setSelectedStudentId(String(student.id))}
-                    tabIndex={0}
-                    className={`border rounded-lg p-3 ${
-                      String(selectedStudentId) === String(student.id)
-                        ? "border-indigo-400 bg-indigo-50"
-                        : "border-slate-200"
-                    }`}
-                  >
-                    <div id={`bloc-actions-eleve-${student.id}`} className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-slate-800">
-                        {student.firstname} {student.name}
-                      </p>
-                      {String(selectedStudentId) === String(student.id) && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteStudent(student)}
-                          disabled={deletingStudentId === String(student.id) || deletingAllStudents}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-                        >
-                          {deletingStudentId === String(student.id) ? "Suppression..." : "Supprimer"}
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-      </div>
-
-      <div id="zone-gestion-resultats" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section id="section-gestion-resultats" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
-
-          {!selectedClassId ? (
-            <p className="text-slate-500 text-sm">Sélectionnez une classe active pour gérer les résultats.</p>
-          ) : students.length === 0 ? (
-            <p className="text-slate-500 text-sm">Aucun élève trouvé dans cette classe.</p>
-          ) : (
-            <div id="bloc-selection-eleve-resultats">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Élève</label>
-              <select
-                value={selectedResultStudentId}
-                onChange={(e) => setSelectedResultStudentId(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-              >
-                <option value="">Sélectionner un élève</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.firstname} {student.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </section>
-
-        <section id="section-liste-resultats-eleve" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Résultats de l'élève</h3>
-
-          {!selectedClassId ? (
-            <p className="text-slate-500 text-sm">Aucune classe active.</p>
-          ) : !selectedResultStudentId ? (
-            <p className="text-slate-500 text-sm">Sélectionnez un élève pour afficher ses résultats.</p>
-          ) : loadingResults ? (
-            <p className="text-slate-500 text-sm">Chargement...</p>
-          ) : resultsError ? (
-            <div id="bloc-erreur-resultats" className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
-              {resultsError}
-            </div>
-          ) : studentResults.length === 0 ? (
-            <p className="text-slate-500 text-sm">Aucun résultat enregistré pour cet élève.</p>
-          ) : (
-            <div id="bloc-contenu-resultats-eleve">
-              <div id="bloc-entete-resultats-eleve" className="flex items-center justify-between mb-3 gap-3">
-                <p className="text-sm text-slate-600">
-                  Élève: <span className="font-semibold text-slate-800">{selectedResultStudent?.firstname} {selectedResultStudent?.name}</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={handleDeleteAllResults}
-                  disabled={deletingAllResults || studentResults.length === 0}
-                  className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-                >
-                  {deletingAllResults ? "Suppression..." : "Supprimer Tout"}
-                </button>
-              </div>
-              <ul id="liste-resultats-eleve" className="space-y-3">
-                {studentResults.map((result) => (
-                  <li
-                    id={`ligne-resultat-${result.id}`}
-                    key={result.id}
-                    onMouseEnter={() => setSelectedResultId(String(result.id))}
-                    onFocus={() => setSelectedResultId(String(result.id))}
-                    tabIndex={0}
-                    className={`border rounded-lg p-3 cursor-default ${
-                      String(selectedResultId) === String(result.id)
-                        ? "border-indigo-400 bg-indigo-50"
-                        : "border-slate-200"
-                    }`}
-                  >
-                    <div id={`bloc-actions-resultat-${result.id}`} className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-slate-800">{getActivityLabel(result.activity_id)}</p>
-                      {String(selectedResultId) === String(result.id) && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleCalculateAverage(result);
-                            }}
-                            disabled={
-                              calculatingAverageResultId === String(result.id) ||
-                              deletingResultId === String(result.id) ||
-                              deletingAllResults
-                            }
-                            className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-60"
-                          >
-                            {calculatingAverageResultId === String(result.id)
-                              ? "Calcul..."
-                              : "Calculer Moyenne"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleDeleteResult(result.id);
-                            }}
-                            disabled={
-                              deletingResultId === String(result.id) ||
-                              deletingAllResults ||
-                              calculatingAverageResultId === String(result.id)
-                            }
-                            className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-                          >
-                            {deletingResultId === String(result.id) ? "Suppression..." : "Supprimer"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-600">Score: {result.score}/20</p>
-                    <p className="text-sm text-slate-500">
-                      Date: {result.completed_at ? new Date(result.completed_at).toLocaleString() : "Non définie"}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      </div>
+      <ResultsManagementPanel
+        selectedClassId={selectedClassId}
+        selectedResultStudentId={selectedResultStudentId}
+        selectedResultId={selectedResultId}
+        students={students}
+        studentResults={studentResults}
+        selectedResultStudent={selectedResultStudent}
+        loadingResults={loadingResults}
+        resultsError={resultsError}
+        deletingAllResults={deletingAllResults}
+        deletingResultId={deletingResultId}
+        calculatingAverageResultId={calculatingAverageResultId}
+        onSelectResultStudent={setSelectedResultStudentId}
+        onSelectResult={setSelectedResultId}
+        onCalculateAverage={handleCalculateAverage}
+        onDeleteResult={handleDeleteResult}
+        onDeleteAllResults={handleDeleteAllResults}
+        getActivityLabel={getActivityLabel}
+      />
 
       <div id="zone-gestion-activites" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-        <section
-          id="section-gestion-activites"
-          className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
-        >
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités disponibles</h3>
-
-          <div id="bloc-actions-activites" className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={handleToggleActivitiesList}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              {showActivitiesList ? "Masquer la Liste des activités" : "Afficher les activités"}
-            </button>
-          </div>
-
-          {showActivityMessage && activityMessage && (
-            <div
-              id="bloc-message-activite"
-              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-                fadeActivityMessage ? "opacity-0" : "opacity-100"
-              }`}
-            >
-              {activityMessage}
-            </div>
-          )}
-        </section>
-
-        {showActivitiesList && (
-          <section
-            id="section-liste-activites"
-            className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
-          >
-            <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
-
-            {loadingActivities ? (
-              <p className="text-slate-500 text-sm">Chargement...</p>
-            ) : activities.length === 0 ? (
-              <p className="text-slate-500 text-sm">Aucune activité trouvée.</p>
-            ) : (
-              <ul className="space-y-3">
-                {activities.map((activity) => (
-                  <li
-                    key={activity.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleSelectActivityToEdit(activity)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        handleSelectActivityToEdit(activity);
-                      }
-                    }}
-                    className={`border rounded-lg p-3 cursor-pointer ${
-                      String(selectedActivityEditId) === String(activity.id)
-                        ? "border-indigo-400 bg-indigo-50"
-                        : "border-slate-200"
-                    }`}
-                  >
-                    <p className="font-semibold text-slate-800">{activity.title}</p>
-                    <p className="text-sm text-slate-600">Statut: {activity.status || "Non défini"}</p>
-                    <p className="text-sm text-slate-600">Fichier: {activity.js_file || "Aucun"}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-
-        {showActivitiesList && selectedActivityEditId && (
-          <section id="section-edition-activite" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
-
-            <form onSubmit={handleUpdateActivity} className="space-y-4">
-              <div id="bloc-form-edition-activite-titre">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
-                <input
-                  type="text"
-                  value={editActivityTitle}
-                  onChange={(e) => setEditActivityTitle(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                />
-              </div>
-
-              <div id="bloc-form-edition-activite-description">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-                <input
-                  type="text"
-                  value={editActivityDescription}
-                  onChange={(e) => setEditActivityDescription(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                />
-              </div>
-
-              <div id="bloc-form-edition-activite-statut">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
-                <select
-                  value={editActivityStatus}
-                  onChange={(e) => setEditActivityStatus(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-
-              <div id="bloc-form-edition-activite-js-file">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
-                <select
-                  value={editActivityJsFile}
-                  onChange={(e) => setEditActivityJsFile(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                >
-                  {ACTIVITY_FILES.map((file) => (
-                    <option key={file} value={file}>
-                      {file}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div id="bloc-form-edition-activite-contenu-json">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
-                <textarea
-                  value={editActivityContentText}
-                  onChange={(e) => setEditActivityContentText(e.target.value)}
-                  className="w-full h-32 border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-                />
-              </div>
-
-              <div id="bloc-actions-edition-activite" className="flex flex-wrap gap-3">
-                <button
-                  type="submit"
-                  disabled={submittingEditActivity}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
-                >
-                  {submittingEditActivity ? "Modification..." : "Modifier"}
-                </button>
-              </div>
-            </form>
-
-            {editActivityError && (
-              <div id="bloc-erreur-edition-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
-                {editActivityError}
-              </div>
-            )}
-          </section>
-        )}
+        <ActivitiesManagementPanel
+          activities={activities}
+          loadingActivities={loadingActivities}
+          showActivitiesList={showActivitiesList}
+          selectedActivityEditId={selectedActivityEditId}
+          editActivityTitle={editActivityTitle}
+          editActivityDescription={editActivityDescription}
+          editActivityStatus={editActivityStatus}
+          editActivityJsFile={editActivityJsFile}
+          editActivityContentText={editActivityContentText}
+          submittingEditActivity={submittingEditActivity}
+          editActivityError={editActivityError}
+          activityMessage={activityMessage}
+          showActivityMessage={showActivityMessage}
+          fadeActivityMessage={fadeActivityMessage}
+          onToggleActivitiesList={handleToggleActivitiesList}
+          onSelectActivityToEdit={handleSelectActivityToEdit}
+          onUpdateActivity={handleUpdateActivity}
+          onEditTitleChange={setEditActivityTitle}
+          onEditDescriptionChange={setEditActivityDescription}
+          onEditStatusChange={setEditActivityStatus}
+          onEditJsFileChange={setEditActivityJsFile}
+          onEditContentChange={setEditActivityContentText}
+        />
       </div>
 
       <StudentsImportExportPanel
