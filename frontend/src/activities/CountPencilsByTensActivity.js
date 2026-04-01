@@ -6,22 +6,28 @@ export const defaultCountPencilsByTensActivityContent = {
     level1: {
       label: "Niveau 1",
       exerciseCount: 4,
-      minPouches: 1,
+      minCartons: 0,
+      maxCartons: 0,
+      minPouches: 0,
       maxPouches: 3,
       minUnits: 0,
-      maxUnits: 5,
+      maxUnits: 9,
     },
     level2: {
       label: "Niveau 2",
       exerciseCount: 4,
+      minCartons: 0,
+      maxCartons: 2,
       minPouches: 1,
       maxPouches: 4,
       minUnits: 0,
-      maxUnits: 9,
+      maxUnits: 12,
     },
     level3: {
       label: "Niveau 3",
       exerciseCount: 6,
+      minCartons: 1,
+      maxCartons: 4,
       minPouches: 2,
       maxPouches: 6,
       minUnits: 0,
@@ -55,6 +61,8 @@ function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
 
   const exerciseCount = parsePositiveInt(source.exerciseCount, fallbackRule.exerciseCount);
+  const minCartons = parseIntWithBounds(source.minCartons, fallbackRule.minCartons, 0, 20);
+  const maxCartons = parseIntWithBounds(source.maxCartons, fallbackRule.maxCartons, 0, 20);
   const minPouches = parseIntWithBounds(source.minPouches, fallbackRule.minPouches, 0, 30);
   const maxPouches = parseIntWithBounds(source.maxPouches, fallbackRule.maxPouches, 0, 30);
   const minUnits = parseIntWithBounds(source.minUnits, fallbackRule.minUnits, 0, 99);
@@ -63,6 +71,8 @@ function normalizeLevelRule(rule, fallbackRule) {
   return {
     label: source.label || fallbackRule.label,
     exerciseCount,
+    minCartons: Math.min(minCartons, maxCartons),
+    maxCartons: Math.max(minCartons, maxCartons),
     minPouches: Math.min(minPouches, maxPouches),
     maxPouches: Math.max(minPouches, maxPouches),
     minUnits: Math.min(minUnits, maxUnits),
@@ -78,11 +88,14 @@ function randomIntBetween(min, max) {
 
 function buildExercises(levelRule) {
   return Array.from({ length: levelRule.exerciseCount }, (_, index) => {
+    const cartons = randomIntBetween(levelRule.minCartons, levelRule.maxCartons);
     const pouches = randomIntBetween(levelRule.minPouches, levelRule.maxPouches);
     const units = randomIntBetween(levelRule.minUnits, levelRule.maxUnits);
 
     return {
       id: index + 1,
+      cartons,
+      cartons_rotations: Array.from({ length: cartons }, () => randomRotation()),
       pouches,
       pouches_rotations: Array.from({ length: pouches }, () => randomRotation()),
       units,
@@ -93,13 +106,14 @@ function buildExercises(levelRule) {
 
 function renderPencilUnits(count, rotations = []) {
   return Array.from({ length: count }, (_, index) => (
-    <span
+    <img
       key={index}
-      className="text-2xl leading-none inline-block"
+      src="/images/Crayons_x1.png"
+      alt="Crayon"
+      className="h-7 w-auto object-contain inline-block"
+      title="Un crayon = 1 unite"
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
-    >
-      ✏️
-    </span>
+    />
   ));
 }
 
@@ -111,6 +125,19 @@ function renderPouches(count, rotations = []) {
       alt="Pochette de 10 crayons"
       className="w-16 h-16 object-cover"
       title="Une pochette = 10 crayons"
+      style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
+    />
+  ));
+}
+
+function renderCartons(count, rotations = []) {
+  return Array.from({ length: count }, (_, index) => (
+    <img
+      key={index}
+      src="/images/cartons_x100_crayons.png"
+      alt="Carton de 100 crayons"
+      className="w-16 h-16 object-cover"
+      title="Un carton = 100 crayons"
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
@@ -136,6 +163,10 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
 
+  const showCentainesInput = exercises.some(
+    (exercise) => exercise.cartons * 100 + exercise.pouches * 10 + exercise.units > 99
+  );
+
   const updateAnswer = (exerciseId, field, rawValue) => {
     if (finished) return;
     const cleanValue = rawValue.replace(/[^0-9]/g, "");
@@ -143,9 +174,10 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
     setAnswers((prev) => ({
       ...prev,
       [exerciseId]: {
+        centaines: prev[exerciseId]?.centaines || "",
         dizaines: prev[exerciseId]?.dizaines || "",
         unites: prev[exerciseId]?.unites || "",
-          total: prev[exerciseId]?.total || "",
+        total: prev[exerciseId]?.total || "",
         [field]: cleanValue,
       },
     }));
@@ -168,13 +200,21 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   };
 
   const isExerciseCorrect = (exercise) => {
+    const givenCentaines = Number(answers[exercise.id]?.centaines);
     const givenDizaines = Number(answers[exercise.id]?.dizaines);
     const givenUnites = Number(answers[exercise.id]?.unites);
-  const givenTotal = Number(answers[exercise.id]?.total);
-  const expectedTotal = exercise.pouches * 10 + exercise.units;
+    const givenTotal = Number(answers[exercise.id]?.total);
+    const expectedTotal = exercise.cartons * 100 + exercise.pouches * 10 + exercise.units;
 
-  if (!Number.isFinite(givenDizaines) || !Number.isFinite(givenUnites) || !Number.isFinite(givenTotal)) return false;
-  return givenDizaines === exercise.pouches && givenUnites === exercise.units && givenTotal === expectedTotal;
+    if (!Number.isFinite(givenDizaines) || !Number.isFinite(givenUnites) || !Number.isFinite(givenTotal)) return false;
+    if (showCentainesInput && !Number.isFinite(givenCentaines)) return false;
+
+    return (
+      (!showCentainesInput || givenCentaines === exercise.cartons) &&
+      givenDizaines === exercise.pouches &&
+      givenUnites === exercise.units &&
+      givenTotal === expectedTotal
+    );
   };
 
   const handleValidate = () => {
@@ -188,10 +228,12 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   };
 
   const allAnswered = exercises.every((exercise) => {
+    const centaines = answers[exercise.id]?.centaines;
     const dizaines = answers[exercise.id]?.dizaines;
     const unites = answers[exercise.id]?.unites;
     const total = answers[exercise.id]?.total;
     return (
+      (!showCentainesInput || (centaines !== undefined && centaines !== "")) &&
       dizaines !== undefined && dizaines !== "" &&
       unites !== undefined && unites !== "" &&
       total !== undefined && total !== ""
@@ -201,10 +243,10 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   return (
     <div id="count-pencils-by-tens-activity">
       <h3 id="count-pencils-by-tens-titre" className="text-lg font-bold mb-2">
-        Compte les crayons: pochettes de 10 et unites
+        Compte les crayons: cartons de 100, pochettes de 10 et unites
       </h3>
       <p id="count-pencils-by-tens-consigne" className="text-sm text-slate-600 mb-5">
-        Chaque pochette contient 10 crayons. Ecris le nombre de dizaines, d'unites et le total de crayons pour chaque case.
+        Chaque pochette contient 10 crayons. Chaque carton contient 10 pochettes de 10 crayons. Ecris le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
       </p>
 
       <div id="count-pencils-by-tens-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
@@ -245,16 +287,37 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
             >
               <div className="mb-4 space-y-3">
                 <div>
+                  <div className="flex flex-wrap gap-2">
+                    {exercise.cartons > 0 ? renderCartons(exercise.cartons, exercise.cartons_rotations) : null}
+                  </div>
+                </div>
+                <div>
                   <div className="flex flex-wrap gap-2">{renderPouches(exercise.pouches, exercise.pouches_rotations)}</div>
                 </div>
                 <div>
                   <div className="flex flex-wrap gap-1 min-h-[34px]">
-                    {exercise.units > 0 ? renderPencilUnits(exercise.units, exercise.units_rotations) : <span className="text-slate-400">Aucun</span>}
+                    {exercise.units > 0 ? renderPencilUnits(exercise.units, exercise.units_rotations) : null}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}>
+                {showCentainesInput && (
+                  <label className="text-sm font-medium text-slate-700">
+                    Centaines
+                    <input
+                      id={`count-pencils-by-tens-centaines-${exercise.id}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={2}
+                      value={answers[exercise.id]?.centaines || ""}
+                      onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
+                      disabled={finished}
+                      className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
+                    />
+                  </label>
+                )}
+
                 <label className="text-sm font-medium text-slate-700">
                   Dizaines
                   <input
@@ -299,7 +362,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
 
               {finished && !correct && (
                 <p className="mt-2 text-sm font-medium text-rose-700">
-                  Correction: {exercise.pouches} dizaines, {exercise.units} unites et {exercise.pouches * 10 + exercise.units} total.
+                  Correction: {showCentainesInput ? `${exercise.cartons} centaines, ` : ""}{exercise.pouches} dizaines, {exercise.units} unites et {exercise.cartons * 100 + exercise.pouches * 10 + exercise.units} total.
                 </p>
               )}
             </div>
