@@ -1,7 +1,31 @@
 import React, { useEffect, useState } from "react";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
+import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
+import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
+import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
 
 const API_URL = "http://localhost:4000/api";
+const ACTIVITY_FILES = [
+  "src/activities/SortNumbersActivity.js",
+  "src/activities/MatchAdditionsActivity.js",
+  "src/activities/CountPencilsByTensActivity.js",
+];
+
+function getDefaultActivityContentText(jsFile) {
+  if (jsFile === "src/activities/SortNumbersActivity.js") {
+    return JSON.stringify(defaultSortNumbersActivityContent, null, 2);
+  }
+
+  if (jsFile === "src/activities/MatchAdditionsActivity.js") {
+    return JSON.stringify(defaultMatchAdditionsActivityContent, null, 2);
+  }
+
+  if (jsFile === "src/activities/CountPencilsByTensActivity.js") {
+    return JSON.stringify(defaultCountPencilsByTensActivityContent, null, 2);
+  }
+
+  return "{}";
+}
 
 const TeacherView = () => {
   const [classes, setClasses] = useState([]);
@@ -28,6 +52,19 @@ const TeacherView = () => {
   const [deletingResultId, setDeletingResultId] = useState("");
   const [deletingAllResults, setDeletingAllResults] = useState(false);
   const [calculatingAverageResultId, setCalculatingAverageResultId] = useState("");
+  const [showActivitiesList, setShowActivitiesList] = useState(false);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
+  const [editActivityTitle, setEditActivityTitle] = useState("");
+  const [editActivityDescription, setEditActivityDescription] = useState("");
+  const [editActivityStatus, setEditActivityStatus] = useState("Active");
+  const [editActivityJsFile, setEditActivityJsFile] = useState(ACTIVITY_FILES[0]);
+  const [editActivityContentText, setEditActivityContentText] = useState("{}");
+  const [submittingEditActivity, setSubmittingEditActivity] = useState(false);
+  const [editActivityError, setEditActivityError] = useState("");
+  const [activityMessage, setActivityMessage] = useState("");
+  const [showActivityMessage, setShowActivityMessage] = useState(false);
+  const [fadeActivityMessage, setFadeActivityMessage] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/classes`)
@@ -41,17 +78,25 @@ const TeacherView = () => {
       })
       .catch(() => setClasses([]));
 
-    fetch(`${API_URL}/activities`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setActivities(data);
-        } else {
-          setActivities([]);
-        }
-      })
-      .catch(() => setActivities([]));
+    loadActivities();
   }, []);
+
+  const loadActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const res = await fetch(`${API_URL}/activities`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setActivities(data);
+      } else {
+        setActivities([]);
+      }
+    } catch {
+      setActivities([]);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
 
   useEffect(() => {
     if (!studentMessage) {
@@ -78,6 +123,32 @@ const TeacherView = () => {
       clearTimeout(hideTimer);
     };
   }, [studentMessage]);
+
+  useEffect(() => {
+    if (!activityMessage) {
+      setShowActivityMessage(false);
+      setFadeActivityMessage(false);
+      return;
+    }
+
+    setShowActivityMessage(true);
+    setFadeActivityMessage(false);
+
+    const fadeTimer = setTimeout(() => {
+      setFadeActivityMessage(true);
+    }, 3500);
+
+    const hideTimer = setTimeout(() => {
+      setShowActivityMessage(false);
+      setActivityMessage("");
+      setFadeActivityMessage(false);
+    }, 4000);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [activityMessage]);
 
   const loadStudents = async () => {
     if (!selectedClassId) {
@@ -385,6 +456,96 @@ const TeacherView = () => {
       return `js-file:${String(activity.js_file).trim()}`;
     }
     return `activity-id:${activityId}`;
+  };
+
+  const normalizeActivityContentForEditor = (content) => {
+    if (content === null || content === undefined || content === "") {
+      return "{}";
+    }
+
+    if (typeof content === "string") {
+      try {
+        return JSON.stringify(JSON.parse(content), null, 2);
+      } catch {
+        return content;
+      }
+    }
+
+    try {
+      return JSON.stringify(content, null, 2);
+    } catch {
+      return "{}";
+    }
+  };
+
+  const handleToggleActivitiesList = async () => {
+    const next = !showActivitiesList;
+    setShowActivitiesList(next);
+    if (next) {
+      await loadActivities();
+    } else {
+      setSelectedActivityEditId("");
+      setEditActivityError("");
+    }
+  };
+
+  const handleSelectActivityToEdit = (activity) => {
+    setSelectedActivityEditId(String(activity.id));
+    setEditActivityTitle(activity.title || "");
+    setEditActivityDescription(activity.description || "");
+    setEditActivityStatus(activity.status || "Active");
+    setEditActivityJsFile(activity.js_file || ACTIVITY_FILES[0]);
+    setEditActivityContentText(normalizeActivityContentForEditor(activity.content));
+    setEditActivityError("");
+    setActivityMessage("");
+  };
+
+  const handleUpdateActivity = async (e) => {
+    e.preventDefault();
+    setSubmittingEditActivity(true);
+    setEditActivityError("");
+    setActivityMessage("");
+
+    try {
+      if (!selectedActivityEditId) {
+        throw new Error("Aucune activité sélectionnée");
+      }
+
+      if (!editActivityTitle.trim()) {
+        throw new Error("Le titre de l'activité est obligatoire");
+      }
+
+      let parsedContent = {};
+      if (editActivityContentText.trim()) {
+        parsedContent = JSON.parse(editActivityContentText);
+      }
+
+      const resp = await fetch(`${API_URL}/activities/${selectedActivityEditId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editActivityTitle.trim(),
+          description: editActivityDescription.trim(),
+          content: parsedContent,
+          status: editActivityStatus,
+          js_file: editActivityJsFile || null,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la modification de l'activité");
+      }
+
+      setActivityMessage("Activité modifiée");
+      setSelectedActivityEditId("");
+      setEditActivityError("");
+      await loadActivities();
+    } catch (err) {
+      setEditActivityError(err.message || "Erreur inconnue");
+    } finally {
+      setSubmittingEditActivity(false);
+    }
   };
 
   const handleCalculateAverage = async (selectedResult) => {
@@ -705,6 +866,157 @@ const TeacherView = () => {
             </div>
           )}
         </section>
+      </div>
+
+      <div id="zone-gestion-activites" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+        <section
+          id="section-gestion-activites"
+          className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+        >
+          <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités disponibles</h3>
+
+          <div id="bloc-actions-activites" className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleToggleActivitiesList}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              {showActivitiesList ? "Masquer la Liste des activités" : "Afficher les activités"}
+            </button>
+          </div>
+
+          {showActivityMessage && activityMessage && (
+            <div
+              id="bloc-message-activite"
+              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
+                fadeActivityMessage ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              {activityMessage}
+            </div>
+          )}
+        </section>
+
+        {showActivitiesList && (
+          <section
+            id="section-liste-activites"
+            className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+          >
+            <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
+
+            {loadingActivities ? (
+              <p className="text-slate-500 text-sm">Chargement...</p>
+            ) : activities.length === 0 ? (
+              <p className="text-slate-500 text-sm">Aucune activité trouvée.</p>
+            ) : (
+              <ul className="space-y-3">
+                {activities.map((activity) => (
+                  <li
+                    key={activity.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleSelectActivityToEdit(activity)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleSelectActivityToEdit(activity);
+                      }
+                    }}
+                    className={`border rounded-lg p-3 cursor-pointer ${
+                      String(selectedActivityEditId) === String(activity.id)
+                        ? "border-indigo-400 bg-indigo-50"
+                        : "border-slate-200"
+                    }`}
+                  >
+                    <p className="font-semibold text-slate-800">{activity.title}</p>
+                    <p className="text-sm text-slate-600">Statut: {activity.status || "Non défini"}</p>
+                    <p className="text-sm text-slate-600">Fichier: {activity.js_file || "Aucun"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {showActivitiesList && selectedActivityEditId && (
+          <section id="section-edition-activite" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
+
+            <form onSubmit={handleUpdateActivity} className="space-y-4">
+              <div id="bloc-form-edition-activite-titre">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
+                <input
+                  type="text"
+                  value={editActivityTitle}
+                  onChange={(e) => setEditActivityTitle(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-form-edition-activite-description">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  value={editActivityDescription}
+                  onChange={(e) => setEditActivityDescription(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-form-edition-activite-statut">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
+                <select
+                  value={editActivityStatus}
+                  onChange={(e) => setEditActivityStatus(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div id="bloc-form-edition-activite-js-file">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
+                <select
+                  value={editActivityJsFile}
+                  onChange={(e) => setEditActivityJsFile(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                >
+                  {ACTIVITY_FILES.map((file) => (
+                    <option key={file} value={file}>
+                      {file}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div id="bloc-form-edition-activite-contenu-json">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
+                <textarea
+                  value={editActivityContentText}
+                  onChange={(e) => setEditActivityContentText(e.target.value)}
+                  className="w-full h-32 border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+              </div>
+
+              <div id="bloc-actions-edition-activite" className="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={submittingEditActivity}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+                >
+                  {submittingEditActivity ? "Modification..." : "Modifier"}
+                </button>
+              </div>
+            </form>
+
+            {editActivityError && (
+              <div id="bloc-erreur-edition-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+                {editActivityError}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       <StudentsImportExportPanel
