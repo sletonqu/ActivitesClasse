@@ -15,7 +15,7 @@ export const defaultCountPencilsByTensActivityContent = {
     },
     level2: {
       label: "Niveau 2",
-      exerciseCount: 4,
+      exerciseCount: 2,
       minCartons: 0,
       maxCartons: 2,
       minPouches: 1,
@@ -25,7 +25,7 @@ export const defaultCountPencilsByTensActivityContent = {
     },
     level3: {
       label: "Niveau 3",
-      exerciseCount: 6,
+      exerciseCount: 1,
       minCartons: 1,
       maxCartons: 4,
       minPouches: 2,
@@ -104,40 +104,45 @@ function buildExercises(levelRule) {
   });
 }
 
-function renderPencilUnits(count, rotations = []) {
+function renderPencilUnits(count, rotations = [], onUnitClick, onUnitRightClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/Crayons_x1.png"
       alt="Crayon"
-      className="h-7 w-auto object-contain inline-block"
+      className="h-7 w-auto object-contain inline-block cursor-pointer"
       title="Un crayon = 1 unite"
+      onClick={onUnitClick}
+      onContextMenu={onUnitRightClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
 }
 
-function renderPouches(count, rotations = []) {
+function renderPouches(count, rotations = [], onPouchClick, onPouchRightClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/pochette_x10_crayons.png"
       alt="Pochette de 10 crayons"
-      className="w-16 h-16 object-cover"
+      className="w-16 h-16 object-cover cursor-pointer"
       title="Une pochette = 10 crayons"
+      onClick={onPouchClick}
+      onContextMenu={onPouchRightClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
 }
 
-function renderCartons(count, rotations = []) {
+function renderCartons(count, rotations = [], onCartonRightClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/cartons_x100_crayons.png"
       alt="Carton de 100 crayons"
-      className="w-16 h-16 object-cover"
+      className="w-16 h-16 object-cover cursor-context-menu"
       title="Un carton = 100 crayons"
+      onContextMenu={onCartonRightClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
@@ -197,6 +202,94 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
 
   const handleRestart = () => {
     restartForLevel(currentLevel);
+  };
+
+  const handleGroupUnitsToTens = (exerciseId) => {
+    if (finished) return;
+
+    setExercises((prev) =>
+      prev.map((exercise) => {
+        if (exercise.id !== exerciseId || exercise.units < 10) {
+          return exercise;
+        }
+
+        return {
+          ...exercise,
+          pouches: exercise.pouches + 1,
+          pouches_rotations: [...exercise.pouches_rotations, randomRotation()],
+          units: exercise.units - 10,
+          units_rotations: exercise.units_rotations.slice(0, Math.max(0, exercise.units_rotations.length - 10)),
+        };
+      })
+    );
+  };
+
+  const handleUngroupTensToUnits = (exerciseId, event) => {
+    event.preventDefault();
+    if (finished) return;
+
+    setExercises((prev) =>
+      prev.map((exercise) => {
+        if (exercise.id !== exerciseId || exercise.pouches < 1) {
+          return exercise;
+        }
+
+        return {
+          ...exercise,
+          pouches: exercise.pouches - 1,
+          pouches_rotations: exercise.pouches_rotations.slice(0, Math.max(0, exercise.pouches_rotations.length - 1)),
+          units: exercise.units + 10,
+          units_rotations: [
+            ...exercise.units_rotations,
+            ...Array.from({ length: 10 }, () => randomRotation()),
+          ],
+        };
+      })
+    );
+  };
+
+  const handleGroupTensToHundreds = (exerciseId) => {
+    if (finished) return;
+
+    setExercises((prev) =>
+      prev.map((exercise) => {
+        if (exercise.id !== exerciseId || exercise.pouches < 10) {
+          return exercise;
+        }
+
+        return {
+          ...exercise,
+          cartons: exercise.cartons + 1,
+          cartons_rotations: [...exercise.cartons_rotations, randomRotation()],
+          pouches: exercise.pouches - 10,
+          pouches_rotations: exercise.pouches_rotations.slice(0, Math.max(0, exercise.pouches_rotations.length - 10)),
+        };
+      })
+    );
+  };
+
+  const handleUngroupHundredsToTens = (exerciseId, event) => {
+    event.preventDefault();
+    if (finished) return;
+
+    setExercises((prev) =>
+      prev.map((exercise) => {
+        if (exercise.id !== exerciseId || exercise.cartons < 1) {
+          return exercise;
+        }
+
+        return {
+          ...exercise,
+          cartons: exercise.cartons - 1,
+          cartons_rotations: exercise.cartons_rotations.slice(0, Math.max(0, exercise.cartons_rotations.length - 1)),
+          pouches: exercise.pouches + 10,
+          pouches_rotations: [
+            ...exercise.pouches_rotations,
+            ...Array.from({ length: 10 }, () => randomRotation()),
+          ],
+        };
+      })
+    );
   };
 
   const isExerciseCorrect = (exercise) => {
@@ -288,15 +381,35 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
               <div className="mb-4 space-y-3">
                 <div>
                   <div className="flex flex-wrap gap-2">
-                    {exercise.cartons > 0 ? renderCartons(exercise.cartons, exercise.cartons_rotations) : null}
+                    {exercise.cartons > 0
+                      ? renderCartons(
+                          exercise.cartons,
+                          exercise.cartons_rotations,
+                          (event) => handleUngroupHundredsToTens(exercise.id, event)
+                        )
+                      : null}
                   </div>
                 </div>
                 <div>
-                  <div className="flex flex-wrap gap-2">{renderPouches(exercise.pouches, exercise.pouches_rotations)}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {renderPouches(
+                      exercise.pouches,
+                      exercise.pouches_rotations,
+                      () => handleGroupTensToHundreds(exercise.id),
+                      (event) => handleUngroupTensToUnits(exercise.id, event)
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="flex flex-wrap gap-1 min-h-[34px]">
-                    {exercise.units > 0 ? renderPencilUnits(exercise.units, exercise.units_rotations) : null}
+                    {exercise.units > 0
+                      ? renderPencilUnits(
+                          exercise.units,
+                          exercise.units_rotations,
+                          () => handleGroupUnitsToTens(exercise.id),
+                          (event) => event.preventDefault()
+                        )
+                      : null}
                   </div>
                 </div>
               </div>
