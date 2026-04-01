@@ -12,3 +12,104 @@ h1 {
   text-align: center;
   margin-top: 2rem;
 }
+
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  body {
+    margin: 0;
+    background: #fff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #activity-container,
+  #activity-container * {
+    visibility: visible;
+  }
+
+  #activity-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 190mm;
+    max-width: 190mm;
+    min-height: 277mm;
+    margin: 0;
+    padding: 6mm;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  #activity-print-button {
+    display: none;
+  }
+
+  #count-pencils-by-tens-activity {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  #count-pencils-by-tens-titre {
+    font-size: 16px !important;
+    margin-bottom: 4px !important;
+  }
+
+  #count-pencils-by-tens-consigne {
+    font-size: 11px !important;
+    margin-bottom: 8px !important;
+  }
+
+  #count-pencils-by-tens-niveaux,
+  #count-pencils-by-tens-actions,
+  #count-pencils-by-tens-message-resultat {
+    display: none !important;
+  }
+
+  #count-pencils-by-tens-grille {
+    gap: 8px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] {
+    padding: 8px !important;
+    border-radius: 8px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  [id^="count-pencils-by-tens-case-"] .space-y-3 > * + * {
+    margin-top: 4px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] img[src*="pochette_x10_crayons.png"],
+  [id^="count-pencils-by-tens-case-"] img[src*="cartons_x100_crayons.png"] {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] img[src*="Crayons_x1.png"] {
+    height: 20px !important;
+    width: auto !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] .min-h-\[34px\] {
+    min-height: 22px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] .text-sm {
+    font-size: 10px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] input {
+    margin-top: 2px !important;
+    padding: 2px 4px !important;
+    font-size: 10px !important;
+  }
+}
