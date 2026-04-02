@@ -59,7 +59,7 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
 
       <div
         id="activity-container"
-        className="bg-white rounded-lg shadow p-6 w-full max-w-[210mm] mx-auto activity-print-zone"
+        className="bg-white rounded-lg shadow p-6 w-full max-w-[300mm] mx-auto activity-print-zone"
       >
         <SelectedActivityComponent student={student} content={content} onComplete={onComplete} />
       </div>
