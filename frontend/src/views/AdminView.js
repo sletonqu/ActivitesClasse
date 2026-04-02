@@ -75,6 +75,8 @@ const AdminView = () => {
   const [editActivityContentText, setEditActivityContentText] = useState("{}");
   const [submittingEditActivity, setSubmittingEditActivity] = useState(false);
   const [editActivityError, setEditActivityError] = useState("");
+  const [deletingAllActivities, setDeletingAllActivities] = useState(false);
+  const [deletingActivityId, setDeletingActivityId] = useState("");
 
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -274,6 +276,94 @@ const AdminView = () => {
       setEditActivityError(err.message || "Erreur inconnue");
     } finally {
       setSubmittingEditActivity(false);
+    }
+  };
+
+  const handleDeleteActivity = async (activity) => {
+    if (!activity?.id) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Supprimer l'activité "${activity.title || "Sans titre"}" et ses résultats associés ?`
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingActivityId(String(activity.id));
+    setActivityError("");
+    setEditActivityError("");
+    setActivityMessage("");
+
+    try {
+      const resp = await fetch(`${API_URL}/activities/${activity.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la suppression de l'activité");
+      }
+
+      if (String(selectedActivityEditId) === String(activity.id)) {
+        setSelectedActivityEditId("");
+        setEditActivityTitle("");
+        setEditActivityDescription("");
+        setEditActivityStatus("Active");
+        setEditActivityJsFile(ACTIVITY_FILES[0]);
+        setEditActivityContentText("{}");
+      }
+
+      setActivityMessage("Activité supprimée");
+      await loadActivities();
+    } catch (err) {
+      setActivityError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingActivityId("");
+    }
+  };
+
+  const handleDeleteAllActivities = async () => {
+    if (activities.length === 0) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Supprimer toutes les activités et tous les résultats associés ?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingAllActivities(true);
+    setDeletingActivityId("");
+    setActivityError("");
+    setEditActivityError("");
+    setActivityMessage("");
+
+    try {
+      const resp = await fetch(`${API_URL}/activities`, {
+        method: "DELETE",
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la suppression des activités");
+      }
+
+      setSelectedActivityEditId("");
+      setEditActivityTitle("");
+      setEditActivityDescription("");
+      setEditActivityStatus("Active");
+      setEditActivityJsFile(ACTIVITY_FILES[0]);
+      setEditActivityContentText("{}");
+      setActivityMessage("Toutes les activités ont été supprimées");
+      await loadActivities();
+    } catch (err) {
+      setActivityError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingAllActivities(false);
     }
   };
 
@@ -489,9 +579,13 @@ const AdminView = () => {
         activityMessage={activityMessage}
         showActivityMessage={showActivityMessage}
         fadeActivityMessage={fadeActivityMessage}
+        deletingAllActivities={deletingAllActivities}
+        deletingActivityId={deletingActivityId}
         onToggleActivitiesList={handleToggleActivitiesList}
         onSelectActivityToEdit={handleSelectActivityToEdit}
         onUpdateActivity={handleUpdateActivity}
+        onDeleteActivity={handleDeleteActivity}
+        onDeleteAllActivities={handleDeleteAllActivities}
         onEditTitleChange={setEditActivityTitle}
         onEditDescriptionChange={setEditActivityDescription}
         onEditStatusChange={setEditActivityStatus}

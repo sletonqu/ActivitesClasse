@@ -22,9 +22,13 @@ const ActivitiesManagementPanel = ({
   activityMessage,
   showActivityMessage,
   fadeActivityMessage,
+  deletingAllActivities = false,
+  deletingActivityId = "",
   onToggleActivitiesList,
   onSelectActivityToEdit,
   onUpdateActivity,
+  onDeleteActivity,
+  onDeleteAllActivities,
   onEditTitleChange,
   onEditDescriptionChange,
   onEditStatusChange,
@@ -153,7 +157,18 @@ const ActivitiesManagementPanel = ({
           id="activities-panel-list-section"
           className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
         >
-          <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
+          <div id="activities-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
+            <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800">Liste des activités</h3>
+            <button
+              id="activities-panel-delete-all-button"
+              type="button"
+              onClick={onDeleteAllActivities}
+              disabled={loadingActivities || activities.length === 0 || deletingAllActivities}
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+            >
+              {deletingAllActivities ? "Suppression..." : "Supprimer Tout"}
+            </button>
+          </div>
 
           {loadingActivities ? (
             <p className="text-slate-500 text-sm">Chargement...</p>
@@ -180,7 +195,24 @@ const ActivitiesManagementPanel = ({
                       : "border-slate-200"
                   }`}
                 >
-                  <p className="font-semibold text-slate-800">{activity.title}</p>
+                  <div id={`activity-card-actions-${activity.id}`} className="flex items-center justify-between gap-3">
+                    <p className="font-semibold text-slate-800">{activity.title}</p>
+                    {String(selectedActivityEditId) === String(activity.id) && (
+                      <button
+                        id={`activity-delete-button-${activity.id}`}
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          onDeleteActivity(activity);
+                        }}
+                        disabled={deletingActivityId === String(activity.id) || deletingAllActivities}
+                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {deletingActivityId === String(activity.id) ? "Suppression..." : "Supprimer"}
+                      </button>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-600">Statut: {activity.status || "Non défini"}</p>
                   <p className="text-sm text-slate-600">Fichier: {activity.js_file || "Aucun"}</p>
                 </li>

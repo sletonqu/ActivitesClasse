@@ -44,11 +44,27 @@ router.put('/:id', (req, res) => {
   });
 });
 
+// DELETE all activities
+router.delete('/', (req, res) => {
+  db.run('DELETE FROM results', [], (resultsErr) => {
+    if (resultsErr) return res.status(500).json({ error: resultsErr.message });
+
+    db.run('DELETE FROM activities', [], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ deleted: this.changes });
+    });
+  });
+});
+
 // DELETE activity
 router.delete('/:id', (req, res) => {
-  db.run('DELETE FROM activities WHERE id = ?', [req.params.id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ deleted: this.changes });
+  db.run('DELETE FROM results WHERE activity_id = ?', [req.params.id], (resultsErr) => {
+    if (resultsErr) return res.status(500).json({ error: resultsErr.message });
+
+    db.run('DELETE FROM activities WHERE id = ?', [req.params.id], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ deleted: this.changes });
+    });
   });
 });
 
