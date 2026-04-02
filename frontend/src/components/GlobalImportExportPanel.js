@@ -75,10 +75,11 @@ const GlobalImportExportPanel = () => {
   };
 
   return (
-    <section className="w-full bg-white rounded-xl shadow p-6 mb-6">
-      <h3 className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Élèves, Activités, Résultats)</h3>
+    <section id="global-import-export-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
+      <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Élèves, Activités, Résultats)</h3>
 
       <input
+        id="global-import-export-file-input"
         ref={fileInputRef}
         type="file"
         accept=".csv,text/csv"
@@ -86,7 +87,7 @@ const GlobalImportExportPanel = () => {
         onChange={handleImportFileChange}
       />
 
-      <div className="flex flex-wrap gap-3">
+      <div id="global-import-export-actions" className="flex flex-wrap gap-3">
         <button
           type="button"
           onClick={handleFilePick}
@@ -106,12 +107,12 @@ const GlobalImportExportPanel = () => {
         </button>
       </div>
 
-      <p className="mt-3 text-sm text-slate-500">
+      <p id="global-import-export-description" className="mt-3 text-sm text-slate-500">
         Format attendu: colonnes entity,name,email,password,firstname,teacher_id,class_id,title,description,content,status,js_file,student_id,activity_id,score,completed_at avec entity parmi teacher, class, student, activity, result.
       </p>
 
       {result && (
-        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+        <div id="global-import-export-result" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
           <div>Import global terminé.</div>
           <div>Lignes reçues: {result.received}</div>
           <div>Enseignants importés: {result.teachersImported}</div>
@@ -124,7 +125,7 @@ const GlobalImportExportPanel = () => {
       )}
 
       {error && (
-        <div className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+        <div id="global-import-export-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
           {error}
         </div>
       )}

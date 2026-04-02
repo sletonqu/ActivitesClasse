@@ -74,25 +74,26 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
   };
 
   return (
-    <section className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
-      <h3 className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
+    <section id="students-import-export-section" className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
+      <h3 id="students-import-export-title" className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
 
       {mustSelectClass && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+        <div id="students-import-export-class-alert" className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
           Sélectionnez une classe pour activer l'import/export.
         </div>
       )}
 
-      <label className="block text-sm font-semibold text-slate-700 mb-2">
+      <label id="students-import-export-textarea-label" className="block text-sm font-semibold text-slate-700 mb-2">
         CSV élèves (name, firstname, class_id)
       </label>
       <textarea
+        id="students-import-export-textarea"
         value={csvText}
         onChange={(e) => setCsvText(e.target.value)}
         className="w-full h-40 border border-slate-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-400"
       />
 
-      <div className="flex flex-wrap gap-3 mt-4">
+      <div id="students-import-export-actions" className="flex flex-wrap gap-3 mt-4">
         <button
           onClick={handleImport}
           disabled={loadingImport || mustSelectClass}
@@ -111,7 +112,7 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
       </div>
 
       {result && (
-        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+        <div id="students-import-export-result" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
           <div>Import terminé.</div>
           <div>Reçues: {result.received}</div>
           <div>Valides: {result.valid}</div>
@@ -121,7 +122,7 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
       )}
 
       {error && (
-        <div className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+        <div id="students-import-export-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
           {error}
         </div>
       )}

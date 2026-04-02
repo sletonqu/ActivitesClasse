@@ -47,20 +47,20 @@ const ActivitiesManagementPanel = ({
   onActivityContentChange = null,
 }) => {
   return (
-    <div id="zone-gestion-activites" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+    <div id="activities-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
       <section
-        id="section-gestion-activites"
+        id="activities-panel-form-section"
         className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
-        <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
+        <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
 
-    <div id="bloc-actions-activites" className="flex flex-wrap gap-3">
+    <div id="activities-panel-actions" className="flex flex-wrap gap-3">
           {showAddForm && (
             <button
               type="submit"
               disabled={submittingActivity}
               className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
-              form="form-add-activity"
+              form="activities-panel-add-form"
             >
               {submittingActivity ? "Ajout en cours..." : "Ajouter"}
             </button>
@@ -75,8 +75,8 @@ const ActivitiesManagementPanel = ({
         </div>
 
         {showAddForm && (
-          <form id="form-add-activity" onSubmit={onAddActivity} className="space-y-4">
-            <div id="bloc-form-activite-titre">
+          <form id="activities-panel-add-form" onSubmit={onAddActivity} className="space-y-4">
+            <div id="activities-panel-title-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
               <input
                 type="text"
@@ -87,7 +87,7 @@ const ActivitiesManagementPanel = ({
               />
             </div>
 
-            <div id="bloc-form-activite-description">
+            <div id="activities-panel-description-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
               <input
                 type="text"
@@ -98,7 +98,7 @@ const ActivitiesManagementPanel = ({
               />
             </div>
 
-            <div id="bloc-form-activite-statut">
+            <div id="activities-panel-status-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
               <select
                 value={activityStatus}
@@ -110,7 +110,7 @@ const ActivitiesManagementPanel = ({
               </select>
             </div>
 
-            <div id="bloc-form-activite-js-file">
+            <div id="activities-panel-js-file-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
               <select
                 value={activityJsFile}
@@ -125,7 +125,7 @@ const ActivitiesManagementPanel = ({
               </select>
             </div>
 
-            <div id="bloc-form-activite-contenu-json">
+            <div id="activities-panel-content-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
               <textarea
                 value={activityContentText}
@@ -138,7 +138,7 @@ const ActivitiesManagementPanel = ({
 
         {showActivityMessage && activityMessage && (
           <div
-            id="bloc-message-activite"
+            id="activities-panel-message"
             className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
               fadeActivityMessage ? "opacity-0" : "opacity-100"
             }`}
@@ -150,19 +150,20 @@ const ActivitiesManagementPanel = ({
 
       {showActivitiesList && (
         <section
-          id="section-liste-activites"
+          id="activities-panel-list-section"
           className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
         >
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
+          <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Liste des activités</h3>
 
           {loadingActivities ? (
             <p className="text-slate-500 text-sm">Chargement...</p>
           ) : activities.length === 0 ? (
             <p className="text-slate-500 text-sm">Aucune activité trouvée.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul id="activities-panel-list" className="space-y-3">
               {activities.map((activity) => (
                 <li
+                  id={`activity-card-${activity.id}`}
                   key={activity.id}
                   role="button"
                   tabIndex={0}
@@ -190,11 +191,11 @@ const ActivitiesManagementPanel = ({
       )}
 
       {showActivitiesList && selectedActivityEditId && (
-        <section id="section-edition-activite" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
+        <section id="activities-panel-edit-section" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
+          <h3 id="activities-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
 
-          <form onSubmit={onUpdateActivity} className="space-y-4">
-            <div id="bloc-form-edition-activite-titre">
+          <form id="activities-panel-edit-form" onSubmit={onUpdateActivity} className="space-y-4">
+            <div id="activities-panel-edit-title-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
               <input
                 type="text"
@@ -204,7 +205,7 @@ const ActivitiesManagementPanel = ({
               />
             </div>
 
-            <div id="bloc-form-edition-activite-description">
+            <div id="activities-panel-edit-description-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
               <input
                 type="text"
@@ -214,7 +215,7 @@ const ActivitiesManagementPanel = ({
               />
             </div>
 
-            <div id="bloc-form-edition-activite-statut">
+            <div id="activities-panel-edit-status-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
               <select
                 value={editActivityStatus}
@@ -226,7 +227,7 @@ const ActivitiesManagementPanel = ({
               </select>
             </div>
 
-            <div id="bloc-form-edition-activite-js-file">
+            <div id="activities-panel-edit-js-file-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
               <select
                 value={editActivityJsFile}
@@ -241,7 +242,7 @@ const ActivitiesManagementPanel = ({
               </select>
             </div>
 
-            <div id="bloc-form-edition-activite-contenu-json">
+            <div id="activities-panel-edit-content-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
               <textarea
                 value={editActivityContentText}
@@ -250,7 +251,7 @@ const ActivitiesManagementPanel = ({
               />
             </div>
 
-            <div id="bloc-actions-edition-activite" className="flex flex-wrap gap-3">
+            <div id="activities-panel-edit-actions" className="flex flex-wrap gap-3">
               <button
                 type="submit"
                 disabled={submittingEditActivity}
@@ -262,13 +263,13 @@ const ActivitiesManagementPanel = ({
           </form>
 
           {editActivityError && (
-            <div id="bloc-erreur-edition-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <div id="activities-panel-edit-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
               {editActivityError}
             </div>
           )}
 
           {activityError && (
-            <div id="bloc-erreur-activite" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <div id="activities-panel-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
               {activityError}
             </div>
           )}

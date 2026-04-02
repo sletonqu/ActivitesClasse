@@ -261,10 +261,10 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
 
   return (
     <div id="match-additions-activity">
-      <h3 id="match-additions-titre" className="text-lg font-bold mb-4">Associe chaque addition à son bon résultat</h3>
-      <p id="match-additions-consigne" className="text-sm text-slate-600 mb-6">Niveau CE1 - Fais glisser chaque vignette-réponse vers la bonne addition.</p>
+      <h3 id="match-additions-title" className="text-lg font-bold mb-4">Associe chaque addition à son bon résultat</h3>
+      <p id="match-additions-instructions" className="text-sm text-slate-600 mb-6">Niveau CE1 - Fais glisser chaque vignette-réponse vers la bonne addition.</p>
 
-      <div id="match-additions-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
+      <div id="match-additions-levels" className="flex flex-wrap justify-center gap-2 mb-4">
         {allowedLevelKeys.map((levelKey) => (
           <button
             key={levelKey}
@@ -285,7 +285,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
         ))}
       </div>
 
-      <div id="match-additions-liste-challenges" className="grid gap-3 mb-6">
+      <div id="match-additions-challenge-list" className="grid gap-3 mb-6">
         {challenges.map((challenge) => (
           <div
             key={challenge.id}
@@ -296,7 +296,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
               {challenge.left} + {challenge.right}
             </div>
             <div
-              id={`match-additions-zone-depot-${challenge.id}`}
+              id={`match-additions-drop-zone-${challenge.id}`}
               className={`min-w-[90px] min-h-[56px] rounded-xl border-2 border-dashed flex items-center justify-center text-xl font-bold ${
                 finished
                   ? assignments[challenge.id]?.value === challenge.result
@@ -309,7 +309,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
             >
               {assignments[challenge.id] !== undefined ? (
                 <div
-                  id={`match-additions-tuile-assignee-${challenge.id}`}
+                  id={`match-additions-assigned-tile-${challenge.id}`}
                   draggable={!finished}
                   onDragStart={() => handleDragStartFromChallenge(challenge.id)}
                   className={!finished ? "cursor-move" : ""}
@@ -326,7 +326,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
       </div>
 
       <div
-        id="match-additions-pool-reponses"
+        id="match-additions-answers-pool"
         className="flex flex-wrap gap-3 justify-center mb-6 min-h-[72px] p-2 rounded-lg border border-dashed border-slate-300"
         onDragOver={(event) => event.preventDefault()}
         onDrop={handleDropToAnswerPool}
@@ -348,7 +348,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
       {!finished && (
         <div id="match-additions-actions" className="flex justify-center gap-3">
           <button
-            id="match-additions-bouton-valider"
+            id="match-additions-validate-button"
             type="button"
             onClick={handleValidate}
             disabled={!allAssigned}
@@ -357,7 +357,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
             Valider
           </button>
         <button
-          id="match-additions-bouton-recommencer"
+          id="match-additions-restart-button"
           type="button"
           onClick={handleRestart}
           className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
@@ -368,7 +368,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
       )}
 
       {finished && (
-        <p id="match-additions-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
+        <p id="match-additions-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
           Activité terminée. Vérifie les cases vertes pour les bonnes réponses.
         </p>
       )}

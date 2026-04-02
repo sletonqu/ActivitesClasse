@@ -20,12 +20,12 @@ const TeachersManagementPanel = ({
   onToggleTeachersList,
 }) => {
   return (
-    <div id="zone-gestion-enseignants" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-      <section id="section-gestion-enseignants" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
+    <div id="teachers-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+      <section id="teachers-panel-form-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+        <h3 id="teachers-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
 
-        <form onSubmit={onAddTeacher} className="space-y-4">
-          <div id="bloc-form-enseignant-nom">
+        <form id="teachers-panel-form" onSubmit={onAddTeacher} className="space-y-4">
+          <div id="teachers-panel-name-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Nom</label>
             <input
               type="text"
@@ -36,7 +36,7 @@ const TeachersManagementPanel = ({
             />
           </div>
 
-          <div id="bloc-form-enseignant-email">
+          <div id="teachers-panel-email-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
             <input
               type="email"
@@ -47,7 +47,7 @@ const TeachersManagementPanel = ({
             />
           </div>
 
-          <div id="bloc-form-enseignant-mot-de-passe">
+          <div id="teachers-panel-password-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Mot de passe</label>
             <input
               type="password"
@@ -58,7 +58,7 @@ const TeachersManagementPanel = ({
             />
           </div>
 
-          <div id="bloc-form-enseignant-classe-associee">
+          <div id="teachers-panel-class-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Associer à une classe</label>
             <select
               value={teacherSelectedClassId}
@@ -74,7 +74,7 @@ const TeachersManagementPanel = ({
             </select>
           </div>
 
-          <div id="bloc-actions-enseignants" className="flex flex-wrap gap-3">
+          <div id="teachers-panel-actions" className="flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={submittingTeacher}
@@ -94,28 +94,28 @@ const TeachersManagementPanel = ({
         </form>
 
         {teacherMessage && (
-          <div id="bloc-message-enseignant" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+          <div id="teachers-panel-message" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
             {teacherMessage}
           </div>
         )}
 
         {teacherError && (
-          <div id="bloc-erreur-enseignant" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+          <div id="teachers-panel-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
             {teacherError}
           </div>
         )}
       </section>
 
       {showTeachersList && (
-        <section id="section-liste-enseignants" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">Liste des Enseignants</h3>
+        <section id="teachers-panel-list-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+          <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Liste des Enseignants</h3>
 
           {loadingTeachers ? (
             <p className="text-slate-500 text-sm">Chargement...</p>
           ) : teachers.length === 0 ? (
             <p className="text-slate-500 text-sm">Aucun enseignant trouvé.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul id="teachers-panel-list" className="space-y-3">
               {teachers.map((teacher) => {
                 const linkedClasses = classes.filter((c) => Number(c.teacher_id) === Number(teacher.id));
                 const classesText =
@@ -124,8 +124,8 @@ const TeachersManagementPanel = ({
                     : "Aucune";
 
                 return (
-                  <li key={teacher.id} className="border border-slate-200 rounded-lg p-3">
-                    <p className="font-semibold text-slate-800">{teacher.name}</p>
+                  <li id={`teacher-card-${teacher.id}`} key={teacher.id} className="border border-slate-200 rounded-lg p-3">
+                    <p id={`teacher-name-${teacher.id}`} className="font-semibold text-slate-800">{teacher.name}</p>
                     <p className="text-sm text-slate-600">Classe associée: {classesText}</p>
                   </li>
                 );

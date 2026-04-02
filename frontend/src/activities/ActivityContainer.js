@@ -31,8 +31,8 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
   };
 
   return (
-    <div className="w-full mx-auto mt-8">
-      <div className="flex justify-end mb-3 print:hidden">
+    <div id="activity-container-wrapper" className="w-full mx-auto mt-8">
+      <div id="activity-print-action-bar" className="flex justify-end mb-3 print:hidden">
         <button
           id="activity-print-button"
           type="button"
@@ -61,7 +61,7 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
         id="activity-container"
         className="bg-white rounded-lg shadow p-6 w-full max-w-[210mm] mx-auto activity-print-zone"
       >
-        <SelectedActivityComponent content={content} onComplete={onComplete} />
+        <SelectedActivityComponent student={student} content={content} onComplete={onComplete} />
       </div>
     </div>
   );

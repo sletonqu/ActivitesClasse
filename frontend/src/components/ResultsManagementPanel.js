@@ -20,17 +20,17 @@ const ResultsManagementPanel = ({
   getActivityLabel,
 }) => {
   return (
-    <div id="zone-gestion-resultats" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-      <section id="section-gestion-resultats" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
+    <div id="results-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+      <section id="results-panel-filter-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+        <h3 id="results-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
 
         {!selectedClassId ? (
           <p className="text-slate-500 text-sm">Sélectionnez une classe active pour gérer les résultats.</p>
         ) : students.length === 0 ? (
           <p className="text-slate-500 text-sm">Aucun élève trouvé dans cette classe.</p>
         ) : (
-          <div id="bloc-selection-eleve-resultats">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Élève</label>
+          <div id="results-panel-student-selector">
+            <label id="results-panel-student-selector-label" className="block text-sm font-semibold text-slate-700 mb-2">Élève</label>
             <select
               value={selectedResultStudentId}
               onChange={(e) => onSelectResultStudent(e.target.value)}
@@ -47,8 +47,8 @@ const ResultsManagementPanel = ({
         )}
       </section>
 
-      <section id="section-liste-resultats-eleve" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-4">Résultats de l'élève</h3>
+      <section id="results-panel-list-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+        <h3 id="results-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Résultats de l'élève</h3>
 
         {!selectedClassId ? (
           <p className="text-slate-500 text-sm">Aucune classe active.</p>
@@ -57,14 +57,14 @@ const ResultsManagementPanel = ({
         ) : loadingResults ? (
           <p className="text-slate-500 text-sm">Chargement...</p>
         ) : resultsError ? (
-          <div id="bloc-erreur-resultats" className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+          <div id="results-panel-error" className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
             {resultsError}
           </div>
         ) : studentResults.length === 0 ? (
           <p className="text-slate-500 text-sm">Aucun résultat enregistré pour cet élève.</p>
         ) : (
-          <div id="bloc-contenu-resultats-eleve">
-            <div id="bloc-entete-resultats-eleve" className="flex items-center justify-between mb-3 gap-3">
+          <div id="results-panel-content">
+            <div id="results-panel-content-header" className="flex items-center justify-between mb-3 gap-3">
               <p className="text-sm text-slate-600">
                 Élève: <span className="font-semibold text-slate-800">{selectedResultStudent?.firstname} {selectedResultStudent?.name}</span>
               </p>
@@ -77,10 +77,10 @@ const ResultsManagementPanel = ({
                 {deletingAllResults ? "Suppression..." : "Supprimer Tout"}
               </button>
             </div>
-            <ul id="liste-resultats-eleve" className="space-y-3">
+            <ul id="results-panel-list" className="space-y-3">
               {studentResults.map((result) => (
                 <li
-                  id={`ligne-resultat-${result.id}`}
+                  id={`result-row-${result.id}`}
                   key={result.id}
                   onMouseEnter={() => onSelectResult(String(result.id))}
                   onFocus={() => onSelectResult(String(result.id))}
@@ -91,7 +91,7 @@ const ResultsManagementPanel = ({
                       : "border-slate-200"
                   }`}
                 >
-                  <div id={`bloc-actions-resultat-${result.id}`} className="flex items-center justify-between gap-3">
+                  <div id={`result-row-actions-${result.id}`} className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-800">{getActivityLabel(result.activity_id)}</p>
                     {String(selectedResultId) === String(result.id) && (
                       <div className="flex items-center gap-2">

@@ -142,9 +142,9 @@ const SortNumbersActivity = ({ content, onComplete }) => {
 
   return (
     <div id="sort-numbers-activity">
-      <h3 id="sort-numbers-titre" className="text-lg font-bold mb-4">Classe les nombres dans l'ordre croissant</h3>
+      <h3 id="sort-numbers-title" className="text-lg font-bold mb-4">Classe les nombres dans l'ordre croissant</h3>
 
-      <div id="sort-numbers-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
+      <div id="sort-numbers-levels" className="flex flex-wrap justify-center gap-2 mb-4">
         {allowedLevelKeys.map((levelKey) => (
           <button
             key={levelKey}
@@ -196,14 +196,14 @@ const SortNumbersActivity = ({ content, onComplete }) => {
       {!finished && (
         <div id="sort-numbers-actions" className="flex justify-center gap-3">
           <button
-            id="sort-numbers-bouton-valider"
+            id="sort-numbers-validate-button"
             className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold"
             onClick={handleValidate}
           >
             Valider
           </button>
         <button
-          id="sort-numbers-bouton-recommencer"
+          id="sort-numbers-restart-button"
           className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
           onClick={handleRestart}
         >
@@ -213,7 +213,7 @@ const SortNumbersActivity = ({ content, onComplete }) => {
       )}
 
       {finished && (
-        <p id="sort-numbers-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
+        <p id="sort-numbers-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
           {tiles.every((tile, index) => tile.value === getExpectedValues(tiles)[index])
             ? "Bravo, c'est correct !"
             : "Ce n'est pas l'ordre croissant."}

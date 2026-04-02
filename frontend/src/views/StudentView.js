@@ -166,10 +166,10 @@ const StudentView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <h2 className="text-2xl font-bold mb-6">Espace Élève</h2>
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow p-4 mb-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Classe active</label>
+    <div id="student-view-root" className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+      <h2 id="student-view-title" className="text-2xl font-bold mb-6">Espace Élève</h2>
+      <div id="student-view-class-selector" className="w-full max-w-3xl bg-white rounded-xl shadow p-4 mb-6">
+        <label id="student-view-class-selector-label" className="block text-sm font-semibold text-slate-700 mb-2">Classe active</label>
         <select
           value={selectedClassId}
           onChange={(e) => setSelectedClassId(e.target.value)}
@@ -184,8 +184,8 @@ const StudentView = () => {
         </select>
       </div>
 
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow p-4 mb-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Activité active</label>
+      <div id="student-view-activity-selector" className="w-full max-w-3xl bg-white rounded-xl shadow p-4 mb-6">
+        <label id="student-view-activity-selector-label" className="block text-sm font-semibold text-slate-700 mb-2">Activité active</label>
         <select
           value={selectedActivityId}
           onChange={(e) => setSelectedActivityId(e.target.value)}
@@ -200,19 +200,20 @@ const StudentView = () => {
         </select>
       </div>
 
-      <div className="w-full max-w-[1400px] px-4 flex flex-col lg:flex-row gap-8 items-start">
+      <div id="student-view-main-layout" className="w-full max-w-[1400px] px-4 flex flex-col lg:flex-row gap-8 items-start">
         {/* Liste des élèves */}
-        <div className="bg-white rounded shadow p-4 min-w-[220px]">
-          <h3 className="font-semibold mb-2">Élèves</h3>
+        <div id="student-view-students-panel" className="bg-white rounded shadow p-4 min-w-[220px]">
+          <h3 id="student-view-students-title" className="font-semibold mb-2">Élèves</h3>
           {!selectedClassId ? (
             <p className="text-gray-500 text-sm">Sélectionnez une classe active</p>
           ) : !selectedActivityId ? (
             <p className="text-gray-500 text-sm">Sélectionnez une activité active</p>
           ) : filteredStudents && filteredStudents.length > 0 ? (
-            <ul>
+            <ul id="student-view-students-list">
               {filteredStudents.map((student) => (
                 <li
                   key={student.id}
+                  id={`student-view-student-${student.id}`}
                   className={`px-2 py-1 rounded mb-1 ${
                     scoresByStudentId[student.id] !== undefined
                       ? "bg-slate-100 text-slate-400 grayscale pointer-events-none"
@@ -231,7 +232,7 @@ const StudentView = () => {
         </div>
 
         {/* Zone d'activité */}
-        <div className="flex-1 min-w-0 lg:min-w-[720px] xl:min-w-[840px]">
+        <div id="student-view-activity-panel" className="flex-1 min-w-0 lg:min-w-[720px] xl:min-w-[840px]">
           {selectedStudent && selectedActivityId ? (
             <ActivityContainer
               key={selectedStudent.id}
@@ -248,9 +249,9 @@ const StudentView = () => {
         </div>
 
         {/* Classement */}
-        <div className="bg-white rounded shadow p-4 min-w-[260px] w-full lg:w-[300px]">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold">Classement</h3>
+        <div id="student-view-leaderboard-panel" className="bg-white rounded shadow p-4 min-w-[260px] w-full lg:w-[300px]">
+          <div id="student-view-leaderboard-header" className="flex items-center justify-between mb-2">
+            <h3 id="student-view-leaderboard-title" className="font-semibold">Classement</h3>
             <button
               type="button"
               onClick={handleExportLeaderboard}
@@ -267,10 +268,11 @@ const StudentView = () => {
           ) : leaderboard.length === 0 ? (
             <p className="text-gray-500 text-sm">Aucun élève n'a encore validé l'activité</p>
           ) : (
-            <ol className="space-y-2">
+            <ol id="student-view-leaderboard-list" className="space-y-2">
               {leaderboard.map((student, index) => (
                 <li
                   key={student.id}
+                  id={`student-view-leaderboard-item-${student.id}`}
                   className="flex items-center justify-between border border-slate-200 rounded px-3 py-2"
                 >
                   <span className="text-sm font-medium text-slate-700">

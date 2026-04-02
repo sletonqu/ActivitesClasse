@@ -1,37 +1,37 @@
 import React, { useState } from "react";
 
 export const defaultCountPencilsByTensActivityContent = {
-  defaultLevel: "level1",
-  levels: {
-    level1: {
-      label: "Niveau 1",
-      exerciseCount: 4,
-      minCartons: 0,
-      maxCartons: 0,
-      minPouches: 0,
-      maxPouches: 3,
-      minUnits: 0,
-      maxUnits: 9,
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "exerciseCount": 4,
+      "minCartons": 0,
+      "maxCartons": 0,
+      "minPouches": 1,
+      "maxPouches": 5,
+      "minUnits": 0,
+      "maxUnits": 9
     },
-    level2: {
-      label: "Niveau 2",
-      exerciseCount: 2,
-      minCartons: 0,
-      maxCartons: 2,
-      minPouches: 1,
-      maxPouches: 4,
-      minUnits: 0,
-      maxUnits: 12,
+    "level2": {
+      "label": "Niveau 2",
+      "exerciseCount": 4,
+      "minCartons": 1,
+      "maxCartons": 2,
+      "minPouches": 1,
+      "maxPouches": 9,
+      "minUnits": 0,
+      "maxUnits": 9
     },
-    level3: {
-      label: "Niveau 3",
-      exerciseCount: 1,
-      minCartons: 1,
-      maxCartons: 4,
-      minPouches: 2,
-      maxPouches: 6,
-      minUnits: 0,
-      maxUnits: 16,
+    "level3": {
+      "label": "Niveau 3",
+      "exerciseCount": 3,
+      "minCartons": 1,
+      "maxCartons": 4,
+      "minPouches": 0,
+      "maxPouches": 16,
+      "minUnits": 0,
+      "maxUnits": 16
     },
   },
 };
@@ -335,14 +335,14 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
 
   return (
     <div id="count-pencils-by-tens-activity">
-      <h3 id="count-pencils-by-tens-titre" className="text-lg font-bold mb-2">
+      <h3 id="count-pencils-by-tens-title" className="text-lg font-bold mb-2">
         Compte les crayons: cartons de 100, pochettes de 10 et unites
       </h3>
-      <p id="count-pencils-by-tens-consigne" className="text-sm text-slate-600 mb-5">
+      <p id="count-pencils-by-tens-instructions" className="text-sm text-slate-600 mb-5">
         Chaque pochette contient 10 crayons. Chaque carton contient 10 pochettes de 10 crayons. Ecris le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
       </p>
 
-      <div id="count-pencils-by-tens-niveaux" className="flex flex-wrap justify-center gap-2 mb-4">
+      <div id="count-pencils-by-tens-levels" className="flex flex-wrap justify-center gap-2 mb-4">
         {allowedLevelKeys.map((levelKey) => (
           <button
             key={levelKey}
@@ -363,7 +363,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         ))}
       </div>
 
-      <div id="count-pencils-by-tens-grille" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div id="count-pencils-by-tens-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {exercises.map((exercise) => {
           const correct = finished ? isExerciseCorrect(exercise) : null;
           return (
@@ -378,9 +378,9 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                   : "border-rose-400 bg-rose-50"
               }`}
             >
-              <div className="mb-4 space-y-3">
-                <div>
-                  <div className="flex flex-wrap gap-2">
+              <div id={`count-pencils-by-tens-visuals-${exercise.id}`} className="mb-4 space-y-3">
+                <div id={`count-pencils-by-tens-cartons-row-${exercise.id}`}>
+                  <div id={`count-pencils-by-tens-cartons-list-${exercise.id}`} className="flex flex-wrap gap-2">
                     {exercise.cartons > 0
                       ? renderCartons(
                           exercise.cartons,
@@ -390,8 +390,8 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                       : null}
                   </div>
                 </div>
-                <div>
-                  <div className="flex flex-wrap gap-2">
+                <div id={`count-pencils-by-tens-pouches-row-${exercise.id}`}>
+                  <div id={`count-pencils-by-tens-pouches-list-${exercise.id}`} className="flex flex-wrap gap-2">
                     {renderPouches(
                       exercise.pouches,
                       exercise.pouches_rotations,
@@ -400,8 +400,8 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                     )}
                   </div>
                 </div>
-                <div>
-                  <div className="flex flex-wrap gap-1 min-h-[34px]">
+                <div id={`count-pencils-by-tens-units-row-${exercise.id}`}>
+                  <div id={`count-pencils-by-tens-units-list-${exercise.id}`} className="flex flex-wrap gap-1 min-h-[34px]">
                     {exercise.units > 0
                       ? renderPencilUnits(
                           exercise.units,
@@ -414,7 +414,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                 </div>
               </div>
 
-              <div className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}>
+              <div id={`count-pencils-by-tens-input-grid-${exercise.id}`} className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}>
                 {showCentainesInput && (
                   <label className="text-sm font-medium text-slate-700">
                     Centaines
@@ -474,7 +474,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
               </div>
 
               {finished && !correct && (
-                <p className="mt-2 text-sm font-medium text-rose-700">
+                <p id={`count-pencils-by-tens-correction-${exercise.id}`} className="mt-2 text-sm font-medium text-rose-700">
                   Correction: {showCentainesInput ? `${exercise.cartons} centaines, ` : ""}{exercise.pouches} dizaines, {exercise.units} unites et {exercise.cartons * 100 + exercise.pouches * 10 + exercise.units} total.
                 </p>
               )}
@@ -486,7 +486,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
       {!finished && (
         <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
           <button
-            id="count-pencils-by-tens-bouton-valider"
+            id="count-pencils-by-tens-validate-button"
             type="button"
             onClick={handleValidate}
             disabled={!allAnswered}
@@ -495,7 +495,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
             Valider
           </button>
         <button
-          id="count-pencils-by-tens-bouton-recommencer"
+          id="count-pencils-by-tens-restart-button"
           type="button"
           onClick={handleRestart}
           className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
@@ -506,7 +506,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
       )}
 
       {finished && (
-        <p id="count-pencils-by-tens-message-resultat" className="mt-4 text-center text-lg font-medium text-gray-700">
+        <p id="count-pencils-by-tens-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
           Activite terminee. Les cases vertes sont correctes.
         </p>
       )}

@@ -24,12 +24,12 @@ const StudentsManagementPanel = ({
   onDeleteAllStudents,
 }) => {
   return (
-    <div id="zone-gestion-eleves" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
-      <section id="section-gestion-eleves" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
+    <div id="students-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+      <section id="students-panel-form-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+        <h3 id="students-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
 
-        <form onSubmit={onAddStudent} className="space-y-4">
-          <div id="bloc-form-eleve-nom">
+        <form id="students-panel-form" onSubmit={onAddStudent} className="space-y-4">
+          <div id="students-panel-lastname-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Nom</label>
             <input
               type="text"
@@ -40,7 +40,7 @@ const StudentsManagementPanel = ({
             />
           </div>
 
-          <div id="bloc-form-eleve-prenom">
+          <div id="students-panel-firstname-field">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Prénom</label>
             <input
               type="text"
@@ -51,7 +51,7 @@ const StudentsManagementPanel = ({
             />
           </div>
 
-          <div id="bloc-actions-eleves" className="flex flex-wrap gap-3">
+          <div id="students-panel-actions" className="flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={submittingStudent}
@@ -72,7 +72,7 @@ const StudentsManagementPanel = ({
 
         {showStudentMessage && studentMessage && (
           <div
-            id="bloc-message-eleve"
+            id="students-panel-message"
             className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
               fadeStudentMessage ? "opacity-0" : "opacity-100"
             }`}
@@ -82,16 +82,16 @@ const StudentsManagementPanel = ({
         )}
 
         {studentError && (
-          <div id="bloc-erreur-eleve" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+          <div id="students-panel-error" className="mt-4 bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
             {studentError}
           </div>
         )}
       </section>
 
       {showStudentsList && (
-        <section id="section-liste-eleves" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
-          <div id="bloc-entete-liste-eleves" className="flex items-center justify-between mb-4 gap-3">
-            <h3 className="text-xl font-bold text-slate-800">Liste des Élèves</h3>
+        <section id="students-panel-list-section" className="w-full lg:w-1/2 bg-white rounded-xl shadow p-6">
+          <div id="students-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
+            <h3 id="students-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Élèves</h3>
             <button
               type="button"
               onClick={onDeleteAllStudents}
@@ -109,10 +109,10 @@ const StudentsManagementPanel = ({
           ) : students.length === 0 ? (
             <p className="text-slate-500 text-sm">Aucun élève trouvé pour cette classe.</p>
           ) : (
-            <ul id="liste-eleves-classe-active" className="space-y-3">
+            <ul id="students-panel-list" className="space-y-3">
               {students.map((student) => (
                 <li
-                  id={`ligne-eleve-${student.id}`}
+                  id={`student-row-${student.id}`}
                   key={student.id}
                   onMouseEnter={() => onSelectStudent(String(student.id))}
                   onFocus={() => onSelectStudent(String(student.id))}
@@ -123,7 +123,7 @@ const StudentsManagementPanel = ({
                       : "border-slate-200"
                   }`}
                 >
-                  <div id={`bloc-actions-eleve-${student.id}`} className="flex items-center justify-between gap-3">
+                  <div id={`student-row-actions-${student.id}`} className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-800">
                       {student.firstname} {student.name}
                     </p>
