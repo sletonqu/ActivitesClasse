@@ -5,6 +5,7 @@ export const defaultInteractiveWhiteboardActivityContent = {
   width: 1240,
   height: 1754,
   backgroundColor: "#ffffff",
+  paperStyle: "seyes",
   defaultZoom: 0.7,
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
@@ -57,7 +58,99 @@ function formatTimestampForFile() {
   return `${date}_${time}`;
 }
 
+const PAPER_STYLE_VALUES = ["blank", "seyes", "grid"];
+
+function resolvePaperStyleValue(rawPaperStyle, fallback = "blank") {
+  return PAPER_STYLE_VALUES.includes(rawPaperStyle) ? rawPaperStyle : fallback;
+}
+
+function getInitialPaperStyle(activityContent) {
+  if (PAPER_STYLE_VALUES.includes(activityContent?.paperStyle)) {
+    return activityContent.paperStyle;
+  }
+
+  if (activityContent?.showGrid === true) {
+    return "grid";
+  }
+
+  return defaultInteractiveWhiteboardActivityContent.paperStyle || "blank";
+}
+
+function createPaperPatternCanvas(paperStyle, backgroundColor) {
+  const patternCanvas = document.createElement("canvas");
+  const context = patternCanvas.getContext("2d");
+  if (!context) return patternCanvas;
+
+  if (paperStyle === "seyes") {
+    patternCanvas.width = 160;
+    patternCanvas.height = 128;
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+
+    for (let y = 0; y <= patternCanvas.height; y += 8) {
+      context.beginPath();
+      context.strokeStyle = y % 32 === 0 ? "#93c5fd" : "#dbeafe";
+      context.lineWidth = y % 32 === 0 ? 1.2 : 0.8;
+      context.moveTo(0, y);
+      context.lineTo(patternCanvas.width, y);
+      context.stroke();
+    }
+
+    [24, 64].forEach((x, index) => {
+      context.beginPath();
+      context.strokeStyle = index === 0 ? "#fda4af" : "#fecdd3";
+      context.lineWidth = 1;
+      context.moveTo(x, 0);
+      context.lineTo(x, patternCanvas.height);
+      context.stroke();
+    });
+  } else if (paperStyle === "grid") {
+    patternCanvas.width = 100;
+    patternCanvas.height = 100;
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+
+    for (let pos = 0; pos <= 100; pos += 10) {
+      context.beginPath();
+      context.strokeStyle = pos % 50 === 0 ? "#94a3b8" : "#d1d5db";
+      context.lineWidth = pos % 50 === 0 ? 1.2 : 0.8;
+      context.moveTo(pos, 0);
+      context.lineTo(pos, 100);
+      context.moveTo(0, pos);
+      context.lineTo(100, pos);
+      context.stroke();
+    }
+  } else {
+    patternCanvas.width = 32;
+    patternCanvas.height = 32;
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+  }
+
+  return patternCanvas;
+}
+
+function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
+  const fabric = window.fabric;
+  if (!canvas || !fabric) return;
+
+  if (!paperStyle || paperStyle === "blank") {
+    canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
+    return;
+  }
+
+  const patternSource = createPaperPatternCanvas(paperStyle, backgroundColor);
+  const pattern = new fabric.Pattern({
+    source: patternSource,
+    repeat: "repeat",
+  });
+
+  canvas.setBackgroundColor(pattern, canvas.renderAll.bind(canvas));
+}
+
 const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
+  const configuredPaperStyle = getInitialPaperStyle(content);
+
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const clipboardRef = useRef(null);
@@ -70,12 +163,14 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const modeRef = useRef("draw");
   const colorRef = useRef("black");
   const brushSizeRef = useRef("5");
+  const paperStyleRef = useRef(configuredPaperStyle);
 
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [mode, setMode] = useState("draw");
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState("5");
+  const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
   const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 0.7);
   const [title, setTitle] = useState(content?.defaultTitle || "Tableau");
   const [showImageHint, setShowImageHint] = useState(false);
@@ -102,9 +197,32 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     brushSizeRef.current = brushSize;
   }, [brushSize]);
 
+  useEffect(() => {
+    paperStyleRef.current = paperStyle;
+    if (!fabricCanvasRef.current) return;
+    applyPaperStyleToCanvas(fabricCanvasRef.current, paperStyle, backgroundColor);
+  }, [paperStyle, backgroundColor]);
+
   const updateHistoryButtons = () => {
     setCanUndo(historyStepRef.current > 0);
     setCanRedo(historyStepRef.current < historyRef.current.length - 1);
+  };
+
+  const persistBoardState = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const payload = {
+      meta: {
+        title,
+        studentName: studentFullName,
+        paperStyle: paperStyleRef.current,
+        savedAt: new Date().toISOString(),
+      },
+      canvas: canvas.toJSON(["width", "height"]),
+    };
+
+    window.localStorage.setItem(storageKey, JSON.stringify(payload));
   };
 
   const saveHistory = () => {
@@ -126,7 +244,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     }
 
     updateHistoryButtons();
-    window.localStorage.setItem(storageKey, json);
+    persistBoardState();
   };
 
   const renderHistoryStep = (json) => {
@@ -141,7 +259,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
       if (parsed.width && parsed.height) {
         canvas.setDimensions({ width: parsed.width, height: parsed.height });
       }
-      canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
+      applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
       historyLockedRef.current = false;
       updateHistoryButtons();
     });
@@ -270,18 +388,41 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         const saved = window.localStorage.getItem(storageKey);
         if (saved) {
           historyLockedRef.current = true;
-          canvas.loadFromJSON(saved, () => {
-            const parsed = JSON.parse(saved);
-            if (parsed.width && parsed.height) {
-              canvas.setDimensions({ width: parsed.width, height: parsed.height });
+          let savedCanvas = null;
+          let savedPaperStyle = configuredPaperStyle;
+
+          try {
+            const parsedSaved = JSON.parse(saved);
+            if (parsedSaved?.meta?.title) {
+              setTitle(parsedSaved.meta.title);
             }
-            canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
+            if (parsedSaved?.meta?.paperStyle && !content?.paperStyle && content?.showGrid !== true) {
+              savedPaperStyle = resolvePaperStyleValue(parsedSaved.meta.paperStyle, configuredPaperStyle);
+            }
+            setPaperStyle(savedPaperStyle);
+            savedCanvas = parsedSaved?.canvas ? parsedSaved.canvas : parsedSaved;
+          } catch {
+            savedCanvas = null;
+          }
+
+          if (savedCanvas) {
+            canvas.loadFromJSON(savedCanvas, () => {
+              if (savedCanvas.width && savedCanvas.height) {
+                canvas.setDimensions({ width: savedCanvas.width, height: savedCanvas.height });
+              }
+              applyPaperStyleToCanvas(canvas, savedPaperStyle, backgroundColor);
+              historyLockedRef.current = false;
+              historyRef.current = [JSON.stringify(savedCanvas)];
+              historyStepRef.current = 0;
+              updateHistoryButtons();
+            });
+          } else {
+            applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
             historyLockedRef.current = false;
-            historyRef.current = [saved];
-            historyStepRef.current = 0;
-            updateHistoryButtons();
-          });
+            saveHistory();
+          }
         } else {
+          applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
           saveHistory();
         }
       })
@@ -296,12 +437,17 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         fabricCanvasRef.current = null;
       }
     };
-  }, [backgroundColor, canvasHeight, canvasWidth, storageKey]);
+  }, [backgroundColor, canvasHeight, canvasWidth, configuredPaperStyle, content?.paperStyle, content?.showGrid, storageKey]);
 
   useEffect(() => {
     if (!isReady) return;
     updateBrush();
   }, [isReady, mode, color, brushSize]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    persistBoardState();
+  }, [isReady, title, paperStyle]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -378,7 +524,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     if (!canvas || !window.confirm("Voulez-vous vraiment tout effacer ?")) return;
     canvas.clear();
     canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
-    canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
+    applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
     saveHistory();
   };
 
@@ -503,6 +649,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
       meta: {
         title,
         studentName: studentFullName,
+        paperStyle,
         exportedAt: new Date().toISOString(),
       },
       canvas: canvas.toJSON(["width", "height"]),
@@ -532,12 +679,20 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
           setTitle(parsed.meta.title);
         }
 
+        if (parsed?.meta?.paperStyle) {
+          setPaperStyle(parsed.meta.paperStyle);
+        }
+
         historyLockedRef.current = true;
         fabricCanvasRef.current.loadFromJSON(payload, () => {
           if (payload.width && payload.height) {
             fabricCanvasRef.current.setDimensions({ width: payload.width, height: payload.height });
           }
-          fabricCanvasRef.current.setBackgroundColor(backgroundColor, fabricCanvasRef.current.renderAll.bind(fabricCanvasRef.current));
+          applyPaperStyleToCanvas(
+            fabricCanvasRef.current,
+            parsed?.meta?.paperStyle || paperStyleRef.current,
+            backgroundColor
+          );
           historyLockedRef.current = false;
           saveHistory();
           window.alert("Tableau chargé avec succès !");
@@ -654,6 +809,17 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
                 onChange={(e) => setTitle(e.target.value)}
                 className="h-9 w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400"
               />
+              <span className="text-xs font-medium text-slate-500">Fond</span>
+              <select
+                id="interactive-whiteboard-paper-style"
+                value={paperStyle}
+                onChange={(e) => setPaperStyle(e.target.value)}
+                className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+              >
+                <option value="blank">Blanc</option>
+                <option value="seyes">Lignage Seyès</option>
+                <option value="grid">Carreaux géométrie</option>
+              </select>
               <button type="button" onClick={handleExportJson} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">💾</button>
               <button type="button" onClick={() => inputJsonRef.current?.click()} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">📂</button>
               <input ref={inputJsonRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />

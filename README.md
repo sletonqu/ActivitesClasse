@@ -1,105 +1,145 @@
 # Ma Classe Interactive
 
-Ma Classe Interactive est une application web de gestion d'activites scolaires pour l'ecole primaire.
+Application web locale pour gérer une classe de primaire et lancer des activités interactives en autonomie ou sur TNI.
 
-Le projet propose trois espaces distincts:
+---
 
-- Vue Admin: gestion des enseignants, des classes, des activites, import/export global et import/export eleves.
-- Vue Enseignant: gestion des eleves de la classe selectionnee, import/export CSV des eleves pour une classe ciblee.
-- Vue Eleve: selection d'une classe active, selection d'une activite active, participation a l'activite, calcul du score, classement et export CSV du classement.
+## ✨ Aperçu
 
-## Fonctionnement General
+Le projet propose trois espaces complémentaires :
 
-L'application repose sur:
+| Espace | Usage principal |
+| --- | --- |
+| `Admin` | Gérer enseignants, classes, activités, imports/exports globaux |
+| `Enseignant` | Gérer les élèves de sa classe, importer/exporter les listes |
+| `Élève` | Choisir une classe, lancer une activité, valider un score, consulter le classement |
 
-- un frontend React avec React Router et Tailwind CSS;
-- un backend Node.js avec Express;
-- une base SQLite locale;
-- une communication entre frontend et backend via API REST JSON.
+### Stack technique
 
-Les entites principales gerees par l'application sont:
+- **Frontend** : React + React Router + Tailwind CSS
+- **Backend** : Node.js + Express
+- **Base de données** : SQLite
+- **Conteneurisation** : Docker / Docker Compose
 
-- enseignants;
-- classes;
-- eleves;
-- activites;
-- resultats.
+---
 
-## Fonctionnalites Disponibles
+## 🚀 Démarrage rapide
+
+### Prérequis
+
+- Docker Desktop démarré
+- Ports `3000` et `4000` disponibles
+
+### Lancer l'application
+
+```bash
+docker compose up --build
+```
+
+Ou en arrière-plan :
+
+```bash
+docker compose up -d --build
+```
+
+### Accès
+
+- **Frontend** : `http://localhost:3000`
+- **API backend** : `http://localhost:4000`
+
+### Arrêter l'application
+
+```bash
+docker compose down
+```
+
+### Repartir sur une base propre
+
+Si le schéma SQLite change ou si vous voulez repartir de zéro :
+
+1. arrêtez les conteneurs ;
+2. supprimez `backend/database.sqlite` si présent ;
+3. relancez `docker compose up --build`.
+
+---
+
+## ✅ Fonctionnalités disponibles
 
 ### Administration
 
-- creation d'un enseignant;
-- association optionnelle d'un enseignant a une classe;
-- affichage de la liste des enseignants et des classes associees;
-- creation d'une classe avec enseignant associe ou null;
-- affichage de la liste des classes;
-- creation d'une activite avec:
-  - titre;
-  - description;
-  - statut;
-  - contenu JSON;
-  - fichier JavaScript associe a l'activite;
-- import/export global CSV pour enseignants, classes et eleves;
-- import/export CSV des eleves.
+- création et consultation des enseignants ;
+- création et consultation des classes ;
+- création, modification et suppression des activités ;
+- suppression unitaire ou globale des activités ;
+- import / export global CSV ;
+- import / export CSV des élèves.
 
 ### Enseignant
 
-- selection d'une classe ciblee;
-- ajout d'eleves dans la classe selectionnee;
-- affichage de la liste des eleves de la classe selectionnee;
-- import/export CSV des eleves pour une classe precise.
+- sélection d'une classe active ;
+- ajout / suppression d'élèves ;
+- suppression globale des élèves de la classe ;
+- import / export CSV ciblé sur une classe.
 
-### Eleve
+### Élève
 
-- selection d'une classe active;
-- selection d'une activite active;
-- affichage uniquement des eleves de la classe selectionnee;
-- lancement d'une activite interactive basee sur le fichier JavaScript reference par l'activite;
-- validation de l'activite avec calcul du score;
-- desactivation de l'eleve apres participation;
-- classement des eleves par score;
+- sélection d'une classe active ;
+- sélection d'une activité active ;
+- exécution de l'activité ;
+- validation du score ;
+- classement de la classe ;
 - export CSV du classement.
 
-## Activites Actuellement Disponibles
+---
 
-### 1. Tri de nombres
+## 🧩 Activités disponibles
 
-Fichier associe:
+| Activité | Fichier | Objectif | Paramètres principaux |
+| --- | --- | --- | --- |
+| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant | `defaultLevel`, `levels`, `numbersByLevel` |
+| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat | `defaultLevel`, `levels`, `challenges`, `challengesByLevel` |
+| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels` |
+| Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
 
-- frontend/src/activities/SortNumbersActivity.js
+> Documentation détaillée des activités : voir `frontend/src/activities/README.md`.
 
-Principe:
+### Focus : tableau blanc interactif
 
-- l'eleve doit remettre des nombres melanges dans l'ordre croissant par glisser-deposer.
+Le tableau blanc propose notamment :
 
-### 2. Additions CE1
+- une **barre d'outils flottante** en bas de l'écran ;
+- l'**export PNG avec le nom de l'élève** dans l'image et le nom du fichier ;
+- l'export / import **JSON** ;
+- un fond configurable :
+  - `blank` → fond blanc,
+  - `seyes` → lignage Seyès,
+  - `grid` → quadrillage pour géométrie ;
+- une sauvegarde locale par élève via `localStorage`.
 
-Fichier associe:
+Exemple de configuration JSON :
 
-- frontend/src/activities/MatchAdditionsActivity.js
+```json
+{
+  "defaultTitle": "Écriture du jour",
+  "width": 1240,
+  "height": 1754,
+  "backgroundColor": "#ffffff",
+  "paperStyle": "seyes",
+  "defaultZoom": 0.7,
+  "storageKey": "TBTS_INTERACTIVE_WHITEBOARD"
+}
+```
 
-Principe:
+---
 
-- l'eleve doit associer des additions simples a leur bon resultat.
-
-### 3. Dizaines et unites (crayons)
-
-Fichier associe:
-
-- frontend/src/activities/CountPencilsByTensActivity.js
-
-Principe:
-
-- l'eleve compte des pochettes de 10 crayons et des crayons seuls, puis renseigne dizaines et unites.
-
-## Structure du Projet
+## 🗂️ Structure du projet
 
 ```text
 .
 ├── backend/
 │   ├── db.js
 │   ├── Dockerfile
+│   ├── init_db.js
 │   ├── init_db.sql
 │   ├── package.json
 │   ├── server.js
@@ -107,66 +147,30 @@ Principe:
 ├── frontend/
 │   ├── Dockerfile
 │   ├── package.json
+│   ├── public/
 │   └── src/
+│       ├── activities/
+│       ├── components/
+│       └── views/
 ├── docker-compose.yml
 └── README.md
 ```
 
-## Installation
+---
 
-### Prerequis
+## ➕ Ajouter une nouvelle activité
 
-Avant d'installer l'application, assurez-vous d'avoir:
+1. créer un composant dans `frontend/src/activities/` ;
+2. exporter une configuration par défaut depuis ce fichier ;
+3. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.js` ;
+4. l'ajouter à `ACTIVITY_FILES` et à `getDefaultActivityContentText()` dans `frontend/src/views/AdminView.js` ;
+5. créer l'activité depuis la vue admin.
 
-- Docker Desktop installe et demarre;
-- Docker Compose disponible;
-- les ports 3000 et 4000 libres sur la machine.
+---
 
-### Installation avec Docker Compose
+## 🔌 API principale
 
-1. Cloner ou copier le projet dans un dossier local.
-2. Ouvrir un terminal a la racine du projet.
-3. Lancer la construction et le demarrage des conteneurs:
-
-```bash
-docker-compose up --build
-```
-
-4. Ouvrir l'application dans le navigateur:
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:4000
-
-### Redemarrage apres modification du code
-
-Apres des modifications significatives du projet, relancer:
-
-```bash
-docker-compose down
-docker-compose up --build
-```
-
-### Base de donnees en phase alpha
-
-Le projet est actuellement en phase alpha.
-
-La gestion automatique des migrations de base n'est pas active. Si vous modifiez le schema SQLite, il peut etre necessaire de supprimer la base existante pour repartir proprement.
-
-Dans ce cas:
-
-1. Arreter les conteneurs.
-2. Supprimer le fichier backend/database.sqlite si present.
-3. Relancer:
-
-```bash
-docker-compose up --build
-```
-
-Les tables seront recreees au demarrage a partir de `backend/init_db.sql`.
-
-## API Principale
-
-Quelques routes utiles:
+Quelques routes utiles :
 
 - `GET /api/teachers`
 - `POST /api/teachers`
@@ -174,16 +178,21 @@ Quelques routes utiles:
 - `POST /api/classes`
 - `GET /api/students`
 - `POST /api/students`
+- `DELETE /api/students/:id`
 - `GET /api/activities`
 - `POST /api/activities`
-- `POST /api/auth/login`
+- `PUT /api/activities/:id`
+- `DELETE /api/activities/:id`
+- `DELETE /api/activities`
 - `POST /api/import/csv`
 - `GET /api/export/csv`
 - `POST /api/import/global-csv`
 - `GET /api/export/global-csv`
 
-## Remarques
+---
 
-- les mots de passe enseignants sont actuellement stockes tels quels en base: ce comportement est acceptable pour la phase alpha mais devra etre securise plus tard;
-- le chargement dynamique des activites repose actuellement sur un registre des composants disponibles dans `frontend/src/activities/ActivityContainer.js`;
-- l'application est orientee MVP/local, avec une execution simple via Docker Desktop.
+## ⚠️ Notes actuelles
+
+- les mots de passe enseignants sont encore stockés en clair : à sécuriser avant une mise en production ;
+- le projet est pensé pour un usage **local / MVP** ;
+- le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
