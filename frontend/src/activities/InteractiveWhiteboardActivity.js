@@ -76,55 +76,73 @@ function getInitialPaperStyle(activityContent) {
   return defaultInteractiveWhiteboardActivityContent.paperStyle || "blank";
 }
 
-function createPaperPatternCanvas(paperStyle, backgroundColor) {
+function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, height = 1754) {
   const patternCanvas = document.createElement("canvas");
+  const safeWidth = Math.max(1, Math.round(width));
+  const safeHeight = Math.max(1, Math.round(height));
   const context = patternCanvas.getContext("2d");
+
+  patternCanvas.width = safeWidth;
+  patternCanvas.height = safeHeight;
+
   if (!context) return patternCanvas;
 
-  if (paperStyle === "seyes") {
-    patternCanvas.width = 160;
-    patternCanvas.height = 128;
-    context.fillStyle = backgroundColor;
-    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+  context.fillStyle = backgroundColor;
+  context.fillRect(0, 0, safeWidth, safeHeight);
 
-    for (let y = 0; y <= patternCanvas.height; y += 8) {
+  if (paperStyle === "seyes") {
+    const smallLineSpacing = 8;
+    const majorLineSpacing = smallLineSpacing * 4;
+    const leftMarginX = 96;
+
+    for (let y = 0; y <= safeHeight; y += smallLineSpacing) {
       context.beginPath();
-      context.strokeStyle = y % 32 === 0 ? "#93c5fd" : "#dbeafe";
-      context.lineWidth = y % 32 === 0 ? 1.2 : 0.8;
-      context.moveTo(0, y);
-      context.lineTo(patternCanvas.width, y);
+      context.strokeStyle = y % majorLineSpacing === 0 ? "#9fc5e8" : "#d9edf9";
+      context.lineWidth = y % majorLineSpacing === 0 ? 1.15 : 0.7;
+      context.moveTo(0, y + 0.5);
+      context.lineTo(safeWidth, y + 0.5);
       context.stroke();
     }
 
-    [24, 64].forEach((x, index) => {
+    [leftMarginX - majorLineSpacing, leftMarginX - majorLineSpacing / 2].forEach((x) => {
       context.beginPath();
-      context.strokeStyle = index === 0 ? "#fda4af" : "#fecdd3";
-      context.lineWidth = 1;
-      context.moveTo(x, 0);
-      context.lineTo(x, patternCanvas.height);
+      context.strokeStyle = "#d1d5db";
+      context.lineWidth = 0.8;
+      context.moveTo(x + 0.5, 0);
+      context.lineTo(x + 0.5, safeHeight);
       context.stroke();
     });
-  } else if (paperStyle === "grid") {
-    patternCanvas.width = 100;
-    patternCanvas.height = 100;
-    context.fillStyle = backgroundColor;
-    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
 
-    for (let pos = 0; pos <= 100; pos += 10) {
+    context.beginPath();
+    context.strokeStyle = "#f29cab";
+    context.lineWidth = 1.2;
+    context.moveTo(leftMarginX + 0.5, 0);
+    context.lineTo(leftMarginX + 0.5, safeHeight);
+    context.stroke();
+
+    for (let x = leftMarginX + majorLineSpacing; x <= safeWidth; x += majorLineSpacing) {
       context.beginPath();
-      context.strokeStyle = pos % 50 === 0 ? "#94a3b8" : "#d1d5db";
-      context.lineWidth = pos % 50 === 0 ? 1.2 : 0.8;
-      context.moveTo(pos, 0);
-      context.lineTo(pos, 100);
-      context.moveTo(0, pos);
-      context.lineTo(100, pos);
+      context.strokeStyle = "#c7cedd";
+      context.lineWidth = 0.8;
+      context.moveTo(x + 0.5, 0);
+      context.lineTo(x + 0.5, safeHeight);
       context.stroke();
     }
-  } else {
-    patternCanvas.width = 32;
-    patternCanvas.height = 32;
-    context.fillStyle = backgroundColor;
-    context.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+  } else if (paperStyle === "grid") {
+    const cellSize = 24;
+    const majorStep = cellSize * 5;
+
+    for (let pos = 0; pos <= Math.max(safeWidth, safeHeight); pos += cellSize) {
+      const isMajorLine = pos % majorStep === 0;
+      context.beginPath();
+      context.strokeStyle = isMajorLine ? "#94a3b8" : "#d7dde5";
+      context.lineWidth = isMajorLine ? 1.1 : 0.7;
+      context.moveTo(pos + 0.5, 0);
+      context.lineTo(pos + 0.5, safeHeight);
+      context.moveTo(0, pos + 0.5);
+      context.lineTo(safeWidth, pos + 0.5);
+      context.stroke();
+    }
   }
 
   return patternCanvas;
@@ -139,10 +157,15 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
     return;
   }
 
-  const patternSource = createPaperPatternCanvas(paperStyle, backgroundColor);
+  const patternSource = createPaperPatternCanvas(
+    paperStyle,
+    backgroundColor,
+    canvas.getWidth(),
+    canvas.getHeight()
+  );
   const pattern = new fabric.Pattern({
     source: patternSource,
-    repeat: "repeat",
+    repeat: "no-repeat",
   });
 
   canvas.setBackgroundColor(pattern, canvas.renderAll.bind(canvas));
