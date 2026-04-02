@@ -4,6 +4,7 @@ const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
   "src/activities/CountPencilsByTensActivity.js",
+  "src/activities/InteractiveWhiteboardActivity.js",
 ];
 
 const ActivitiesManagementPanel = ({

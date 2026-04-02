@@ -7,12 +7,14 @@ import ClassesManagementPanel from "../components/ClassesManagementPanel";
 import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
 import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
+import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
 
 const API_URL = "http://localhost:4000/api";
 const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
   "src/activities/CountPencilsByTensActivity.js",
+  "src/activities/InteractiveWhiteboardActivity.js",
 ];
 
 function getDefaultActivityContentText(jsFile) {
@@ -26,6 +28,10 @@ function getDefaultActivityContentText(jsFile) {
 
   if (jsFile === "src/activities/CountPencilsByTensActivity.js") {
     return JSON.stringify(defaultCountPencilsByTensActivityContent, null, 2);
+  }
+
+  if (jsFile === "src/activities/InteractiveWhiteboardActivity.js") {
+    return JSON.stringify(defaultInteractiveWhiteboardActivityContent, null, 2);
   }
 
   return "{}";
@@ -430,7 +436,7 @@ const AdminView = () => {
 
   return (
     <div id="admin-view-root" className="min-h-screen bg-slate-100 p-6">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
+      <h2 id="admin-view-title" className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
 
       <TeachersManagementPanel
         teacherName={teacherName}

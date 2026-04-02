@@ -2,6 +2,7 @@ import React from "react";
 import SortNumbersActivity from "./SortNumbersActivity";
 import MatchAdditionsActivity from "./MatchAdditionsActivity";
 import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
+import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -13,6 +14,9 @@ const componentRegistry = {
   "src/activities/CountPencilsByTensActivity.js": CountPencilsByTensActivity,
   "CountPencilsByTensActivity": CountPencilsByTensActivity,
   "CountPencilsByTensActivity.js": CountPencilsByTensActivity,
+  "src/activities/InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
+  "InteractiveWhiteboardActivity": InteractiveWhiteboardActivity,
+  "InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {
