@@ -6,6 +6,7 @@ export const defaultInteractiveWhiteboardActivityContent = {
   height: 1754,
   backgroundColor: "#ffffff",
   paperStyle: "seyes",
+  fontFamily: "Cursif",
   defaultZoom: 0.7,
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
@@ -59,9 +60,36 @@ function formatTimestampForFile() {
 }
 
 const PAPER_STYLE_VALUES = ["blank", "seyes", "grid"];
+const WHITEBOARD_FONT_OPTIONS = [
+  { label: "Cursif", value: "Cursif" },
+  { label: "Cursif ligné", value: "Cursifl" },
+  { label: "Cursive standard", value: "Cursive Standard" },
+  { label: "Écolier", value: "Ecolier" },
+  { label: "Écolier cour.", value: "Ecolier Courant" },
+  { label: "Inter", value: "Inter, Arial, sans-serif" },
+];
+const CUSTOM_WHITEBOARD_FONTS = [
+  { family: "Cursif", url: "/polices/Cursif.TTF" },
+  { family: "Cursifl", url: "/polices/Cursifl.TTF" },
+  { family: "Cursive Standard", url: "/polices/Cursive%20standard.ttf" },
+  { family: "Ecolier", url: "/polices/ec.TTF" },
+  { family: "Ecolier Courant", url: "/polices/ec_cour.TTF" },
+];
+const DEFAULT_TEXT_FONT_FAMILY =
+  defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
+
+let whiteboardFontsPromise = null;
 
 function resolvePaperStyleValue(rawPaperStyle, fallback = "blank") {
   return PAPER_STYLE_VALUES.includes(rawPaperStyle) ? rawPaperStyle : fallback;
+}
+
+function resolveFontFamilyValue(rawFontFamily, fallback = DEFAULT_TEXT_FONT_FAMILY) {
+  if (typeof rawFontFamily !== "string" || !rawFontFamily.trim()) {
+    return fallback;
+  }
+
+  return rawFontFamily.trim();
 }
 
 function getInitialPaperStyle(activityContent) {
@@ -74,6 +102,43 @@ function getInitialPaperStyle(activityContent) {
   }
 
   return defaultInteractiveWhiteboardActivityContent.paperStyle || "blank";
+}
+
+function ensureWhiteboardFontsLoaded() {
+  if (typeof document === "undefined") {
+    return Promise.resolve();
+  }
+
+  if (whiteboardFontsPromise) {
+    return whiteboardFontsPromise;
+  }
+
+  const styleId = "interactive-whiteboard-font-faces";
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = CUSTOM_WHITEBOARD_FONTS.map(
+      ({ family, url }) => `
+        @font-face {
+          font-family: "${family}";
+          src: url("${url}") format("truetype");
+          font-display: swap;
+        }
+      `
+    ).join("\n");
+    document.head.appendChild(style);
+  }
+
+  if (!document.fonts?.load) {
+    whiteboardFontsPromise = Promise.resolve();
+    return whiteboardFontsPromise;
+  }
+
+  whiteboardFontsPromise = Promise.all(
+    CUSTOM_WHITEBOARD_FONTS.map(({ family }) => document.fonts.load(`16px "${family}"`).catch(() => null))
+  ).then(() => undefined);
+
+  return whiteboardFontsPromise;
 }
 
 function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, height = 1754) {
@@ -173,6 +238,7 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
 
 const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
+  const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
 
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
@@ -187,6 +253,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const colorRef = useRef("black");
   const brushSizeRef = useRef("5");
   const paperStyleRef = useRef(configuredPaperStyle);
+  const fontFamilyRef = useRef(configuredFontFamily);
 
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -194,6 +261,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState("5");
   const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
+  const [fontFamily, setFontFamily] = useState(configuredFontFamily);
   const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 0.7);
   const [title, setTitle] = useState(content?.defaultTitle || "Tableau");
   const [showImageHint, setShowImageHint] = useState(false);
@@ -221,6 +289,10 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   }, [brushSize]);
 
   useEffect(() => {
+    fontFamilyRef.current = fontFamily;
+  }, [fontFamily]);
+
+  useEffect(() => {
     paperStyleRef.current = paperStyle;
     if (!fabricCanvasRef.current) return;
     applyPaperStyleToCanvas(fabricCanvasRef.current, paperStyle, backgroundColor);
@@ -240,6 +312,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         title,
         studentName: studentFullName,
         paperStyle: paperStyleRef.current,
+        fontFamily: fontFamilyRef.current,
         savedAt: new Date().toISOString(),
       },
       canvas: canvas.toJSON(["width", "height"]),
@@ -329,11 +402,32 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     canvas.requestRenderAll();
   };
 
+  const handleFontFamilyChange = (nextFontFamily) => {
+    const resolvedFontFamily = resolveFontFamilyValue(nextFontFamily, DEFAULT_TEXT_FONT_FAMILY);
+    setFontFamily(resolvedFontFamily);
+
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const selectedObjects = canvas.getActiveObjects().flatMap((obj) =>
+      obj.type === "activeSelection" ? obj.getObjects() : [obj]
+    );
+    const textObjects = selectedObjects.filter((obj) => ["i-text", "text", "textbox"].includes(obj.type));
+
+    if (textObjects.length === 0) {
+      return;
+    }
+
+    textObjects.forEach((obj) => obj.set("fontFamily", resolvedFontFamily));
+    canvas.requestRenderAll();
+    saveHistory();
+  };
+
   useEffect(() => {
     let disposed = false;
 
-    loadFabricScript()
-      .then((fabric) => {
+    Promise.all([loadFabricScript(), ensureWhiteboardFontsLoaded()])
+      .then(([fabric]) => {
         if (disposed || !canvasRef.current) return;
 
         const canvas = new fabric.Canvas(canvasRef.current, {
@@ -361,7 +455,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
           const text = new fabric.IText("Texte...", {
             left: pointer.x,
             top: pointer.y,
-            fontFamily: "Inter, Arial, sans-serif",
+            fontFamily: fontFamilyRef.current || DEFAULT_TEXT_FONT_FAMILY,
             fontSize: (parseInt(brushSizeRef.current, 10) || 5) * 2 + 10,
             fill: colorRef.current,
             originX: "center",
@@ -413,6 +507,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
           historyLockedRef.current = true;
           let savedCanvas = null;
           let savedPaperStyle = configuredPaperStyle;
+          let savedFontFamily = configuredFontFamily;
 
           try {
             const parsedSaved = JSON.parse(saved);
@@ -422,7 +517,11 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
             if (parsedSaved?.meta?.paperStyle && !content?.paperStyle && content?.showGrid !== true) {
               savedPaperStyle = resolvePaperStyleValue(parsedSaved.meta.paperStyle, configuredPaperStyle);
             }
+            if (parsedSaved?.meta?.fontFamily && !content?.fontFamily) {
+              savedFontFamily = resolveFontFamilyValue(parsedSaved.meta.fontFamily, configuredFontFamily);
+            }
             setPaperStyle(savedPaperStyle);
+            setFontFamily(savedFontFamily);
             savedCanvas = parsedSaved?.canvas ? parsedSaved.canvas : parsedSaved;
           } catch {
             savedCanvas = null;
@@ -460,7 +559,17 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         fabricCanvasRef.current = null;
       }
     };
-  }, [backgroundColor, canvasHeight, canvasWidth, configuredPaperStyle, content?.paperStyle, content?.showGrid, storageKey]);
+  }, [
+    backgroundColor,
+    canvasHeight,
+    canvasWidth,
+    configuredFontFamily,
+    configuredPaperStyle,
+    content?.fontFamily,
+    content?.paperStyle,
+    content?.showGrid,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -470,7 +579,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   useEffect(() => {
     if (!isReady) return;
     persistBoardState();
-  }, [isReady, title, paperStyle]);
+  }, [isReady, title, paperStyle, fontFamily]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -673,6 +782,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         title,
         studentName: studentFullName,
         paperStyle,
+        fontFamily,
         exportedAt: new Date().toISOString(),
       },
       canvas: canvas.toJSON(["width", "height"]),
@@ -704,6 +814,10 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
 
         if (parsed?.meta?.paperStyle) {
           setPaperStyle(parsed.meta.paperStyle);
+        }
+
+        if (parsed?.meta?.fontFamily) {
+          setFontFamily(resolveFontFamilyValue(parsed.meta.fontFamily, configuredFontFamily));
         }
 
         historyLockedRef.current = true;
@@ -842,6 +956,21 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
                 <option value="blank">Blanc</option>
                 <option value="seyes">Lignage Seyès</option>
                 <option value="grid">Carreaux géométrie</option>
+              </select>
+              <span className="text-xs font-medium text-slate-500">Police</span>
+              <select
+                id="interactive-whiteboard-font-family"
+                value={fontFamily}
+                onChange={(e) => handleFontFamilyChange(e.target.value)}
+                className="h-9 max-w-40 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                style={{ fontFamily }}
+                title="Police utilisée pour les textes"
+              >
+                {WHITEBOARD_FONT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value} style={{ fontFamily: option.value }}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
               <button type="button" onClick={handleExportJson} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">💾</button>
               <button type="button" onClick={() => inputJsonRef.current?.click()} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">📂</button>
