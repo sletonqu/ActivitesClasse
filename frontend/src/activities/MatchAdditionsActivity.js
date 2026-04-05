@@ -130,7 +130,7 @@ function buildAnswerTiles(challenges) {
   );
 }
 
-const MatchAdditionsActivity = ({ content, onComplete }) => {
+const MatchAdditionsActivity = ({ student, content, onComplete }) => {
   const defaultLevels = defaultMatchAdditionsActivityContent.levels;
   const configuredLevels = {
     level1: normalizeLevelRule(content?.levels?.level1, defaultLevels.level1),
@@ -164,6 +164,7 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
   const [assignments, setAssignments] = useState({});
   const [draggedItem, setDraggedItem] = useState(null);
   const [finished, setFinished] = useState(false);
+  const restartLocked = Boolean(student) && finished;
 
   const resetForChallenges = (nextChallenges) => {
     setChallenges(nextChallenges);
@@ -345,27 +346,26 @@ const MatchAdditionsActivity = ({ content, onComplete }) => {
         ))}
       </div>
 
-      {!finished && (
-        <div id="match-additions-actions" className="flex justify-center gap-3">
-          <button
-            id="match-additions-validate-button"
-            type="button"
-            onClick={handleValidate}
-            disabled={!allAssigned}
-            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60"
-          >
-            Valider
-          </button>
+      <div id="match-additions-actions" className="flex justify-center gap-3">
+        <button
+          id="match-additions-validate-button"
+          type="button"
+          onClick={handleValidate}
+          disabled={finished || !allAssigned}
+          className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Valider
+        </button>
         <button
           id="match-additions-restart-button"
           type="button"
           onClick={handleRestart}
-          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
+          disabled={restartLocked}
+          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
         >
           Recommencer
         </button>
-        </div>
-      )}
+      </div>
 
       {finished && (
         <p id="match-additions-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">

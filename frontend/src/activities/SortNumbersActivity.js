@@ -77,7 +77,7 @@ function normalizeLevelRule(rule, fallbackRule) {
   };
 }
 
-const SortNumbersActivity = ({ content, onComplete }) => {
+const SortNumbersActivity = ({ student, content, onComplete }) => {
   const defaultLevels = defaultSortNumbersActivityContent.levels;
 
   const configuredLevels = {
@@ -106,6 +106,7 @@ const SortNumbersActivity = ({ content, onComplete }) => {
   const [tiles, setTiles] = useState(buildTilesForLevel(initialLevel));
   const [draggedIdx, setDraggedIdx] = useState(null);
   const [finished, setFinished] = useState(false);
+  const restartLocked = Boolean(student) && finished;
 
   const getExpectedValues = (tileList) => tileList.map((tile) => tile.value).slice().sort((a, b) => a - b);
 
@@ -193,24 +194,24 @@ const SortNumbersActivity = ({ content, onComplete }) => {
         })}
       </div>
 
-      {!finished && (
-        <div id="sort-numbers-actions" className="flex justify-center gap-3">
-          <button
-            id="sort-numbers-validate-button"
-            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold"
-            onClick={handleValidate}
-          >
-            Valider
-          </button>
+      <div id="sort-numbers-actions" className="flex justify-center gap-3">
+        <button
+          id="sort-numbers-validate-button"
+          className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+          onClick={handleValidate}
+          disabled={finished}
+        >
+          Valider
+        </button>
         <button
           id="sort-numbers-restart-button"
-          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
+          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
           onClick={handleRestart}
+          disabled={restartLocked}
         >
           Recommencer
         </button>
-        </div>
-      )}
+      </div>
 
       {finished && (
         <p id="sort-numbers-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">

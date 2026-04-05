@@ -148,7 +148,7 @@ function renderCartons(count, rotations = [], onCartonDoubleClick) {
   ));
 }
 
-const CountPencilsByTensActivity = ({ content, onComplete }) => {
+const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
   const defaultLevels = defaultCountPencilsByTensActivityContent.levels;
   const configuredLevels = {
     level1: normalizeLevelRule(content?.levels?.level1, defaultLevels.level1),
@@ -167,6 +167,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   );
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
+  const restartLocked = Boolean(student) && finished;
   const clickTimeoutRef = useRef(null);
 
   const clearPendingClick = () => {
@@ -508,27 +509,26 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         })}
       </div>
 
-      {!finished && (
-        <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
-          <button
-            id="count-pencils-by-tens-validate-button"
-            type="button"
-            onClick={handleValidate}
-            disabled={!allAnswered}
-            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60"
-          >
-            Valider
-          </button>
+      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
+        <button
+          id="count-pencils-by-tens-validate-button"
+          type="button"
+          onClick={handleValidate}
+          disabled={finished || !allAnswered}
+          className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Valider
+        </button>
         <button
           id="count-pencils-by-tens-restart-button"
           type="button"
           onClick={handleRestart}
-          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold"
+          disabled={restartLocked}
+          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
         >
           Recommencer
         </button>
-        </div>
-      )}
+      </div>
 
       {finished && (
         <p id="count-pencils-by-tens-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
