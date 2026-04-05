@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 // Import des routes
 app.use('/api/teachers', require('./routes/teachers'));
 app.use('/api/classes', require('./routes/classes'));
+app.use('/api/groups', require('./routes/groups'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/activities', require('./routes/activities'));
 app.use('/api/results', require('./routes/results'));

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import StudentsManagementPanel from "../components/StudentsManagementPanel";
+import GroupManagementPanel from "../components/GroupManagementPanel";
 import ResultsManagementPanel from "../components/ResultsManagementPanel";
 import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
@@ -46,6 +47,22 @@ const TeacherView = () => {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [deletingStudentId, setDeletingStudentId] = useState("");
   const [deletingAllStudents, setDeletingAllStudents] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [submittingGroup, setSubmittingGroup] = useState(false);
+  const [groupMessage, setGroupMessage] = useState("");
+  const [showGroupMessage, setShowGroupMessage] = useState(false);
+  const [fadeGroupMessage, setFadeGroupMessage] = useState(false);
+  const [groupError, setGroupError] = useState("");
+  const [showGroupsList, setShowGroupsList] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [deletingGroupId, setDeletingGroupId] = useState("");
+  const [deletingAllGroups, setDeletingAllGroups] = useState(false);
+  const [selectedAvailableStudentId, setSelectedAvailableStudentId] = useState("");
+  const [assigningStudentToGroup, setAssigningStudentToGroup] = useState(false);
+  const [removingGroupStudentId, setRemovingGroupStudentId] = useState("");
+  const [removingAllGroupStudents, setRemovingAllGroupStudents] = useState(false);
   const [activities, setActivities] = useState([]);
   const [selectedResultStudentId, setSelectedResultStudentId] = useState("");
   const [loadingResults, setLoadingResults] = useState(false);
@@ -128,6 +145,32 @@ const TeacherView = () => {
   }, [studentMessage]);
 
   useEffect(() => {
+    if (!groupMessage) {
+      setShowGroupMessage(false);
+      setFadeGroupMessage(false);
+      return;
+    }
+
+    setShowGroupMessage(true);
+    setFadeGroupMessage(false);
+
+    const fadeTimer = setTimeout(() => {
+      setFadeGroupMessage(true);
+    }, 3500);
+
+    const hideTimer = setTimeout(() => {
+      setShowGroupMessage(false);
+      setGroupMessage("");
+      setFadeGroupMessage(false);
+    }, 4000);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [groupMessage]);
+
+  useEffect(() => {
     if (!activityMessage) {
       setShowActivityMessage(false);
       setFadeActivityMessage(false);
@@ -182,11 +225,91 @@ const TeacherView = () => {
     }
   };
 
+  const loadGroups = async () => {
+    if (!selectedClassId) {
+      setGroups([]);
+      setSelectedGroupId("");
+      return;
+    }
+
+    setLoadingGroups(true);
+    try {
+      const res = await fetch(`${API_URL}/groups?class_id=${encodeURIComponent(selectedClassId)}`);
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setGroups(data);
+        setSelectedGroupId((prev) =>
+          data.some((group) => String(group.id) === String(prev)) ? prev : ""
+        );
+      } else {
+        setGroups([]);
+        setSelectedGroupId("");
+      }
+    } catch {
+      setGroups([]);
+      setSelectedGroupId("");
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
   const handleToggleStudentsList = async () => {
     const next = !showStudentsList;
     setShowStudentsList(next);
     if (next) {
       await loadStudents();
+    }
+  };
+
+  const handleToggleGroupsList = async () => {
+    const next = !showGroupsList;
+    setShowGroupsList(next);
+    if (next) {
+      await loadGroups();
+    } else {
+      setSelectedGroupId("");
+      setSelectedAvailableStudentId("");
+    }
+  };
+
+  const handleAddGroup = async (e) => {
+    e.preventDefault();
+    setSubmittingGroup(true);
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      if (!selectedClassId) {
+        throw new Error("Sélectionnez une classe avant d'ajouter un groupe");
+      }
+
+      if (!groupName.trim()) {
+        throw new Error("Le nom du groupe est obligatoire");
+      }
+
+      const resp = await fetch(`${API_URL}/groups`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: groupName.trim(),
+          class_id: Number(selectedClassId),
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de l'ajout du groupe");
+      }
+
+      setGroupName("");
+      setGroupMessage("Groupe ajouté");
+      if (showGroupsList) {
+        await loadGroups();
+      }
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setSubmittingGroup(false);
     }
   };
 
@@ -223,9 +346,7 @@ const TeacherView = () => {
       setStudentMessage("Élève ajouté");
       setStudentName("");
       setStudentFirstname("");
-      if (showStudentsList) {
         await loadStudents();
-      }
     } catch (err) {
       setStudentError(err.message || "Erreur inconnue");
     } finally {
@@ -288,6 +409,7 @@ const TeacherView = () => {
         setSelectedResultId("");
       }
 
+      await loadGroups();
       setStudentMessage("Élève supprimé");
     } catch (err) {
       setStudentError(err.message || "Erreur inconnue");
@@ -330,11 +452,165 @@ const TeacherView = () => {
       setSelectedResultStudentId("");
       setStudentResults([]);
       setSelectedResultId("");
+      setSelectedGroupId("");
+      await loadGroups();
       setStudentMessage("Tous les élèves de la classe active ont été supprimés");
     } catch (err) {
       setStudentError(err.message || "Erreur inconnue");
     } finally {
       setDeletingAllStudents(false);
+    }
+  };
+
+  const handleSelectGroup = (groupId) => {
+    setSelectedGroupId(String(groupId));
+    setSelectedAvailableStudentId("");
+    setGroupError("");
+  };
+
+  const handleDeleteGroup = async (group) => {
+    const confirmed = window.confirm(
+      `Supprimer le groupe ${group.name} et retirer tous ses élèves du groupe ?`
+    );
+    if (!confirmed) return;
+
+    setDeletingGroupId(String(group.id));
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      const res = await fetch(`${API_URL}/groups/${group.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de la suppression du groupe");
+      }
+
+      await Promise.all([loadGroups(), loadStudents()]);
+      if (String(selectedGroupId) === String(group.id)) {
+        setSelectedGroupId("");
+        setSelectedAvailableStudentId("");
+      }
+      setGroupMessage("Groupe supprimé");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingGroupId("");
+    }
+  };
+
+  const handleDeleteAllGroups = async () => {
+    if (!selectedClassId || groups.length === 0) return;
+
+    const confirmed = window.confirm(
+      "Supprimer tous les groupes de la classe active et retirer les élèves de leurs groupes ?"
+    );
+    if (!confirmed) return;
+
+    setDeletingAllGroups(true);
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      await Promise.all(
+        groups.map(async (group) => {
+          const res = await fetch(`${API_URL}/groups/${group.id}`, { method: "DELETE" });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Erreur lors de la suppression de tous les groupes");
+          }
+        })
+      );
+
+      await Promise.all([loadGroups(), loadStudents()]);
+      setSelectedGroupId("");
+      setSelectedAvailableStudentId("");
+      setGroupMessage("Tous les groupes de la classe active ont été supprimés");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingAllGroups(false);
+    }
+  };
+
+  const handleAssignStudentToGroup = async (e) => {
+    e.preventDefault();
+    if (!selectedGroupId || !selectedAvailableStudentId) return;
+
+    setAssigningStudentToGroup(true);
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      const res = await fetch(`${API_URL}/groups/${selectedGroupId}/students`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ student_id: Number(selectedAvailableStudentId) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de l'ajout de l'élève au groupe");
+      }
+
+      await Promise.all([loadGroups(), loadStudents()]);
+      setSelectedAvailableStudentId("");
+      setGroupMessage("Élève ajouté au groupe");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setAssigningStudentToGroup(false);
+    }
+  };
+
+  const handleRemoveStudentFromGroup = async (student) => {
+    if (!selectedGroupId) return;
+
+    setRemovingGroupStudentId(String(student.id));
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      const res = await fetch(`${API_URL}/groups/${selectedGroupId}/students/${student.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors du retrait de l'élève du groupe");
+      }
+
+      await Promise.all([loadGroups(), loadStudents()]);
+      setGroupMessage("Élève retiré du groupe");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setRemovingGroupStudentId("");
+    }
+  };
+
+  const handleRemoveAllStudentsFromGroup = async () => {
+    if (!selectedGroupId) return;
+
+    const confirmed = window.confirm("Retirer tous les élèves de ce groupe ?");
+    if (!confirmed) return;
+
+    setRemovingAllGroupStudents(true);
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      const res = await fetch(`${API_URL}/groups/${selectedGroupId}/students`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors du retrait de tous les élèves du groupe");
+      }
+
+      await Promise.all([loadGroups(), loadStudents()]);
+      setGroupMessage("Le groupe a été vidé");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setRemovingAllGroupStudents(false);
     }
   };
 
@@ -375,16 +651,29 @@ const TeacherView = () => {
 
   useEffect(() => {
     loadStudents();
+    loadGroups();
     setSelectedStudentId("");
     setSelectedResultStudentId("");
     setStudentResults([]);
     setSelectedResultId("");
     setResultsError("");
+    setSelectedGroupId("");
+    setSelectedAvailableStudentId("");
+    setGroupError("");
+    setGroupMessage("");
   }, [selectedClassId]);
 
   useEffect(() => {
     loadResultsForStudent(selectedResultStudentId);
   }, [selectedResultStudentId]);
+
+  const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId));
+  const groupStudents = students.filter(
+    (student) => String(student.group_id) === String(selectedGroupId)
+  );
+  const availableStudents = students.filter(
+    (student) => student.group_id === null || student.group_id === undefined || student.group_id === ""
+  );
 
   const selectedResultStudent = students.find(
     (student) => String(student.id) === String(selectedResultStudentId)
@@ -649,6 +938,39 @@ const TeacherView = () => {
         onSelectStudent={setSelectedStudentId}
         onDeleteStudent={handleDeleteStudent}
         onDeleteAllStudents={handleDeleteAllStudents}
+      />
+
+      <GroupManagementPanel
+        groupName={groupName}
+        submittingGroup={submittingGroup}
+        groupMessage={groupMessage}
+        groupError={groupError}
+        showGroupMessage={showGroupMessage}
+        fadeGroupMessage={fadeGroupMessage}
+        showGroupsList={showGroupsList}
+        groups={groups}
+        selectedClassId={selectedClassId}
+        selectedGroupId={selectedGroupId}
+        selectedGroup={selectedGroup}
+        loadingGroups={loadingGroups}
+        deletingAllGroups={deletingAllGroups}
+        deletingGroupId={deletingGroupId}
+        availableStudents={availableStudents}
+        selectedAvailableStudentId={selectedAvailableStudentId}
+        assigningStudentToGroup={assigningStudentToGroup}
+        groupStudents={groupStudents}
+        removingGroupStudentId={removingGroupStudentId}
+        removingAllGroupStudents={removingAllGroupStudents}
+        onGroupNameChange={setGroupName}
+        onAddGroup={handleAddGroup}
+        onToggleGroupsList={handleToggleGroupsList}
+        onSelectGroup={handleSelectGroup}
+        onDeleteGroup={handleDeleteGroup}
+        onDeleteAllGroups={handleDeleteAllGroups}
+        onSelectedAvailableStudentChange={setSelectedAvailableStudentId}
+        onAssignStudentToGroup={handleAssignStudentToGroup}
+        onRemoveStudentFromGroup={handleRemoveStudentFromGroup}
+        onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
       />
 
       <ResultsManagementPanel

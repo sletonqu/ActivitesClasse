@@ -124,9 +124,14 @@ const StudentsManagementPanel = ({
                   }`}
                 >
                   <div id={`student-row-actions-${student.id}`} className="flex items-center justify-between gap-3">
+                    <div>
                     <p className="font-semibold text-slate-800">
                       {student.firstname} {student.name}
                     </p>
+                      <p className="text-sm text-slate-500">
+                        Groupe : {student.group_name || "Aucun"}
+                      </p>
+                    </div>
                     {String(selectedStudentId) === String(student.id) && (
                       <button
                         type="button"

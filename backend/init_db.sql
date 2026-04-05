@@ -13,12 +13,24 @@ CREATE TABLE IF NOT EXISTS classes (
   FOREIGN KEY (teacher_id) REFERENCES teachers(id)
 );
 
+CREATE TABLE IF NOT EXISTS groups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  class_id INTEGER NOT NULL,
+  FOREIGN KEY (class_id) REFERENCES classes(id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_name_class
+ON groups(name, class_id);
+
 CREATE TABLE IF NOT EXISTS students (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   firstname TEXT NOT NULL,
   class_id INTEGER,
-  FOREIGN KEY (class_id) REFERENCES classes(id)
+  group_id INTEGER,
+  FOREIGN KEY (class_id) REFERENCES classes(id),
+  FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_students_name_firstname
