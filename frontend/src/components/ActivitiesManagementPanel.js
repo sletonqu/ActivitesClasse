@@ -51,10 +51,10 @@ const ActivitiesManagementPanel = ({
   onActivityContentChange = null,
 }) => {
   return (
-    <div id="activities-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+    <div id="activities-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
       <section
         id="activities-panel-form-section"
-        className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+        className={`w-full ${showActivitiesList && selectedActivityEditId ? "xl:w-1/3" : "xl:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
         <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
 
@@ -155,7 +155,7 @@ const ActivitiesManagementPanel = ({
       {showActivitiesList && (
         <section
           id="activities-panel-list-section"
-          className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+          className={`w-full ${selectedActivityEditId ? "xl:w-1/3" : "xl:w-1/2"} bg-white rounded-xl shadow p-6`}
         >
           <div id="activities-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800">Liste des activités</h3>
@@ -223,7 +223,7 @@ const ActivitiesManagementPanel = ({
       )}
 
       {showActivitiesList && selectedActivityEditId && (
-        <section id="activities-panel-edit-section" className="w-full lg:w-1/3 bg-white rounded-xl shadow p-6">
+        <section id="activities-panel-edit-section" className="w-full xl:w-1/3 bg-white rounded-xl shadow p-6">
           <h3 id="activities-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
 
           <form id="activities-panel-edit-form" onSubmit={onUpdateActivity} className="space-y-4">

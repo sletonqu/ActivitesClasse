@@ -74,7 +74,7 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
   };
 
   return (
-    <section id="students-import-export-section" className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
+    <section id="students-import-export-section" className="w-full bg-white rounded-xl shadow p-6">
       <h3 id="students-import-export-title" className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
 
       {mustSelectClass && (

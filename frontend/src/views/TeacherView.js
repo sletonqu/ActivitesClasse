@@ -346,7 +346,7 @@ const TeacherView = () => {
       setStudentMessage("Élève ajouté");
       setStudentName("");
       setStudentFirstname("");
-        await loadStudents();
+      await loadStudents();
     } catch (err) {
       setStudentError(err.message || "Erreur inconnue");
     } finally {
@@ -958,10 +958,11 @@ const TeacherView = () => {
   };
 
   return (
-    <div id="teacher-view-root" className="min-h-screen bg-slate-100 p-6">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">Espace Enseignant</h2>
+    <div id="teacher-view-root" className="min-h-screen bg-slate-100 px-4 py-6">
+      <div className="w-full max-w-[1024px] mx-auto">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6">Espace Enseignant</h2>
 
-      <div id="bloc-classe-active" className="w-full max-w-3xl bg-white rounded-xl shadow p-6 mb-6">
+        <div id="bloc-classe-active" className="w-full bg-white rounded-xl shadow p-6 mb-6">
         <label className="block text-sm font-semibold text-slate-700 mb-2">Classe ciblée</label>
         <select
           value={selectedClassId}
@@ -1052,9 +1053,10 @@ const TeacherView = () => {
         onDeleteResult={handleDeleteResult}
         onDeleteAllResults={handleDeleteAllResults}
         getActivityLabel={getActivityLabel}
+        getResultLevelLabel={getResultLevelLabel}
       />
 
-      <div id="zone-gestion-activites" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
+      <div id="zone-gestion-activites" className="w-full mb-6">
         <ActivitiesManagementPanel
           activities={activities}
           loadingActivities={loadingActivities}
@@ -1081,11 +1083,12 @@ const TeacherView = () => {
         />
       </div>
 
-      <StudentsImportExportPanel
-        title="Import / Export des élèves (Enseignant)"
-        selectedClassId={selectedClassId}
-        requireClassSelection
-      />
+        <StudentsImportExportPanel
+          title="Import / Export des élèves (Enseignant)"
+          selectedClassId={selectedClassId}
+          requireClassSelection
+        />
+      </div>
     </div>
   );
 };

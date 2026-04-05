@@ -525,10 +525,11 @@ const AdminView = () => {
   };
 
   return (
-    <div id="admin-view-root" className="min-h-screen bg-slate-100 p-6">
-      <h2 id="admin-view-title" className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
+    <div id="admin-view-root" className="min-h-screen bg-slate-100 px-4 py-6">
+      <div className="w-full max-w-[1024px] mx-auto">
+        <h2 id="admin-view-title" className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
 
-      <TeachersManagementPanel
+        <TeachersManagementPanel
         teacherName={teacherName}
         teacherEmail={teacherEmail}
         teacherPassword={teacherPassword}
@@ -610,9 +611,10 @@ const AdminView = () => {
         onActivityContentChange={setActivityContentText}
       />
 
-      <GlobalImportExportPanel />
+        <GlobalImportExportPanel />
 
-      <StudentsImportExportPanel title="Import / Export des élèves (Admin)" />
+        <StudentsImportExportPanel title="Import / Export des élèves (Admin)" />
+      </div>
     </div>
   );
 };

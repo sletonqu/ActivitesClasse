@@ -193,6 +193,7 @@ Quelques routes utiles :
 
 ## ⚠️ Notes actuelles
 
+- Application conçue pour être utilisé sur un TNI de 1024x768 pixels (4:3), model : Smart Board M600 DViT
 - les mots de passe enseignants sont encore stockés en clair : à sécuriser avant une mise en production ;
 - le projet est pensé pour un usage **local / MVP** ;
 - le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
