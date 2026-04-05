@@ -104,6 +104,8 @@ function parseCsvRows(csvText) {
   const idxName = headers.indexOf('name');
   const idxFirstname = headers.indexOf('firstname');
   const idxClassId = headers.indexOf('class_id');
+  const idxGroupId = headers.indexOf('group_id');
+  const idxGroupName = headers.indexOf('group_name');
 
   if (idxName === -1 || idxFirstname === -1) {
     throw new Error('CSV invalide: colonnes name et firstname obligatoires');
@@ -120,6 +122,8 @@ function parseCsvRows(csvText) {
       name: getCol(idxName),
       firstname: getCol(idxFirstname),
       class_id: idxClassId === -1 || getCol(idxClassId) === '' ? null : Number(getCol(idxClassId)),
+      group_id: idxGroupId === -1 || getCol(idxGroupId) === '' ? null : getCol(idxGroupId),
+      group_name: idxGroupName === -1 ? '' : getCol(idxGroupName),
     };
   });
 }
@@ -133,6 +137,15 @@ function allAsync(sql, params = []) {
   });
 }
 
+function getAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) return reject(err);
+      resolve(row || null);
+    });
+  });
+}
+
 function runAsync(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function onRun(err) {
@@ -140,6 +153,59 @@ function runAsync(sql, params = []) {
       resolve({ lastID: this.lastID, changes: this.changes });
     });
   });
+}
+
+async function resolveStudentImportReferences({ class_id, group_id, group_name }) {
+  let resolvedClassId =
+    class_id === undefined || class_id === null || class_id === '' ? null : Number(class_id);
+
+  if (resolvedClassId !== null && Number.isNaN(resolvedClassId)) {
+    throw new Error('class_id invalide');
+  }
+
+  let resolvedGroupId = null;
+  const normalizedGroupName = String(group_name || '').trim();
+
+  if (group_id !== undefined && group_id !== null && group_id !== '') {
+    const parsedGroupId = Number(group_id);
+    if (Number.isNaN(parsedGroupId)) {
+      throw new Error('group_id invalide');
+    }
+
+    const groupRow = await getAsync('SELECT id, class_id FROM groups WHERE id = ?', [parsedGroupId]);
+    if (!groupRow) {
+      throw new Error(`Groupe introuvable pour group_id ${group_id}`);
+    }
+
+    if (resolvedClassId !== null && String(groupRow.class_id) !== String(resolvedClassId)) {
+      throw new Error("Le groupe indiqué n'appartient pas à la classe ciblée");
+    }
+
+    resolvedClassId = resolvedClassId ?? groupRow.class_id;
+    resolvedGroupId = groupRow.id;
+  } else if (normalizedGroupName) {
+    if (resolvedClassId === null) {
+      throw new Error(`class_id obligatoire pour résoudre le groupe \"${normalizedGroupName}\"`);
+    }
+
+    const groupRow = await getAsync(
+      'SELECT id, class_id FROM groups WHERE LOWER(name) = LOWER(?) AND class_id = ?',
+      [normalizedGroupName, resolvedClassId]
+    );
+
+    if (!groupRow) {
+      throw new Error(
+        `Groupe introuvable pour le nom \"${normalizedGroupName}\" dans la classe ${resolvedClassId}`
+      );
+    }
+
+    resolvedGroupId = groupRow.id;
+  }
+
+  return {
+    classId: resolvedClassId,
+    groupId: resolvedGroupId,
+  };
 }
 
 function parseGlobalCsvRows(csvText) {
@@ -167,6 +233,8 @@ function parseGlobalCsvRows(csvText) {
       firstname: getVal(cols, 'firstname'),
       teacher_id: getVal(cols, 'teacher_id'),
       class_id: getVal(cols, 'class_id'),
+      group_id: getVal(cols, 'group_id'),
+      group_name: getVal(cols, 'group_name'),
       title: getVal(cols, 'title'),
       description: getVal(cols, 'description'),
       content: getVal(cols, 'content'),
@@ -195,7 +263,15 @@ router.post('/csv', (req, res) => {
         parsedRows = students.map((s) => ({
           name: String(s?.name || '').trim(),
           firstname: String(s?.firstname || '').trim(),
-          class_id: s?.class_id === undefined || s?.class_id === null || s?.class_id === '' ? null : Number(s.class_id),
+          class_id:
+            s?.class_id === undefined || s?.class_id === null || s?.class_id === ''
+              ? null
+              : Number(s.class_id),
+          group_id:
+            s?.group_id === undefined || s?.group_id === null || s?.group_id === ''
+              ? null
+              : s.group_id,
+          group_name: String(s?.group_name || '').trim(),
         }));
       } else if (typeof csv === 'string') {
         parsedRows = parseCsvRows(csv);
@@ -232,9 +308,11 @@ router.post('/csv', (req, res) => {
           continue;
         }
 
+        const { classId, groupId } = await resolveStudentImportReferences(row);
+
         await runAsync(
-          'INSERT INTO students (name, firstname, class_id) VALUES (?, ?, ?)',
-          [row.name, row.firstname, row.class_id]
+          'INSERT INTO students (name, firstname, class_id, group_id) VALUES (?, ?, ?, ?)',
+          [row.name, row.firstname, classId, groupId]
         );
 
         payloadKeys.add(key);
@@ -278,6 +356,12 @@ router.post('/global-csv', (req, res) => {
       const existingClassNames = new Set(existingClasses.map((c) => String(c.name).toLowerCase()));
       const classPayloadNames = new Set();
 
+      const existingGroups = await allAsync('SELECT name, class_id FROM groups');
+      const existingGroupKeys = new Set(
+        existingGroups.map((g) => `${String(g.class_id)}::${String(g.name).toLowerCase()}`)
+      );
+      const groupPayloadKeys = new Set();
+
       const existingStudents = await allAsync('SELECT name, firstname FROM students');
       const existingStudentKeys = new Set(
         existingStudents.map((s) => `${String(s.name).toLowerCase()}::${String(s.firstname).toLowerCase()}`)
@@ -290,6 +374,7 @@ router.post('/global-csv', (req, res) => {
 
       let teachersImported = 0;
       let classesImported = 0;
+      let groupsImported = 0;
       let studentsImported = 0;
       let activitiesImported = 0;
       let resultsImported = 0;
@@ -330,6 +415,25 @@ router.post('/global-csv', (req, res) => {
           continue;
         }
 
+        if (row.entity === 'group') {
+          const groupName = row.name || row.group_name;
+          if (!groupName || !row.class_id) continue;
+
+          const parsedClassId = Number(row.class_id);
+          if (Number.isNaN(parsedClassId)) continue;
+
+          const groupKey = `${parsedClassId}::${groupName.toLowerCase()}`;
+          if (existingGroupKeys.has(groupKey) || groupPayloadKeys.has(groupKey)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          await runAsync('INSERT INTO groups (name, class_id) VALUES (?, ?)', [groupName, parsedClassId]);
+          groupPayloadKeys.add(groupKey);
+          groupsImported += 1;
+          continue;
+        }
+
         if (row.entity === 'student') {
           if (!row.name || !row.firstname) continue;
           const studentKey = `${row.name.toLowerCase()}::${row.firstname.toLowerCase()}`;
@@ -338,12 +442,15 @@ router.post('/global-csv', (req, res) => {
             continue;
           }
 
-          const parsedClassId = row.class_id === '' ? null : Number(row.class_id);
-          const classId = parsedClassId === null || Number.isNaN(parsedClassId) ? null : parsedClassId;
+          const { classId, groupId } = await resolveStudentImportReferences({
+            class_id: row.class_id,
+            group_id: row.group_id,
+            group_name: row.group_name,
+          });
 
           await runAsync(
-            'INSERT INTO students (name, firstname, class_id) VALUES (?, ?, ?)',
-            [row.name, row.firstname, classId]
+            'INSERT INTO students (name, firstname, class_id, group_id) VALUES (?, ?, ?, ?)',
+            [row.name, row.firstname, classId, groupId]
           );
           studentPayloadKeys.add(studentKey);
           studentsImported += 1;
@@ -397,6 +504,7 @@ router.post('/global-csv', (req, res) => {
         received: rows.length,
         teachersImported,
         classesImported,
+        groupsImported,
         studentsImported,
         activitiesImported,
         resultsImported,

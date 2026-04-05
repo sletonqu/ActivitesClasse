@@ -3,7 +3,7 @@ import React, { useState } from "react";
 const API_URL = "http://localhost:4000/api";
 
 const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClassSelection = false }) => {
-  const [csvText, setCsvText] = useState("name,firstname,class_id\nDupont,Alice,1");
+  const [csvText, setCsvText] = useState("name,firstname,class_id,group_id,group_name\nDupont,Alice,1,,");
   const [loadingImport, setLoadingImport] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
   const [result, setResult] = useState(null);
@@ -84,8 +84,11 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
       )}
 
       <label id="students-import-export-textarea-label" className="block text-sm font-semibold text-slate-700 mb-2">
-        CSV élèves (name, firstname, class_id)
+        CSV élèves (name, firstname, class_id, group_id, group_name)
       </label>
+      <p className="mb-2 text-xs text-slate-500">
+        `group_id` et `group_name` sont optionnels. Si une classe est sélectionnée, `class_id` est forcé automatiquement.
+      </p>
       <textarea
         id="students-import-export-textarea"
         value={csvText}

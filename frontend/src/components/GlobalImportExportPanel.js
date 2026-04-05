@@ -76,7 +76,7 @@ const GlobalImportExportPanel = () => {
 
   return (
     <section id="global-import-export-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
-      <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Élèves, Activités, Résultats)</h3>
+      <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Groupes, Élèves, Activités, Résultats)</h3>
 
       <input
         id="global-import-export-file-input"
@@ -103,12 +103,12 @@ const GlobalImportExportPanel = () => {
           disabled={loadingExport}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
         >
-          {loadingExport ? "Export en cours..." : "Exporter CVS"}
+          {loadingExport ? "Export en cours..." : "Exporter CSV"}
         </button>
       </div>
 
       <p id="global-import-export-description" className="mt-3 text-sm text-slate-500">
-        Format attendu: colonnes entity,name,email,password,firstname,teacher_id,class_id,title,description,content,status,js_file,student_id,activity_id,score,completed_at avec entity parmi teacher, class, student, activity, result.
+        Format attendu: colonnes entity,name,email,password,firstname,teacher_id,class_id,group_id,group_name,title,description,content,status,js_file,student_id,activity_id,score,completed_at avec entity parmi teacher, class, group, student, activity, result.
       </p>
 
       {result && (
@@ -117,6 +117,7 @@ const GlobalImportExportPanel = () => {
           <div>Lignes reçues: {result.received}</div>
           <div>Enseignants importés: {result.teachersImported}</div>
           <div>Classes importées: {result.classesImported}</div>
+          <div>Groupes importés: {result.groupsImported ?? 0}</div>
           <div>Élèves importés: {result.studentsImported}</div>
           <div>Activités importées: {result.activitiesImported}</div>
           <div>Résultats importés: {result.resultsImported}</div>
