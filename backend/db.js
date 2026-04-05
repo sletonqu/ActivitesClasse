@@ -63,6 +63,32 @@ function ensureGroupsSchema() {
         });
       }
     });
+
+    db.all('PRAGMA table_info(results)', [], (err, columns) => {
+      if (err) {
+        console.error('Erreur lors de la vérification du schéma results:', err.message);
+        return;
+      }
+
+      const hasActivityLevel = Array.isArray(columns) && columns.some((column) => column.name === 'activity_level');
+      const hasActivityLevelLabel = Array.isArray(columns) && columns.some((column) => column.name === 'activity_level_label');
+
+      if (!hasActivityLevel) {
+        db.run('ALTER TABLE results ADD COLUMN activity_level TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration activity_level:', alterErr.message);
+          }
+        });
+      }
+
+      if (!hasActivityLevelLabel) {
+        db.run('ALTER TABLE results ADD COLUMN activity_level_label TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration activity_level_label:', alterErr.message);
+          }
+        });
+      }
+    });
   });
 }
 
@@ -120,6 +146,8 @@ function createTables() {
       student_id INTEGER,
       activity_id INTEGER,
       score INTEGER,
+      activity_level TEXT,
+      activity_level_label TEXT,
       completed_at TEXT,
       FOREIGN KEY (student_id) REFERENCES students(id),
       FOREIGN KEY (activity_id) REFERENCES activities(id)

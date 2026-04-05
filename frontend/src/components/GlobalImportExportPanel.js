@@ -108,7 +108,7 @@ const GlobalImportExportPanel = () => {
       </div>
 
       <p id="global-import-export-description" className="mt-3 text-sm text-slate-500">
-        Format attendu: colonnes entity,name,email,password,firstname,teacher_id,class_id,group_id,group_name,title,description,content,status,js_file,student_id,activity_id,score,completed_at avec entity parmi teacher, class, group, student, activity, result.
+        Format attendu: colonnes entity,name,email,password,firstname,teacher_id,class_id,group_id,group_name,title,description,content,status,js_file,student_id,activity_id,score,completed_at,activity_level,activity_level_label avec entity parmi teacher, class, group, student, activity, result.
       </p>
 
       {result && (

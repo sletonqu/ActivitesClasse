@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS results (
   student_id INTEGER,
   activity_id INTEGER,
   score INTEGER,
+  activity_level TEXT,
+  activity_level_label TEXT,
   completed_at TEXT,
   FOREIGN KEY (student_id) REFERENCES students(id),
   FOREIGN KEY (activity_id) REFERENCES activities(id)

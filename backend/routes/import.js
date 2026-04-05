@@ -244,6 +244,8 @@ function parseGlobalCsvRows(csvText) {
       activity_id: getVal(cols, 'activity_id'),
       score: getVal(cols, 'score'),
       completed_at: getVal(cols, 'completed_at'),
+      activity_level: getVal(cols, 'activity_level'),
+      activity_level_label: getVal(cols, 'activity_level_label'),
     };
   });
 }
@@ -493,8 +495,15 @@ router.post('/global-csv', (req, res) => {
           const score = Number.isNaN(parsedScore) ? 0 : parsedScore;
 
           await runAsync(
-            'INSERT INTO results (student_id, activity_id, score, completed_at) VALUES (?, ?, ?, ?)',
-            [parsedStudentId, parsedActivityId, score, row.completed_at || new Date().toISOString()]
+            'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+              parsedStudentId,
+              parsedActivityId,
+              score,
+              row.activity_level || null,
+              row.activity_level_label || null,
+              row.completed_at || new Date().toISOString(),
+            ]
           );
           resultsImported += 1;
         }

@@ -30,15 +30,40 @@ function ensureGroupsSchema(done) {
       }
 
       const hasGroupId = Array.isArray(columns) && columns.some((column) => column.name === 'group_id');
-      if (hasGroupId) {
-        done();
-        return;
+      if (!hasGroupId) {
+        db.run('ALTER TABLE students ADD COLUMN group_id INTEGER REFERENCES groups(id)', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration group_id:', alterErr.message);
+          }
+        });
       }
 
-      db.run('ALTER TABLE students ADD COLUMN group_id INTEGER REFERENCES groups(id)', (alterErr) => {
-        if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
-          console.error('Erreur lors de la migration group_id:', alterErr.message);
+      db.all('PRAGMA table_info(results)', [], (resultsErr, resultColumns) => {
+        if (resultsErr) {
+          console.error('Erreur lors de la vérification du schéma results:', resultsErr.message);
+          done();
+          return;
         }
+
+        const hasActivityLevel = Array.isArray(resultColumns) && resultColumns.some((column) => column.name === 'activity_level');
+        const hasActivityLevelLabel = Array.isArray(resultColumns) && resultColumns.some((column) => column.name === 'activity_level_label');
+
+        if (!hasActivityLevel) {
+          db.run('ALTER TABLE results ADD COLUMN activity_level TEXT', (alterErr) => {
+            if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+              console.error('Erreur lors de la migration activity_level:', alterErr.message);
+            }
+          });
+        }
+
+        if (!hasActivityLevelLabel) {
+          db.run('ALTER TABLE results ADD COLUMN activity_level_label TEXT', (alterErr) => {
+            if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+              console.error('Erreur lors de la migration activity_level_label:', alterErr.message);
+            }
+          });
+        }
+
         done();
       });
     });

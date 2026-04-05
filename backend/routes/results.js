@@ -12,11 +12,15 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { student_id, activity_id, score, completed_at } = req.body;
-  db.run('INSERT INTO results (student_id, activity_id, score, completed_at) VALUES (?, ?, ?, ?)', [student_id, activity_id, score, completed_at], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID });
-  });
+  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at } = req.body;
+  db.run(
+    'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID });
+    }
+  );
 });
 
 
@@ -31,11 +35,15 @@ router.get('/:id', (req, res) => {
 
 // PUT update result
 router.put('/:id', (req, res) => {
-  const { student_id, activity_id, score, completed_at } = req.body;
-  db.run('UPDATE results SET student_id = ?, activity_id = ?, score = ?, completed_at = ? WHERE id = ?', [student_id, activity_id, score, completed_at, req.params.id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ updated: this.changes });
-  });
+  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at } = req.body;
+  db.run(
+    'UPDATE results SET student_id = ?, activity_id = ?, score = ?, activity_level = ?, activity_level_label = ?, completed_at = ? WHERE id = ?',
+    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at, req.params.id],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ updated: this.changes });
+    }
+  );
 });
 
 // DELETE result

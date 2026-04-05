@@ -85,10 +85,10 @@ router.get('/global-csv', (req, res) => {
               db.all('SELECT title, description, content, status, js_file FROM activities ORDER BY id ASC', [], (errActivities, activities) => {
                 if (errActivities) return res.status(500).json({ error: errActivities.message });
 
-                db.all('SELECT student_id, activity_id, score, completed_at FROM results ORDER BY id ASC', [], (errResults, results) => {
+                db.all('SELECT student_id, activity_id, score, activity_level, activity_level_label, completed_at FROM results ORDER BY id ASC', [], (errResults, results) => {
                   if (errResults) return res.status(500).json({ error: errResults.message });
 
-                  const headers = ['entity', 'name', 'email', 'password', 'firstname', 'teacher_id', 'class_id', 'group_id', 'group_name', 'title', 'description', 'content', 'status', 'js_file', 'student_id', 'activity_id', 'score', 'completed_at'];
+                  const headers = ['entity', 'name', 'email', 'password', 'firstname', 'teacher_id', 'class_id', 'group_id', 'group_name', 'title', 'description', 'content', 'status', 'js_file', 'student_id', 'activity_id', 'score', 'completed_at', 'activity_level', 'activity_level_label'];
                   const csvLines = [headers.join(',')];
 
                   teachers.forEach((t) => {
@@ -226,6 +226,8 @@ router.get('/global-csv', (req, res) => {
                       escapeCsvValue(r.activity_id),
                       escapeCsvValue(r.score),
                       escapeCsvValue(r.completed_at),
+                      escapeCsvValue(r.activity_level),
+                      escapeCsvValue(r.activity_level_label),
                     ].join(','));
                   });
 
