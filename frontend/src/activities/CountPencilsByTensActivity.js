@@ -344,7 +344,12 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
 
     const score = Math.round((correctCount / exercises.length) * 20);
     setFinished(true);
-    if (onComplete) onComplete(score);
+    if (onComplete) {
+      onComplete(score, {
+        levelKey: currentLevel,
+        levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
+      });
+    }
   };
 
   const allAnswered = exercises.every((exercise) => {

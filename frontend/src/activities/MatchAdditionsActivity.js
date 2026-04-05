@@ -244,7 +244,12 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
     }, 0);
     const score = Math.round((correctCount / challenges.length) * 20);
     setFinished(true);
-    if (onComplete) onComplete(score);
+    if (onComplete) {
+      onComplete(score, {
+        levelKey: currentLevel,
+        levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
+      });
+    }
   };
 
   const handleRestart = () => {

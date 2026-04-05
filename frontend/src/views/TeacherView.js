@@ -741,13 +741,72 @@ const TeacherView = () => {
     }
   };
 
-  const getActivityTypeKey = (activityId) => {
-    const activity = activities.find((a) => String(a.id) === String(activityId));
-    if (!activity) return `activity-id:${activityId}`;
-    if (activity.js_file && String(activity.js_file).trim()) {
-      return `js-file:${String(activity.js_file).trim()}`;
+  const getActivityById = (activityId) =>
+    activities.find((activity) => String(activity.id) === String(activityId)) || null;
+
+  const parseActivityContentObject = (activityId) => {
+    const activity = getActivityById(activityId);
+    if (!activity) return null;
+
+    if (activity.content && typeof activity.content === "object") {
+      return activity.content;
     }
-    return `activity-id:${activityId}`;
+
+    if (typeof activity.content === "string" && activity.content.trim()) {
+      try {
+        return JSON.parse(activity.content);
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  };
+
+  const activityUsesLevels = (activityId) => {
+    const content = parseActivityContentObject(activityId);
+    return Boolean(content?.levels && typeof content.levels === "object");
+  };
+
+  const getResultLevelLabel = (result) => {
+    if (!result) return "";
+    if (result.activity_level_label && String(result.activity_level_label).trim()) {
+      return String(result.activity_level_label).trim();
+    }
+
+    const levelKey = String(result.activity_level || "").trim();
+    if (!levelKey) return "";
+
+    const content = parseActivityContentObject(result.activity_id);
+    return content?.levels?.[levelKey]?.label || levelKey;
+  };
+
+  const getNormalizedResultLevelKey = (result) => {
+    if (!result) return "";
+
+    const levelKey = String(result.activity_level || "").trim();
+    if (levelKey) {
+      return levelKey;
+    }
+
+    return String(result.activity_level_label || "").trim();
+  };
+
+  const getResultGroupingKey = (result) => {
+    if (!result) return "";
+
+    const baseKey = `activity:${String(result.activity_id)}`;
+    const levelKey = getNormalizedResultLevelKey(result);
+
+    if (levelKey) {
+      return `${baseKey}::level:${levelKey}`;
+    }
+
+    if (!activityUsesLevels(result.activity_id)) {
+      return baseKey;
+    }
+
+    return `${baseKey}::level:__no-level__`;
   };
 
   const normalizeActivityContentForEditor = (content) => {
@@ -845,29 +904,29 @@ const TeacherView = () => {
     setResultsError("");
 
     try {
-      const selectedTypeKey = getActivityTypeKey(selectedResult.activity_id);
-      const sameTypeResults = studentResults.filter(
-        (result) => getActivityTypeKey(result.activity_id) === selectedTypeKey
+      const selectedGroupingKey = getResultGroupingKey(selectedResult);
+      const sameLevelResults = studentResults.filter(
+        (result) => getResultGroupingKey(result) === selectedGroupingKey
       );
 
-      if (sameTypeResults.length === 0) {
-        throw new Error("Aucun résultat du même type trouvé");
+      if (sameLevelResults.length === 0) {
+        throw new Error("Aucun résultat de la même activité et du même niveau trouvé");
       }
 
-      const totalScore = sameTypeResults.reduce((sum, result) => {
+      const totalScore = sameLevelResults.reduce((sum, result) => {
         const numericScore = Number(result.score);
         return sum + (Number.isNaN(numericScore) ? 0 : numericScore);
       }, 0);
-      const averageScore = Math.round((totalScore / sameTypeResults.length) * 100) / 100;
+      const averageScore = Math.round((totalScore / sameLevelResults.length) * 100) / 100;
 
       await Promise.all(
-        sameTypeResults.map(async (result) => {
+        sameLevelResults.map(async (result) => {
           const res = await fetch(`${API_URL}/results/${result.id}`, {
             method: "DELETE",
           });
           const data = await res.json();
           if (!res.ok) {
-            throw new Error(data.error || "Erreur lors de la suppression des résultats du même type");
+            throw new Error(data.error || "Erreur lors de la suppression des résultats du même niveau");
           }
         })
       );
@@ -879,6 +938,8 @@ const TeacherView = () => {
           student_id: Number(selectedResultStudentId),
           activity_id: Number(selectedResult.activity_id),
           score: averageScore,
+          activity_level: selectedResult.activity_level || null,
+          activity_level_label: getResultLevelLabel(selectedResult) || null,
           completed_at: new Date().toISOString(),
         }),
       });

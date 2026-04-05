@@ -180,13 +180,24 @@ const StudentView = () => {
     setSelectedStudent(student);
   };
 
-  const handleActivityComplete = async (score) => {
+  const handleActivityComplete = async (scoreOrPayload, completionMeta = {}) => {
     if (isDemoMode || !selectedStudent || !selectedActivityId) return;
 
+    const payload =
+      scoreOrPayload && typeof scoreOrPayload === "object"
+        ? scoreOrPayload
+        : { score: scoreOrPayload, ...completionMeta };
+
+    const numericScore = Number(payload.score);
+    if (!Number.isFinite(numericScore)) return;
+
     const studentId = selectedStudent.id;
+    const activityLevel = String(payload.levelKey || "").trim() || null;
+    const activityLevelLabel = String(payload.levelLabel || "").trim() || null;
+
     setScoresByStudentId((prev) => ({
       ...prev,
-      [studentId]: score,
+      [studentId]: numericScore,
     }));
 
     try {
@@ -196,7 +207,9 @@ const StudentView = () => {
         body: JSON.stringify({
           student_id: studentId,
           activity_id: Number(selectedActivityId),
-          score,
+          score: numericScore,
+          activity_level: activityLevel,
+          activity_level_label: activityLevelLabel,
           completed_at: new Date().toISOString(),
         }),
       });

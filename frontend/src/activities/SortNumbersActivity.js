@@ -125,7 +125,12 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
     const expectedValues = getExpectedValues(tiles);
     const isSorted = tiles.every((tile, index) => tile.value === expectedValues[index]);
     setFinished(true);
-    if (onComplete) onComplete(isSorted ? 20 : 0);
+    if (onComplete) {
+      onComplete(isSorted ? 20 : 0, {
+        levelKey: currentLevel,
+        levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
+      });
+    }
   };
 
   const handleRestart = () => {

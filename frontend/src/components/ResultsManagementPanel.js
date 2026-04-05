@@ -18,6 +18,7 @@ const ResultsManagementPanel = ({
   onDeleteResult,
   onDeleteAllResults,
   getActivityLabel,
+  getResultLevelLabel,
 }) => {
   return (
     <div id="results-panel-root" className="w-full flex flex-col lg:flex-row gap-6 mb-6">
@@ -130,6 +131,9 @@ const ResultsManagementPanel = ({
                       </div>
                     )}
                   </div>
+                  {getResultLevelLabel?.(result) && (
+                    <p className="text-sm text-slate-600">Niveau : {getResultLevelLabel(result)}</p>
+                  )}
                   <p className="text-sm text-slate-600">Score: {result.score}/20</p>
                   <p className="text-sm text-slate-500">
                     Date: {result.completed_at ? new Date(result.completed_at).toLocaleString() : "Non définie"}
