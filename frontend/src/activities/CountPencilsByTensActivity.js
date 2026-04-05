@@ -1,21 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export const defaultCountPencilsByTensActivityContent = {
   "defaultLevel": "level1",
   "levels": {
     "level1": {
       "label": "Niveau 1",
-      "exerciseCount": 4,
+      "exerciseCount": 2,
       "minCartons": 0,
       "maxCartons": 0,
       "minPouches": 1,
-      "maxPouches": 5,
+      "maxPouches": 9,
       "minUnits": 0,
       "maxUnits": 9
     },
     "level2": {
       "label": "Niveau 2",
-      "exerciseCount": 4,
+      "exerciseCount": 2,
       "minCartons": 1,
       "maxCartons": 2,
       "minPouches": 1,
@@ -25,7 +25,7 @@ export const defaultCountPencilsByTensActivityContent = {
     },
     "level3": {
       "label": "Niveau 3",
-      "exerciseCount": 3,
+      "exerciseCount": 2,
       "minCartons": 1,
       "maxCartons": 4,
       "minPouches": 0,
@@ -38,6 +38,7 @@ export const defaultCountPencilsByTensActivityContent = {
 
 const TILE_ROTATION_MIN_DEGREES = -20;
 const TILE_ROTATION_MAX_DEGREES = 20;
+const CLICK_DELAY_MS = 220;
 
 function randomRotation() {
   const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
@@ -104,45 +105,44 @@ function buildExercises(levelRule) {
   });
 }
 
-function renderPencilUnits(count, rotations = [], onUnitClick, onUnitRightClick) {
+function renderPencilUnits(count, rotations = [], onUnitClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/Crayons_x1.png"
       alt="Crayon"
       className="h-7 w-auto object-contain inline-block cursor-pointer"
-      title="Un crayon = 1 unite"
+      title="Clic : regrouper 10 crayons en 1 pochette"
       onClick={onUnitClick}
-      onContextMenu={onUnitRightClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
 }
 
-function renderPouches(count, rotations = [], onPouchClick, onPouchRightClick) {
+function renderPouches(count, rotations = [], onPouchClick, onPouchDoubleClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/pochette_x10_crayons.png"
       alt="Pochette de 10 crayons"
       className="w-16 h-16 object-cover cursor-pointer"
-      title="Une pochette = 10 crayons"
+      title="Clic : regrouper 10 pochettes en 1 carton | Double-clic : séparer en 10 crayons"
       onClick={onPouchClick}
-      onContextMenu={onPouchRightClick}
+      onDoubleClick={onPouchDoubleClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
 }
 
-function renderCartons(count, rotations = [], onCartonRightClick) {
+function renderCartons(count, rotations = [], onCartonDoubleClick) {
   return Array.from({ length: count }, (_, index) => (
     <img
       key={index}
       src="/images/cartons_x100_crayons.png"
       alt="Carton de 100 crayons"
-      className="w-16 h-16 object-cover cursor-context-menu"
-      title="Un carton = 100 crayons"
-      onContextMenu={onCartonRightClick}
+      className="w-16 h-16 object-cover cursor-pointer"
+      title="Double-clic : séparer en 10 pochettes"
+      onDoubleClick={onCartonDoubleClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
     />
   ));
@@ -167,6 +167,34 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
   );
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
+  const clickTimeoutRef = useRef(null);
+
+  const clearPendingClick = () => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+  };
+
+  const queueSingleClickAction = (action) => {
+    clearPendingClick();
+    clickTimeoutRef.current = window.setTimeout(() => {
+      clickTimeoutRef.current = null;
+      action();
+    }, CLICK_DELAY_MS);
+  };
+
+  const handleDoubleClickAction = (event, action) => {
+    event.preventDefault();
+    clearPendingClick();
+    action();
+  };
+
+  useEffect(() => {
+    return () => {
+      clearPendingClick();
+    };
+  }, []);
 
   const showCentainesInput = exercises.some(
     (exercise) => exercise.cartons * 100 + exercise.pouches * 10 + exercise.units > 99
@@ -224,8 +252,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
     );
   };
 
-  const handleUngroupTensToUnits = (exerciseId, event) => {
-    event.preventDefault();
+  const handleUngroupTensToUnits = (exerciseId) => {
     if (finished) return;
 
     setExercises((prev) =>
@@ -268,8 +295,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
     );
   };
 
-  const handleUngroupHundredsToTens = (exerciseId, event) => {
-    event.preventDefault();
+  const handleUngroupHundredsToTens = (exerciseId) => {
     if (finished) return;
 
     setExercises((prev) =>
@@ -339,7 +365,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
         Compte les crayons: cartons de 100, pochettes de 10 et unites
       </h3>
       <p id="count-pencils-by-tens-instructions" className="text-sm text-slate-600 mb-5">
-        Chaque pochette contient 10 crayons. Chaque carton contient 10 pochettes de 10 crayons. Ecris le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
+        Chaque pochette contient 10 crayons. Chaque carton contient 10 pochettes de 10 crayons. Clique pour regrouper 10 crayons en 1 pochette ou 10 pochettes en 1 carton, et double-clique pour séparer 1 pochette en 10 crayons ou 1 carton en 10 pochettes. Ecris ensuite le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
       </p>
 
       <div id="count-pencils-by-tens-levels" className="flex flex-wrap justify-center gap-2 mb-4">
@@ -385,7 +411,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                       ? renderCartons(
                           exercise.cartons,
                           exercise.cartons_rotations,
-                          (event) => handleUngroupHundredsToTens(exercise.id, event)
+                          (event) => handleDoubleClickAction(event, () => handleUngroupHundredsToTens(exercise.id))
                         )
                       : null}
                   </div>
@@ -395,8 +421,8 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                     {renderPouches(
                       exercise.pouches,
                       exercise.pouches_rotations,
-                      () => handleGroupTensToHundreds(exercise.id),
-                      (event) => handleUngroupTensToUnits(exercise.id, event)
+                      () => queueSingleClickAction(() => handleGroupTensToHundreds(exercise.id)),
+                      (event) => handleDoubleClickAction(event, () => handleUngroupTensToUnits(exercise.id))
                     )}
                   </div>
                 </div>
@@ -406,8 +432,7 @@ const CountPencilsByTensActivity = ({ content, onComplete }) => {
                       ? renderPencilUnits(
                           exercise.units,
                           exercise.units_rotations,
-                          () => handleGroupUnitsToTens(exercise.id),
-                          (event) => event.preventDefault()
+                          () => queueSingleClickAction(() => handleGroupUnitsToTens(exercise.id))
                         )
                       : null}
                   </div>
