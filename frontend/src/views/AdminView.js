@@ -7,6 +7,9 @@ import ClassesManagementPanel from "../components/ClassesManagementPanel";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
+  fetchGroupsByClass,
+  fetchResults,
+  fetchStudents,
   loadActivitiesIntoState,
   loadClassesIntoState,
   loadTeachersIntoState,
@@ -63,10 +66,21 @@ const AdminView = () => {
   const [showClassesList, setShowClassesList] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
-  const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
-  const [deletingSelectedTeachers, setDeletingSelectedTeachers] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [deletingTeacherId, setDeletingTeacherId] = useState("");
   const [deletingAllTeachers, setDeletingAllTeachers] = useState(false);
+  const [selectedClassListId, setSelectedClassListId] = useState("");
+  const [deletingClassId, setDeletingClassId] = useState("");
+  const [deletingAllClasses, setDeletingAllClasses] = useState(false);
 
+  const { show: showTeacherMessage, fade: fadeTeacherMessage } = useAutoDismissMessage(
+    teacherMessage,
+    setTeacherMessage
+  );
+  const { show: showClassMessage, fade: fadeClassMessage } = useAutoDismissMessage(
+    classMessage,
+    setClassMessage
+  );
   const { show: showActivityMessage, fade: fadeActivityMessage } = useAutoDismissMessage(
     activityMessage,
     setActivityMessage
@@ -99,10 +113,20 @@ const AdminView = () => {
   }, []);
 
   useEffect(() => {
-    setSelectedTeacherIds((prev) =>
-      prev.filter((teacherId) => teachers.some((teacher) => String(teacher.id) === String(teacherId)))
+    setSelectedTeacherId((prev) =>
+      teachers.some((teacher) => String(teacher.id) === String(prev)) ? prev : ""
     );
   }, [teachers]);
+
+  useEffect(() => {
+    setSelectedClassListId((prev) =>
+      classes.some((cls) => String(cls.id) === String(prev)) ? prev : ""
+    );
+
+    setTeacherSelectedClassId((prev) =>
+      classes.some((cls) => String(cls.id) === String(prev)) ? prev : ""
+    );
+  }, [classes]);
 
   const handleToggleTeachersList = async () => {
     const next = !showTeachersList;
@@ -110,7 +134,7 @@ const AdminView = () => {
     if (next) {
       await refreshAdminData();
     } else {
-      setSelectedTeacherIds([]);
+      setSelectedTeacherId("");
     }
   };
 
@@ -119,6 +143,8 @@ const AdminView = () => {
     setShowClassesList(next);
     if (next) {
       await refreshAdminData();
+    } else {
+      setSelectedClassListId("");
     }
   };
 
@@ -271,19 +297,8 @@ const AdminView = () => {
     }
   };
 
-  const handleToggleTeacherSelection = (teacherId) => {
-    const normalizedId = String(teacherId);
-    setSelectedTeacherIds((prev) =>
-      prev.includes(normalizedId)
-        ? prev.filter((id) => id !== normalizedId)
-        : [...prev, normalizedId]
-    );
-  };
-
-  const handleToggleAllTeachersSelection = () => {
-    setSelectedTeacherIds((prev) =>
-      prev.length === teachers.length ? [] : teachers.map((teacher) => String(teacher.id))
-    );
+  const handleSelectTeacher = (teacherId) => {
+    setSelectedTeacherId((prev) => (String(prev) === String(teacherId) ? "" : String(teacherId)));
   };
 
   const unlinkTeacherFromClasses = async (teacherId) => {
@@ -319,47 +334,32 @@ const AdminView = () => {
     }
   };
 
-  const handleDeleteSelectedTeachers = async () => {
-    const teachersToDelete = teachers.filter((teacher) =>
-      selectedTeacherIds.includes(String(teacher.id))
-    );
-
-    if (teachersToDelete.length === 0) {
+  const handleDeleteTeacher = async (teacher) => {
+    if (!teacher?.id) {
       return;
     }
 
     const confirmDelete = window.confirm(
-      teachersToDelete.length === 1
-        ? `Supprimer l'enseignant ${teachersToDelete[0].name} et le dissocier de ses classes ?`
-        : `Supprimer les ${teachersToDelete.length} enseignants sélectionnés et les dissocier de leurs classes ?`
+      `Supprimer l'enseignant ${teacher.name} et le dissocier de ses classes ?`
     );
     if (!confirmDelete) {
       return;
     }
 
-    const teacherIdsToDelete = teachersToDelete.map((teacher) => String(teacher.id));
-
-    setDeletingSelectedTeachers(true);
+    setDeletingTeacherId(String(teacher.id));
     setTeacherError("");
     setTeacherMessage("");
 
     try {
-      for (const teacher of teachersToDelete) {
-        await deleteTeacherWithCleanup(teacher.id);
-      }
-
-      setSelectedTeacherIds([]);
-      setClassTeacherId((prev) => (teacherIdsToDelete.includes(String(prev)) ? "" : prev));
+      await deleteTeacherWithCleanup(teacher.id);
+      setSelectedTeacherId((prev) => (String(prev) === String(teacher.id) ? "" : prev));
+      setClassTeacherId((prev) => (String(prev) === String(teacher.id) ? "" : prev));
       await refreshAdminData();
-      setTeacherMessage(
-        teachersToDelete.length === 1
-          ? "Enseignant sélectionné supprimé"
-          : `${teachersToDelete.length} enseignants sélectionnés supprimés`
-      );
+      setTeacherMessage("Enseignant supprimé");
     } catch (err) {
       setTeacherError(err.message || "Erreur inconnue");
     } finally {
-      setDeletingSelectedTeachers(false);
+      setDeletingTeacherId("");
     }
   };
 
@@ -375,8 +375,6 @@ const AdminView = () => {
       return;
     }
 
-    const teacherIdsToDelete = teachers.map((teacher) => String(teacher.id));
-
     setDeletingAllTeachers(true);
     setTeacherError("");
     setTeacherMessage("");
@@ -386,13 +384,12 @@ const AdminView = () => {
         await deleteTeacherWithCleanup(teacher.id);
       }
 
-      setSelectedTeacherIds([]);
+      setSelectedTeacherId("");
       setClassTeacherId("");
       await refreshAdminData();
       setTeacherMessage("Tous les enseignants ont été supprimés");
     } catch (err) {
       setTeacherError(err.message || "Erreur inconnue");
-      setSelectedTeacherIds((prev) => prev.filter((id) => !teacherIdsToDelete.includes(String(id))));
     } finally {
       setDeletingAllTeachers(false);
     }
@@ -457,6 +454,128 @@ const AdminView = () => {
       setTeacherError(err.message || "Erreur inconnue");
     } finally {
       setSubmittingTeacher(false);
+    }
+  };
+
+  const handleSelectClass = (classId) => {
+    setSelectedClassListId((prev) => (String(prev) === String(classId) ? "" : String(classId)));
+  };
+
+  const deleteResultsForStudentIds = async (studentIds, existingResults) => {
+    const normalizedStudentIds = studentIds.map((studentId) => String(studentId));
+    if (normalizedStudentIds.length === 0) {
+      return;
+    }
+
+    const resultsData = Array.isArray(existingResults) ? existingResults : await fetchResults();
+    const linkedResults = resultsData.filter((result) =>
+      normalizedStudentIds.includes(String(result.student_id))
+    );
+
+    for (const result of linkedResults) {
+      const resp = await fetch(`${API_URL}/results/${result.id}`, { method: "DELETE" });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la suppression des résultats associés");
+      }
+    }
+  };
+
+  const deleteClassWithCleanup = async (cls, existingStudents, existingResults) => {
+    const studentsData = Array.isArray(existingStudents) ? existingStudents : await fetchStudents();
+    const classStudents = studentsData.filter(
+      (student) => String(student.class_id) === String(cls.id)
+    );
+
+    await deleteResultsForStudentIds(
+      classStudents.map((student) => student.id),
+      existingResults
+    );
+
+    const classGroups = await fetchGroupsByClass(cls.id);
+    for (const group of classGroups) {
+      const groupResp = await fetch(`${API_URL}/groups/${group.id}`, { method: "DELETE" });
+      const groupData = await groupResp.json();
+      if (!groupResp.ok) {
+        throw new Error(groupData.error || "Erreur lors de la suppression des groupes associés");
+      }
+    }
+
+    for (const student of classStudents) {
+      const studentResp = await fetch(`${API_URL}/students/${student.id}`, { method: "DELETE" });
+      const studentData = await studentResp.json();
+      if (!studentResp.ok) {
+        throw new Error(studentData.error || "Erreur lors de la suppression des élèves associés");
+      }
+    }
+
+    const classResp = await fetch(`${API_URL}/classes/${cls.id}`, { method: "DELETE" });
+    const classData = await classResp.json();
+    if (!classResp.ok) {
+      throw new Error(classData.error || "Erreur lors de la suppression de la classe");
+    }
+  };
+
+  const handleDeleteClass = async (cls) => {
+    if (!cls?.id) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Supprimer la classe ${cls.name} ainsi que ses groupes, ses élèves et leurs résultats ?`
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingClassId(String(cls.id));
+    setClassError("");
+    setClassMessage("");
+
+    try {
+      await deleteClassWithCleanup(cls);
+      setSelectedClassListId((prev) => (String(prev) === String(cls.id) ? "" : prev));
+      setTeacherSelectedClassId((prev) => (String(prev) === String(cls.id) ? "" : prev));
+      await refreshAdminData();
+      setClassMessage("Classe supprimée");
+    } catch (err) {
+      setClassError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingClassId("");
+    }
+  };
+
+  const handleDeleteAllClasses = async () => {
+    if (classes.length === 0) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Supprimer toutes les classes, tous les groupes, tous les élèves et tous leurs résultats ?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingAllClasses(true);
+    setClassError("");
+    setClassMessage("");
+
+    try {
+      const [studentsData, resultsData] = await Promise.all([fetchStudents(), fetchResults()]);
+
+      for (const cls of classes) {
+        await deleteClassWithCleanup(cls, studentsData, resultsData);
+      }
+
+      setSelectedClassListId("");
+      setTeacherSelectedClassId("");
+      await refreshAdminData();
+      setClassMessage("Toutes les classes ont été supprimées");
+    } catch (err) {
+      setClassError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingAllClasses(false);
     }
   };
 
@@ -561,12 +680,14 @@ const AdminView = () => {
         submittingTeacher={submittingTeacher}
         teacherMessage={teacherMessage}
         teacherError={teacherError}
+        showTeacherMessage={showTeacherMessage}
+        fadeTeacherMessage={fadeTeacherMessage}
         showTeachersList={showTeachersList}
         teachers={teachers}
         classes={classes}
         loadingTeachers={loadingTeachers}
-        selectedTeacherIds={selectedTeacherIds}
-        deletingSelectedTeachers={deletingSelectedTeachers}
+        selectedTeacherId={selectedTeacherId}
+        deletingTeacherId={deletingTeacherId}
         deletingAllTeachers={deletingAllTeachers}
         onTeacherNameChange={setTeacherName}
         onTeacherEmailChange={setTeacherEmail}
@@ -574,9 +695,8 @@ const AdminView = () => {
         onTeacherSelectedClassIdChange={setTeacherSelectedClassId}
         onAddTeacher={handleAddTeacher}
         onToggleTeachersList={handleToggleTeachersList}
-        onToggleTeacherSelection={handleToggleTeacherSelection}
-        onToggleAllTeachersSelection={handleToggleAllTeachersSelection}
-        onDeleteSelectedTeachers={handleDeleteSelectedTeachers}
+        onSelectTeacher={handleSelectTeacher}
+        onDeleteTeacher={handleDeleteTeacher}
         onDeleteAllTeachers={handleDeleteAllTeachers}
       />
 
@@ -586,14 +706,22 @@ const AdminView = () => {
         submittingClass={submittingClass}
         classMessage={classMessage}
         classError={classError}
+        showClassMessage={showClassMessage}
+        fadeClassMessage={fadeClassMessage}
         showClassesList={showClassesList}
         classes={classes}
         teachers={teachers}
         loadingClasses={loadingClasses}
+        selectedClassId={selectedClassListId}
+        deletingClassId={deletingClassId}
+        deletingAllClasses={deletingAllClasses}
         onClassNameChange={setClassName}
         onClassTeacherIdChange={setClassTeacherId}
         onAddClass={handleAddClass}
         onToggleClassesList={handleToggleClassesList}
+        onSelectClass={handleSelectClass}
+        onDeleteClass={handleDeleteClass}
+        onDeleteAllClasses={handleDeleteAllClasses}
       />
 
       <ActivitiesManagementPanel

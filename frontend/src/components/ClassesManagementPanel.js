@@ -6,14 +6,22 @@ const ClassesManagementPanel = ({
   submittingClass,
   classMessage,
   classError,
+  showClassMessage,
+  fadeClassMessage,
   showClassesList,
   classes,
   teachers,
   loadingClasses,
+  selectedClassId,
+  deletingClassId,
+  deletingAllClasses,
   onClassNameChange,
   onClassTeacherIdChange,
   onAddClass,
   onToggleClassesList,
+  onSelectClass,
+  onDeleteClass,
+  onDeleteAllClasses,
 }) => {
   return (
     <div id="classes-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
@@ -67,8 +75,13 @@ const ClassesManagementPanel = ({
           </div>
         </form>
 
-        {classMessage && (
-          <div id="classes-panel-message" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+        {showClassMessage && classMessage && (
+          <div
+            id="classes-panel-message"
+            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
+              fadeClassMessage ? "opacity-0" : "opacity-100"
+            }`}
+          >
             {classMessage}
           </div>
         )}
@@ -82,7 +95,17 @@ const ClassesManagementPanel = ({
 
       {showClassesList && (
         <section id="classes-panel-list-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 id="classes-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Liste des classes</h3>
+          <div id="classes-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
+            <h3 id="classes-panel-list-title" className="text-xl font-bold text-slate-800">Liste des classes</h3>
+            <button
+              type="button"
+              onClick={onDeleteAllClasses}
+              disabled={classes.length === 0 || deletingAllClasses}
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+            >
+              {deletingAllClasses ? "Suppression..." : "Supprimer Tout"}
+            </button>
+          </div>
 
           {loadingClasses ? (
             <p className="text-slate-500 text-sm">Chargement...</p>
@@ -95,9 +118,43 @@ const ClassesManagementPanel = ({
                 const teacherText = linkedTeacher ? linkedTeacher.name : "Aucun";
 
                 return (
-                  <li id={`class-card-${cls.id}`} key={cls.id} className="border border-slate-200 rounded-lg p-3">
-                    <p id={`class-name-${cls.id}`} className="font-semibold text-slate-800">{cls.name}</p>
-                    <p className="text-sm text-slate-600">Enseignant associé: {teacherText}</p>
+                  <li
+                    id={`class-row-${cls.id}`}
+                    key={cls.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onSelectClass(String(cls.id))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectClass(String(cls.id));
+                      }
+                    }}
+                    className={`border rounded-lg p-3 cursor-pointer ${
+                      String(selectedClassId) === String(cls.id)
+                        ? "border-indigo-400 bg-indigo-50"
+                        : "border-slate-200"
+                    }`}
+                  >
+                    <div id={`class-row-actions-${cls.id}`} className="flex items-center justify-between gap-3">
+                      <div>
+                        <p id={`class-name-${cls.id}`} className="font-semibold text-slate-800">{cls.name}</p>
+                        <p className="text-sm text-slate-600">Enseignant associé: {teacherText}</p>
+                      </div>
+                      {String(selectedClassId) === String(cls.id) && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDeleteClass(cls);
+                          }}
+                          disabled={deletingClassId === String(cls.id) || deletingAllClasses}
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                        >
+                          {deletingClassId === String(cls.id) ? "Suppression..." : "Supprimer"}
+                        </button>
+                      )}
+                    </div>
                   </li>
                 );
               })}

@@ -8,12 +8,14 @@ const TeachersManagementPanel = ({
   submittingTeacher,
   teacherMessage,
   teacherError,
+  showTeacherMessage,
+  fadeTeacherMessage,
   showTeachersList,
   teachers,
   classes,
   loadingTeachers,
-  selectedTeacherIds,
-  deletingSelectedTeachers,
+  selectedTeacherId,
+  deletingTeacherId,
   deletingAllTeachers,
   onTeacherNameChange,
   onTeacherEmailChange,
@@ -21,14 +23,10 @@ const TeachersManagementPanel = ({
   onTeacherSelectedClassIdChange,
   onAddTeacher,
   onToggleTeachersList,
-  onToggleTeacherSelection,
-  onToggleAllTeachersSelection,
-  onDeleteSelectedTeachers,
+  onSelectTeacher,
+  onDeleteTeacher,
   onDeleteAllTeachers,
 }) => {
-  const allTeachersSelected = teachers.length > 0 && selectedTeacherIds.length === teachers.length;
-  const deletionInProgress = deletingSelectedTeachers || deletingAllTeachers;
-
   return (
     <div id="teachers-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
       <section id="teachers-panel-form-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
@@ -103,8 +101,13 @@ const TeachersManagementPanel = ({
           </div>
         </form>
 
-        {teacherMessage && (
-          <div id="teachers-panel-message" className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+        {showTeacherMessage && teacherMessage && (
+          <div
+            id="teachers-panel-message"
+            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
+              fadeTeacherMessage ? "opacity-0" : "opacity-100"
+            }`}
+          >
             {teacherMessage}
           </div>
         )}
@@ -118,44 +121,16 @@ const TeachersManagementPanel = ({
 
       {showTeachersList && (
         <section id="teachers-panel-list-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
-          <div id="teachers-panel-list-header" className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div>
-              <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
-              <p className="text-sm text-slate-500">
-                {selectedTeacherIds.length} sélectionné{selectedTeacherIds.length > 1 ? "s" : ""}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={onToggleAllTeachersSelection}
-                disabled={loadingTeachers || teachers.length === 0 || deletionInProgress}
-                className="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-60"
-              >
-                {allTeachersSelected ? "Tout désélectionner" : "Tout sélectionner"}
-              </button>
-
-              <button
-                type="button"
-                onClick={onDeleteSelectedTeachers}
-                disabled={selectedTeacherIds.length === 0 || deletionInProgress}
-                className="px-3 py-1.5 text-sm bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-60"
-              >
-                {deletingSelectedTeachers
-                  ? "Suppression..."
-                  : `Supprimer la sélection${selectedTeacherIds.length > 0 ? ` (${selectedTeacherIds.length})` : ""}`}
-              </button>
-
-              <button
-                type="button"
-                onClick={onDeleteAllTeachers}
-                disabled={teachers.length === 0 || deletionInProgress}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-              >
-                {deletingAllTeachers ? "Suppression..." : "Supprimer Tout"}
-              </button>
-            </div>
+          <div id="teachers-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
+            <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
+            <button
+              type="button"
+              onClick={onDeleteAllTeachers}
+              disabled={teachers.length === 0 || deletingAllTeachers}
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+            >
+              {deletingAllTeachers ? "Suppression..." : "Supprimer Tout"}
+            </button>
           </div>
 
           {loadingTeachers ? (
@@ -166,33 +141,49 @@ const TeachersManagementPanel = ({
             <ul id="teachers-panel-list" className="space-y-3">
               {teachers.map((teacher) => {
                 const linkedClasses = classes.filter((c) => Number(c.teacher_id) === Number(teacher.id));
-                const classesText =
-                  linkedClasses.length > 0
-                    ? linkedClasses.map((c) => c.name).join(", ")
-                    : "Aucune";
-                const isSelected = selectedTeacherIds.includes(String(teacher.id));
+                const classesText = linkedClasses.length > 0
+                  ? linkedClasses.map((c) => c.name).join(", ")
+                  : "Aucune";
 
                 return (
                   <li
-                    id={`teacher-card-${teacher.id}`}
+                    id={`teacher-row-${teacher.id}`}
                     key={teacher.id}
-                    className={`border rounded-lg p-3 ${isSelected ? "border-indigo-400 bg-indigo-50" : "border-slate-200"}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onSelectTeacher(String(teacher.id))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectTeacher(String(teacher.id));
+                      }
+                    }}
+                    className={`border rounded-lg p-3 cursor-pointer ${
+                      String(selectedTeacherId) === String(teacher.id)
+                        ? "border-indigo-400 bg-indigo-50"
+                        : "border-slate-200"
+                    }`}
                   >
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => onToggleTeacherSelection(String(teacher.id))}
-                        disabled={deletionInProgress}
-                        className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-
-                      <div className="min-w-0">
+                    <div id={`teacher-row-actions-${teacher.id}`} className="flex items-center justify-between gap-3">
+                      <div>
                         <p id={`teacher-name-${teacher.id}`} className="font-semibold text-slate-800">{teacher.name}</p>
                         <p className="text-sm text-slate-600 break-all">{teacher.email}</p>
                         <p className="text-sm text-slate-600">Classes associées : {classesText}</p>
                       </div>
-                    </label>
+                      {String(selectedTeacherId) === String(teacher.id) && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDeleteTeacher(teacher);
+                          }}
+                          disabled={deletingTeacherId === String(teacher.id) || deletingAllTeachers}
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                        >
+                          {deletingTeacherId === String(teacher.id) ? "Suppression..." : "Supprimer"}
+                        </button>
+                      )}
+                    </div>
                   </li>
                 );
               })}
