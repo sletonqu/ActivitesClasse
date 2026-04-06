@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-
-const API_URL = "http://localhost:4000/api";
+import { API_URL } from "../config/api";
 
 const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClassSelection = false }) => {
   const [csvText, setCsvText] = useState("name,firstname,class_id,group_id,group_name\nDupont,Alice,1,,");

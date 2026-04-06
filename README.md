@@ -214,8 +214,8 @@ Exemple de configuration JSON :
 2. exporter une configuration par défaut robuste, compatible avec un `content` vide (`{}`) ;
 3. si l'activité gère des niveaux, appeler `onComplete(score, { levelKey, levelLabel })` ;
 4. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.js` ;
-5. l'ajouter à `ACTIVITY_FILES` dans `frontend/src/components/ActivitiesManagementPanel.js` et dans `frontend/src/views/AdminView.js` ;
-6. compléter `getDefaultActivityContentText()` dans `frontend/src/views/AdminView.js` et `frontend/src/views/TeacherView.js` si nécessaire ;
+5. l'ajouter au registre partagé dans `frontend/src/utils/activityManagement.js` ;
+6. compléter au même endroit la configuration par défaut (`ACTIVITY_FILES`, `getDefaultActivityContentText()`) si nécessaire ;
 7. créer ou modifier l'activité depuis l'espace admin / enseignant.
 
 ---

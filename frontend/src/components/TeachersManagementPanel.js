@@ -12,13 +12,23 @@ const TeachersManagementPanel = ({
   teachers,
   classes,
   loadingTeachers,
+  selectedTeacherIds,
+  deletingSelectedTeachers,
+  deletingAllTeachers,
   onTeacherNameChange,
   onTeacherEmailChange,
   onTeacherPasswordChange,
   onTeacherSelectedClassIdChange,
   onAddTeacher,
   onToggleTeachersList,
+  onToggleTeacherSelection,
+  onToggleAllTeachersSelection,
+  onDeleteSelectedTeachers,
+  onDeleteAllTeachers,
 }) => {
+  const allTeachersSelected = teachers.length > 0 && selectedTeacherIds.length === teachers.length;
+  const deletionInProgress = deletingSelectedTeachers || deletingAllTeachers;
+
   return (
     <div id="teachers-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
       <section id="teachers-panel-form-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
@@ -108,7 +118,45 @@ const TeachersManagementPanel = ({
 
       {showTeachersList && (
         <section id="teachers-panel-list-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
-          <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Liste des Enseignants</h3>
+          <div id="teachers-panel-list-header" className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
+              <p className="text-sm text-slate-500">
+                {selectedTeacherIds.length} sélectionné{selectedTeacherIds.length > 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onToggleAllTeachersSelection}
+                disabled={loadingTeachers || teachers.length === 0 || deletionInProgress}
+                className="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-60"
+              >
+                {allTeachersSelected ? "Tout désélectionner" : "Tout sélectionner"}
+              </button>
+
+              <button
+                type="button"
+                onClick={onDeleteSelectedTeachers}
+                disabled={selectedTeacherIds.length === 0 || deletionInProgress}
+                className="px-3 py-1.5 text-sm bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-60"
+              >
+                {deletingSelectedTeachers
+                  ? "Suppression..."
+                  : `Supprimer la sélection${selectedTeacherIds.length > 0 ? ` (${selectedTeacherIds.length})` : ""}`}
+              </button>
+
+              <button
+                type="button"
+                onClick={onDeleteAllTeachers}
+                disabled={teachers.length === 0 || deletionInProgress}
+                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deletingAllTeachers ? "Suppression..." : "Supprimer Tout"}
+              </button>
+            </div>
+          </div>
 
           {loadingTeachers ? (
             <p className="text-slate-500 text-sm">Chargement...</p>
@@ -122,11 +170,29 @@ const TeachersManagementPanel = ({
                   linkedClasses.length > 0
                     ? linkedClasses.map((c) => c.name).join(", ")
                     : "Aucune";
+                const isSelected = selectedTeacherIds.includes(String(teacher.id));
 
                 return (
-                  <li id={`teacher-card-${teacher.id}`} key={teacher.id} className="border border-slate-200 rounded-lg p-3">
-                    <p id={`teacher-name-${teacher.id}`} className="font-semibold text-slate-800">{teacher.name}</p>
-                    <p className="text-sm text-slate-600">Classe associée: {classesText}</p>
+                  <li
+                    id={`teacher-card-${teacher.id}`}
+                    key={teacher.id}
+                    className={`border rounded-lg p-3 ${isSelected ? "border-indigo-400 bg-indigo-50" : "border-slate-200"}`}
+                  >
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleTeacherSelection(String(teacher.id))}
+                        disabled={deletionInProgress}
+                        className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+
+                      <div className="min-w-0">
+                        <p id={`teacher-name-${teacher.id}`} className="font-semibold text-slate-800">{teacher.name}</p>
+                        <p className="text-sm text-slate-600 break-all">{teacher.email}</p>
+                        <p className="text-sm text-slate-600">Classes associées : {classesText}</p>
+                      </div>
+                    </label>
                   </li>
                 );
               })}

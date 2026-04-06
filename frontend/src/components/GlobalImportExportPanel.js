@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
-
-const API_URL = "http://localhost:4000/api";
+import { API_URL } from "../config/api";
 
 const GlobalImportExportPanel = () => {
   const fileInputRef = useRef(null);

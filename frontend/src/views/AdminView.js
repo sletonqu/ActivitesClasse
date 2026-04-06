@@ -4,38 +4,18 @@ import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import TeachersManagementPanel from "../components/TeachersManagementPanel";
 import ClassesManagementPanel from "../components/ClassesManagementPanel";
-import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
-import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
-import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
-import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
-
-const API_URL = "http://localhost:4000/api";
-const ACTIVITY_FILES = [
-  "src/activities/SortNumbersActivity.js",
-  "src/activities/MatchAdditionsActivity.js",
-  "src/activities/CountPencilsByTensActivity.js",
-  "src/activities/InteractiveWhiteboardActivity.js",
-];
-
-function getDefaultActivityContentText(jsFile) {
-  if (jsFile === "src/activities/SortNumbersActivity.js") {
-    return JSON.stringify(defaultSortNumbersActivityContent, null, 2);
-  }
-
-  if (jsFile === "src/activities/MatchAdditionsActivity.js") {
-    return JSON.stringify(defaultMatchAdditionsActivityContent, null, 2);
-  }
-
-  if (jsFile === "src/activities/CountPencilsByTensActivity.js") {
-    return JSON.stringify(defaultCountPencilsByTensActivityContent, null, 2);
-  }
-
-  if (jsFile === "src/activities/InteractiveWhiteboardActivity.js") {
-    return JSON.stringify(defaultInteractiveWhiteboardActivityContent, null, 2);
-  }
-
-  return "{}";
-}
+import { API_URL } from "../config/api";
+import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import {
+  loadActivitiesIntoState,
+  loadClassesIntoState,
+  loadTeachersIntoState,
+} from "../utils/dataLoaders";
+import {
+  ACTIVITY_FILES,
+  getDefaultActivityContentText,
+  normalizeActivityContentForEditor,
+} from "../utils/activityManagement";
 
 const AdminView = () => {
   const [teacherName, setTeacherName] = useState("");
@@ -64,8 +44,6 @@ const AdminView = () => {
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [submittingActivity, setSubmittingActivity] = useState(false);
   const [activityMessage, setActivityMessage] = useState("");
-  const [showActivityMessage, setShowActivityMessage] = useState(false);
-  const [fadeActivityMessage, setFadeActivityMessage] = useState(false);
   const [activityError, setActivityError] = useState("");
   const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
   const [editActivityTitle, setEditActivityTitle] = useState("");
@@ -85,96 +63,54 @@ const AdminView = () => {
   const [showClassesList, setShowClassesList] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState([]);
+  const [deletingSelectedTeachers, setDeletingSelectedTeachers] = useState(false);
+  const [deletingAllTeachers, setDeletingAllTeachers] = useState(false);
 
-  const loadClasses = async () => {
-    setLoadingClasses(true);
-    try {
-      const res = await fetch(`${API_URL}/classes`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setClasses(data);
-      } else {
-        setClasses([]);
-      }
-    } catch {
-      setClasses([]);
-    } finally {
-      setLoadingClasses(false);
-    }
+  const { show: showActivityMessage, fade: fadeActivityMessage } = useAutoDismissMessage(
+    activityMessage,
+    setActivityMessage
+  );
+
+  const refreshAdminData = async () => {
+    await Promise.all([
+      loadClassesIntoState(setClasses, setLoadingClasses),
+      loadTeachersIntoState(setTeachers, setLoadingTeachers),
+    ]);
   };
 
-  const loadActivities = async () => {
-    setLoadingActivities(true);
-    try {
-      const res = await fetch(`${API_URL}/activities`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setActivities(data);
-      } else {
-        setActivities([]);
-      }
-    } catch {
-      setActivities([]);
-    } finally {
-      setLoadingActivities(false);
-    }
+  const refreshActivities = async () => {
+    await loadActivitiesIntoState(setActivities, setLoadingActivities);
   };
 
-  const loadTeachers = async () => {
-    setLoadingTeachers(true);
-    try {
-      const res = await fetch(`${API_URL}/teachers`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setTeachers(data);
-      } else {
-        setTeachers([]);
-      }
-    } catch {
-      setTeachers([]);
-    } finally {
-      setLoadingTeachers(false);
-    }
+  const resetActivityEditor = () => {
+    setSelectedActivityEditId("");
+    setEditActivityTitle("");
+    setEditActivityDescription("");
+    setEditActivityStatus("Active");
+    setEditActivityJsFile(ACTIVITY_FILES[0]);
+    setEditActivityContentText(getDefaultActivityContentText(ACTIVITY_FILES[0]));
+    setEditActivityError("");
   };
 
   useEffect(() => {
-    loadClasses();
-    loadTeachers();
-    loadActivities();
+    refreshAdminData();
+    refreshActivities();
   }, []);
 
   useEffect(() => {
-    if (!activityMessage) {
-      setShowActivityMessage(false);
-      setFadeActivityMessage(false);
-      return;
-    }
-
-    setShowActivityMessage(true);
-    setFadeActivityMessage(false);
-
-    const fadeTimer = setTimeout(() => {
-      setFadeActivityMessage(true);
-    }, 3500);
-
-    const hideTimer = setTimeout(() => {
-      setShowActivityMessage(false);
-      setActivityMessage("");
-      setFadeActivityMessage(false);
-    }, 4000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [activityMessage]);
+    setSelectedTeacherIds((prev) =>
+      prev.filter((teacherId) => teachers.some((teacher) => String(teacher.id) === String(teacherId)))
+    );
+  }, [teachers]);
 
   const handleToggleTeachersList = async () => {
     const next = !showTeachersList;
     setShowTeachersList(next);
     if (next) {
-      await loadClasses();
-      await loadTeachers();
+      await refreshAdminData();
+    } else {
+      setSelectedTeacherIds([]);
     }
   };
 
@@ -182,8 +118,7 @@ const AdminView = () => {
     const next = !showClassesList;
     setShowClassesList(next);
     if (next) {
-      await loadClasses();
-      await loadTeachers();
+      await refreshAdminData();
     }
   };
 
@@ -191,32 +126,12 @@ const AdminView = () => {
     const next = !showActivitiesList;
     setShowActivitiesList(next);
     if (next) {
-      await loadActivities();
+      await refreshActivities();
     } else {
-      setSelectedActivityEditId("");
-      setEditActivityError("");
+      resetActivityEditor();
     }
   };
 
-  const normalizeActivityContentForEditor = (content) => {
-    if (content === null || content === undefined || content === "") {
-      return "{}";
-    }
-
-    if (typeof content === "string") {
-      try {
-        return JSON.stringify(JSON.parse(content), null, 2);
-      } catch {
-        return content;
-      }
-    }
-
-    try {
-      return JSON.stringify(content, null, 2);
-    } catch {
-      return "{}";
-    }
-  };
 
   const handleSelectActivityToEdit = (activity) => {
     setSelectedActivityEditId(String(activity.id));
@@ -269,9 +184,8 @@ const AdminView = () => {
       }
 
       setActivityMessage("Activité modifiée");
-      setSelectedActivityEditId("");
-      setEditActivityError("");
-      await loadActivities();
+      resetActivityEditor();
+      await refreshActivities();
     } catch (err) {
       setEditActivityError(err.message || "Erreur inconnue");
     } finally {
@@ -307,16 +221,11 @@ const AdminView = () => {
       }
 
       if (String(selectedActivityEditId) === String(activity.id)) {
-        setSelectedActivityEditId("");
-        setEditActivityTitle("");
-        setEditActivityDescription("");
-        setEditActivityStatus("Active");
-        setEditActivityJsFile(ACTIVITY_FILES[0]);
-        setEditActivityContentText("{}");
+        resetActivityEditor();
       }
 
       setActivityMessage("Activité supprimée");
-      await loadActivities();
+      await refreshActivities();
     } catch (err) {
       setActivityError(err.message || "Erreur inconnue");
     } finally {
@@ -352,18 +261,140 @@ const AdminView = () => {
         throw new Error(data.error || "Erreur lors de la suppression des activités");
       }
 
-      setSelectedActivityEditId("");
-      setEditActivityTitle("");
-      setEditActivityDescription("");
-      setEditActivityStatus("Active");
-      setEditActivityJsFile(ACTIVITY_FILES[0]);
-      setEditActivityContentText("{}");
+      resetActivityEditor();
       setActivityMessage("Toutes les activités ont été supprimées");
-      await loadActivities();
+      await refreshActivities();
     } catch (err) {
       setActivityError(err.message || "Erreur inconnue");
     } finally {
       setDeletingAllActivities(false);
+    }
+  };
+
+  const handleToggleTeacherSelection = (teacherId) => {
+    const normalizedId = String(teacherId);
+    setSelectedTeacherIds((prev) =>
+      prev.includes(normalizedId)
+        ? prev.filter((id) => id !== normalizedId)
+        : [...prev, normalizedId]
+    );
+  };
+
+  const handleToggleAllTeachersSelection = () => {
+    setSelectedTeacherIds((prev) =>
+      prev.length === teachers.length ? [] : teachers.map((teacher) => String(teacher.id))
+    );
+  };
+
+  const unlinkTeacherFromClasses = async (teacherId) => {
+    const linkedClasses = classes.filter((cls) => String(cls.teacher_id) === String(teacherId));
+
+    for (const cls of linkedClasses) {
+      const resp = await fetch(`${API_URL}/classes/${cls.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: cls.name,
+          teacher_id: null,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || `Erreur lors de la dissociation de la classe ${cls.name}`);
+      }
+    }
+  };
+
+  const deleteTeacherWithCleanup = async (teacherId) => {
+    await unlinkTeacherFromClasses(teacherId);
+
+    const resp = await fetch(`${API_URL}/teachers/${teacherId}`, {
+      method: "DELETE",
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.error || "Erreur lors de la suppression de l'enseignant");
+    }
+  };
+
+  const handleDeleteSelectedTeachers = async () => {
+    const teachersToDelete = teachers.filter((teacher) =>
+      selectedTeacherIds.includes(String(teacher.id))
+    );
+
+    if (teachersToDelete.length === 0) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      teachersToDelete.length === 1
+        ? `Supprimer l'enseignant ${teachersToDelete[0].name} et le dissocier de ses classes ?`
+        : `Supprimer les ${teachersToDelete.length} enseignants sélectionnés et les dissocier de leurs classes ?`
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    const teacherIdsToDelete = teachersToDelete.map((teacher) => String(teacher.id));
+
+    setDeletingSelectedTeachers(true);
+    setTeacherError("");
+    setTeacherMessage("");
+
+    try {
+      for (const teacher of teachersToDelete) {
+        await deleteTeacherWithCleanup(teacher.id);
+      }
+
+      setSelectedTeacherIds([]);
+      setClassTeacherId((prev) => (teacherIdsToDelete.includes(String(prev)) ? "" : prev));
+      await refreshAdminData();
+      setTeacherMessage(
+        teachersToDelete.length === 1
+          ? "Enseignant sélectionné supprimé"
+          : `${teachersToDelete.length} enseignants sélectionnés supprimés`
+      );
+    } catch (err) {
+      setTeacherError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingSelectedTeachers(false);
+    }
+  };
+
+  const handleDeleteAllTeachers = async () => {
+    if (teachers.length === 0) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Supprimer tous les enseignants et les dissocier de leurs classes ?"
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
+    const teacherIdsToDelete = teachers.map((teacher) => String(teacher.id));
+
+    setDeletingAllTeachers(true);
+    setTeacherError("");
+    setTeacherMessage("");
+
+    try {
+      for (const teacher of teachers) {
+        await deleteTeacherWithCleanup(teacher.id);
+      }
+
+      setSelectedTeacherIds([]);
+      setClassTeacherId("");
+      await refreshAdminData();
+      setTeacherMessage("Tous les enseignants ont été supprimés");
+    } catch (err) {
+      setTeacherError(err.message || "Erreur inconnue");
+      setSelectedTeacherIds((prev) => prev.filter((id) => !teacherIdsToDelete.includes(String(id))));
+    } finally {
+      setDeletingAllTeachers(false);
     }
   };
 
@@ -421,11 +452,7 @@ const AdminView = () => {
       setTeacherEmail("");
       setTeacherPassword("");
       setTeacherSelectedClassId("");
-      await loadClasses();
-      await loadTeachers();
-      if (showTeachersList) {
-        await loadTeachers();
-      }
+      await refreshAdminData();
     } catch (err) {
       setTeacherError(err.message || "Erreur inconnue");
     } finally {
@@ -466,10 +493,7 @@ const AdminView = () => {
       setClassMessage("Classe créée");
       setClassName("");
       setClassTeacherId("");
-      await loadClasses();
-      if (showClassesList) {
-        await loadClasses();
-      }
+      await refreshAdminData();
     } catch (err) {
       setClassError(err.message || "Erreur inconnue");
     } finally {
@@ -516,7 +540,7 @@ const AdminView = () => {
       setActivityStatus("Active");
       setActivityJsFile(ACTIVITY_FILES[0]);
       setActivityContentText(getDefaultActivityContentText(ACTIVITY_FILES[0]));
-      await loadActivities();
+      await refreshActivities();
     } catch (err) {
       setActivityError(err.message || "Erreur inconnue");
     } finally {
@@ -541,12 +565,19 @@ const AdminView = () => {
         teachers={teachers}
         classes={classes}
         loadingTeachers={loadingTeachers}
+        selectedTeacherIds={selectedTeacherIds}
+        deletingSelectedTeachers={deletingSelectedTeachers}
+        deletingAllTeachers={deletingAllTeachers}
         onTeacherNameChange={setTeacherName}
         onTeacherEmailChange={setTeacherEmail}
         onTeacherPasswordChange={setTeacherPassword}
         onTeacherSelectedClassIdChange={setTeacherSelectedClassId}
         onAddTeacher={handleAddTeacher}
         onToggleTeachersList={handleToggleTeachersList}
+        onToggleTeacherSelection={handleToggleTeacherSelection}
+        onToggleAllTeachersSelection={handleToggleAllTeachersSelection}
+        onDeleteSelectedTeachers={handleDeleteSelectedTeachers}
+        onDeleteAllTeachers={handleDeleteAllTeachers}
       />
 
       <ClassesManagementPanel

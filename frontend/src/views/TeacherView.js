@@ -4,32 +4,19 @@ import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import StudentsManagementPanel from "../components/StudentsManagementPanel";
 import GroupManagementPanel from "../components/GroupManagementPanel";
 import ResultsManagementPanel from "../components/ResultsManagementPanel";
-import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
-import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
-import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
-
-const API_URL = "http://localhost:4000/api";
-const ACTIVITY_FILES = [
-  "src/activities/SortNumbersActivity.js",
-  "src/activities/MatchAdditionsActivity.js",
-  "src/activities/CountPencilsByTensActivity.js",
-];
-
-function getDefaultActivityContentText(jsFile) {
-  if (jsFile === "src/activities/SortNumbersActivity.js") {
-    return JSON.stringify(defaultSortNumbersActivityContent, null, 2);
-  }
-
-  if (jsFile === "src/activities/MatchAdditionsActivity.js") {
-    return JSON.stringify(defaultMatchAdditionsActivityContent, null, 2);
-  }
-
-  if (jsFile === "src/activities/CountPencilsByTensActivity.js") {
-    return JSON.stringify(defaultCountPencilsByTensActivityContent, null, 2);
-  }
-
-  return "{}";
-}
+import { API_URL } from "../config/api";
+import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import {
+  fetchGroupsByClass,
+  fetchResults,
+  fetchStudents,
+  loadActivitiesIntoState,
+  loadClassesIntoState,
+} from "../utils/dataLoaders";
+import {
+  ACTIVITY_FILES,
+  normalizeActivityContentForEditor,
+} from "../utils/activityManagement";
 
 const TeacherView = () => {
   const [classes, setClasses] = useState([]);
@@ -38,8 +25,6 @@ const TeacherView = () => {
   const [studentFirstname, setStudentFirstname] = useState("");
   const [submittingStudent, setSubmittingStudent] = useState(false);
   const [studentMessage, setStudentMessage] = useState("");
-  const [showStudentMessage, setShowStudentMessage] = useState(false);
-  const [fadeStudentMessage, setFadeStudentMessage] = useState(false);
   const [studentError, setStudentError] = useState("");
   const [showStudentsList, setShowStudentsList] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -50,8 +35,6 @@ const TeacherView = () => {
   const [groupName, setGroupName] = useState("");
   const [submittingGroup, setSubmittingGroup] = useState(false);
   const [groupMessage, setGroupMessage] = useState("");
-  const [showGroupMessage, setShowGroupMessage] = useState(false);
-  const [fadeGroupMessage, setFadeGroupMessage] = useState(false);
   const [groupError, setGroupError] = useState("");
   const [showGroupsList, setShowGroupsList] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
@@ -83,118 +66,33 @@ const TeacherView = () => {
   const [submittingEditActivity, setSubmittingEditActivity] = useState(false);
   const [editActivityError, setEditActivityError] = useState("");
   const [activityMessage, setActivityMessage] = useState("");
-  const [showActivityMessage, setShowActivityMessage] = useState(false);
-  const [fadeActivityMessage, setFadeActivityMessage] = useState(false);
 
-  useEffect(() => {
-    fetch(`${API_URL}/classes`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setClasses(data);
-        } else {
-          setClasses([]);
-        }
-      })
-      .catch(() => setClasses([]));
+  const { show: showStudentMessage, fade: fadeStudentMessage } = useAutoDismissMessage(
+    studentMessage,
+    setStudentMessage
+  );
+  const { show: showGroupMessage, fade: fadeGroupMessage } = useAutoDismissMessage(
+    groupMessage,
+    setGroupMessage
+  );
+  const { show: showActivityMessage, fade: fadeActivityMessage } = useAutoDismissMessage(
+    activityMessage,
+    setActivityMessage
+  );
 
-    loadActivities();
-  }, []);
+  const refreshActivities = async () => {
+    await loadActivitiesIntoState(setActivities, setLoadingActivities);
+  };
 
-  const loadActivities = async () => {
-    setLoadingActivities(true);
-    try {
-      const res = await fetch(`${API_URL}/activities`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setActivities(data);
-      } else {
-        setActivities([]);
-      }
-    } catch {
-      setActivities([]);
-    } finally {
-      setLoadingActivities(false);
-    }
+  const clearSelectedActivityEditor = () => {
+    setSelectedActivityEditId("");
+    setEditActivityError("");
   };
 
   useEffect(() => {
-    if (!studentMessage) {
-      setShowStudentMessage(false);
-      setFadeStudentMessage(false);
-      return;
-    }
-
-    setShowStudentMessage(true);
-    setFadeStudentMessage(false);
-
-    const fadeTimer = setTimeout(() => {
-      setFadeStudentMessage(true);
-    }, 3500);
-
-    const hideTimer = setTimeout(() => {
-      setShowStudentMessage(false);
-      setStudentMessage("");
-      setFadeStudentMessage(false);
-    }, 4000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [studentMessage]);
-
-  useEffect(() => {
-    if (!groupMessage) {
-      setShowGroupMessage(false);
-      setFadeGroupMessage(false);
-      return;
-    }
-
-    setShowGroupMessage(true);
-    setFadeGroupMessage(false);
-
-    const fadeTimer = setTimeout(() => {
-      setFadeGroupMessage(true);
-    }, 3500);
-
-    const hideTimer = setTimeout(() => {
-      setShowGroupMessage(false);
-      setGroupMessage("");
-      setFadeGroupMessage(false);
-    }, 4000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [groupMessage]);
-
-  useEffect(() => {
-    if (!activityMessage) {
-      setShowActivityMessage(false);
-      setFadeActivityMessage(false);
-      return;
-    }
-
-    setShowActivityMessage(true);
-    setFadeActivityMessage(false);
-
-    const fadeTimer = setTimeout(() => {
-      setFadeActivityMessage(true);
-    }, 3500);
-
-    const hideTimer = setTimeout(() => {
-      setShowActivityMessage(false);
-      setActivityMessage("");
-      setFadeActivityMessage(false);
-    }, 4000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [activityMessage]);
+    loadClassesIntoState(setClasses);
+    refreshActivities();
+  }, []);
 
   const loadStudents = async () => {
     if (!selectedClassId) {
@@ -205,18 +103,12 @@ const TeacherView = () => {
 
     setLoadingStudents(true);
     try {
-      const res = await fetch(`${API_URL}/students`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        const filtered = data.filter((s) => String(s.class_id) === String(selectedClassId));
-        setStudents(filtered);
-        setSelectedStudentId((prev) =>
-          filtered.some((student) => String(student.id) === String(prev)) ? prev : ""
-        );
-      } else {
-        setStudents([]);
-        setSelectedStudentId("");
-      }
+      const data = await fetchStudents();
+      const filtered = data.filter((student) => String(student.class_id) === String(selectedClassId));
+      setStudents(filtered);
+      setSelectedStudentId((prev) =>
+        filtered.some((student) => String(student.id) === String(prev)) ? prev : ""
+      );
     } catch {
       setStudents([]);
       setSelectedStudentId("");
@@ -234,17 +126,11 @@ const TeacherView = () => {
 
     setLoadingGroups(true);
     try {
-      const res = await fetch(`${API_URL}/groups?class_id=${encodeURIComponent(selectedClassId)}`);
-      const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setGroups(data);
-        setSelectedGroupId((prev) =>
-          data.some((group) => String(group.id) === String(prev)) ? prev : ""
-        );
-      } else {
-        setGroups([]);
-        setSelectedGroupId("");
-      }
+      const data = await fetchGroupsByClass(selectedClassId);
+      setGroups(data);
+      setSelectedGroupId((prev) =>
+        data.some((group) => String(group.id) === String(prev)) ? prev : ""
+      );
     } catch {
       setGroups([]);
       setSelectedGroupId("");
@@ -357,14 +243,7 @@ const TeacherView = () => {
   const deleteResultsForStudentId = async (studentId, existingResults) => {
     const results = Array.isArray(existingResults)
       ? existingResults
-      : await (async () => {
-          const res = await fetch(`${API_URL}/results`);
-          const data = await res.json();
-          if (!res.ok || !Array.isArray(data)) {
-            throw new Error("Erreur lors du chargement des résultats");
-          }
-          return data;
-        })();
+      : await fetchResults();
 
     const linkedResults = results.filter((result) => String(result.student_id) === String(studentId));
 
@@ -431,11 +310,7 @@ const TeacherView = () => {
     setStudentMessage("");
 
     try {
-      const resultsRes = await fetch(`${API_URL}/results`);
-      const resultsData = await resultsRes.json();
-      if (!resultsRes.ok || !Array.isArray(resultsData)) {
-        throw new Error("Erreur lors du chargement des résultats");
-      }
+      const resultsData = await fetchResults();
 
       for (const student of students) {
         await deleteResultsForStudentId(student.id, resultsData);
@@ -624,11 +499,7 @@ const TeacherView = () => {
     setLoadingResults(true);
     setResultsError("");
     try {
-      const res = await fetch(`${API_URL}/results`);
-      const data = await res.json();
-      if (!res.ok || !Array.isArray(data)) {
-        throw new Error("Erreur lors du chargement des résultats");
-      }
+      const data = await fetchResults();
 
       const filtered = data
         .filter((r) => String(r.student_id) === String(studentId))
@@ -809,34 +680,14 @@ const TeacherView = () => {
     return `${baseKey}::level:__no-level__`;
   };
 
-  const normalizeActivityContentForEditor = (content) => {
-    if (content === null || content === undefined || content === "") {
-      return "{}";
-    }
-
-    if (typeof content === "string") {
-      try {
-        return JSON.stringify(JSON.parse(content), null, 2);
-      } catch {
-        return content;
-      }
-    }
-
-    try {
-      return JSON.stringify(content, null, 2);
-    } catch {
-      return "{}";
-    }
-  };
 
   const handleToggleActivitiesList = async () => {
     const next = !showActivitiesList;
     setShowActivitiesList(next);
     if (next) {
-      await loadActivities();
+      await refreshActivities();
     } else {
-      setSelectedActivityEditId("");
-      setEditActivityError("");
+      clearSelectedActivityEditor();
     }
   };
 
@@ -889,9 +740,8 @@ const TeacherView = () => {
       }
 
       setActivityMessage("Activité modifiée");
-      setSelectedActivityEditId("");
-      setEditActivityError("");
-      await loadActivities();
+      clearSelectedActivityEditor();
+      await refreshActivities();
     } catch (err) {
       setEditActivityError(err.message || "Erreur inconnue");
     } finally {

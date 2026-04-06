@@ -41,8 +41,8 @@ Pour brancher une nouvelle activité dans l'application :
 2. exporter une configuration par défaut nommée ;
 3. prévoir des valeurs de repli si `content` vaut `{}` ;
 4. l'enregistrer dans `ActivityContainer.js` ;
-5. l'ajouter à `ACTIVITY_FILES` dans `frontend/src/components/ActivitiesManagementPanel.js` et `frontend/src/views/AdminView.js` ;
-6. compléter `getDefaultActivityContentText()` dans `AdminView.js` et, si besoin, `TeacherView.js` ;
+5. l'ajouter au registre partagé dans `frontend/src/utils/activityManagement.js` ;
+6. compléter dans ce même fichier `ACTIVITY_FILES` et `getDefaultActivityContentText()` ;
 7. si l'activité utilise des niveaux, renvoyer aussi `levelKey` / `levelLabel` dans `onComplete(...)`.
 
 > `ActivityContainer.js` ajoute aussi un bouton d'impression PDF commun à toutes les activités.

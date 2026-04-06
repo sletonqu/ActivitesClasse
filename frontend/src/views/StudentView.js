@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import ActivityContainer from "../activities/ActivityContainer";
-
-const API_URL = "http://localhost:4000/api";
+import { API_URL } from "../config/api";
+import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import {
+  fetchGroupsByClass,
+  loadActivitiesIntoState,
+  loadClassesIntoState,
+  loadStudentsIntoState,
+} from "../utils/dataLoaders";
 const DEFAULT_ACTIVITY_CONTENT = {};
 
 const StudentView = () => {
@@ -17,50 +23,20 @@ const StudentView = () => {
   const [scoresByStudentId, setScoresByStudentId] = useState({});
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [showDemoBanner, setShowDemoBanner] = useState(false);
-  const [fadeDemoBanner, setFadeDemoBanner] = useState(false);
 
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
   const activityName = selectedActivity?.title || "Activite";
+  const demoBannerMessage = isDemoMode && selectedActivityId ? "Mode démo actif" : "";
+  const { show: showDemoBanner, fade: fadeDemoBanner } = useAutoDismissMessage(
+    demoBannerMessage,
+    null
+  );
 
   useEffect(() => {
-    fetch(`${API_URL}/classes`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setClasses(data);
-        } else {
-          setClasses([]);
-        }
-      })
-      .catch(() => setClasses([]));
-
-    fetch(`${API_URL}/students`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setStudents(data);
-        } else {
-          console.error("Erreur API:", data.error || "Réponse invalide");
-          setStudents([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Erreur lors du chargement des élèves:", err);
-        setStudents([]);
-      });
-
-    fetch(`${API_URL}/activities`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setActivities(data);
-        } else {
-          setActivities([]);
-        }
-      })
-      .catch(() => setActivities([]));
+    loadClassesIntoState(setClasses);
+    loadStudentsIntoState(setStudents);
+    loadActivitiesIntoState(setActivities);
   }, []);
 
   useEffect(() => {
@@ -71,18 +47,12 @@ const StudentView = () => {
     }
 
     setLoadingGroups(true);
-    fetch(`${API_URL}/groups?class_id=${encodeURIComponent(selectedClassId)}`)
-      .then((res) => res.json())
+    fetchGroupsByClass(selectedClassId)
       .then((data) => {
-        if (Array.isArray(data)) {
-          setGroups(data);
-          setSelectedGroupId((prev) =>
-            data.some((group) => String(group.id) === String(prev)) ? prev : ""
-          );
-        } else {
-          setGroups([]);
-          setSelectedGroupId("");
-        }
+        setGroups(data);
+        setSelectedGroupId((prev) =>
+          data.some((group) => String(group.id) === String(prev)) ? prev : ""
+        );
       })
       .catch(() => {
         setGroups([]);
@@ -142,30 +112,6 @@ const StudentView = () => {
     setScoresByStudentId({});
   }, [selectedActivityId, selectedActivity]);
 
-  useEffect(() => {
-    if (!isDemoMode || !selectedActivityId) {
-      setShowDemoBanner(false);
-      setFadeDemoBanner(false);
-      return;
-    }
-
-    setShowDemoBanner(true);
-    setFadeDemoBanner(false);
-
-    const fadeTimer = setTimeout(() => {
-      setFadeDemoBanner(true);
-    }, 3500);
-
-    const hideTimer = setTimeout(() => {
-      setShowDemoBanner(false);
-      setFadeDemoBanner(false);
-    }, 4000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [isDemoMode, selectedActivityId]);
 
   const leaderboard = filteredStudents
     .filter((student) => scoresByStudentId[student.id] !== undefined)

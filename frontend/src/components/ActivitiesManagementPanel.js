@@ -1,11 +1,5 @@
 import React from "react";
-
-const ACTIVITY_FILES = [
-  "src/activities/SortNumbersActivity.js",
-  "src/activities/MatchAdditionsActivity.js",
-  "src/activities/CountPencilsByTensActivity.js",
-  "src/activities/InteractiveWhiteboardActivity.js",
-];
+import { ACTIVITY_FILES } from "../utils/activityManagement";
 
 const ActivitiesManagementPanel = ({
   activities,
