@@ -371,7 +371,8 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         Compte les crayons: cartons de 100, pochettes de 10 et unites
       </h3>
       <p id="count-pencils-by-tens-instructions" className="text-sm text-slate-600 mb-5">
-        Chaque pochette contient 10 crayons. Chaque carton contient 10 pochettes de 10 crayons. Clique pour regrouper 10 crayons en 1 pochette ou 10 pochettes en 1 carton, et double-clique pour séparer 1 pochette en 10 crayons ou 1 carton en 10 pochettes. Ecris ensuite le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
+        Clique pour regrouper 10 crayons en 1 pochette ou 10 pochettes en 1 carton, et double-clique pour séparer 1 pochette en 10 crayons ou 1 carton en 10 pochettes.<br />
+        Ecris ensuite le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
       </p>
 
       <div id="count-pencils-by-tens-levels" className="flex flex-wrap justify-center gap-2 mb-4">
