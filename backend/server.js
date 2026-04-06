@@ -21,6 +21,7 @@ app.use('/api/results', require('./routes/results'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/import', require('./routes/import'));
 app.use('/api/export', require('./routes/export'));
+app.use('/api/system', require('./routes/system'));
 
 // Démarrage du serveur
 app.listen(PORT, () => {

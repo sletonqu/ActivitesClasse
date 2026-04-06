@@ -4,6 +4,7 @@ import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import TeachersManagementPanel from "../components/TeachersManagementPanel";
 import ClassesManagementPanel from "../components/ClassesManagementPanel";
+import SystemUpdatePanel from "../components/SystemUpdatePanel";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
@@ -769,6 +770,8 @@ const AdminView = () => {
         }}
         onActivityContentChange={setActivityContentText}
       />
+
+        <SystemUpdatePanel />
 
         <GlobalImportExportPanel />
 

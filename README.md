@@ -2,6 +2,8 @@
 
 Application web locale pour gérer une classe de primaire et lancer des activités interactives en autonomie, en groupe ou sur TNI.
 
+GITHUB_REPO : https://github.com/sletonqu/ActivitesClasse
+
 ---
 
 ## ✨ Aperçu
@@ -52,6 +54,46 @@ docker compose up -d --build
 ```bash
 docker compose down
 ```
+
+## 🔄 Mise à jour sur un PC de classe
+
+### Mode manuel recommandé
+
+Sur le PC de la classe, le plus simple est d'utiliser le script :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\update-application.ps1
+```
+
+Ce script :
+
+- sauvegarde préventivement la base SQLite dans le volume Docker ;
+- récupère la dernière version GitHub via `git pull --ff-only` ;
+- relance l'application avec `docker compose up -d --build`.
+
+> ⚠️ Les données sont conservées tant que vous n'utilisez pas `docker compose down -v`.
+
+### Mode automatisé depuis l'espace admin
+
+Un panneau **Version et mise à jour** est disponible dans `Admin`.
+
+Pour autoriser le bouton `Demander la mise à jour` sur le PC de classe :
+
+1. démarrer sur Windows le service local suivant :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-local-updater.ps1 -Token "change-this-token"
+```
+
+2. activer les variables suivantes dans `docker-compose.yml` pour le service `backend` :
+
+```yml
+ENABLE_ADMIN_UPDATE_TRIGGER=true
+HOST_UPDATER_URL=http://host.docker.internal:8765/update
+UPDATER_TOKEN=change-this-token
+```
+
+Ce mode garde la logique de mise à jour **hors du conteneur** : l'interface admin demande l'opération, mais c'est bien le poste Windows qui exécute le script PowerShell.
 
 ### Repartir sur une base propre
 

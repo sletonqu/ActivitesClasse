@@ -7,6 +7,13 @@ services:
     environment:
       - NODE_ENV=development
       - DB_PATH=/app/data/database.sqlite
+      - GITHUB_OWNER=sletonqu
+      - GITHUB_REPO=ActivitesClasse
+      - GITHUB_BRANCH=main
+      - ENABLE_ADMIN_UPDATE_TRIGGER=false
+      # Optional for host-side automation from the admin panel:
+      # - HOST_UPDATER_URL=http://host.docker.internal:8765/update
+      # - UPDATER_TOKEN=change-this-token
     volumes:
       - db-data:/app/data
   frontend:
