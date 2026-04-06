@@ -39,7 +39,7 @@ const GroupManagementPanel = ({
         className={`w-full ${showGroupsList && selectedGroupId ? "xl:w-1/3" : "xl:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
         <h3 id="groups-panel-title" className="text-xl font-bold text-slate-800 mb-4">
-          Gestion de groupe
+          Gestion des groupes
         </h3>
 
         <form id="groups-panel-form" onSubmit={onAddGroup} className="space-y-4">
