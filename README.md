@@ -1,6 +1,6 @@
 # Ma Classe Interactive
 
-Application web locale pour gérer une classe de primaire et lancer des activités interactives en autonomie ou sur TNI.
+Application web locale pour gérer une classe de primaire et lancer des activités interactives en autonomie, en groupe ou sur TNI.
 
 ---
 
@@ -8,11 +8,11 @@ Application web locale pour gérer une classe de primaire et lancer des activit�
 
 Le projet propose trois espaces complémentaires :
 
-| Espace | Usage principal |
-| --- | --- |
-| `Admin` | Gérer enseignants, classes, activités, imports/exports globaux |
-| `Enseignant` | Gérer les élèves de sa classe, importer/exporter les listes |
-| `Élève` | Choisir une classe, lancer une activité, valider un score, consulter le classement |
+| Espace | URL | Usage principal |
+| --- | --- | --- |
+| `Admin` | `/admin` | Gérer enseignants, classes, activités, imports/exports globaux |
+| `Enseignant` | `/teacher` | Gérer les élèves, groupes, résultats et activités d'une classe |
+| `Élève` | `/` | Choisir une classe, filtrer par groupe, lancer une activité ou un mode démo |
 
 ### Stack technique
 
@@ -55,11 +55,16 @@ docker compose down
 
 ### Repartir sur une base propre
 
-Si le schéma SQLite change ou si vous voulez repartir de zéro :
+Les données SQLite sont stockées dans le volume Docker `db-data`.
 
-1. arrêtez les conteneurs ;
-2. supprimez `backend/database.sqlite` si présent ;
-3. relancez `docker compose up --build`.
+Pour repartir de zéro :
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+> ⚠️ `docker compose down -v` supprime toutes les données locales de l'application.
 
 ---
 
@@ -67,28 +72,73 @@ Si le schéma SQLite change ou si vous voulez repartir de zéro :
 
 ### Administration
 
-- création et consultation des enseignants ;
-- création et consultation des classes ;
+- création, consultation et suppression des enseignants ;
+- création, consultation et suppression des classes ;
 - création, modification et suppression des activités ;
 - suppression unitaire ou globale des activités ;
-- import / export global CSV ;
-- import / export CSV des élèves.
+- import / export global CSV des `teachers`, `classes`, `groups`, `students`, `activities` et `results` ;
+- conservation des colonnes de niveau des résultats (`activity_level`, `activity_level_label`) lors des imports/exports globaux.
 
 ### Enseignant
 
 - sélection d'une classe active ;
-- ajout / suppression d'élèves ;
+- ajout, consultation et suppression d'élèves ;
 - suppression globale des élèves de la classe ;
-- import / export CSV ciblé sur une classe.
+- **gestion des groupes** :
+  - une classe peut avoir plusieurs groupes ou aucun ;
+  - un groupe peut contenir plusieurs élèves ou aucun ;
+  - un élève ne peut appartenir qu'à un seul groupe dans sa classe ;
+  - ajout, affichage, suppression, vidage et affectation/retrait d'élèves ;
+- **gestion des résultats** :
+  - consultation des résultats d'un élève ;
+  - suppression unitaire ou globale ;
+  - calcul d'une moyenne qui remplace uniquement les résultats de la **même activité** et du **même niveau** ;
+- import / export CSV ciblé sur une classe avec support des groupes ;
+- modification des activités existantes et de leur JSON de configuration.
 
 ### Élève
 
-- sélection d'une classe active ;
-- sélection d'une activité active ;
-- exécution de l'activité ;
-- validation du score ;
-- classement de la classe ;
-- export CSV du classement.
+- sélection compacte d'une classe, d'un groupe visible et d'une activité active ;
+- filtrage de la liste d'élèves par groupe ;
+- exécution d'activités avec niveaux (`level1`, `level2`, `level3` selon l'activité) ;
+- enregistrement des scores avec niveau et libellé de niveau ;
+- **mode démo** :
+  - aucune sélection d'élève requise ;
+  - le panneau élève et le classement sont masqués ;
+  - aucun résultat n'est enregistré ;
+  - le bouton `Recommencer` reste disponible ;
+- classement exportable en CSV sur le périmètre visible (classe entière ou groupe filtré).
+
+---
+
+## 📦 Import / export CSV
+
+### Import / export élèves d'une classe
+
+Le flux ciblé classe prend en charge les informations de groupe des élèves :
+
+- `group_id`
+- `group_name`
+
+### Import / export global
+
+Le format global attend une colonne `entity` avec l'une des valeurs suivantes :
+
+- `teacher`
+- `class`
+- `group`
+- `student`
+- `activity`
+- `result`
+
+Pour les lignes de type `result`, les colonnes suivantes sont désormais supportées :
+
+- `student_id`
+- `activity_id`
+- `score`
+- `completed_at`
+- `activity_level`
+- `activity_level_label`
 
 ---
 
@@ -98,18 +148,18 @@ Si le schéma SQLite change ou si vous voulez repartir de zéro :
 | --- | --- | --- | --- |
 | Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant | `defaultLevel`, `levels`, `numbersByLevel` |
 | Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat | `defaultLevel`, `levels`, `challenges`, `challengesByLevel` |
-| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels` |
+| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels`, `exerciseCount`, `min/maxCartons`, `min/maxPouches`, `min/maxUnits` |
 | Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
 
-> Documentation détaillée des activités : voir `frontend/src/activities/README.md`.
+> Documentation détaillée : voir `frontend/src/activities/README.md`.
 
 ### Focus : tableau blanc interactif
 
 Le tableau blanc propose notamment :
 
 - une **barre d'outils flottante** en bas de l'écran ;
-- l'**export PNG avec le nom de l'élève** dans l'image et le nom du fichier ;
-- l'export / import **JSON** ;
+- l'**export PNG** avec le nom de l'élève dans l'image et dans le nom du fichier ;
+- l'import / export **JSON** ;
 - un fond configurable :
   - `blank` → fond blanc,
   - `seyes` → lignage Seyès,
@@ -161,10 +211,12 @@ Exemple de configuration JSON :
 ## ➕ Ajouter une nouvelle activité
 
 1. créer un composant dans `frontend/src/activities/` ;
-2. exporter une configuration par défaut depuis ce fichier ;
-3. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.js` ;
-4. l'ajouter à `ACTIVITY_FILES` et à `getDefaultActivityContentText()` dans `frontend/src/views/AdminView.js` ;
-5. créer l'activité depuis la vue admin.
+2. exporter une configuration par défaut robuste, compatible avec un `content` vide (`{}`) ;
+3. si l'activité gère des niveaux, appeler `onComplete(score, { levelKey, levelLabel })` ;
+4. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.js` ;
+5. l'ajouter à `ACTIVITY_FILES` dans `frontend/src/components/ActivitiesManagementPanel.js` et dans `frontend/src/views/AdminView.js` ;
+6. compléter `getDefaultActivityContentText()` dans `frontend/src/views/AdminView.js` et `frontend/src/views/TeacherView.js` si nécessaire ;
+7. créer ou modifier l'activité depuis l'espace admin / enseignant.
 
 ---
 
@@ -179,6 +231,13 @@ Quelques routes utiles :
 - `GET /api/students`
 - `POST /api/students`
 - `DELETE /api/students/:id`
+- `GET /api/groups?class_id=:id`
+- `POST /api/groups`
+- `POST /api/groups/:id/students`
+- `DELETE /api/groups/:id/students/:studentId`
+- `GET /api/results`
+- `POST /api/results`
+- `DELETE /api/results/:id`
 - `GET /api/activities`
 - `POST /api/activities`
 - `PUT /api/activities/:id`
@@ -193,7 +252,8 @@ Quelques routes utiles :
 
 ## ⚠️ Notes actuelles
 
-- Application conçue pour être utilisé sur un TNI de 1024x768 pixels (4:3), model : Smart Board M600 DViT
+- application conçue pour un TNI `1024x768` (4:3), type Smart Board M600 DViT ;
 - les mots de passe enseignants sont encore stockés en clair : à sécuriser avant une mise en production ;
 - le projet est pensé pour un usage **local / MVP** ;
 - le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
+
