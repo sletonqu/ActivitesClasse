@@ -95,6 +95,14 @@ function parseCsvTable(csvText) {
   return { headers, dataRows };
 }
 
+function normalizeCsvHeaderKey(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
 function parseCsvRows(csvText) {
   const { headers, dataRows } = parseCsvTable(csvText);
   if (dataRows.length === 0) {
@@ -250,6 +258,50 @@ function parseGlobalCsvRows(csvText) {
   });
 }
 
+function parseWordsCsvRows(csvText) {
+  const { headers, dataRows } = parseCsvTable(csvText);
+  if (dataRows.length === 0) {
+    return [];
+  }
+
+  const normalizedHeaders = headers.map(normalizeCsvHeaderKey);
+  const findIndex = (...keys) =>
+    normalizedHeaders.findIndex((header) =>
+      keys.some((key) => header === normalizeCsvHeaderKey(key))
+    );
+
+  const idxWord = findIndex('mot', 'word');
+  const idxEchelon = findIndex('echelondb', 'echelon');
+  const idxNature = findIndex('nature');
+  const idxCategory = findIndex('categorie', 'category');
+  const idxClass = findIndex('classe', 'class');
+  const idxLevel = findIndex('niveau', 'level');
+
+  if (idxWord === -1) {
+    throw new Error('CSV mots invalide: colonne Mot obligatoire');
+  }
+
+  return dataRows.map((row) => {
+    const cols = row.cols;
+    const getCol = (idx) => {
+      if (idx === -1 || idx >= cols.length) return '';
+      return String(cols[idx]).trim();
+    };
+
+    const echelonValue = getCol(idxEchelon);
+    const levelValue = getCol(idxLevel);
+
+    return {
+      word: getCol(idxWord),
+      echelon_db: echelonValue === '' ? null : Number(echelonValue),
+      nature: getCol(idxNature),
+      category: getCol(idxCategory),
+      school_class: getCol(idxClass),
+      level: levelValue === '' ? null : Number(levelValue),
+    };
+  });
+}
+
 router.post('/csv', (req, res) => {
   (async () => {
     try {
@@ -335,6 +387,96 @@ router.post('/csv', (req, res) => {
 
 router.get('/csv', (req, res) => {
   res.status(405).json({ error: 'Utiliser POST /api/import/csv pour importer' });
+});
+
+router.post('/words-csv', (req, res) => {
+  (async () => {
+    try {
+      const { csv } = req.body || {};
+      if (typeof csv !== 'string') {
+        return res.status(400).json({ error: 'Body attendu: { csv: "..." }' });
+      }
+
+      const parsedRows = parseWordsCsvRows(csv);
+      const validRows = parsedRows.filter((row) => row.word);
+
+      if (validRows.length === 0) {
+        return res.status(400).json({ error: 'Aucune ligne valide à importer' });
+      }
+
+      const existingWords = await allAsync(
+        'SELECT word, echelon_db, nature, category, school_class, level FROM words'
+      );
+      const buildWordKey = (row) =>
+        [
+          String(row.word || '').trim().toLowerCase(),
+          row.echelon_db ?? '',
+          String(row.nature || '').trim().toLowerCase(),
+          String(row.category || '').trim().toLowerCase(),
+          String(row.school_class || '').trim().toLowerCase(),
+          row.level ?? '',
+        ].join('::');
+
+      const existingKeys = new Set(existingWords.map(buildWordKey));
+      const payloadKeys = new Set();
+      let inserted = 0;
+      let skippedDuplicates = 0;
+
+      await runAsync('BEGIN TRANSACTION');
+      try {
+        for (const row of validRows) {
+          const normalizedRow = {
+            word: String(row.word || '').trim(),
+            echelon_db: Number.isNaN(row.echelon_db) ? null : row.echelon_db,
+            nature: String(row.nature || '').trim(),
+            category: String(row.category || '').trim(),
+            school_class: String(row.school_class || '').trim(),
+            level: Number.isNaN(row.level) ? null : row.level,
+          };
+
+          const key = buildWordKey(normalizedRow);
+          if (existingKeys.has(key) || payloadKeys.has(key)) {
+            skippedDuplicates += 1;
+            continue;
+          }
+
+          await runAsync(
+            `INSERT INTO words (word, echelon_db, nature, category, school_class, level, source)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              normalizedRow.word,
+              normalizedRow.echelon_db,
+              normalizedRow.nature,
+              normalizedRow.category,
+              normalizedRow.school_class,
+              normalizedRow.level,
+              'Dubois-Buyse',
+            ]
+          );
+
+          payloadKeys.add(key);
+          inserted += 1;
+        }
+
+        await runAsync('COMMIT');
+      } catch (insertErr) {
+        await runAsync('ROLLBACK');
+        throw insertErr;
+      }
+
+      const totalRow = await getAsync('SELECT COUNT(*) AS total FROM words');
+
+      return res.json({
+        received: parsedRows.length,
+        valid: validRows.length,
+        imported: inserted,
+        skippedDuplicates,
+        totalWordsInDb: totalRow?.total ?? 0,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  })();
 });
 
 router.post('/global-csv', (req, res) => {

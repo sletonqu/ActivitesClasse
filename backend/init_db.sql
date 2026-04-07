@@ -45,6 +45,20 @@ CREATE TABLE IF NOT EXISTS activities (
   js_file TEXT
 );
 
+CREATE TABLE IF NOT EXISTS words (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  word TEXT NOT NULL,
+  echelon_db INTEGER,
+  nature TEXT,
+  category TEXT,
+  school_class TEXT,
+  level INTEGER,
+  source TEXT DEFAULT 'Dubois-Buyse'
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_words_unique_entry
+ON words(word, echelon_db, nature, category, school_class, level, source);
+
 CREATE TABLE IF NOT EXISTS results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   student_id INTEGER,
