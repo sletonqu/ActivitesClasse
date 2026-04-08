@@ -33,6 +33,9 @@ export const defaultWordClassificationActivityContent = {
 
 const ALLOWED_LEVEL_KEYS = ["level1", "level2", "level3"];
 
+const TILE_ROTATION_MIN_DEGREES = -10;
+const TILE_ROTATION_MAX_DEGREES = 10;
+
 const DEFAULT_CATEGORY_THEME = {
   badge: "bg-slate-100 text-slate-800",
   panel: "border-slate-200 bg-slate-50",
@@ -89,6 +92,11 @@ function parsePositiveInt(value, fallback) {
     return fallback;
   }
   return parsed;
+}
+
+function randomRotation() {
+  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
+  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
 }
 
 function normalizeCategoryKey(value) {
@@ -233,6 +241,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
     const preparedWords = words.map((word, index) => ({
       ...word,
       runtimeId: `${word.id || "word"}-${index}-${Math.random().toString(36).slice(2, 9)}`,
+      rotation: randomRotation(),
     }));
 
     const wordsPerRound = Math.min(levelRule.wordsPerRound, preparedWords.length);
@@ -538,9 +547,12 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                       onClick={() => handleWordClick(word.runtimeId)}
                       className={`min-w-[120px] rounded-2xl border px-4 py-3 text-center shadow-sm select-none transition-all ${
                         isSelected
-                          ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200 scale-[1.02]"
-                          : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
+                          ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
+                          : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
                       } ${finished ? "cursor-default" : "cursor-move"}`}
+                      style={{
+                        transform: `${isSelected ? "scale(1.02) " : ""}rotate(${word.rotation ?? 0}deg)`,
+                      }}
                     >
                       <span className="block text-lg font-bold text-slate-800">{word.word}</span>
                     </button>
@@ -600,8 +612,12 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
 
                   {finished && mistakes.length === 0 && (
                     <div className="mt-3 flex justify-center">
-                      <span className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold text-slate-600">
-                        Sans erreur
+                      <span
+                        aria-label="Correct"
+                        title="Correct"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-xl font-bold text-emerald-700"
+                      >
+                        ✓
                       </span>
                     </div>
                   )}
@@ -629,7 +645,6 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xl font-bold">Activité terminée</p>
-              <p className="text-sm text-emerald-800">Seuls les mots en erreur sont affichés dans les catégories.</p>
             </div>
             <div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm border border-emerald-100">
               <p className="text-xs uppercase tracking-wide text-emerald-700">Score</p>
