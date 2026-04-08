@@ -239,9 +239,12 @@ const ReadNumbersActivity = ({ content }) => {
           id="read-numbers-restart-button"
           type="button"
           onClick={handleRestart}
-          className="inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-amber-600"
+          aria-label="Recommencer"
+          title="Recommencer"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 text-2xl font-bold text-white shadow-sm transition hover:bg-amber-600"
         >
-          Recommencer
+          <span aria-hidden="true">↻</span>
+          <span className="sr-only">Recommencer</span>
         </button>
       </section>
     </div>

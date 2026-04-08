@@ -471,20 +471,26 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
         <button
           id="sort-numbers-validate-button"
           type="button"
-          className="rounded-full bg-green-500 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-2xl font-bold text-white shadow-sm transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleValidate}
           disabled={finished || !allAssigned}
+          aria-label="Valider"
+          title="Valider"
         >
-          Valider
+          <span aria-hidden="true">✓</span>
+          <span className="sr-only">Valider</span>
         </button>
         <button
           id="sort-numbers-restart-button"
           type="button"
-          className="rounded-full bg-slate-700 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleRestart}
           disabled={restartLocked}
+          aria-label="Recommencer"
+          title="Recommencer"
         >
-          Recommencer
+          <span aria-hidden="true">↻</span>
+          <span className="sr-only">Recommencer</span>
         </button>
       </div>
 

@@ -901,9 +901,12 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
             type="button"
             onClick={handleSubmitActivity}
             disabled={isSubmitted}
-            className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-60"
+            aria-label={isSubmitted ? "Activité validée" : "Valider l'activité"}
+            title={isSubmitted ? "Activité validée" : "Valider l'activité"}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-2xl font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
           >
-            {isSubmitted ? "Activité validée" : "Valider l'activité"}
+            <span aria-hidden="true">✓</span>
+            <span className="sr-only">{isSubmitted ? "Activité validée" : "Valider l'activité"}</span>
           </button>
         </div>
       </div>

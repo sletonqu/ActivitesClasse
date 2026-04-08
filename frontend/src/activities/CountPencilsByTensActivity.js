@@ -515,24 +515,30 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         })}
       </div>
 
-      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 mt-6">
+      <div id="count-pencils-by-tens-actions" className="mt-6 flex justify-center gap-3">
         <button
           id="count-pencils-by-tens-validate-button"
           type="button"
           onClick={handleValidate}
           disabled={finished || !allAnswered}
-          className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+          aria-label="Valider"
+          title="Valider"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-2xl font-bold text-white shadow-sm transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Valider
+          <span aria-hidden="true">✓</span>
+          <span className="sr-only">Valider</span>
         </button>
         <button
           id="count-pencils-by-tens-restart-button"
           type="button"
           onClick={handleRestart}
           disabled={restartLocked}
-          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+          aria-label="Recommencer"
+          title="Recommencer"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-600 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Recommencer
+          <span aria-hidden="true">↻</span>
+          <span className="sr-only">Recommencer</span>
         </button>
       </div>
 

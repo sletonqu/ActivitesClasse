@@ -513,18 +513,24 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
           type="button"
           onClick={handleValidate}
           disabled={finished || !allAssigned}
-          className="rounded-full bg-green-500 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Valider"
+          title="Valider"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-2xl font-bold text-white shadow-sm transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Valider
+          <span aria-hidden="true">✓</span>
+          <span className="sr-only">Valider</span>
         </button>
         <button
           id="match-additions-restart-button"
           type="button"
           onClick={handleRestart}
           disabled={restartLocked}
-          className="rounded-full bg-slate-700 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Recommencer"
+          title="Recommencer"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Recommencer
+          <span aria-hidden="true">↻</span>
+          <span className="sr-only">Recommencer</span>
         </button>
       </div>
 
