@@ -70,6 +70,8 @@ Exemple de configuration :
 
 Options utiles :
 
+- `title`
+- `instruction`
 - `defaultLevel`
 - `levels.levelX.label`
 - `levels.levelX.count`
@@ -79,6 +81,9 @@ Options utiles :
 
 Comportement :
 
+- interface en glisser-déposer avec en-tête, barre de progression, réserve de tuiles et zone `? < ? < ?` ;
+- tuiles légèrement inclinées grâce à une rotation aléatoire ;
+- affichage des nombres avec espace comme séparateur des milliers pour les valeurs supérieures à `999` ;
 - score enregistré sur 20 ;
 - niveau sélectionnable ;
 - renvoi du niveau au moment du `onComplete(...)`.
@@ -207,3 +212,43 @@ Notes :
 - `storageKey` sert à la sauvegarde `localStorage` ;
 - le `student` prop permet de personnaliser les exports ;
 - cette activité peut être utilisée avec ou sans élève sélectionné selon le contexte.
+
+---
+
+### 5. `WordClassificationActivity.js`
+
+**But** : classer des mots dans la bonne catégorie grammaticale.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Classe les mots dans la bonne catégorie",
+  "instruction": "Fais glisser chaque mot dans la bonne catégorie.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "totalWords": 10,
+      "wordsPerRound": 3,
+      "maxWordLevel": 2,
+      "classifications": ["nom", "verbe"]
+    }
+  }
+}
+```
+
+Paramètres disponibles par niveau :
+
+- `totalWords`
+- `wordsPerRound`
+- `maxWordLevel`
+- `classifications`
+
+Comportement :
+
+- chargement dynamique de mots depuis l'API selon le niveau et les catégories demandées ;
+- classement possible par **glisser-déposer** ou par **clic** (sélection d'un mot puis d'une catégorie) ;
+- tuiles de mots avec **rotation aléatoire** pour un rendu plus vivant ;
+- bilan final par catégorie avec affichage des erreurs et symbole `✓` lorsqu'il n'y a aucune erreur ;
+- score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)`. 

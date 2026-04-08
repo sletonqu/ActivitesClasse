@@ -143,6 +143,8 @@ docker compose up --build
 - sélection compacte d'une classe, d'un groupe visible et d'une activité active ;
 - filtrage de la liste d'élèves par groupe ;
 - exécution d'activités avec niveaux (`level1`, `level2`, `level3` selon l'activité) ;
+- activités de tri et de classement en **glisser-déposer** avec tuiles visuelles adaptées au TNI ;
+- affichage lisible des grands nombres (ex. `1 234`) dans l'activité de tri ;
 - enregistrement des scores avec niveau et libellé de niveau ;
 - **mode démo** :
   - aucune sélection d'élève requise ;
@@ -188,7 +190,8 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 
 | Activité | Fichier | Objectif | Paramètres principaux |
 | --- | --- | --- | --- |
-| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant | `defaultLevel`, `levels`, `numbersByLevel` |
+| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Glisser des nombres dans des cases `? < ?` pour les ranger dans l'ordre croissant | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
+| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots par catégorie grammaticale en glisser-déposer ou par clic | `title`, `instruction`, `defaultLevel`, `levels.totalWords`, `levels.wordsPerRound`, `levels.maxWordLevel`, `levels.classifications` |
 | Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat | `defaultLevel`, `levels`, `challenges`, `challengesByLevel` |
 | Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels`, `exerciseCount`, `min/maxCartons`, `min/maxPouches`, `min/maxUnits` |
 | Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
