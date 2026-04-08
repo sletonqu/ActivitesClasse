@@ -292,7 +292,10 @@ const StudentView = () => {
           </div>
         </div>
 
-        <div id="student-view-main-layout" className="w-full flex flex-col gap-6 items-stretch xl:flex-row">
+        <div
+          id="student-view-main-layout"
+          className="sticky bottom-0 z-10 flex w-full flex-col items-stretch gap-6 xl:flex-row"
+        >
           {!isDemoMode && (
             <div
               id="student-view-students-panel"
