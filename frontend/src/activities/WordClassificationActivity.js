@@ -430,12 +430,12 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
         className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
       >
         <div className="rounded-2xl bg-white p-5 sm:p-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="max-w-2xl">
-              <h3 id="word-classification-title" className="text-2xl font-bold text-slate-800 mb-2">
+          <div className="w-full">
+            <div className="w-full">
+              <h3 id="word-classification-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
                 {displayTitle}
               </h3>
-              <p id="word-classification-instructions" className="text-sm sm:text-base text-slate-600">
+              <p id="word-classification-instructions" className="block w-full text-sm text-slate-800 sm:text-base">
                 {displayInstruction}
               </p>
 
@@ -451,25 +451,6 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                     </span>
                   );
                 })}
-              </div>
-            </div>
-
-            <div id="word-classification-stats-cards" className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Mots à classer</div>
-                <div className="text-xl font-bold text-slate-800">{loadedWordsCount || currentLevelRule.totalWords}</div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Par tour</div>
-                <div className="text-xl font-bold text-slate-800">{currentLevelRule.wordsPerRound}</div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Niveau max</div>
-                <div className="text-xl font-bold text-slate-800">{currentLevelRule.maxWordLevel}</div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Restants</div>
-                <div className="text-xl font-bold text-slate-800">{remainingCount}</div>
               </div>
             </div>
           </div>
@@ -496,20 +477,6 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
       </section>
 
       <section id="word-classification-status-panel" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-slate-700">
-              Progression : {answeredCount} / {loadedWordsCount || currentLevelRule.totalWords} mots classés
-            </p>
-            <p className="text-xs text-slate-500">
-              {finished
-                ? "Activité terminée. Consulte les erreurs affichées sous chaque catégorie."
-                : "Astuce : clique sur un mot puis sur une catégorie si tu ne veux pas glisser-déposer."}
-            </p>
-          </div>
-          <div className="text-sm font-semibold text-indigo-700">{progressPercent}% terminé</div>
-        </div>
-
         <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
           <div
             id="word-classification-progress-bar"
@@ -534,9 +501,6 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h4 className="text-lg font-bold text-slate-800">Mots à classer maintenant</h4>
-                  <p className="text-sm text-slate-500">
-                    {visibleWords.length} mot{visibleWords.length > 1 ? "s" : ""} affiché{visibleWords.length > 1 ? "s" : ""} simultanément
-                  </p>
                 </div>
                 <div className="text-sm text-slate-600">
                   {selectedWord ? (
@@ -558,7 +522,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
             >
               {visibleWords.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500 w-full">
-                  Tous les mots du tour ont été classés.
+                  Tous les mots ont été classés.
                 </div>
               ) : (
                 visibleWords.map((word, index) => {
@@ -579,9 +543,6 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                       } ${finished ? "cursor-default" : "cursor-move"}`}
                     >
                       <span className="block text-lg font-bold text-slate-800">{word.word}</span>
-                      <span className="mt-1 block text-[11px] uppercase tracking-wide text-slate-400">
-                        mot à classer
-                      </span>
                     </button>
                   );
                 })
@@ -598,44 +559,31 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                 <section
                   key={categoryKey}
                   id={`word-classification-category-${categoryKey}`}
-                  className={`rounded-2xl border-2 p-4 min-h-[220px] transition-all ${
+                  className={`rounded-2xl border-2 p-4 min-h-[180px] transition-all ${
                     selectedWordId && !finished ? theme.activePanel : theme.panel
-                  }`}
+                  } ${finished ? "" : "flex items-center justify-center"}`}
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={(event) => handleCategoryDrop(event, categoryLabel)}
                   onClick={() => handleCategoryClick(categoryLabel)}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`}>
-                        {formatCategoryLabel(categoryLabel)}
-                      </span>
-                      <h4 className={`mt-2 text-lg font-bold ${theme.title}`}>
-                        Catégorie {formatCategoryLabel(categoryLabel).toLowerCase()}
-                      </h4>
-                    </div>
+                  <div className={`relative ${finished ? "min-h-[52px]" : "w-full"}`}>
                     {finished && mistakes.length > 0 && (
-                      <span className="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                      <span className="absolute right-0 top-0 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">
                         {mistakes.length} erreur{mistakes.length > 1 ? "s" : ""}
                       </span>
                     )}
-                  </div>
 
-                  {!finished && (
-                    <div className="rounded-xl border border-dashed border-white/70 bg-white/70 px-3 py-4 text-sm text-slate-600">
-                      {selectedWord ? (
-                        <p>
-                          Place <span className="font-semibold text-slate-800">{selectedWord.word}</span> ici.
-                        </p>
-                      ) : (
-                        <p>Dépose un mot ici ou clique sur cette catégorie après avoir sélectionné un mot.</p>
-                      )}
+                    <div className="flex justify-center text-center">
+                      <span
+                        className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-2xl font-bold shadow-sm sm:text-3xl ${theme.badge} ${theme.title}`}
+                      >
+                        {formatCategoryLabel(categoryLabel)}
+                      </span>
                     </div>
-                  )}
+                  </div>
 
                   {finished && mistakes.length > 0 && (
                     <div id={`word-classification-errors-${categoryKey}`} className="mt-3">
-                      <p className="text-sm font-semibold text-rose-700 mb-2">Erreurs visibles :</p>
                       <ul className="space-y-2 text-sm">
                         {mistakes.map((item) => (
                           <li
@@ -651,8 +599,10 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                   )}
 
                   {finished && mistakes.length === 0 && (
-                    <div className="mt-3 rounded-xl bg-white/80 px-3 py-4 text-sm text-slate-500">
-                      Aucune erreur dans cette catégorie.
+                    <div className="mt-3 flex justify-center">
+                      <span className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold text-slate-600">
+                        Sans erreur
+                      </span>
                     </div>
                   )}
                 </section>
