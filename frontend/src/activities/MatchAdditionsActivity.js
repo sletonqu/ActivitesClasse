@@ -432,10 +432,14 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
                   draggable={!finished}
                   onDragStart={() => handleDragStartFromPool(answerTile)}
                   onDragEnd={() => setDraggedItem(null)}
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-200 text-2xl font-bold shadow transition-all hover:scale-105 cursor-move select-none disabled:cursor-default"
+                  className={`min-h-[64px] min-w-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 ${
+                    finished ? "cursor-default" : "cursor-move"
+                  }`}
                   style={{ transform: `rotate(${answerTile.rotation}deg)` }}
                 >
-                  {formatNumberWithThousandsSpace(answerTile.value)}
+                  <span className="block text-2xl font-bold text-slate-800">
+                    {formatNumberWithThousandsSpace(answerTile.value)}
+                  </span>
                 </button>
               ))
             )}
@@ -484,10 +488,14 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
                       draggable={!finished}
                       onDragStart={() => handleDragStartFromChallenge(challenge.id)}
                       onDragEnd={() => setDraggedItem(null)}
-                      className={!finished ? "cursor-move select-none" : "select-none"}
+                      className={`min-h-[56px] min-w-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-2 text-center shadow-sm select-none transition-all ${
+                        finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
+                      }`}
                       style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
                     >
-                      {formatNumberWithThousandsSpace(assignedTile.value)}
+                      <span className="block text-2xl font-bold text-slate-800">
+                        {formatNumberWithThousandsSpace(assignedTile.value)}
+                      </span>
                     </button>
                   ) : (
                     "?"
