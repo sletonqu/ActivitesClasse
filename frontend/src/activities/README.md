@@ -10,7 +10,7 @@ Chaque activité React reçoit généralement les props suivantes :
 
 - `content` : configuration JSON de l'activité ;
 - `student` : élève courant, ou `null` en **mode démo** ;
-- `onComplete(scoreOrPayload, completionMeta)` : callback appelé à la validation.
+- `onComplete(scoreOrPayload, completionMeta)` : callback **optionnel**, appelé seulement si l'activité comporte une validation ou un score.
 
 ### Bonnes pratiques actuelles
 
@@ -90,7 +90,50 @@ Comportement :
 
 ---
 
-### 2. `MatchAdditionsActivity.js`
+### 2. `ReadNumbersActivity.js`
+
+**But** : afficher un nombre à lire à voix haute ou à observer selon le niveau choisi.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Lecture de nombres",
+  "instruction": "",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": { "label": "Niveau 1", "min": 1, "max": 99 },
+    "level2": { "label": "Niveau 2", "min": 100, "max": 999 },
+    "level3": { "label": "Niveau 3", "min": 1000, "max": 9999 }
+  },
+  "numbersByLevel": {
+    "level1": [12, 45, 87],
+    "level2": [124, 508],
+    "level3": [1234, 4567]
+  }
+}
+```
+
+Options utiles :
+
+- `title`
+- `instruction`
+- `defaultLevel`
+- `levels.levelX.label`
+- `levels.levelX.min`
+- `levels.levelX.max`
+- `numbersByLevel.levelX` pour proposer une liste précise de nombres
+
+Comportement :
+
+- section `hero` avec le titre, l'instruction et les niveaux disponibles ;
+- une seule tuile centrale dans la section `pool` ;
+- aucun glisser-déposer, aucune zone de dépôt, aucune validation et aucun score ;
+- bouton `Recommencer` pour afficher un nouveau nombre du niveau courant.
+
+---
+
+### 3. `MatchAdditionsActivity.js`
 
 **But** : associer chaque addition à son bon résultat.
 
@@ -126,7 +169,7 @@ Comportement :
 
 ---
 
-### 3. `CountPencilsByTensActivity.js`
+### 4. `CountPencilsByTensActivity.js`
 
 **But** : manipuler les unités, dizaines et centaines à partir de crayons groupés.
 
@@ -172,7 +215,7 @@ Comportement :
 
 ---
 
-### 4. `InteractiveWhiteboardActivity.js`
+### 5. `InteractiveWhiteboardActivity.js`
 
 **But** : offrir un tableau blanc interactif pour écrire, dessiner, insérer une image puis exporter le résultat.
 
@@ -215,7 +258,7 @@ Notes :
 
 ---
 
-### 5. `WordClassificationActivity.js`
+### 6. `WordClassificationActivity.js`
 
 **But** : classer des mots dans la bonne catégorie grammaticale.
 

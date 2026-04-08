@@ -4,6 +4,7 @@ import MatchAdditionsActivity from "./MatchAdditionsActivity";
 import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 import WordClassificationActivity from "./WordClassificationActivity";
+import ReadNumbersActivity from "./ReadNumbersActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -21,6 +22,9 @@ const componentRegistry = {
   "src/activities/WordClassificationActivity.js": WordClassificationActivity,
   "WordClassificationActivity": WordClassificationActivity,
   "WordClassificationActivity.js": WordClassificationActivity,
+  "src/activities/ReadNumbersActivity.js": ReadNumbersActivity,
+  "ReadNumbersActivity": ReadNumbersActivity,
+  "ReadNumbersActivity.js": ReadNumbersActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

@@ -3,6 +3,7 @@ import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditio
 import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
 import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
 import { defaultWordClassificationActivityContent } from "../activities/WordClassificationActivity";
+import { defaultReadNumbersActivityContent } from "../activities/ReadNumbersActivity";
 
 export const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
@@ -10,6 +11,7 @@ export const ACTIVITY_FILES = [
   "src/activities/CountPencilsByTensActivity.js",
   "src/activities/InteractiveWhiteboardActivity.js",
   "src/activities/WordClassificationActivity.js",
+  "src/activities/ReadNumbersActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -18,6 +20,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/CountPencilsByTensActivity.js": defaultCountPencilsByTensActivityContent,
   "src/activities/InteractiveWhiteboardActivity.js": defaultInteractiveWhiteboardActivityContent,
   "src/activities/WordClassificationActivity.js": defaultWordClassificationActivityContent,
+  "src/activities/ReadNumbersActivity.js": defaultReadNumbersActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {
