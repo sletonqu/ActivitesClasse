@@ -221,7 +221,7 @@ const StudentView = () => {
               <option value="">Sélectionner une classe</option>
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} (ID: {cls.id})
+                  {cls.name}
                 </option>
               ))}
             </select>
@@ -268,7 +268,7 @@ const StudentView = () => {
               <option value="">Sélectionner une activité</option>
               {activities.map((activity) => (
                 <option key={activity.id} value={activity.id}>
-                  {activity.title} (ID: {activity.id}){activity.js_file ? ` - ${activity.js_file}` : ""}
+                  {activity.title}
                 </option>
               ))}
             </select>
