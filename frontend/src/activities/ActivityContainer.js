@@ -3,6 +3,7 @@ import SortNumbersActivity from "./SortNumbersActivity";
 import MatchAdditionsActivity from "./MatchAdditionsActivity";
 import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
+import WordClassificationActivity from "./WordClassificationActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -17,6 +18,9 @@ const componentRegistry = {
   "src/activities/InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
+  "src/activities/WordClassificationActivity.js": WordClassificationActivity,
+  "WordClassificationActivity": WordClassificationActivity,
+  "WordClassificationActivity.js": WordClassificationActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

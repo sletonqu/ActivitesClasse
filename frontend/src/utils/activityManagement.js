@@ -2,12 +2,14 @@ import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActi
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
 import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
 import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
+import { defaultWordClassificationActivityContent } from "../activities/WordClassificationActivity";
 
 export const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
   "src/activities/CountPencilsByTensActivity.js",
   "src/activities/InteractiveWhiteboardActivity.js",
+  "src/activities/WordClassificationActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -15,6 +17,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/MatchAdditionsActivity.js": defaultMatchAdditionsActivityContent,
   "src/activities/CountPencilsByTensActivity.js": defaultCountPencilsByTensActivityContent,
   "src/activities/InteractiveWhiteboardActivity.js": defaultInteractiveWhiteboardActivityContent,
+  "src/activities/WordClassificationActivity.js": defaultWordClassificationActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {
