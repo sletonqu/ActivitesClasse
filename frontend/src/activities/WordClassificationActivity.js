@@ -485,15 +485,17 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
         </div>
       </section>
 
-      <section id="word-classification-status-panel" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            id="word-classification-progress-bar"
-            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </section>
+      {!finished && (
+        <section id="word-classification-status-panel" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              id="word-classification-progress-bar"
+              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </section>
+      )}
 
       {loadingWords ? (
         <div id="word-classification-loading" className="rounded-2xl bg-sky-50 border border-sky-200 p-4 text-sky-800">
@@ -505,62 +507,64 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
         </div>
       ) : (
         <>
-          <section id="word-classification-word-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h4 className="text-lg font-bold text-slate-800">Mots à classer maintenant</h4>
-                </div>
-                <div className="text-sm text-slate-600">
-                  {selectedWord ? (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
-                      Mot sélectionné : {selectedWord.word}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                      Sélectionne un mot
-                    </span>
-                  )}
+          {!finished && (
+            <section id="word-classification-word-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-800">Mots à classer maintenant</h4>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {selectedWord ? (
+                      <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
+                        Mot sélectionné : {selectedWord.word}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                        Sélectionne un mot
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div
-              id="word-classification-word-pool"
-              className="flex flex-wrap justify-center gap-3 min-h-[110px] p-4 sm:p-5 bg-slate-50/70"
-            >
-              {visibleWords.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500 w-full">
-                  Tous les mots ont été classés.
-                </div>
-              ) : (
-                visibleWords.map((word, index) => {
-                  const isSelected = selectedWordId === word.runtimeId;
-                  return (
-                    <button
-                      key={word.runtimeId}
-                      id={`word-classification-word-${index}`}
-                      type="button"
-                      draggable={!finished}
-                      onDragStart={() => handleDragStart(word.runtimeId)}
-                      onDragEnd={() => setDraggedWordId(null)}
-                      onClick={() => handleWordClick(word.runtimeId)}
-                      className={`min-w-[120px] rounded-2xl border px-4 py-3 text-center shadow-sm select-none transition-all ${
-                        isSelected
-                          ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                          : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
-                      } ${finished ? "cursor-default" : "cursor-move"}`}
-                      style={{
-                        transform: `${isSelected ? "scale(1.02) " : ""}rotate(${word.rotation ?? 0}deg)`,
-                      }}
-                    >
-                      <span className="block text-lg font-bold text-slate-800">{word.word}</span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </section>
+              <div
+                id="word-classification-word-pool"
+                className="flex flex-wrap justify-center gap-3 min-h-[110px] p-4 sm:p-5 bg-slate-50/70"
+              >
+                {visibleWords.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500 w-full">
+                    Tous les mots ont été classés.
+                  </div>
+                ) : (
+                  visibleWords.map((word, index) => {
+                    const isSelected = selectedWordId === word.runtimeId;
+                    return (
+                      <button
+                        key={word.runtimeId}
+                        id={`word-classification-word-${index}`}
+                        type="button"
+                        draggable={!finished}
+                        onDragStart={() => handleDragStart(word.runtimeId)}
+                        onDragEnd={() => setDraggedWordId(null)}
+                        onClick={() => handleWordClick(word.runtimeId)}
+                        className={`min-w-[120px] rounded-2xl border px-4 py-3 text-center shadow-sm select-none transition-all ${
+                          isSelected
+                            ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
+                            : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
+                        } ${finished ? "cursor-default" : "cursor-move"}`}
+                        style={{
+                          transform: `${isSelected ? "scale(1.02) " : ""}rotate(${word.rotation ?? 0}deg)`,
+                        }}
+                      >
+                        <span className="block text-lg font-bold text-slate-800">{word.word}</span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          )}
 
           <div id="word-classification-categories" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {currentLevelRule.classifications.map((categoryLabel) => {

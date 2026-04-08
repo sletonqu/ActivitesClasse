@@ -339,72 +339,76 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
         </div>
       </section>
 
-      <section
-        id="sort-numbers-status-panel"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-      >
-        <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            id="sort-numbers-progress-bar"
-            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </section>
+      {!finished && (
+        <section
+          id="sort-numbers-status-panel"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        >
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              id="sort-numbers-progress-bar"
+              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </section>
+      )}
 
-      <section
-        id="sort-numbers-word-pool-section"
-        className="rounded-2xl border border-slate-200 bg-white shadow-sm"
-      >
-        <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h4 className="text-lg font-bold text-slate-800">Nombres à classer maintenant</h4>
-            </div>
-            <div className="text-sm text-slate-600">
-              {selectedTile ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
-                  Nombre sélectionné : {formatNumberWithThousandsSpace(selectedTile.value)}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                  Fais glisser un nombre
-                </span>
-              )}
+      {!finished && (
+        <section
+          id="sort-numbers-word-pool-section"
+          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
+          <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-slate-800">Nombres à classer maintenant</h4>
+              </div>
+              <div className="text-sm text-slate-600">
+                {selectedTile ? (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
+                    Nombre sélectionné : {formatNumberWithThousandsSpace(selectedTile.value)}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                    Fais glisser un nombre
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          id="sort-numbers-tiles-pool"
-          className="flex min-h-[110px] flex-wrap justify-center gap-3 bg-slate-50/70 p-4 sm:p-5"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={handleDropToPool}
-        >
-          {availableTiles.length === 0 ? (
-            <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
-              Tous les nombres ont été placés.
-            </div>
-          ) : (
-            availableTiles.map((tile, index) => (
-              <button
-                key={tile.id}
-                id={`sort-numbers-tuile-${index}`}
-                type="button"
-                draggable={!finished}
-                onDragStart={() => handleDragStartFromPool(tile)}
-                onDragEnd={() => setDraggedItem(null)}
-                className="min-h-[64px] min-w-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default"
-                style={{ transform: `rotate(${tile.rotation}deg)` }}
-              >
-                <span className="block text-2xl font-bold text-slate-800">
-                  {formatNumberWithThousandsSpace(tile.value)}
-                </span>
-              </button>
-            ))
-          )}
-        </div>
-      </section>
+          <div
+            id="sort-numbers-tiles-pool"
+            className="flex min-h-[110px] flex-wrap justify-center gap-3 bg-slate-50/70 p-4 sm:p-5"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropToPool}
+          >
+            {availableTiles.length === 0 ? (
+              <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
+                Tous les nombres ont été placés.
+              </div>
+            ) : (
+              availableTiles.map((tile, index) => (
+                <button
+                  key={tile.id}
+                  id={`sort-numbers-tuile-${index}`}
+                  type="button"
+                  draggable={!finished}
+                  onDragStart={() => handleDragStartFromPool(tile)}
+                  onDragEnd={() => setDraggedItem(null)}
+                  className="min-h-[64px] min-w-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default"
+                  style={{ transform: `rotate(${tile.rotation}deg)` }}
+                >
+                  <span className="block text-2xl font-bold text-slate-800">
+                    {formatNumberWithThousandsSpace(tile.value)}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </section>
+      )}
 
       <section
         id="sort-numbers-categories"
