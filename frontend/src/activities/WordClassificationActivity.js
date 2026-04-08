@@ -51,10 +51,10 @@ const CATEGORY_THEME_BY_KEY = {
     title: "text-indigo-900",
   },
   verbe: {
-    badge: "bg-emerald-100 text-emerald-800",
-    panel: "border-emerald-200 bg-emerald-50/70",
-    activePanel: "border-emerald-400 bg-emerald-50 shadow-sm",
-    title: "text-emerald-900",
+    badge: "bg-red-100 text-red-800",
+    panel: "border-red-200 bg-red-50/70",
+    activePanel: "border-red-400 bg-red-50 shadow-sm",
+    title: "text-red-900",
   },
   adjectif: {
     badge: "bg-amber-100 text-amber-800",
