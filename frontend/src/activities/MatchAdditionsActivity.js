@@ -1,25 +1,28 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 export const defaultMatchAdditionsActivityContent = {
-  "defaultLevel": "level2",
-  "levels": {
-    "level1": {
-      "label": "Niveau 1",
-      "count": 6,
-      "min": 1,
-      "max": 20
+  title: "Associe chaque addition à son bon résultat",
+  instruction:
+    "Fais glisser chaque vignette-réponse vers la bonne addition, puis valide pour vérifier tes réponses.",
+  defaultLevel: "level2",
+  levels: {
+    level1: {
+      label: "Niveau 1",
+      count: 3,
+      min: 1,
+      max: 20,
     },
-    "level2": {
-      "label": "Niveau 2",
-      "count": 5,
-      "min": 10,
-      "max": 99
+    level2: {
+      label: "Niveau 2",
+      count: 3,
+      min: 10,
+      max: 99,
     },
-    "level3": {
-      "label": "Niveau 3",
-      "count": 4,
-      "min": 10,
-      "max": 999
+    level3: {
+      label: "Niveau 3",
+      count: 3,
+      min: 10,
+      max: 999,
     },
   },
 };
@@ -52,6 +55,41 @@ function parseIntWithFallback(value, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.trunc(parsed);
+}
+
+function getSafeDisplayText(value, fallback) {
+  const text = String(value || "").trim();
+  if (!text || text.includes("�")) {
+    return fallback;
+  }
+  return text;
+}
+
+function parseActivityContent(rawContent) {
+  if (!rawContent) {
+    return {};
+  }
+
+  if (typeof rawContent === "string") {
+    try {
+      return JSON.parse(rawContent);
+    } catch {
+      return {};
+    }
+  }
+
+  return typeof rawContent === "object" ? rawContent : {};
+}
+
+function formatNumberWithThousandsSpace(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return String(value ?? "");
+  }
+
+  return Math.trunc(numericValue)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 function randomRotation() {
@@ -131,24 +169,25 @@ function buildAnswerTiles(challenges) {
 }
 
 const MatchAdditionsActivity = ({ student, content, onComplete }) => {
+  const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultMatchAdditionsActivityContent.levels;
   const configuredLevels = {
-    level1: normalizeLevelRule(content?.levels?.level1, defaultLevels.level1),
-    level2: normalizeLevelRule(content?.levels?.level2, defaultLevels.level2),
-    level3: normalizeLevelRule(content?.levels?.level3, defaultLevels.level3),
+    level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
+    level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
+    level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
   };
 
   const allowedLevelKeys = ["level1", "level2", "level3"];
-  const initialLevel = allowedLevelKeys.includes(content?.defaultLevel)
-    ? content.defaultLevel
+  const initialLevel = allowedLevelKeys.includes(parsedContent?.defaultLevel)
+    ? parsedContent.defaultLevel
     : "level1";
 
   const buildChallengesForLevel = (levelKey) => {
-    const byLevel = normalizeChallenges(content?.challengesByLevel?.[levelKey]);
+    const byLevel = normalizeChallenges(parsedContent?.challengesByLevel?.[levelKey]);
     if (byLevel.length > 0) return byLevel;
 
     if (levelKey === "level1") {
-      const flatChallenges = normalizeChallenges(content?.challenges);
+      const flatChallenges = normalizeChallenges(parsedContent?.challenges);
       if (flatChallenges.length > 0) return flatChallenges;
     }
 
@@ -164,7 +203,19 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
   const [assignments, setAssignments] = useState({});
   const [draggedItem, setDraggedItem] = useState(null);
   const [finished, setFinished] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [score, setScore] = useState(null);
+
   const restartLocked = Boolean(student) && finished;
+  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const displayTitle = getSafeDisplayText(
+    parsedContent?.title,
+    defaultMatchAdditionsActivityContent.title
+  );
+  const displayInstruction = getSafeDisplayText(
+    parsedContent?.instruction,
+    defaultMatchAdditionsActivityContent.instruction
+  );
 
   const resetForChallenges = (nextChallenges) => {
     setChallenges(nextChallenges);
@@ -172,6 +223,8 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
     setAssignments({});
     setDraggedItem(null);
     setFinished(false);
+    setCorrectCount(0);
+    setScore(null);
   };
 
   const handleDragStartFromPool = (answerTile) => {
@@ -239,13 +292,18 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
   };
 
   const handleValidate = () => {
-    const correctCount = challenges.reduce((count, challenge) => {
+    const nextCorrectCount = challenges.reduce((count, challenge) => {
       return count + (assignments[challenge.id]?.value === challenge.result ? 1 : 0);
     }, 0);
-    const score = Math.round((correctCount / challenges.length) * 20);
+    const nextScore = Math.round((nextCorrectCount / Math.max(1, challenges.length)) * 20);
+
+    setCorrectCount(nextCorrectCount);
+    setScore(nextScore);
     setFinished(true);
+    setDraggedItem(null);
+
     if (onComplete) {
-      onComplete(score, {
+      onComplete(nextScore, {
         levelKey: currentLevel,
         levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
       });
@@ -263,101 +321,191 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
     resetForChallenges(nextChallenges);
   };
 
+  const totalChallenges = challenges.length;
+  const answeredCount = challenges.filter((challenge) => assignments[challenge.id] !== undefined).length;
+  const remainingCount = Math.max(0, totalChallenges - answeredCount);
+  const progressPercent = totalChallenges > 0 ? Math.round((answeredCount / totalChallenges) * 100) : 0;
   const allAssigned = challenges.every((challenge) => assignments[challenge.id] !== undefined);
+  const selectedTile = draggedItem?.answerTile || null;
 
   return (
-    <div id="match-additions-activity">
-      <h3 id="match-additions-title" className="text-lg font-bold mb-4">Associe chaque addition à son bon résultat</h3>
-      <p id="match-additions-instructions" className="text-sm text-slate-600 mb-6">Niveau CE1 - Fais glisser chaque vignette-réponse vers la bonne addition.</p>
-
-      <div id="match-additions-levels" className="flex flex-wrap justify-center gap-2 mb-4">
-        {allowedLevelKeys.map((levelKey) => (
-          <button
-            key={levelKey}
-            id={`match-additions-bouton-${levelKey}`}
-            type="button"
-            disabled={finished}
-            onClick={() => handleSelectLevel(levelKey)}
-            className={`px-4 py-2 rounded font-semibold ${
-              currentLevel === levelKey
-                ? "bg-indigo-600 text-white"
-                : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-            } ${
-              finished ? "opacity-60 cursor-not-allowed" : ""
-            }`}
-          >
-            {configuredLevels[levelKey].label}
-          </button>
-        ))}
-      </div>
-
-      <div id="match-additions-challenge-list" className="grid gap-3 mb-6">
-        {challenges.map((challenge) => (
-          <div
-            key={challenge.id}
-            id={`match-additions-challenge-${challenge.id}`}
-            className="flex items-center justify-between gap-4 border border-slate-200 rounded-xl p-4 bg-slate-50"
-          >
-            <div id={`match-additions-operation-${challenge.id}`} className="text-xl font-bold text-slate-800 min-w-[120px]">
-              {challenge.left} + {challenge.right}
-            </div>
-            <div
-              id={`match-additions-drop-zone-${challenge.id}`}
-              className={`min-w-[90px] min-h-[56px] rounded-xl border-2 border-dashed flex items-center justify-center text-xl font-bold ${
-                finished
-                  ? assignments[challenge.id]?.value === challenge.result
-                    ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                    : "border-rose-400 bg-rose-50 text-rose-700"
-                  : "border-sky-300 bg-white text-slate-700"
-              }`}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => handleDrop(challenge.id)}
-            >
-              {assignments[challenge.id] !== undefined ? (
-                <div
-                  id={`match-additions-assigned-tile-${challenge.id}`}
-                  draggable={!finished}
-                  onDragStart={() => handleDragStartFromChallenge(challenge.id)}
-                  className={!finished ? "cursor-move" : ""}
-                  style={{ transform: `rotate(${assignments[challenge.id].rotation}deg)` }}
-                >
-                  {assignments[challenge.id].value}
-                </div>
-              ) : (
-                "?"
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div
-        id="match-additions-answers-pool"
-        className="flex flex-wrap gap-3 justify-center mb-6 min-h-[72px] p-2 rounded-lg border border-dashed border-slate-300"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={handleDropToAnswerPool}
+    <div id="match-additions-activity-root" className="space-y-6">
+      <section
+        id="match-additions-hero"
+        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
       >
-        {availableAnswers.map((answerTile, index) => (
-          <div
-            key={answerTile.id}
-            id={`match-additions-tuile-${index}`}
-            draggable={!finished}
-            onDragStart={() => handleDragStartFromPool(answerTile)}
-            className="w-16 h-16 flex items-center justify-center bg-amber-200 rounded-xl shadow cursor-move text-2xl font-bold select-none hover:scale-105"
-            style={{ transform: `rotate(${answerTile.rotation}deg)` }}
-          >
-            {answerTile.value}
-          </div>
-        ))}
-      </div>
+        <div className="rounded-2xl bg-white p-5 sm:p-6">
+          <div className="w-full">
+            <h3 id="match-additions-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
+              {displayTitle}
+            </h3>
+            <p id="match-additions-instructions" className="block w-full text-sm text-slate-800 sm:text-base">
+              {displayInstruction}
+            </p>
 
-      <div id="match-additions-actions" className="flex justify-center gap-3">
+            <div id="match-additions-current-settings" className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
+                {totalChallenges} addition{totalChallenges > 1 ? "s" : ""}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                Entre {formatNumberWithThousandsSpace(currentLevelRule.min)} et {formatNumberWithThousandsSpace(currentLevelRule.max)}
+              </span>
+            </div>
+          </div>
+
+          <div id="match-additions-levels" className="mt-5 flex flex-wrap justify-center gap-2">
+            {allowedLevelKeys.map((levelKey) => (
+              <button
+                key={levelKey}
+                id={`match-additions-bouton-${levelKey}`}
+                type="button"
+                disabled={finished}
+                onClick={() => handleSelectLevel(levelKey)}
+                className={`rounded-full px-4 py-2 font-semibold transition ${
+                  currentLevel === levelKey
+                    ? "bg-indigo-600 text-white shadow"
+                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                } ${finished ? "disabled:opacity-60 disabled:cursor-not-allowed" : ""}`}
+              >
+                {configuredLevels[levelKey].label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {!finished && (
+        <section
+          id="match-additions-status-panel"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        >
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              id="match-additions-progress-bar"
+              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </section>
+      )}
+
+      {!finished && (
+        <section
+          id="match-additions-word-pool-section"
+          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
+          <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-slate-800">Résultats à placer maintenant</h4>
+              </div>
+              <div className="text-sm text-slate-600">
+                {selectedTile ? (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
+                    Tuile sélectionnée : {formatNumberWithThousandsSpace(selectedTile.value)}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                    Fais glisser un résultat
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="match-additions-answers-pool"
+            className="flex min-h-[92px] flex-wrap justify-center gap-3 bg-slate-50/70 p-4 sm:p-5"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDropToAnswerPool}
+          >
+            {availableAnswers.length === 0 ? (
+              <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
+                Toutes les tuiles ont été placées.
+              </div>
+            ) : (
+              availableAnswers.map((answerTile, index) => (
+                <button
+                  key={answerTile.id}
+                  id={`match-additions-tuile-${index}`}
+                  type="button"
+                  draggable={!finished}
+                  onDragStart={() => handleDragStartFromPool(answerTile)}
+                  onDragEnd={() => setDraggedItem(null)}
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-200 text-2xl font-bold shadow transition-all hover:scale-105 cursor-move select-none disabled:cursor-default"
+                  style={{ transform: `rotate(${answerTile.rotation}deg)` }}
+                >
+                  {formatNumberWithThousandsSpace(answerTile.value)}
+                </button>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      <section
+        id="match-additions-categories"
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+      >
+        <div id="match-additions-challenge-list" className="grid gap-3">
+          {challenges.map((challenge) => {
+            const assignedTile = assignments[challenge.id];
+            const isCorrect = assignedTile?.value === challenge.result;
+
+            return (
+              <div
+                key={challenge.id}
+                id={`match-additions-challenge-${challenge.id}`}
+                className="grid items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_120px]"
+              >
+                <div
+                  id={`match-additions-operation-${challenge.id}`}
+                  className="rounded-xl bg-white px-4 py-3 text-center text-2xl font-bold text-slate-800 shadow-sm"
+                >
+                  {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
+                </div>
+
+                <div
+                  id={`match-additions-drop-zone-${challenge.id}`}
+                  className={`flex min-h-[72px] min-w-[90px] items-center justify-center rounded-2xl border-2 border-dashed px-3 py-2 text-2xl font-bold shadow-sm transition-all ${
+                    finished
+                      ? isCorrect
+                        ? "border-emerald-400 bg-emerald-50 text-emerald-700"
+                        : "border-rose-400 bg-rose-50 text-rose-700"
+                      : "border-sky-300 bg-white text-slate-700"
+                  }`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleDrop(challenge.id)}
+                >
+                  {assignedTile !== undefined ? (
+                    <button
+                      id={`match-additions-assigned-tile-${challenge.id}`}
+                      type="button"
+                      draggable={!finished}
+                      onDragStart={() => handleDragStartFromChallenge(challenge.id)}
+                      onDragEnd={() => setDraggedItem(null)}
+                      className={!finished ? "cursor-move select-none" : "select-none"}
+                      style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
+                    >
+                      {formatNumberWithThousandsSpace(assignedTile.value)}
+                    </button>
+                  ) : (
+                    "?"
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div id="match-additions-actions" className="flex flex-wrap justify-center gap-3">
         <button
           id="match-additions-validate-button"
           type="button"
           onClick={handleValidate}
           disabled={finished || !allAssigned}
-          className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+          className="rounded-full bg-green-500 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Valider
         </button>
@@ -366,16 +514,47 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
           type="button"
           onClick={handleRestart}
           disabled={restartLocked}
-          className="px-6 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+          className="rounded-full bg-slate-700 px-6 py-2.5 font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Recommencer
         </button>
       </div>
 
       {finished && (
-        <p id="match-additions-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
-          Activité terminée. Vérifie les cases vertes pour les bonnes réponses.
-        </p>
+        <section
+          id="match-additions-summary"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 shadow-sm"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xl font-bold">Activité terminée</p>
+              <p className="text-sm text-emerald-800">
+                {correctCount === totalChallenges
+                  ? "Bravo, toutes les additions sont bien associées !"
+                  : "Observe les cases colorées pour repérer les bonnes réponses et celles à corriger."}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
+              <p className="text-xs uppercase tracking-wide text-emerald-700">Score</p>
+              <p className="text-3xl font-bold">{score} / 20</p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Bonnes réponses</div>
+              <div className="text-2xl font-bold">{correctCount}</div>
+            </div>
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Total traité</div>
+              <div className="text-2xl font-bold">{totalChallenges}</div>
+            </div>
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Erreurs</div>
+              <div className="text-2xl font-bold">{Math.max(0, totalChallenges - correctCount)}</div>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   );
