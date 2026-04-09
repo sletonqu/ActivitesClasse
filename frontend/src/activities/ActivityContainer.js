@@ -2,6 +2,7 @@ import React from "react";
 import SortNumbersActivity from "./SortNumbersActivity";
 import MatchAdditionsActivity from "./MatchAdditionsActivity";
 import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
+import CompareNumbersActivity from "./CompareNumbersActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 import WordClassificationActivity from "./WordClassificationActivity";
 import ReadNumbersActivity from "./ReadNumbersActivity";
@@ -16,6 +17,9 @@ const componentRegistry = {
   "src/activities/CountPencilsByTensActivity.js": CountPencilsByTensActivity,
   "CountPencilsByTensActivity": CountPencilsByTensActivity,
   "CountPencilsByTensActivity.js": CountPencilsByTensActivity,
+  "src/activities/CompareNumbersActivity.js": CompareNumbersActivity,
+  "CompareNumbersActivity": CompareNumbersActivity,
+  "CompareNumbersActivity.js": CompareNumbersActivity,
   "src/activities/InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,

@@ -1,6 +1,7 @@
 import { defaultSortNumbersActivityContent } from "../activities/SortNumbersActivity";
 import { defaultMatchAdditionsActivityContent } from "../activities/MatchAdditionsActivity";
 import { defaultCountPencilsByTensActivityContent } from "../activities/CountPencilsByTensActivity";
+import { defaultCompareNumbersActivityContent } from "../activities/CompareNumbersActivity";
 import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
 import { defaultWordClassificationActivityContent } from "../activities/WordClassificationActivity";
 import { defaultReadNumbersActivityContent } from "../activities/ReadNumbersActivity";
@@ -9,6 +10,7 @@ export const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
   "src/activities/CountPencilsByTensActivity.js",
+  "src/activities/CompareNumbersActivity.js",
   "src/activities/InteractiveWhiteboardActivity.js",
   "src/activities/WordClassificationActivity.js",
   "src/activities/ReadNumbersActivity.js",
@@ -18,6 +20,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/SortNumbersActivity.js": defaultSortNumbersActivityContent,
   "src/activities/MatchAdditionsActivity.js": defaultMatchAdditionsActivityContent,
   "src/activities/CountPencilsByTensActivity.js": defaultCountPencilsByTensActivityContent,
+  "src/activities/CompareNumbersActivity.js": defaultCompareNumbersActivityContent,
   "src/activities/InteractiveWhiteboardActivity.js": defaultInteractiveWhiteboardActivityContent,
   "src/activities/WordClassificationActivity.js": defaultWordClassificationActivityContent,
   "src/activities/ReadNumbersActivity.js": defaultReadNumbersActivityContent,
