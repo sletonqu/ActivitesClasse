@@ -6,7 +6,7 @@ These rules apply across the whole project:
 
 - Prefer reusing shared hooks, utilities, and components over duplicating similar logic with small variations.
 - Generated code must stay **clear, readable, and easy to debug**, with meaningful naming. In the frontend, add explicit `id` attributes on key UI blocks and controls (`div`, `section`, `input`, `button`, etc.) whenever useful for debugging and inspection.
-- Before declaring the work complete, verify relevant changes with `docker compose up --build`.
+- Before declaring the work complete, verify relevant changes with `docker compose up --build -d`.
 
 ## Frontend management panels
 
