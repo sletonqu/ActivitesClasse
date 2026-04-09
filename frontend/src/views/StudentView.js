@@ -258,7 +258,7 @@ const StudentView = () => {
               id="student-view-activity-selector-label"
               className="block text-sm font-semibold text-slate-700 mb-2"
             >
-              Activité active
+              Activités disponibles
             </label>
             <select
               value={selectedActivityId}

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
+import FloatingNumberPad from "../components/FloatingNumberPad";
 
 export const defaultCountPencilsByTensActivityContent = {
   "title": "Compte les crayons par dizaines et centaines",
@@ -42,6 +43,12 @@ export const defaultCountPencilsByTensActivityContent = {
 const TILE_ROTATION_MIN_DEGREES = -20;
 const TILE_ROTATION_MAX_DEGREES = 20;
 const CLICK_DELAY_MS = 220;
+const FIELD_LABELS = {
+  centaines: "Centaines",
+  dizaines: "Dizaines",
+  unites: "Unités",
+  total: "Total",
+};
 
 function randomRotation() {
   const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
@@ -154,6 +161,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
   const [finished, setFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
+  const [activeInput, setActiveInput] = useState(null);
   const restartLocked = Boolean(student) && finished;
   const clickTimeoutRef = useRef(null);
 
@@ -188,6 +196,34 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
     action();
   };
 
+  const openNumberPad = (exerciseId, field) => {
+    if (finished) return;
+
+    setActiveInput({
+      exerciseId,
+      field,
+      label: FIELD_LABELS[field] || "Réponse",
+    });
+  };
+
+  const closeNumberPad = () => {
+    setActiveInput(null);
+  };
+
+  const handleNumberPadKeyPress = (keyValue) => {
+    if (!activeInput || finished) return;
+
+    const currentValue = answers[activeInput.exerciseId]?.[activeInput.field] || "";
+    updateAnswer(activeInput.exerciseId, activeInput.field, `${currentValue}${keyValue}`);
+  };
+
+  const handleNumberPadBackspace = () => {
+    if (!activeInput || finished) return;
+
+    const currentValue = answers[activeInput.exerciseId]?.[activeInput.field] || "";
+    updateAnswer(activeInput.exerciseId, activeInput.field, currentValue.slice(0, -1));
+  };
+
   useEffect(() => {
     return () => {
       clearPendingClick();
@@ -214,7 +250,11 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
 
   const updateAnswer = (exerciseId, field, rawValue) => {
     if (finished) return;
-    const cleanValue = rawValue.replace(/[^0-9]/g, "");
+
+    const maxLength = field === "total" ? 3 : 2;
+    const cleanValue = String(rawValue || "")
+      .replace(/[^0-9]/g, "")
+      .slice(0, maxLength);
 
     setAnswers((prev) => ({
       ...prev,
@@ -235,6 +275,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
     setFinished(false);
     setCorrectCount(0);
     setScore(null);
+    setActiveInput(null);
   };
 
   const handleSelectLevel = (levelKey) => {
@@ -359,6 +400,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
     setCorrectCount(nextCorrectCount);
     setScore(nextScore);
     setFinished(true);
+    setActiveInput(null);
 
     if (onComplete) {
       onComplete(nextScore, {
@@ -397,7 +439,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
                 {currentLevelRule.minPouches} à {currentLevelRule.maxPouches} dizaine{currentLevelRule.maxPouches > 1 ? "s" : ""}
               </span>
               <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                {currentLevelRule.minUnits} à {currentLevelRule.maxUnits} unite{currentLevelRule.maxUnits > 1 ? "s" : ""}
+                {currentLevelRule.minUnits} à {currentLevelRule.maxUnits} unité{currentLevelRule.maxUnits > 1 ? "s" : ""}
               </span>
               {(currentLevelRule.minCartons > 0 || currentLevelRule.maxCartons > 0) && (
                 <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -532,12 +574,21 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
                         <input
                           id={`count-pencils-by-tens-centaines-${exercise.id}`}
                           type="text"
-                          inputMode="numeric"
+                          inputMode="none"
+                          autoComplete="off"
                           maxLength={2}
                           value={answers[exercise.id]?.centaines || ""}
+                          onFocus={() => openNumberPad(exercise.id, "centaines")}
+                          onClick={() => openNumberPad(exercise.id, "centaines")}
                           onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
                           disabled={finished}
-                          className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                          placeholder="Touchez ici"
+                          aria-label={`Centaines de l'exercice ${exercise.id}`}
+                          className={`mt-1 w-full rounded-lg border px-2 py-2 ${
+                            activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                              ? "border-indigo-500 ring-2 ring-indigo-200"
+                              : "border-slate-300"
+                          }`}
                         />
                       </label>
                     )}
@@ -547,26 +598,44 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
                       <input
                         id={`count-pencils-by-tens-dizaines-${exercise.id}`}
                         type="text"
-                        inputMode="numeric"
+                        inputMode="none"
+                        autoComplete="off"
                         maxLength={2}
                         value={answers[exercise.id]?.dizaines || ""}
+                        onFocus={() => openNumberPad(exercise.id, "dizaines")}
+                        onClick={() => openNumberPad(exercise.id, "dizaines")}
                         onChange={(event) => updateAnswer(exercise.id, "dizaines", event.target.value)}
                         disabled={finished}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                        placeholder="Touchez ici"
+                        aria-label={`Dizaines de l'exercice ${exercise.id}`}
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
+                          activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                            ? "border-indigo-500 ring-2 ring-indigo-200"
+                            : "border-slate-300"
+                        }`}
                       />
                     </label>
 
                     <label className="text-sm font-medium text-slate-700">
-                      Unites
+                      Unités
                       <input
                         id={`count-pencils-by-tens-unites-${exercise.id}`}
                         type="text"
-                        inputMode="numeric"
+                        inputMode="none"
+                        autoComplete="off"
                         maxLength={2}
                         value={answers[exercise.id]?.unites || ""}
+                        onFocus={() => openNumberPad(exercise.id, "unites")}
+                        onClick={() => openNumberPad(exercise.id, "unites")}
                         onChange={(event) => updateAnswer(exercise.id, "unites", event.target.value)}
                         disabled={finished}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                        placeholder="Touchez ici"
+                        aria-label={`Unités de l'exercice ${exercise.id}`}
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
+                          activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
+                            ? "border-indigo-500 ring-2 ring-indigo-200"
+                            : "border-slate-300"
+                        }`}
                       />
                     </label>
 
@@ -575,12 +644,21 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
                       <input
                         id={`count-pencils-by-tens-total-${exercise.id}`}
                         type="text"
-                        inputMode="numeric"
+                        inputMode="none"
+                        autoComplete="off"
                         maxLength={3}
                         value={answers[exercise.id]?.total || ""}
+                        onFocus={() => openNumberPad(exercise.id, "total")}
+                        onClick={() => openNumberPad(exercise.id, "total")}
                         onChange={(event) => updateAnswer(exercise.id, "total", event.target.value)}
                         disabled={finished}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                        placeholder="Touchez ici"
+                        aria-label={`Total de l'exercice ${exercise.id}`}
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
+                          activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
+                            ? "border-indigo-500 ring-2 ring-indigo-200"
+                            : "border-slate-300"
+                        }`}
                       />
                     </label>
                   </div>
@@ -627,6 +705,19 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
           <span className="sr-only">Recommencer</span>
         </button>
       </div>
+
+      <FloatingNumberPad
+        isOpen={Boolean(activeInput) && !finished}
+        activeFieldLabel={
+          activeInput
+            ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+            : ""
+        }
+        onKeyPress={handleNumberPadKeyPress}
+        onBackspace={handleNumberPadBackspace}
+        onClose={closeNumberPad}
+        disabledKeys={["<", "=", ">"]}
+      />
 
       {finished && (
         <section
