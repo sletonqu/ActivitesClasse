@@ -215,7 +215,68 @@ Comportement :
 
 ---
 
-### 5. `InteractiveWhiteboardActivity.js`
+### 5. `CompareNumbersActivity.js`
+
+**But** : comparer deux nombres et, si besoin, afficher l'un des deux en écriture décomposée.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Comparaison de nombres",
+  "instruction": "Observe les deux écritures puis choisis le bon signe.",
+  "defaultLevel": "level3",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "min": 0,
+      "max": 20,
+      "allowEquality": true,
+      "equalityChance": 0.2,
+      "decompositionMode": "none"
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "min": 100,
+      "max": 999,
+      "allowEquality": true,
+      "equalityChance": 0.2,
+      "decompositionMode": "random",
+      "decompositionStyle": "moyenne"
+    }
+  },
+  "pairsByLevel": {
+    "level3": [
+      { "left": 764, "right": 768, "decompositionMode": "left" },
+      { "left": 493, "right": 500, "decompositionMode": "left" }
+    ]
+  }
+}
+```
+
+Paramètres utiles :
+
+- `levels.levelX.min` / `levels.levelX.max`
+- `levels.levelX.allowEquality`
+- `levels.levelX.equalityChance`
+- `levels.levelX.decompositionMode` : `none`, `left`, `right` ou `random`
+- `levels.levelX.decompositionStyle` : `strict`/`stricte` ou `medium`/`moyenne` (ignoré si `decompositionMode` vaut `none`)
+- `pairsByLevel.levelX` pour imposer des couples précis
+- `pairsByLevel.levelX[].decompositionMode` pour surcharger le côté décomposé sur une paire donnée
+- `pairsByLevel.levelX[].decompositionStyle` pour imposer un style précis sur une paire
+
+Comportement :
+
+- comparaison avec les signes `<`, `=` et `>` ;
+- un des deux nombres peut être affiché sous forme de tuiles de centaines, dizaines et unités ;
+- `stricte` : `763 = 700 + 60 + 3` ;
+- `moyenne` : seule la partie `unités` peut dépasser 9, par exemple `752 = 700 + 40 + 12` ;
+- les centaines et les dizaines restent strictement décomposées ;
+- score enregistré sur 20 avec le niveau courant.
+
+---
+
+### 6. `InteractiveWhiteboardActivity.js`
 
 **But** : offrir un tableau blanc interactif pour écrire, dessiner, insérer une image puis exporter le résultat.
 
@@ -258,7 +319,7 @@ Notes :
 
 ---
 
-### 6. `WordClassificationActivity.js`
+### 7. `WordClassificationActivity.js`
 
 **But** : classer des mots dans la bonne catégorie grammaticale.
 

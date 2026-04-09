@@ -16,9 +16,33 @@ export const defaultCompareNumbersActivityContent = {
   instruction: "Observe les deux nombres, choisis le bon signe puis valide ta réponse.",
   defaultLevel: "level1",
   levels: {
-    level1: { label: "Niveau 1", min: 0, max: 20, allowEquality: true, equalityChance: 0.2 },
-    level2: { label: "Niveau 2", min: 10, max: 99, allowEquality: true, equalityChance: 0.2 },
-    level3: { label: "Niveau 3", min: 100, max: 999, allowEquality: true, equalityChance: 0.2 },
+    level1: {
+      label: "Niveau 1",
+      min: 10,
+      max: 99,
+      allowEquality: true,
+      equalityChance: 0.2,
+      decompositionMode: "none",
+      decompositionStyle: "medium",
+    },
+    level2: {
+      label: "Niveau 2",
+      min: 100,
+      max: 999,
+      allowEquality: true,
+      equalityChance: 0.2,
+      decompositionMode: "none",
+      decompositionStyle: "medium",
+    },
+    level3: {
+      label: "Niveau 3",
+      min: 100,
+      max: 999,
+      allowEquality: true,
+      equalityChance: 0.2,
+      decompositionMode: "right",
+      decompositionStyle: "strict",
+    },
   },
   pairsByLevel: {
     level1: [],
@@ -35,7 +59,35 @@ const SIGN_LABELS = {
 };
 const TILE_ROTATION_MIN_DEGREES = -8;
 const TILE_ROTATION_MAX_DEGREES = 8;
+const DECOMPOSITION_MODES = ["none", "left", "right", "random"];
+const DECOMPOSITION_STYLE_ALIASES = {
+  strict: "strict",
+  stricte: "strict",
+  medium: "medium",
+  moyenne: "medium",
+};
+const DECOMPOSITION_STYLE_LABELS = {
+  strict: "Décomposition stricte",
+  medium: "Décomposition moyenne",
+};
 
+function normalizeDecompositionMode(value, fallback = "none") {
+  const fallbackValue = typeof fallback === "string" ? fallback.toLowerCase() : fallback;
+  const candidate = typeof value === "string" ? value.toLowerCase() : fallbackValue;
+  return DECOMPOSITION_MODES.includes(candidate) ? candidate : fallbackValue;
+}
+
+function normalizeDecompositionStyle(value, fallback = "strict") {
+  const normalizedFallback = typeof fallback === "string"
+    ? DECOMPOSITION_STYLE_ALIASES[fallback.toLowerCase()] || "strict"
+    : null;
+
+  if (typeof value !== "string") {
+    return normalizedFallback;
+  }
+
+  return DECOMPOSITION_STYLE_ALIASES[value.toLowerCase()] || normalizedFallback || "strict";
+}
 
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
@@ -53,12 +105,27 @@ function normalizeLevelRule(rule, fallbackRule) {
     ? Math.min(1, Math.max(0, rawEqualityChance))
     : 0.2;
 
+  const fallbackDecompositionStyle = normalizeDecompositionStyle(
+    fallbackRule.decompositionStyle,
+    "medium"
+  );
+
+  const decompositionStyle = normalizeDecompositionStyle(
+    source.decompositionStyle,
+    fallbackDecompositionStyle
+  );
+
   return {
     label: source.label || fallbackRule.label,
     min,
     max,
     allowEquality: source.allowEquality ?? fallbackRule.allowEquality ?? true,
     equalityChance,
+    decompositionMode: normalizeDecompositionMode(
+      source.decompositionMode,
+      normalizeDecompositionMode(fallbackRule.decompositionMode, "none")
+    ),
+    decompositionStyle,
   };
 }
 
@@ -66,6 +133,62 @@ function getRandomNumber(min, max) {
   const lower = Math.min(min, max);
   const upper = Math.max(min, max);
   return Math.floor(Math.random() * (upper - lower + 1)) + lower;
+}
+
+function buildDecomposedParts(value, decompositionStyle = "strict") {
+  const safeValue = Math.max(0, Math.trunc(Number(value) || 0));
+  const normalizedStyle = normalizeDecompositionStyle(decompositionStyle, "strict");
+  let hundreds = Math.floor(safeValue / 100);
+  let tens = Math.floor((safeValue % 100) / 10);
+  let units = safeValue % 10;
+
+  if (normalizedStyle === "medium" && tens > 0) {
+    tens -= 1;
+    units += 10;
+  }
+
+  const parts = [];
+
+  if (hundreds > 0) {
+    parts.push({
+      key: "hundreds",
+      value: hundreds * 100,
+      toneClassName: "border-amber-200 bg-amber-50 text-amber-800",
+    });
+  }
+
+  if (tens > 0) {
+    parts.push({
+      key: "tens",
+      value: tens * 10,
+      toneClassName: "border-sky-200 bg-sky-50 text-sky-800",
+    });
+  }
+
+  if (units > 0 || parts.length === 0) {
+    parts.push({
+      key: "units",
+      value: units,
+      toneClassName: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    });
+  }
+
+  return parts.map((part) => ({
+    ...part,
+    label: formatNumberWithThousandsSpace(part.value),
+  }));
+}
+
+function resolveDecompositionSide(decompositionMode) {
+  if (decompositionMode === "left" || decompositionMode === "right") {
+    return decompositionMode;
+  }
+
+  if (decompositionMode === "random") {
+    return Math.random() < 0.5 ? "left" : "right";
+  }
+
+  return null;
 }
 
 function getExpectedSign(leftValue, rightValue) {
@@ -92,45 +215,62 @@ function sanitizeConfiguredPairs(pairs) {
         id: `configured-pair-${index}-${leftValue}-${rightValue}`,
         leftValue: Math.trunc(leftValue),
         rightValue: Math.trunc(rightValue),
+        decompositionMode: normalizeDecompositionMode(pair?.decompositionMode, null),
+        decompositionStyle: normalizeDecompositionStyle(pair?.decompositionStyle, null),
       };
     })
     .filter(Boolean);
 }
 
 function buildComparison(levelRule, configuredPairs = []) {
+  let leftValue;
+  let rightValue;
+  let comparisonId;
+  let decompositionMode = levelRule.decompositionMode;
+  let decompositionStyle = levelRule.decompositionStyle;
+
   if (configuredPairs.length > 0) {
     const randomPair = configuredPairs[Math.floor(Math.random() * configuredPairs.length)];
-    return {
-      id: `${randomPair.id}-${Date.now()}`,
-      leftValue: randomPair.leftValue,
-      rightValue: randomPair.rightValue,
-      leftRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
-      rightRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
-      expectedSign: getExpectedSign(randomPair.leftValue, randomPair.rightValue),
-    };
-  }
+    leftValue = randomPair.leftValue;
+    rightValue = randomPair.rightValue;
+    comparisonId = `${randomPair.id}-${Date.now()}`;
+    decompositionMode = randomPair.decompositionMode || levelRule.decompositionMode;
+    decompositionStyle = randomPair.decompositionStyle || levelRule.decompositionStyle;
+  } else {
+    leftValue = getRandomNumber(levelRule.min, levelRule.max);
+    rightValue = getRandomNumber(levelRule.min, levelRule.max);
+    const rangeSize = Math.max(1, Math.abs(levelRule.max - levelRule.min) + 1);
 
-  const leftValue = getRandomNumber(levelRule.min, levelRule.max);
-  let rightValue = getRandomNumber(levelRule.min, levelRule.max);
-  const rangeSize = Math.max(1, Math.abs(levelRule.max - levelRule.min) + 1);
-
-  if (levelRule.allowEquality && Math.random() < levelRule.equalityChance) {
-    rightValue = leftValue;
-  } else if (rangeSize > 1) {
-    let guard = 0;
-    while (rightValue === leftValue && guard < 20) {
-      rightValue = getRandomNumber(levelRule.min, levelRule.max);
-      guard += 1;
+    if (levelRule.allowEquality && Math.random() < levelRule.equalityChance) {
+      rightValue = leftValue;
+    } else if (rangeSize > 1) {
+      let guard = 0;
+      while (rightValue === leftValue && guard < 20) {
+        rightValue = getRandomNumber(levelRule.min, levelRule.max);
+        guard += 1;
+      }
     }
+
+    comparisonId = `compare-${leftValue}-${rightValue}-${Date.now()}`;
   }
+
+  const decompositionSide = resolveDecompositionSide(decompositionMode);
 
   return {
-    id: `compare-${leftValue}-${rightValue}-${Date.now()}`,
+    id: comparisonId,
     leftValue,
     rightValue,
     leftRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
     rightRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
     expectedSign: getExpectedSign(leftValue, rightValue),
+    leftDisplayParts:
+      decompositionSide === "left"
+        ? buildDecomposedParts(leftValue, decompositionStyle)
+        : null,
+    rightDisplayParts:
+      decompositionSide === "right"
+        ? buildDecomposedParts(rightValue, decompositionStyle)
+        : null,
   };
 }
 
@@ -141,6 +281,43 @@ function getBaseTenParts(value) {
     pouches: Math.floor((safeValue % 100) / 10),
     units: safeValue % 10,
   };
+}
+
+function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
+  const hasDecomposedDisplay = Array.isArray(displayParts) && displayParts.length > 0;
+
+  return (
+    <div
+      id={id}
+      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm ${
+        hasDecomposedDisplay
+          ? "min-h-[112px] w-full max-w-[290px] sm:min-h-[124px]"
+          : "h-[112px] w-[112px] sm:h-[124px] sm:w-[124px]"
+      }`}
+      style={{ transform: `rotate(${rotation}deg)` }}
+    >
+      {hasDecomposedDisplay ? (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {displayParts.map((part, index) => (
+            <React.Fragment key={`${id}-${part.key}-${part.value}-${index}`}>
+              {index > 0 ? (
+                <span className="text-xl font-bold text-slate-400 sm:text-2xl">+</span>
+              ) : null}
+              <span
+                className={`inline-flex min-h-[52px] min-w-[62px] items-center justify-center rounded-xl border px-3 py-2 text-lg font-bold sm:text-xl ${part.toneClassName}`}
+              >
+                {part.label}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+      ) : (
+        <span className="block text-3xl font-bold text-slate-800 sm:text-4xl">
+          {formatNumberWithThousandsSpace(value)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 const CompareNumbersActivity = ({ student, content, onComplete }) => {
@@ -324,6 +501,13 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
             label: `Entre ${formatNumberWithThousandsSpace(currentLevelRule.min)} et ${formatNumberWithThousandsSpace(currentLevelRule.max)}`,
             className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
           },
+          ...(currentLevelRule.decompositionMode !== "none"
+            ? [{
+                key: "decomposition",
+                label: DECOMPOSITION_STYLE_LABELS[currentLevelRule.decompositionStyle] || "1 nombre en écriture décomposée",
+                className: "inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800",
+              }]
+            : []),
         ]}
         levels={allowedLevelKeys.map((levelKey) => ({
           key: levelKey,
@@ -413,16 +597,13 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
           className="grid items-center gap-3 sm:gap-4 md:grid-cols-[1fr_auto_1fr]"
         >
           <div className="flex justify-center md:justify-end">
-            <div
+            <ComparisonValueCard
               key={`${currentComparison.id}-left`}
               id="compare-numbers-left-value-tile"
-              className="flex h-[112px] w-[112px] items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm sm:h-[124px] sm:w-[124px]"
-              style={{ transform: `rotate(${currentComparison.leftRotation || 0}deg)` }}
-            >
-              <span className="block text-3xl font-bold text-slate-800 sm:text-4xl">
-                {formatNumberWithThousandsSpace(currentComparison.leftValue)}
-              </span>
-            </div>
+              rotation={currentComparison.leftRotation || 0}
+              value={currentComparison.leftValue}
+              displayParts={currentComparison.leftDisplayParts}
+            />
           </div>
 
           <div
@@ -441,16 +622,13 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
           </div>
 
           <div className="flex justify-center md:justify-start">
-            <div
+            <ComparisonValueCard
               key={`${currentComparison.id}-right`}
               id="compare-numbers-right-value-tile"
-              className="flex h-[112px] w-[112px] items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm sm:h-[124px] sm:w-[124px]"
-              style={{ transform: `rotate(${currentComparison.rightRotation || 0}deg)` }}
-            >
-              <span className="block text-3xl font-bold text-slate-800 sm:text-4xl">
-                {formatNumberWithThousandsSpace(currentComparison.rightValue)}
-              </span>
-            </div>
+              rotation={currentComparison.rightRotation || 0}
+              value={currentComparison.rightValue}
+              displayParts={currentComparison.rightDisplayParts}
+            />
           </div>
         </div>
       </section>
