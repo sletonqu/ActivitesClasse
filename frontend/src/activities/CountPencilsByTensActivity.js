@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 
 export const defaultCountPencilsByTensActivityContent = {
   "defaultLevel": "level1",
@@ -103,49 +104,6 @@ function buildExercises(levelRule) {
       units_rotations: Array.from({ length: units }, () => randomRotation()),
     };
   });
-}
-
-function renderPencilUnits(count, rotations = [], onUnitClick) {
-  return Array.from({ length: count }, (_, index) => (
-    <img
-      key={index}
-      src="/images/Crayons_x1.png"
-      alt="Crayon"
-      className="h-7 w-auto object-contain inline-block cursor-pointer"
-      title="Clic : regrouper 10 crayons en 1 pochette"
-      onClick={onUnitClick}
-      style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
-    />
-  ));
-}
-
-function renderPouches(count, rotations = [], onPouchClick, onPouchDoubleClick) {
-  return Array.from({ length: count }, (_, index) => (
-    <img
-      key={index}
-      src="/images/pochette_x10_crayons.png"
-      alt="Pochette de 10 crayons"
-      className="w-16 h-16 object-cover cursor-pointer"
-      title="Clic : regrouper 10 pochettes en 1 carton | Double-clic : séparer en 10 crayons"
-      onClick={onPouchClick}
-      onDoubleClick={onPouchDoubleClick}
-      style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
-    />
-  ));
-}
-
-function renderCartons(count, rotations = [], onCartonDoubleClick) {
-  return Array.from({ length: count }, (_, index) => (
-    <img
-      key={index}
-      src="/images/cartons_x100_crayons.png"
-      alt="Carton de 100 crayons"
-      className="w-16 h-16 object-cover cursor-pointer"
-      title="Double-clic : séparer en 10 pochettes"
-      onDoubleClick={onCartonDoubleClick}
-      style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
-    />
-  ));
 }
 
 const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
@@ -411,40 +369,20 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
                   : "border-rose-400 bg-rose-50"
               }`}
             >
-              <div id={`count-pencils-by-tens-visuals-${exercise.id}`} className="mb-4 space-y-3">
-                <div id={`count-pencils-by-tens-cartons-row-${exercise.id}`}>
-                  <div id={`count-pencils-by-tens-cartons-list-${exercise.id}`} className="flex flex-wrap gap-2">
-                    {exercise.cartons > 0
-                      ? renderCartons(
-                          exercise.cartons,
-                          exercise.cartons_rotations,
-                          (event) => handleDoubleClickAction(event, () => handleUngroupHundredsToTens(exercise.id))
-                        )
-                      : null}
-                  </div>
-                </div>
-                <div id={`count-pencils-by-tens-pouches-row-${exercise.id}`}>
-                  <div id={`count-pencils-by-tens-pouches-list-${exercise.id}`} className="flex flex-wrap gap-2">
-                    {renderPouches(
-                      exercise.pouches,
-                      exercise.pouches_rotations,
-                      () => queueSingleClickAction(() => handleGroupTensToHundreds(exercise.id)),
-                      (event) => handleDoubleClickAction(event, () => handleUngroupTensToUnits(exercise.id))
-                    )}
-                  </div>
-                </div>
-                <div id={`count-pencils-by-tens-units-row-${exercise.id}`}>
-                  <div id={`count-pencils-by-tens-units-list-${exercise.id}`} className="flex flex-wrap gap-1 min-h-[34px]">
-                    {exercise.units > 0
-                      ? renderPencilUnits(
-                          exercise.units,
-                          exercise.units_rotations,
-                          () => queueSingleClickAction(() => handleGroupUnitsToTens(exercise.id))
-                        )
-                      : null}
-                  </div>
-                </div>
-              </div>
+              <BaseTenBlocksVisuals
+                idPrefix="count-pencils-by-tens"
+                itemId={exercise.id}
+                cartons={exercise.cartons}
+                cartonRotations={exercise.cartons_rotations}
+                pouches={exercise.pouches}
+                pouchRotations={exercise.pouches_rotations}
+                units={exercise.units}
+                unitRotations={exercise.units_rotations}
+                onGroupUnitsToTens={() => queueSingleClickAction(() => handleGroupUnitsToTens(exercise.id))}
+                onGroupTensToHundreds={() => queueSingleClickAction(() => handleGroupTensToHundreds(exercise.id))}
+                onUngroupTensToUnits={(event) => handleDoubleClickAction(event, () => handleUngroupTensToUnits(exercise.id))}
+                onUngroupHundredsToTens={(event) => handleDoubleClickAction(event, () => handleUngroupHundredsToTens(exercise.id))}
+              />
 
               <div id={`count-pencils-by-tens-input-grid-${exercise.id}`} className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}>
                 {showCentainesInput && (
