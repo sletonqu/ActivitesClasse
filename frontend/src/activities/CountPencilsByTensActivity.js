@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 
 export const defaultCountPencilsByTensActivityContent = {
+  "title": "Compte les crayons par dizaines et centaines",
+  "instruction": "Observe les crayons, regroupe-les si besoin, puis écris le nombre de centaines, dizaines, unités et le total.",
   "defaultLevel": "level1",
   "levels": {
     "level1": {
@@ -59,6 +61,30 @@ function parseIntWithBounds(value, fallback, min, max) {
   return Math.max(min, Math.min(max, int));
 }
 
+function getSafeDisplayText(value, fallback) {
+  const text = String(value || "").trim();
+  if (!text || text.includes("�")) {
+    return fallback;
+  }
+  return text;
+}
+
+function parseActivityContent(rawContent) {
+  if (!rawContent) {
+    return {};
+  }
+
+  if (typeof rawContent === "string") {
+    try {
+      return JSON.parse(rawContent);
+    } catch {
+      return {};
+    }
+  }
+
+  return typeof rawContent === "object" ? rawContent : {};
+}
+
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
 
@@ -107,16 +133,17 @@ function buildExercises(levelRule) {
 }
 
 const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
+  const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultCountPencilsByTensActivityContent.levels;
   const configuredLevels = {
-    level1: normalizeLevelRule(content?.levels?.level1, defaultLevels.level1),
-    level2: normalizeLevelRule(content?.levels?.level2, defaultLevels.level2),
-    level3: normalizeLevelRule(content?.levels?.level3, defaultLevels.level3),
+    level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
+    level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
+    level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
   };
 
   const allowedLevelKeys = ["level1", "level2", "level3"];
-  const initialLevel = allowedLevelKeys.includes(content?.defaultLevel)
-    ? content.defaultLevel
+  const initialLevel = allowedLevelKeys.includes(parsedContent?.defaultLevel)
+    ? parsedContent.defaultLevel
     : "level1";
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
@@ -125,8 +152,20 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
   );
   const [answers, setAnswers] = useState({});
   const [finished, setFinished] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [score, setScore] = useState(null);
   const restartLocked = Boolean(student) && finished;
   const clickTimeoutRef = useRef(null);
+
+  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const displayTitle = getSafeDisplayText(
+    parsedContent?.title,
+    defaultCountPencilsByTensActivityContent.title
+  );
+  const displayInstruction = getSafeDisplayText(
+    parsedContent?.instruction,
+    defaultCountPencilsByTensActivityContent.instruction
+  );
 
   const clearPendingClick = () => {
     if (clickTimeoutRef.current) {
@@ -159,6 +198,20 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
     (exercise) => exercise.cartons * 100 + exercise.pouches * 10 + exercise.units > 99
   );
 
+  const isExerciseAnswered = (exercise) => {
+    const centaines = answers[exercise.id]?.centaines;
+    const dizaines = answers[exercise.id]?.dizaines;
+    const unites = answers[exercise.id]?.unites;
+    const total = answers[exercise.id]?.total;
+
+    return (
+      (!showCentainesInput || (centaines !== undefined && centaines !== "")) &&
+      dizaines !== undefined && dizaines !== "" &&
+      unites !== undefined && unites !== "" &&
+      total !== undefined && total !== ""
+    );
+  };
+
   const updateAnswer = (exerciseId, field, rawValue) => {
     if (finished) return;
     const cleanValue = rawValue.replace(/[^0-9]/g, "");
@@ -180,6 +233,8 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
     setExercises(buildExercises(rule));
     setAnswers({});
     setFinished(false);
+    setCorrectCount(0);
+    setScore(null);
   };
 
   const handleSelectLevel = (levelKey) => {
@@ -296,164 +351,257 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
   };
 
   const handleValidate = () => {
-    const correctCount = exercises.reduce((count, exercise) => {
+    const nextCorrectCount = exercises.reduce((count, exercise) => {
       return count + (isExerciseCorrect(exercise) ? 1 : 0);
     }, 0);
 
-    const score = Math.round((correctCount / exercises.length) * 20);
+    const nextScore = Math.round((nextCorrectCount / Math.max(1, exercises.length)) * 20);
+    setCorrectCount(nextCorrectCount);
+    setScore(nextScore);
     setFinished(true);
+
     if (onComplete) {
-      onComplete(score, {
+      onComplete(nextScore, {
         levelKey: currentLevel,
         levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
       });
     }
   };
 
-  const allAnswered = exercises.every((exercise) => {
-    const centaines = answers[exercise.id]?.centaines;
-    const dizaines = answers[exercise.id]?.dizaines;
-    const unites = answers[exercise.id]?.unites;
-    const total = answers[exercise.id]?.total;
-    return (
-      (!showCentainesInput || (centaines !== undefined && centaines !== "")) &&
-      dizaines !== undefined && dizaines !== "" &&
-      unites !== undefined && unites !== "" &&
-      total !== undefined && total !== ""
-    );
-  });
+  const totalExercises = exercises.length;
+  const answeredCount = exercises.filter((exercise) => isExerciseAnswered(exercise)).length;
+  const remainingCount = Math.max(0, totalExercises - answeredCount);
+  const progressPercent = totalExercises > 0 ? Math.round((answeredCount / totalExercises) * 100) : 0;
+  const allAnswered = totalExercises > 0 && answeredCount === totalExercises;
 
   return (
-    <div id="count-pencils-by-tens-activity">
-      <h3 id="count-pencils-by-tens-title" className="text-lg font-bold mb-2">
-        Compte les crayons: cartons de 100, pochettes de 10 et unites
-      </h3>
-      <p id="count-pencils-by-tens-instructions" className="text-sm text-slate-600 mb-5">
-        Clique pour regrouper 10 crayons en 1 pochette ou 10 pochettes en 1 carton, et double-clique pour séparer 1 pochette en 10 crayons ou 1 carton en 10 pochettes.<br />
-        Ecris ensuite le nombre de {showCentainesInput ? "centaines, de " : ""}dizaines, d'unites et le total de crayons pour chaque case.
-      </p>
+    <div id="count-pencils-by-tens-activity-root" className="space-y-6">
+      <section
+        id="count-pencils-by-tens-hero"
+        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
+      >
+        <div className="rounded-2xl bg-white p-5 sm:p-6">
+          <div className="w-full">
+            <h3 id="count-pencils-by-tens-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
+              {displayTitle}
+            </h3>
+            <p id="count-pencils-by-tens-instructions" className="block w-full text-sm text-slate-800 sm:text-base">
+              {displayInstruction}
+            </p>
 
-      <div id="count-pencils-by-tens-levels" className="flex flex-wrap justify-center gap-2 mb-4">
-        {allowedLevelKeys.map((levelKey) => (
-          <button
-            key={levelKey}
-            id={`count-pencils-by-tens-bouton-${levelKey}`}
-            type="button"
-            disabled={finished}
-            onClick={() => handleSelectLevel(levelKey)}
-            className={`px-4 py-2 rounded font-semibold ${
-              currentLevel === levelKey
-                ? "bg-indigo-600 text-white"
-                : "bg-slate-200 text-slate-800 hover:bg-slate-300"
-            } ${
-              finished ? "opacity-60 cursor-not-allowed" : ""
-            }`}
-          >
-            {configuredLevels[levelKey].label}
-          </button>
-        ))}
-      </div>
-
-      <div id="count-pencils-by-tens-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {exercises.map((exercise) => {
-          const correct = finished ? isExerciseCorrect(exercise) : null;
-          return (
-            <div
-              key={exercise.id}
-              id={`count-pencils-by-tens-case-${exercise.id}`}
-              className={`rounded-xl border p-4 ${
-                !finished
-                  ? "border-slate-200 bg-slate-50"
-                  : correct
-                  ? "border-emerald-400 bg-emerald-50"
-                  : "border-rose-400 bg-rose-50"
-              }`}
-            >
-              <BaseTenBlocksVisuals
-                idPrefix="count-pencils-by-tens"
-                itemId={exercise.id}
-                cartons={exercise.cartons}
-                cartonRotations={exercise.cartons_rotations}
-                pouches={exercise.pouches}
-                pouchRotations={exercise.pouches_rotations}
-                units={exercise.units}
-                unitRotations={exercise.units_rotations}
-                onGroupUnitsToTens={() => queueSingleClickAction(() => handleGroupUnitsToTens(exercise.id))}
-                onGroupTensToHundreds={() => queueSingleClickAction(() => handleGroupTensToHundreds(exercise.id))}
-                onUngroupTensToUnits={(event) => handleDoubleClickAction(event, () => handleUngroupTensToUnits(exercise.id))}
-                onUngroupHundredsToTens={(event) => handleDoubleClickAction(event, () => handleUngroupHundredsToTens(exercise.id))}
-              />
-
-              <div id={`count-pencils-by-tens-input-grid-${exercise.id}`} className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}>
-                {showCentainesInput && (
-                  <label className="text-sm font-medium text-slate-700">
-                    Centaines
-                    <input
-                      id={`count-pencils-by-tens-centaines-${exercise.id}`}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={2}
-                      value={answers[exercise.id]?.centaines || ""}
-                      onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
-                      disabled={finished}
-                      className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
-                    />
-                  </label>
-                )}
-
-                <label className="text-sm font-medium text-slate-700">
-                  Dizaines
-                  <input
-                    id={`count-pencils-by-tens-dizaines-${exercise.id}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={2}
-                    value={answers[exercise.id]?.dizaines || ""}
-                    onChange={(event) => updateAnswer(exercise.id, "dizaines", event.target.value)}
-                    disabled={finished}
-                    className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
-                  />
-                </label>
-
-                <label className="text-sm font-medium text-slate-700">
-                  Unites
-                  <input
-                    id={`count-pencils-by-tens-unites-${exercise.id}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={2}
-                    value={answers[exercise.id]?.unites || ""}
-                    onChange={(event) => updateAnswer(exercise.id, "unites", event.target.value)}
-                    disabled={finished}
-                    className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
-                  />
-                </label>
-                <label className="text-sm font-medium text-slate-700">
-                  Total
-                  <input
-                    id={`count-pencils-by-tens-total-${exercise.id}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={3}
-                    value={answers[exercise.id]?.total || ""}
-                    onChange={(event) => updateAnswer(exercise.id, "total", event.target.value)}
-                    disabled={finished}
-                    className="mt-1 w-full border border-slate-300 rounded px-2 py-1"
-                  />
-                </label>
-              </div>
-
-              {finished && !correct && (
-                <p id={`count-pencils-by-tens-correction-${exercise.id}`} className="mt-2 text-sm font-medium text-rose-700">
-                  Correction: {showCentainesInput ? `${exercise.cartons} centaines, ` : ""}{exercise.pouches} dizaines, {exercise.units} unites et {exercise.cartons * 100 + exercise.pouches * 10 + exercise.units} total.
-                </p>
+            <div id="count-pencils-by-tens-current-settings" className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
+                {totalExercises} exercice{totalExercises > 1 ? "s" : ""}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                {currentLevelRule.minPouches} à {currentLevelRule.maxPouches} dizaine{currentLevelRule.maxPouches > 1 ? "s" : ""}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                {currentLevelRule.minUnits} à {currentLevelRule.maxUnits} unite{currentLevelRule.maxUnits > 1 ? "s" : ""}
+              </span>
+              {(currentLevelRule.minCartons > 0 || currentLevelRule.maxCartons > 0) && (
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  {currentLevelRule.minCartons} à {currentLevelRule.maxCartons} centaine{currentLevelRule.maxCartons > 1 ? "s" : ""}
+                </span>
               )}
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      <div id="count-pencils-by-tens-actions" className="mt-6 flex justify-center gap-3">
+          <div id="count-pencils-by-tens-levels" className="mt-5 flex flex-wrap justify-center gap-2">
+            {allowedLevelKeys.map((levelKey) => (
+              <button
+                key={levelKey}
+                id={`count-pencils-by-tens-bouton-${levelKey}`}
+                type="button"
+                disabled={finished}
+                onClick={() => handleSelectLevel(levelKey)}
+                className={`rounded-full px-4 py-2 font-semibold transition ${
+                  currentLevel === levelKey
+                    ? "bg-indigo-600 text-white shadow"
+                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                } ${finished ? "opacity-60 cursor-not-allowed" : ""}`}
+              >
+                {configuredLevels[levelKey].label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="count-pencils-by-tens-status-panel"
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+      >
+        <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+          <div
+            id="count-pencils-by-tens-progress-bar"
+            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </section>
+
+      <section
+        id="count-pencils-by-tens-word-pool-section"
+        className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h4 className="text-lg font-bold text-slate-800">Exercices à compléter</h4>
+              <p className="text-sm text-slate-600">
+                Regroupe ou sépare les crayons si besoin, puis renseigne les cases de numération.
+              </p>
+            </div>
+            <div className="text-sm text-slate-600">
+              {finished ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-800">
+                  Vérification terminée, {correctCount} / {totalExercises} correct{totalExercises > 1 ? "s" : ""}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                  Complète toutes les cases avant de valider
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div id="count-pencils-by-tens-word-pool" className="bg-slate-50/70 p-4 sm:p-5">
+          <div id="count-pencils-by-tens-grid" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {exercises.map((exercise) => {
+              const correct = finished ? isExerciseCorrect(exercise) : null;
+              return (
+                <div
+                  key={exercise.id}
+                  id={`count-pencils-by-tens-case-${exercise.id}`}
+                  className={`rounded-2xl border p-4 shadow-sm ${
+                    !finished
+                      ? "border-slate-200 bg-white"
+                      : correct
+                      ? "border-emerald-300 bg-emerald-50"
+                      : "border-rose-300 bg-rose-50"
+                  }`}
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <h5
+                      id={`count-pencils-by-tens-case-title-${exercise.id}`}
+                      className="text-base font-bold text-slate-800"
+                    >
+                      Exercice {exercise.id}
+                    </h5>
+                    {finished ? (
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                          correct
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-rose-100 text-rose-800"
+                        }`}
+                      >
+                        {correct ? "Correct" : "À corriger"}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {isExerciseAnswered(exercise) ? "Prêt" : "En cours"}
+                      </span>
+                    )}
+                  </div>
+
+                  <BaseTenBlocksVisuals
+                    idPrefix="count-pencils-by-tens"
+                    itemId={exercise.id}
+                    cartons={exercise.cartons}
+                    cartonRotations={exercise.cartons_rotations}
+                    pouches={exercise.pouches}
+                    pouchRotations={exercise.pouches_rotations}
+                    units={exercise.units}
+                    unitRotations={exercise.units_rotations}
+                    onGroupUnitsToTens={() => queueSingleClickAction(() => handleGroupUnitsToTens(exercise.id))}
+                    onGroupTensToHundreds={() => queueSingleClickAction(() => handleGroupTensToHundreds(exercise.id))}
+                    onUngroupTensToUnits={(event) => handleDoubleClickAction(event, () => handleUngroupTensToUnits(exercise.id))}
+                    onUngroupHundredsToTens={(event) => handleDoubleClickAction(event, () => handleUngroupHundredsToTens(exercise.id))}
+                  />
+
+                  <div
+                    id={`count-pencils-by-tens-input-grid-${exercise.id}`}
+                    className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}
+                  >
+                    {showCentainesInput && (
+                      <label className="text-sm font-medium text-slate-700">
+                        Centaines
+                        <input
+                          id={`count-pencils-by-tens-centaines-${exercise.id}`}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={2}
+                          value={answers[exercise.id]?.centaines || ""}
+                          onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
+                          disabled={finished}
+                          className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                        />
+                      </label>
+                    )}
+
+                    <label className="text-sm font-medium text-slate-700">
+                      Dizaines
+                      <input
+                        id={`count-pencils-by-tens-dizaines-${exercise.id}`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={2}
+                        value={answers[exercise.id]?.dizaines || ""}
+                        onChange={(event) => updateAnswer(exercise.id, "dizaines", event.target.value)}
+                        disabled={finished}
+                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                      />
+                    </label>
+
+                    <label className="text-sm font-medium text-slate-700">
+                      Unites
+                      <input
+                        id={`count-pencils-by-tens-unites-${exercise.id}`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={2}
+                        value={answers[exercise.id]?.unites || ""}
+                        onChange={(event) => updateAnswer(exercise.id, "unites", event.target.value)}
+                        disabled={finished}
+                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                      />
+                    </label>
+
+                    <label className="text-sm font-medium text-slate-700">
+                      Total
+                      <input
+                        id={`count-pencils-by-tens-total-${exercise.id}`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={3}
+                        value={answers[exercise.id]?.total || ""}
+                        onChange={(event) => updateAnswer(exercise.id, "total", event.target.value)}
+                        disabled={finished}
+                        className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2"
+                      />
+                    </label>
+                  </div>
+
+                  {finished && !correct && (
+                    <p
+                      id={`count-pencils-by-tens-correction-${exercise.id}`}
+                      className="mt-3 text-sm font-medium text-rose-700"
+                    >
+                      Correction : {showCentainesInput ? `${exercise.cartons} centaines, ` : ""}
+                      {exercise.pouches} dizaines, {exercise.units} unités et {exercise.cartons * 100 + exercise.pouches * 10 + exercise.units} au total.
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 flex-wrap">
         <button
           id="count-pencils-by-tens-validate-button"
           type="button"
@@ -473,7 +621,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
           disabled={restartLocked}
           aria-label="Recommencer"
           title="Recommencer"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-600 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span aria-hidden="true">↻</span>
           <span className="sr-only">Recommencer</span>
@@ -481,9 +629,38 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
       </div>
 
       {finished && (
-        <p id="count-pencils-by-tens-result-message" className="mt-4 text-center text-lg font-medium text-gray-700">
-          Activite terminee. Les cases vertes sont correctes.
-        </p>
+        <section
+          id="count-pencils-by-tens-summary"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 shadow-sm"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xl font-bold">Activité terminée</p>
+              <p id="count-pencils-by-tens-result-message" className="text-sm text-emerald-800">
+                Les cartes vertes sont correctes et les cartes roses montrent la correction attendue.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
+              <p className="text-xs uppercase tracking-wide text-emerald-700">Score</p>
+              <p className="text-3xl font-bold">{score ?? 0} / 20</p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Bonnes réponses</div>
+              <div className="text-2xl font-bold">{correctCount}</div>
+            </div>
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Total traité</div>
+              <div className="text-2xl font-bold">{totalExercises}</div>
+            </div>
+            <div className="rounded-xl border border-emerald-100 bg-white p-3">
+              <div className="text-xs uppercase tracking-wide text-emerald-700">Erreurs</div>
+              <div className="text-2xl font-bold">{Math.max(0, totalExercises - correctCount)}</div>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   );
