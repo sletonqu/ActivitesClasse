@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
+import ActivityHero from "../components/ActivityHero";
+import ActivityIconButton from "../components/ActivityIconButton";
+import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
+import {
+  formatNumberWithThousandsSpace,
+  getSafeDisplayText,
+  parseActivityContent,
+  parseIntWithFallback,
+  randomRotation,
+} from "./activityUtils";
 
 export const defaultCompareNumbersActivityContent = {
   title: "Comparaison de nombres",
@@ -26,51 +36,6 @@ const SIGN_LABELS = {
 const TILE_ROTATION_MIN_DEGREES = -8;
 const TILE_ROTATION_MAX_DEGREES = 8;
 
-function parseIntWithFallback(value, fallback) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  return Math.trunc(parsed);
-}
-
-function getSafeDisplayText(value, fallback) {
-  const text = String(value ?? "").trim();
-  if (!text || text.includes("�")) {
-    return fallback;
-  }
-  return text;
-}
-
-function randomRotation() {
-  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
-  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
-}
-
-function parseActivityContent(rawContent) {
-  if (!rawContent) {
-    return {};
-  }
-
-  if (typeof rawContent === "string") {
-    try {
-      return JSON.parse(rawContent);
-    } catch {
-      return {};
-    }
-  }
-
-  return typeof rawContent === "object" ? rawContent : {};
-}
-
-function formatNumberWithThousandsSpace(value) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return String(value ?? "");
-  }
-
-  return Math.trunc(numericValue)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
 
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
@@ -139,8 +104,8 @@ function buildComparison(levelRule, configuredPairs = []) {
       id: `${randomPair.id}-${Date.now()}`,
       leftValue: randomPair.leftValue,
       rightValue: randomPair.rightValue,
-      leftRotation: randomRotation(),
-      rightRotation: randomRotation(),
+      leftRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
+      rightRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
       expectedSign: getExpectedSign(randomPair.leftValue, randomPair.rightValue),
     };
   }
@@ -163,8 +128,8 @@ function buildComparison(levelRule, configuredPairs = []) {
     id: `compare-${leftValue}-${rightValue}-${Date.now()}`,
     leftValue,
     rightValue,
-    leftRotation: randomRotation(),
-    rightRotation: randomRotation(),
+    leftRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
+    rightRotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
     expectedSign: getExpectedSign(leftValue, rightValue),
   };
 }
@@ -344,52 +309,31 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
 
   return (
     <div id="compare-numbers-activity-root" className="space-y-6">
-      <section
-        id="compare-numbers-hero"
-        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
-      >
-        <div className="rounded-2xl bg-white p-5 sm:p-6">
-          <div className="w-full">
-            <h3 id="compare-numbers-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
-              {displayTitle}
-            </h3>
-            <p
-              id="compare-numbers-instructions"
-              className="block min-h-[1.5rem] w-full text-sm text-slate-800 sm:text-base"
-            >
-              {displayInstruction}
-            </p>
-
-            <div id="compare-numbers-current-settings" className="mt-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
-                2 nombres à comparer
-              </span>
-              <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                Entre {formatNumberWithThousandsSpace(currentLevelRule.min)} et {formatNumberWithThousandsSpace(currentLevelRule.max)}
-              </span>
-            </div>
-          </div>
-
-          <div id="compare-numbers-levels" className="mt-5 flex flex-wrap justify-center gap-2">
-            {allowedLevelKeys.map((levelKey) => (
-              <button
-                key={levelKey}
-                id={`compare-numbers-bouton-${levelKey}`}
-                type="button"
-                disabled={finished}
-                onClick={() => handleSelectLevel(levelKey)}
-                className={`rounded-full px-4 py-2 font-semibold transition ${
-                  currentLevel === levelKey
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                } ${finished ? "disabled:cursor-not-allowed disabled:opacity-60" : ""}`}
-              >
-                {configuredLevels[levelKey].label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivityHero
+        idPrefix="compare-numbers"
+        title={displayTitle}
+        instruction={displayInstruction}
+        badges={[
+          {
+            key: "count",
+            label: "2 nombres à comparer",
+            className: "inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800",
+          },
+          {
+            key: "range",
+            label: `Entre ${formatNumberWithThousandsSpace(currentLevelRule.min)} et ${formatNumberWithThousandsSpace(currentLevelRule.max)}`,
+            className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
+          },
+        ]}
+        levels={allowedLevelKeys.map((levelKey) => ({
+          key: levelKey,
+          label: configuredLevels[levelKey].label,
+        }))}
+        currentLevel={currentLevel}
+        onSelectLevel={handleSelectLevel}
+        getLevelButtonId={(levelKey) => `compare-numbers-bouton-${levelKey}`}
+        disableAllLevels={finished}
+      />
 
       {!finished && (
         <section
@@ -572,62 +516,47 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
       </section>
 
       {finished && (
-        <section
+        <ActivitySummaryCard
           id="compare-numbers-summary"
-          className={`rounded-2xl border p-5 shadow-sm ${
+          title="Activité terminée"
+          message={
             isCorrect
-              ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-              : "border-rose-200 bg-rose-50 text-rose-900"
-          }`}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xl font-bold">Activité terminée</p>
-              <p className={`text-sm ${isCorrect ? "text-emerald-800" : "text-rose-800"}`}>
-                {isCorrect
-                  ? "Bravo ! Les deux nombres ont été bien comparés."
-                  : "Observe le signe attendu pour mieux comparer les deux nombres."}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white px-4 py-3 text-center shadow-sm">
-              <p className={`text-xs uppercase tracking-wide ${isCorrect ? "text-emerald-700" : "text-rose-700"}`}>Score</p>
-              <p className="text-3xl font-bold">{score} / 20</p>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-xl border border-white/70 bg-white p-3 text-sm shadow-sm">
-            <span className="font-semibold">Réponse :</span>{" "}
-            {formatNumberWithThousandsSpace(currentComparison.leftValue)} {currentComparison.expectedSign} {formatNumberWithThousandsSpace(currentComparison.rightValue)}
-          </div>
-        </section>
+              ? "Bravo ! Les deux nombres ont été bien comparés."
+              : "Observe le signe attendu pour mieux comparer les deux nombres."
+          }
+          score={score}
+          tone={isCorrect ? "success" : "error"}
+          footer={
+            <>
+              <span className="font-semibold">Réponse :</span>{" "}
+              {formatNumberWithThousandsSpace(currentComparison.leftValue)} {currentComparison.expectedSign} {formatNumberWithThousandsSpace(currentComparison.rightValue)}
+            </>
+          }
+        />
       )}
 
       <div id="compare-numbers-actions" className="flex flex-wrap justify-center gap-3">
-        <button
+        <ActivityIconButton
           id="compare-numbers-validate-button"
-          type="button"
-          disabled={!selectedSign || finished}
           onClick={handleValidate}
-          aria-label="Valider"
+          disabled={!selectedSign || finished}
+          ariaLabel="Valider"
           title="Valider"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-2xl font-bold text-white shadow-sm transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <span aria-hidden="true">✓</span>
-          <span className="sr-only">Valider</span>
-        </button>
+          icon="✓"
+          srText="Valider"
+          variant="validate"
+        />
 
-        <button
+        <ActivityIconButton
           id="compare-numbers-restart-button"
-          type="button"
-          disabled={restartLocked}
           onClick={handleRestart}
-          aria-label="Recommencer"
+          disabled={restartLocked}
+          ariaLabel="Recommencer"
           title="Recommencer"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <span aria-hidden="true">↻</span>
-          <span className="sr-only">Recommencer</span>
-        </button>
+          icon="↻"
+          srText="Recommencer"
+          variant="restart"
+        />
       </div>
     </div>
   );

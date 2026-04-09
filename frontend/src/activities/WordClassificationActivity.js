@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ActivityHero from "../components/ActivityHero";
+import ActivityIconButton from "../components/ActivityIconButton";
+import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import { API_URL } from "../config/api";
+import {
+  getSafeDisplayText,
+  parseActivityContent,
+  parsePositiveInt,
+  randomRotation,
+} from "./activityUtils";
 
 export const defaultWordClassificationActivityContent = {
   title: "Classe les mots dans la bonne catégorie",
@@ -86,19 +95,6 @@ function getCategoryTheme(categoryLabel) {
   return CATEGORY_THEME_BY_KEY[normalizeCategoryKey(categoryLabel)] || DEFAULT_CATEGORY_THEME;
 }
 
-function parsePositiveInt(value, fallback) {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    return fallback;
-  }
-  return parsed;
-}
-
-function randomRotation() {
-  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
-  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
-}
-
 function normalizeCategoryKey(value) {
   return String(value || "")
     .trim()
@@ -113,30 +109,6 @@ function formatCategoryLabel(value) {
     return "Autres";
   }
   return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-function getSafeDisplayText(value, fallback) {
-  const text = String(value || "").trim();
-  if (!text || text.includes("�")) {
-    return fallback;
-  }
-  return text;
-}
-
-function parseActivityContent(rawContent) {
-  if (!rawContent) {
-    return {};
-  }
-
-  if (typeof rawContent === "string") {
-    try {
-      return JSON.parse(rawContent);
-    } catch {
-      return {};
-    }
-  }
-
-  return typeof rawContent === "object" ? rawContent : {};
 }
 
 function normalizeClassifications(value, fallback = []) {
@@ -241,7 +213,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
     const preparedWords = words.map((word, index) => ({
       ...word,
       runtimeId: `${word.id || "word"}-${index}-${Math.random().toString(36).slice(2, 9)}`,
-      rotation: randomRotation(),
+      rotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
     }));
 
     const wordsPerRound = Math.min(levelRule.wordsPerRound, preparedWords.length);
@@ -434,56 +406,29 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
 
   return (
     <div id="word-classification-activity-root" className="space-y-6">
-      <section
-        id="word-classification-hero"
-        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
-      >
-        <div className="rounded-2xl bg-white p-5 sm:p-6">
-          <div className="w-full">
-            <div className="w-full">
-              <h3 id="word-classification-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
-                {displayTitle}
-              </h3>
-              <p id="word-classification-instructions" className="block w-full text-sm text-slate-800 sm:text-base">
-                {displayInstruction}
-              </p>
-
-              <div id="word-classification-current-categories" className="mt-4 flex flex-wrap gap-2">
-                {currentLevelRule.classifications.map((categoryLabel) => {
-                  const theme = getCategoryTheme(categoryLabel);
-                  return (
-                    <span
-                      key={`badge-${categoryLabel}`}
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`}
-                    >
-                      {formatCategoryLabel(categoryLabel)}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div id="word-classification-levels" className="mt-5 flex flex-wrap justify-center gap-2">
-            {ALLOWED_LEVEL_KEYS.map((levelKey) => (
-              <button
-                key={levelKey}
-                id={`word-classification-level-${levelKey}`}
-                type="button"
-                disabled={loadingWords || finished}
-                onClick={() => handleSelectLevel(levelKey)}
-                className={`px-4 py-2 rounded-full font-semibold transition ${
-                  currentLevel === levelKey
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                } ${loadingWords || finished ? "disabled:opacity-60 disabled:cursor-not-allowed" : ""}`}
-              >
-                {configuredLevels[levelKey].label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivityHero
+        idPrefix="word-classification"
+        title={displayTitle}
+        instruction={displayInstruction}
+        badges={currentLevelRule.classifications.map((categoryLabel) => {
+          const theme = getCategoryTheme(categoryLabel);
+          return {
+            key: `badge-${categoryLabel}`,
+            label: formatCategoryLabel(categoryLabel),
+            className: `inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`,
+          };
+        })}
+        badgesId="word-classification-current-categories"
+        levels={ALLOWED_LEVEL_KEYS.map((levelKey) => ({
+          key: levelKey,
+          label: configuredLevels[levelKey].label,
+          disabled: loadingWords || finished,
+        }))}
+        currentLevel={currentLevel}
+        onSelectLevel={handleSelectLevel}
+        getLevelButtonId={(levelKey) => `word-classification-level-${levelKey}`}
+        instructionClassName="block w-full text-sm text-slate-800 sm:text-base"
+      />
 
       {!finished && (
         <section id="word-classification-status-panel" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -633,47 +578,29 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
       )}
 
       <div id="word-classification-actions" className="flex justify-center gap-3 flex-wrap">
-        <button
+        <ActivityIconButton
           id="word-classification-restart-button"
-          type="button"
           onClick={handleRestart}
           disabled={loadingWords || restartLocked}
-          aria-label="Recommencer avec de nouveaux mots"
+          ariaLabel="Recommencer avec de nouveaux mots"
           title="Recommencer avec de nouveaux mots"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          <span aria-hidden="true">↻</span>
-          <span className="sr-only">Recommencer avec de nouveaux mots</span>
-        </button>
+          icon="↻"
+          srText="Recommencer avec de nouveaux mots"
+          variant="restart"
+        />
       </div>
 
       {finished && (
-        <section id="word-classification-summary" className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5 text-emerald-900 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xl font-bold">Activité terminée</p>
-            </div>
-            <div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm border border-emerald-100">
-              <p className="text-xs uppercase tracking-wide text-emerald-700">Score</p>
-              <p className="text-3xl font-bold">{score} / 20</p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl bg-white border border-emerald-100 p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Bonnes réponses</div>
-              <div className="text-2xl font-bold">{correctCount}</div>
-            </div>
-            <div className="rounded-xl bg-white border border-emerald-100 p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Total traité</div>
-              <div className="text-2xl font-bold">{loadedWordsCount}</div>
-            </div>
-            <div className="rounded-xl bg-white border border-emerald-100 p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Erreurs</div>
-              <div className="text-2xl font-bold">{Math.max(0, loadedWordsCount - correctCount)}</div>
-            </div>
-          </div>
-        </section>
+        <ActivitySummaryCard
+          id="word-classification-summary"
+          title="Activité terminée"
+          score={score}
+          stats={[
+            { key: "correct", label: "Bonnes réponses", value: correctCount },
+            { key: "total", label: "Total traité", value: loadedWordsCount },
+            { key: "errors", label: "Erreurs", value: Math.max(0, loadedWordsCount - correctCount) },
+          ]}
+        />
       )}
     </div>
   );

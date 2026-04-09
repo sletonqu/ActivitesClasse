@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import ActivityHero from "../components/ActivityHero";
+import ActivityIconButton from "../components/ActivityIconButton";
+import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import FloatingNumberPad from "../components/FloatingNumberPad";
+import {
+  getSafeDisplayText,
+  parseActivityContent,
+  parsePositiveInt,
+  randomRotation,
+} from "./activityUtils";
 
 export const defaultCountPencilsByTensActivityContent = {
   "title": "Compte les crayons par dizaines et centaines",
@@ -50,46 +59,11 @@ const FIELD_LABELS = {
   total: "Total",
 };
 
-function randomRotation() {
-  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
-  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
-}
-
-function parsePositiveInt(value, fallback) {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) return fallback;
-  return parsed;
-}
-
 function parseIntWithBounds(value, fallback, min, max) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   const int = Math.trunc(parsed);
   return Math.max(min, Math.min(max, int));
-}
-
-function getSafeDisplayText(value, fallback) {
-  const text = String(value || "").trim();
-  if (!text || text.includes("�")) {
-    return fallback;
-  }
-  return text;
-}
-
-function parseActivityContent(rawContent) {
-  if (!rawContent) {
-    return {};
-  }
-
-  if (typeof rawContent === "string") {
-    try {
-      return JSON.parse(rawContent);
-    } catch {
-      return {};
-    }
-  }
-
-  return typeof rawContent === "object" ? rawContent : {};
 }
 
 function normalizeLevelRule(rule, fallbackRule) {
@@ -130,11 +104,11 @@ function buildExercises(levelRule) {
     return {
       id: index + 1,
       cartons,
-      cartons_rotations: Array.from({ length: cartons }, () => randomRotation()),
+      cartons_rotations: Array.from({ length: cartons }, () => randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)),
       pouches,
-      pouches_rotations: Array.from({ length: pouches }, () => randomRotation()),
+      pouches_rotations: Array.from({ length: pouches }, () => randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)),
       units,
-      units_rotations: Array.from({ length: units }, () => randomRotation()),
+      units_rotations: Array.from({ length: units }, () => randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)),
     };
   });
 }
@@ -299,7 +273,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         return {
           ...exercise,
           pouches: exercise.pouches + 1,
-          pouches_rotations: [...exercise.pouches_rotations, randomRotation()],
+          pouches_rotations: [...exercise.pouches_rotations, randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)],
           units: exercise.units - 10,
           units_rotations: exercise.units_rotations.slice(0, Math.max(0, exercise.units_rotations.length - 10)),
         };
@@ -323,7 +297,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
           units: exercise.units + 10,
           units_rotations: [
             ...exercise.units_rotations,
-            ...Array.from({ length: 10 }, () => randomRotation()),
+            ...Array.from({ length: 10 }, () => randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)),
           ],
         };
       })
@@ -342,7 +316,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         return {
           ...exercise,
           cartons: exercise.cartons + 1,
-          cartons_rotations: [...exercise.cartons_rotations, randomRotation()],
+          cartons_rotations: [...exercise.cartons_rotations, randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)],
           pouches: exercise.pouches - 10,
           pouches_rotations: exercise.pouches_rotations.slice(0, Math.max(0, exercise.pouches_rotations.length - 10)),
         };
@@ -366,7 +340,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
           pouches: exercise.pouches + 10,
           pouches_rotations: [
             ...exercise.pouches_rotations,
-            ...Array.from({ length: 10 }, () => randomRotation()),
+            ...Array.from({ length: 10 }, () => randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES)),
           ],
         };
       })
@@ -418,57 +392,44 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
 
   return (
     <div id="count-pencils-by-tens-activity-root" className="space-y-6">
-      <section
-        id="count-pencils-by-tens-hero"
-        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
-      >
-        <div className="rounded-2xl bg-white p-5 sm:p-6">
-          <div className="w-full">
-            <h3 id="count-pencils-by-tens-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
-              {displayTitle}
-            </h3>
-            <p id="count-pencils-by-tens-instructions" className="block w-full text-sm text-slate-800 sm:text-base">
-              {displayInstruction}
-            </p>
-
-            <div id="count-pencils-by-tens-current-settings" className="mt-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
-                {totalExercises} exercice{totalExercises > 1 ? "s" : ""}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                {currentLevelRule.minPouches} à {currentLevelRule.maxPouches} dizaine{currentLevelRule.maxPouches > 1 ? "s" : ""}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                {currentLevelRule.minUnits} à {currentLevelRule.maxUnits} unité{currentLevelRule.maxUnits > 1 ? "s" : ""}
-              </span>
-              {(currentLevelRule.minCartons > 0 || currentLevelRule.maxCartons > 0) && (
-                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                  {currentLevelRule.minCartons} à {currentLevelRule.maxCartons} centaine{currentLevelRule.maxCartons > 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div id="count-pencils-by-tens-levels" className="mt-5 flex flex-wrap justify-center gap-2">
-            {allowedLevelKeys.map((levelKey) => (
-              <button
-                key={levelKey}
-                id={`count-pencils-by-tens-bouton-${levelKey}`}
-                type="button"
-                disabled={finished}
-                onClick={() => handleSelectLevel(levelKey)}
-                className={`rounded-full px-4 py-2 font-semibold transition ${
-                  currentLevel === levelKey
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                } ${finished ? "opacity-60 cursor-not-allowed" : ""}`}
-              >
-                {configuredLevels[levelKey].label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivityHero
+        idPrefix="count-pencils-by-tens"
+        title={displayTitle}
+        instruction={displayInstruction}
+        badges={[
+          {
+            key: "count",
+            label: `${totalExercises} exercice${totalExercises > 1 ? "s" : ""}`,
+            className: "inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800",
+          },
+          {
+            key: "tens",
+            label: `${currentLevelRule.minPouches} à ${currentLevelRule.maxPouches} dizaine${currentLevelRule.maxPouches > 1 ? "s" : ""}`,
+            className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
+          },
+          {
+            key: "units",
+            label: `${currentLevelRule.minUnits} à ${currentLevelRule.maxUnits} unité${currentLevelRule.maxUnits > 1 ? "s" : ""}`,
+            className: "inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800",
+          },
+          ...(currentLevelRule.minCartons > 0 || currentLevelRule.maxCartons > 0
+            ? [{
+                key: "hundreds",
+                label: `${currentLevelRule.minCartons} à ${currentLevelRule.maxCartons} centaine${currentLevelRule.maxCartons > 1 ? "s" : ""}`,
+                className: "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800",
+              }]
+            : []),
+        ]}
+        levels={allowedLevelKeys.map((levelKey) => ({
+          key: levelKey,
+          label: configuredLevels[levelKey].label,
+        }))}
+        currentLevel={currentLevel}
+        onSelectLevel={handleSelectLevel}
+        getLevelButtonId={(levelKey) => `count-pencils-by-tens-bouton-${levelKey}`}
+        disableAllLevels={finished}
+        instructionClassName="block w-full text-sm text-slate-800 sm:text-base"
+      />
 
       <section
         id="count-pencils-by-tens-status-panel"
@@ -680,30 +641,26 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
       </section>
 
       <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 flex-wrap">
-        <button
+        <ActivityIconButton
           id="count-pencils-by-tens-validate-button"
-          type="button"
           onClick={handleValidate}
           disabled={finished || !allAnswered}
-          aria-label="Valider"
+          ariaLabel="Valider"
           title="Valider"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-2xl font-bold text-white shadow-sm transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <span aria-hidden="true">✓</span>
-          <span className="sr-only">Valider</span>
-        </button>
-        <button
+          icon="✓"
+          srText="Valider"
+          variant="validate"
+        />
+        <ActivityIconButton
           id="count-pencils-by-tens-restart-button"
-          type="button"
           onClick={handleRestart}
           disabled={restartLocked}
-          aria-label="Recommencer"
+          ariaLabel="Recommencer"
           title="Recommencer"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <span aria-hidden="true">↻</span>
-          <span className="sr-only">Recommencer</span>
-        </button>
+          icon="↻"
+          srText="Recommencer"
+          variant="restart"
+        />
       </div>
 
       <FloatingNumberPad
@@ -720,38 +677,17 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
       />
 
       {finished && (
-        <section
+        <ActivitySummaryCard
           id="count-pencils-by-tens-summary"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 shadow-sm"
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xl font-bold">Activité terminée</p>
-              <p id="count-pencils-by-tens-result-message" className="text-sm text-emerald-800">
-                Les cartes vertes sont correctes et les cartes roses montrent la correction attendue.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-emerald-700">Score</p>
-              <p className="text-3xl font-bold">{score ?? 0} / 20</p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-emerald-100 bg-white p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Bonnes réponses</div>
-              <div className="text-2xl font-bold">{correctCount}</div>
-            </div>
-            <div className="rounded-xl border border-emerald-100 bg-white p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Total traité</div>
-              <div className="text-2xl font-bold">{totalExercises}</div>
-            </div>
-            <div className="rounded-xl border border-emerald-100 bg-white p-3">
-              <div className="text-xs uppercase tracking-wide text-emerald-700">Erreurs</div>
-              <div className="text-2xl font-bold">{Math.max(0, totalExercises - correctCount)}</div>
-            </div>
-          </div>
-        </section>
+          title="Activité terminée"
+          message="Les cartes vertes sont correctes et les cartes roses montrent la correction attendue."
+          score={score ?? 0}
+          stats={[
+            { key: "correct", label: "Bonnes réponses", value: correctCount },
+            { key: "total", label: "Total traité", value: totalExercises },
+            { key: "errors", label: "Erreurs", value: Math.max(0, totalExercises - correctCount) },
+          ]}
+        />
       )}
     </div>
   );

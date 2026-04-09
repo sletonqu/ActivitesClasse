@@ -1,4 +1,13 @@
 import React, { useMemo, useState } from "react";
+import ActivityHero from "../components/ActivityHero";
+import ActivityIconButton from "../components/ActivityIconButton";
+import {
+  formatNumberWithThousandsSpace,
+  getSafeDisplayText,
+  parseActivityContent,
+  parseIntWithFallback,
+  randomRotation,
+} from "./activityUtils";
 
 export const defaultReadNumbersActivityContent = {
   title: "Lecture de nombres",
@@ -19,49 +28,6 @@ export const defaultReadNumbersActivityContent = {
 const TILE_ROTATION_MIN_DEGREES = -8;
 const TILE_ROTATION_MAX_DEGREES = 8;
 
-function parseIntWithFallback(value, fallback) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  return Math.trunc(parsed);
-}
-
-function getSafeDisplayText(value, fallback) {
-  const text = String(value ?? "").trim();
-  if (!text && fallback === "") {
-    return "";
-  }
-  if (!text || text.includes("�")) {
-    return fallback;
-  }
-  return text;
-}
-
-function parseActivityContent(rawContent) {
-  if (!rawContent) {
-    return {};
-  }
-
-  if (typeof rawContent === "string") {
-    try {
-      return JSON.parse(rawContent);
-    } catch {
-      return {};
-    }
-  }
-
-  return typeof rawContent === "object" ? rawContent : {};
-}
-
-function formatNumberWithThousandsSpace(value) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) {
-    return String(value ?? "");
-  }
-
-  return Math.trunc(numericValue)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
 
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
@@ -80,11 +46,6 @@ function normalizeLevelRule(rule, fallbackRule) {
     min,
     max,
   };
-}
-
-function randomRotation() {
-  const rotationRange = TILE_ROTATION_MAX_DEGREES - TILE_ROTATION_MIN_DEGREES;
-  return Math.round((Math.random() * rotationRange + TILE_ROTATION_MIN_DEGREES) * 10) / 10;
 }
 
 function getRandomNumber(min, max) {
@@ -132,7 +93,7 @@ const ReadNumbersActivity = ({ content }) => {
     return {
       id: `read-number-${levelKey}-${value}-${Date.now()}`,
       value,
-      rotation: randomRotation(),
+      rotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
     };
   };
 
@@ -160,51 +121,30 @@ const ReadNumbersActivity = ({ content }) => {
 
   return (
     <div id="read-numbers-activity-root" className="space-y-6">
-      <section
-        id="read-numbers-hero"
-        className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
-      >
-        <div className="rounded-2xl bg-white p-5 sm:p-6">
-          <div className="w-full">
-            <h3 id="read-numbers-title" className="mb-2 block w-full text-2xl font-bold text-slate-800">
-              {displayTitle}
-            </h3>
-            <p
-              id="read-numbers-instructions"
-              className="block min-h-[1.5rem] w-full text-sm text-slate-800 sm:text-base"
-            >
-              {displayInstruction}
-            </p>
-
-            <div id="read-numbers-current-settings" className="mt-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
-                1 nombre à lire
-              </span>
-              <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                Entre {formatNumberWithThousandsSpace(currentLevelRule.min)} et {formatNumberWithThousandsSpace(currentLevelRule.max)}
-              </span>
-            </div>
-          </div>
-
-          <div id="read-numbers-levels" className="mt-5 flex flex-wrap justify-center gap-2">
-            {allowedLevelKeys.map((levelKey) => (
-              <button
-                key={levelKey}
-                id={`read-numbers-bouton-${levelKey}`}
-                type="button"
-                onClick={() => handleSelectLevel(levelKey)}
-                className={`rounded-full px-4 py-2 font-semibold transition ${
-                  currentLevel === levelKey
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                }`}
-              >
-                {configuredLevels[levelKey].label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ActivityHero
+        idPrefix="read-numbers"
+        title={displayTitle}
+        instruction={displayInstruction}
+        badges={[
+          {
+            key: "count",
+            label: "1 nombre à lire",
+            className: "inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800",
+          },
+          {
+            key: "range",
+            label: `Entre ${formatNumberWithThousandsSpace(currentLevelRule.min)} et ${formatNumberWithThousandsSpace(currentLevelRule.max)}`,
+            className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
+          },
+        ]}
+        levels={allowedLevelKeys.map((levelKey) => ({
+          key: levelKey,
+          label: configuredLevels[levelKey].label,
+        }))}
+        currentLevel={currentLevel}
+        onSelectLevel={handleSelectLevel}
+        getLevelButtonId={(levelKey) => `read-numbers-bouton-${levelKey}`}
+      />
 
       <section
         id="read-numbers-pool-section"
@@ -235,17 +175,15 @@ const ReadNumbersActivity = ({ content }) => {
         id="read-numbers-actions"
         className="flex justify-center rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
       >
-        <button
+        <ActivityIconButton
           id="read-numbers-restart-button"
-          type="button"
           onClick={handleRestart}
-          aria-label="Recommencer"
+          ariaLabel="Recommencer"
           title="Recommencer"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 text-2xl font-bold text-white shadow-sm transition hover:bg-amber-600"
-        >
-          <span aria-hidden="true">↻</span>
-          <span className="sr-only">Recommencer</span>
-        </button>
+          icon="↻"
+          srText="Recommencer"
+          variant="warning"
+        />
       </section>
     </div>
   );
