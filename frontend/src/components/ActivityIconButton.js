@@ -29,7 +29,7 @@ const ActivityIconButton = ({
       disabled={disabled}
       aria-label={ariaLabel || srText}
       title={title || ariaLabel || srText}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-2xl font-bold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${toneClassName} ${className}`.trim()}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${toneClassName} ${className}`.trim()}
     >
       <span aria-hidden="true">{icon}</span>
       <span className="sr-only">{srText || ariaLabel || title}</span>

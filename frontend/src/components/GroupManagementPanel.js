@@ -33,10 +33,10 @@ const GroupManagementPanel = ({
   onRemoveAllStudentsFromGroup,
 }) => {
   return (
-    <div id="groups-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
+    <div id="groups-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
         id="groups-panel-form-section"
-        className={`w-full ${showGroupsList && selectedGroupId ? "xl:w-1/3" : "xl:w-1/2"} bg-white rounded-xl shadow p-6`}
+        className={`w-full ${showGroupsList && selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
         <h3 id="groups-panel-title" className="text-xl font-bold text-slate-800 mb-4">
           Gestion des groupes
@@ -97,7 +97,7 @@ const GroupManagementPanel = ({
       {showGroupsList && (
         <section
           id="groups-panel-list-section"
-          className={`w-full ${selectedGroupId ? "xl:w-1/3" : "xl:w-1/2"} bg-white rounded-xl shadow p-6`}
+          className={`w-full ${selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
         >
           <div id="groups-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="groups-panel-list-title" className="text-xl font-bold text-slate-800">
@@ -169,7 +169,7 @@ const GroupManagementPanel = ({
       )}
 
       {showGroupsList && selectedGroup && (
-        <section id="groups-panel-students-section" className="w-full xl:w-1/3 bg-white rounded-xl shadow p-6">
+        <section id="groups-panel-students-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/3">
           <div id="groups-panel-students-header" className="flex items-center justify-between mb-4 gap-3">
             <div>
               <h3 id="groups-panel-students-title" className="text-xl font-bold text-slate-800">

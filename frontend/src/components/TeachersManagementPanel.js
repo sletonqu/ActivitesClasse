@@ -28,8 +28,8 @@ const TeachersManagementPanel = ({
   onDeleteAllTeachers,
 }) => {
   return (
-    <div id="teachers-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
-      <section id="teachers-panel-form-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
+    <div id="teachers-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
+      <section id="teachers-panel-form-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
         <h3 id="teachers-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
 
         <form id="teachers-panel-form" onSubmit={onAddTeacher} className="space-y-4">
@@ -120,7 +120,7 @@ const TeachersManagementPanel = ({
       </section>
 
       {showTeachersList && (
-        <section id="teachers-panel-list-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
+        <section id="teachers-panel-list-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
           <div id="teachers-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
             <button

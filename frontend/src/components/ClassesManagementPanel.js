@@ -24,8 +24,8 @@ const ClassesManagementPanel = ({
   onDeleteAllClasses,
 }) => {
   return (
-    <div id="classes-panel-root" className="w-full flex flex-col xl:flex-row gap-6 mb-6">
-      <section id="classes-panel-form-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
+    <div id="classes-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
+      <section id="classes-panel-form-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
         <h3 id="classes-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des classes</h3>
 
         <form id="classes-panel-form" onSubmit={onAddClass} className="space-y-4">
@@ -94,7 +94,7 @@ const ClassesManagementPanel = ({
       </section>
 
       {showClassesList && (
-        <section id="classes-panel-list-section" className="w-full xl:w-1/2 bg-white rounded-xl shadow p-6">
+        <section id="classes-panel-list-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
           <div id="classes-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="classes-panel-list-title" className="text-xl font-bold text-slate-800">Liste des classes</h3>
             <button

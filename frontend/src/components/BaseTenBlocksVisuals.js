@@ -12,7 +12,7 @@ function renderPencilUnits(count, rotations = [], onUnitClick) {
       key={index}
       src="/images/Crayons_x1.png"
       alt="Crayon"
-      className="h-7 w-auto object-contain inline-block cursor-pointer"
+      className="inline-block h-6 w-auto cursor-pointer object-contain sm:h-7"
       title="Clic : regrouper 10 crayons en 1 pochette"
       onClick={onUnitClick}
       style={{ transform: `rotate(${rotations[index] || 0}deg)` }}
@@ -62,24 +62,24 @@ const BaseTenBlocksVisuals = ({
   onGroupTensToHundreds,
   onUngroupTensToUnits,
   onUngroupHundredsToTens,
-  className = "mb-4 space-y-3",
+  className = "mb-3 space-y-2 sm:mb-4 sm:space-y-3",
 }) => {
   return (
     <div id={buildBlockId(idPrefix, "visuals", itemId)} className={className}>
       <div id={buildBlockId(idPrefix, "cartons-row", itemId)}>
-        <div id={buildBlockId(idPrefix, "cartons-list", itemId)} className="flex flex-wrap gap-2">
+        <div id={buildBlockId(idPrefix, "cartons-list", itemId)} className="flex flex-wrap gap-1.5 sm:gap-2">
           {cartons > 0 ? renderCartons(cartons, cartonRotations, onUngroupHundredsToTens) : null}
         </div>
       </div>
 
       <div id={buildBlockId(idPrefix, "pouches-row", itemId)}>
-        <div id={buildBlockId(idPrefix, "pouches-list", itemId)} className="flex flex-wrap gap-2">
+        <div id={buildBlockId(idPrefix, "pouches-list", itemId)} className="flex flex-wrap gap-1.5 sm:gap-2">
           {renderPouches(pouches, pouchRotations, onGroupTensToHundreds, onUngroupTensToUnits)}
         </div>
       </div>
 
       <div id={buildBlockId(idPrefix, "units-row", itemId)}>
-        <div id={buildBlockId(idPrefix, "units-list", itemId)} className="flex flex-wrap gap-1 min-h-[34px]">
+        <div id={buildBlockId(idPrefix, "units-list", itemId)} className="flex min-h-[28px] flex-wrap gap-1">
           {units > 0 ? renderPencilUnits(units, unitRotations, onGroupUnitsToTens) : null}
         </div>
       </div>

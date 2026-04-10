@@ -1,10 +1,10 @@
 import React from "react";
 
 const DEFAULT_INSTRUCTION_CLASSNAME =
-  "block min-h-[1.5rem] w-full text-sm text-slate-800 sm:text-base";
+  "block min-h-[1.25rem] w-full text-sm text-slate-800 sm:text-base";
 
 const DEFAULT_LEVEL_BUTTON_CLASSNAME =
-  "rounded-full px-4 py-2 font-semibold transition";
+  "rounded-full px-3 py-1.5 text-sm font-semibold transition";
 
 const getBadgeKey = (badge, index) => badge?.key || `${badge?.label || badge?.content || "badge"}-${index}`;
 
@@ -29,9 +29,9 @@ const ActivityHero = ({
       id={`${idPrefix}-hero`}
       className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
     >
-      <div className="rounded-2xl bg-white p-5 sm:p-6">
-        <div className="w-full">
-          <h3 id={`${idPrefix}-title`} className="mb-2 block w-full text-2xl font-bold text-slate-800">
+      <div className="rounded-2xl bg-white p-3 sm:p-4">
+        <div className="w-full min-w-0">
+          <h3 id={`${idPrefix}-title`} className="mb-1 block w-full break-words text-lg font-bold text-slate-800 sm:text-2xl">
             {title}
           </h3>
           <p id={`${idPrefix}-instructions`} className={instructionClassName}>
@@ -39,7 +39,7 @@ const ActivityHero = ({
           </p>
 
           {badges.length > 0 && (
-            <div id={badgesId || `${idPrefix}-current-settings`} className="mt-4 flex flex-wrap gap-2">
+            <div id={badgesId || `${idPrefix}-current-settings`} className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
               {badges.map((badge, index) => (
                 <span
                   key={getBadgeKey(badge, index)}
@@ -53,7 +53,7 @@ const ActivityHero = ({
         </div>
 
         {levels.length > 0 && (
-          <div id={levelsId || `${idPrefix}-levels`} className="mt-5 flex flex-wrap justify-center gap-2">
+          <div id={levelsId || `${idPrefix}-levels`} className="mt-3 flex flex-wrap justify-center gap-1.5 sm:gap-2">
             {levels.map((level) => {
               const levelKey = level.key;
               const isDisabled = disableAllLevels || Boolean(level.disabled);

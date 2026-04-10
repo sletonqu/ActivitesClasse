@@ -198,15 +198,15 @@ const StudentView = () => {
   };
 
   return (
-    <div id="student-view-root" className="min-h-screen bg-gray-100 px-4 py-6">
-      <div className="w-full max-w-[1280px] mx-auto flex flex-col items-center">
-        <h2 id="student-view-title" className="text-2xl font-bold mb-6">Espace Élève</h2>
+    <div id="student-view-root" className="min-h-screen bg-gray-100 px-1 py-3 lg:px-1 lg:py-2">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center">
+        <h2 id="student-view-title" className="mb-3 text-xl font-bold lg:mb-2">Espace Élève</h2>
 
-        <div id="student-view-controls-grid" className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-          <div id="student-view-class-selector" className="w-full bg-white rounded-xl shadow p-3">
+        <div id="student-view-controls-grid" className="mb-2 grid w-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
+          <div id="student-view-class-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
             <label
               id="student-view-class-selector-label"
-              className="block text-sm font-semibold text-slate-700 mb-2"
+              className="mb-1.5 block text-sm font-semibold text-slate-700"
             >
               Classe active
             </label>
@@ -227,8 +227,8 @@ const StudentView = () => {
             </select>
           </div>
 
-          <div id="student-view-group-selector" className="w-full bg-white rounded-xl shadow p-3">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Groupe visible</label>
+          <div id="student-view-group-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Groupe visible</label>
             <select
               value={selectedGroupId}
               onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -253,10 +253,10 @@ const StudentView = () => {
             </p>
           </div>
 
-          <div id="student-view-activity-selector" className="w-full bg-white rounded-xl shadow p-3">
+          <div id="student-view-activity-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
             <label
               id="student-view-activity-selector-label"
-              className="block text-sm font-semibold text-slate-700 mb-2"
+              className="mb-1.5 block text-sm font-semibold text-slate-700"
             >
               Activités disponibles
             </label>
@@ -274,8 +274,8 @@ const StudentView = () => {
             </select>
           </div>
 
-          <div id="student-view-demo-mode-panel" className="w-full bg-white rounded-xl shadow p-3">
-            <label className="flex items-start gap-3 cursor-pointer">
+          <div id="student-view-demo-mode-panel" className="w-full rounded-xl bg-white p-2.5 shadow">
+            <label className="flex cursor-pointer items-start gap-2.5">
               <input
                 type="checkbox"
                 checked={isDemoMode}
@@ -284,7 +284,7 @@ const StudentView = () => {
               />
               <span>
                 <span className="block text-sm font-semibold text-slate-700">Mode démo</span>
-                <span className="block text-xs text-slate-500">
+                <span className="block text-[11px] leading-snug text-slate-500">
                   Lance une activité sans élève, sans classement et sans enregistrement de résultat.
                 </span>
               </span>
@@ -294,14 +294,16 @@ const StudentView = () => {
 
         <div
           id="student-view-main-layout"
-          className="sticky bottom-0 z-10 flex w-full flex-col items-stretch gap-6 xl:flex-row"
+          className={`sticky bottom-0 z-10 grid w-full grid-cols-1 items-start gap-1.5 lg:gap-2 ${
+            isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[180px_minmax(0,1fr)_190px]"
+          }`}
         >
           {!isDemoMode && (
             <div
               id="student-view-students-panel"
-              className="w-full xl:w-[240px] xl:shrink-0 bg-white rounded shadow p-4"
+              className="w-full min-w-0 bg-white rounded shadow p-3"
             >
-              <h3 id="student-view-students-title" className="font-semibold mb-2">
+              <h3 id="student-view-students-title" className="mb-2 text-sm font-semibold">
                 Élèves {selectedGroup ? `- ${selectedGroup.name}` : ""}
               </h3>
               {!selectedClassId ? (
@@ -309,12 +311,12 @@ const StudentView = () => {
               ) : !selectedActivityId ? (
                 <p className="text-gray-500 text-sm">Sélectionnez une activité active</p>
               ) : filteredStudents.length > 0 ? (
-                <ul id="student-view-students-list">
+                <ul id="student-view-students-list" className="space-y-1">
                   {filteredStudents.map((student) => (
                     <li
                       key={student.id}
                       id={`student-view-student-${student.id}`}
-                      className={`px-2 py-1 rounded mb-1 ${
+                      className={`mb-1 rounded px-2 py-1 text-sm ${
                         scoresByStudentId[student.id] !== undefined
                           ? "bg-slate-100 text-slate-400 grayscale pointer-events-none"
                           : "cursor-pointer hover:bg-blue-100"
@@ -335,17 +337,17 @@ const StudentView = () => {
             </div>
           )}
 
-          <div id="student-view-activity-panel" className="w-full min-w-0 flex-1">
+          <div id="student-view-activity-panel" className="w-full min-w-0">
             {!selectedActivityId ? (
-              <div className="bg-white rounded-xl shadow p-6 text-gray-500">
+              <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
                 Sélectionnez une activité active pour commencer.
               </div>
             ) : isDemoMode ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {showDemoBanner && (
                   <div
                     id="student-view-demo-banner"
-                    className={`bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 transition-opacity duration-500 ${
+                    className={`rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 transition-opacity duration-500 ${
                       fadeDemoBanner ? "opacity-0" : "opacity-100"
                     }`}
                   >
@@ -369,7 +371,7 @@ const StudentView = () => {
                 onComplete={handleActivityComplete}
               />
             ) : (
-              <div className="bg-white rounded-xl shadow p-6 text-gray-500">
+              <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
                 Sélectionnez un élève pour commencer l'activité.
               </div>
             )}
@@ -378,15 +380,15 @@ const StudentView = () => {
           {!isDemoMode && (
             <div
               id="student-view-leaderboard-panel"
-              className="w-full xl:w-[260px] xl:shrink-0 bg-white rounded shadow p-4"
+              className="w-full min-w-0 bg-white rounded shadow p-3"
             >
-              <div id="student-view-leaderboard-header" className="flex items-center justify-between mb-2 gap-2">
-                <h3 id="student-view-leaderboard-title" className="font-semibold">Classement</h3>
+              <div id="student-view-leaderboard-header" className="mb-2 flex items-center justify-between gap-2">
+                <h3 id="student-view-leaderboard-title" className="text-sm font-semibold">Classement</h3>
                 <button
                   type="button"
                   onClick={handleExportLeaderboard}
                   disabled={leaderboard.length === 0}
-                  className="px-3 py-1 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-60"
+                  className="rounded bg-emerald-600 px-2.5 py-1 text-xs text-white hover:bg-emerald-700 disabled:opacity-60"
                 >
                   Exporter
                 </button>
@@ -403,9 +405,9 @@ const StudentView = () => {
                     <li
                       key={student.id}
                       id={`student-view-leaderboard-item-${student.id}`}
-                      className="flex items-center justify-between border border-slate-200 rounded px-3 py-2"
+                      className="flex items-center justify-between rounded border border-slate-200 px-2 py-2"
                     >
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-xs font-medium text-slate-700">
                         {index + 1}. {student.firstname} {student.name}
                       </span>
                       <span className="text-sm font-bold text-sky-700">{student.score}/20</span>
