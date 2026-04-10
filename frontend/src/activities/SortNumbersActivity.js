@@ -18,9 +18,9 @@ export const defaultSortNumbersActivityContent = {
     "Fais glisser chaque nombre dans la bonne case pour reconstituer une suite du plus petit au plus grand.",
   defaultLevel: "level1",
   levels: {
-    level1: { label: "Niveau 1", count: 5, min: 1, max: 99 },
-    level2: { label: "Niveau 2", count: 7, min: 1, max: 999 },
-    level3: { label: "Niveau 3", count: 9, min: 1, max: 9999 },
+    level1: { label: "Niveau 1", count: 4, min: 1, max: 99 },
+    level2: { label: "Niveau 2", count: 4, min: 1, max: 999 },
+    level3: { label: "Niveau 3", count: 4, min: 1, max: 9999 },
   },
 };
 
