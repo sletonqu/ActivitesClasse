@@ -39,12 +39,6 @@ export const defaultMatchAdditionsActivityContent = {
   },
 };
 
-const defaultChallenges = [
-  { id: 1, left: 3, right: 2, result: 5 },
-  { id: 2, left: 4, right: 1, result: 5 },
-  { id: 3, left: 6, right: 2, result: 8 },
-];
-
 const TILE_ROTATION_MIN_DEGREES = -10;
 const TILE_ROTATION_MAX_DEGREES = 10;
 
@@ -284,7 +278,6 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
 
   const totalChallenges = challenges.length;
   const answeredCount = challenges.filter((challenge) => assignments[challenge.id] !== undefined).length;
-  const remainingCount = Math.max(0, totalChallenges - answeredCount);
   const progressPercent = totalChallenges > 0 ? Math.round((answeredCount / totalChallenges) * 100) : 0;
   const allAssigned = challenges.every((challenge) => assignments[challenge.id] !== undefined);
   const selectedTile = draggedItem?.answerTile || null;
@@ -327,123 +320,130 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
         />
       )}
 
-      {!finished && (
+      <div
+        id="match-additions-main-layout"
+        className={`grid items-start gap-2.5 sm:gap-3 ${
+          !finished ? "lg:grid-cols-[minmax(0,1fr)_200px]" : "grid-cols-1"
+        }`}
+      >
         <section
-          id="match-additions-word-pool-section"
-          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+          id="match-additions-categories"
+          className="min-w-0 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4"
         >
-          <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h4 className="text-base font-bold text-slate-800 sm:text-lg">Résultats à placer maintenant</h4>
-              </div>
-              <div className="text-xs text-slate-600 sm:text-sm">
-                {selectedTile ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
-                    Tuile sélectionnée : {formatNumberWithThousandsSpace(selectedTile.value)}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                    Fais glisser un résultat
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+          <div id="match-additions-challenge-list" className="grid gap-2.5 sm:gap-3">
+            {challenges.map((challenge) => {
+              const assignedTile = assignments[challenge.id];
+              const isCorrect = assignedTile?.value === challenge.result;
 
-          <div
-            id="match-additions-answers-pool"
-            className="flex min-h-[72px] flex-wrap justify-center gap-1.5 bg-slate-50/70 p-2.5 sm:min-h-[92px] sm:gap-3 sm:p-5"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={handleDropToAnswerPool}
-          >
-            {availableAnswers.length === 0 ? (
-              <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
-                Toutes les tuiles ont été placées.
-              </div>
-            ) : (
-              availableAnswers.map((answerTile, index) => (
-                <button
-                  key={answerTile.id}
-                  id={`match-additions-tuile-${index}`}
-                  type="button"
-                  draggable={!finished}
-                  onDragStart={() => handleDragStartFromPool(answerTile)}
-                  onDragEnd={() => setDraggedItem(null)}
-                  className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
-                    finished ? "cursor-default" : "cursor-move"
-                  }`}
-                  style={{ transform: `rotate(${answerTile.rotation}deg)` }}
+              return (
+                <div
+                  key={challenge.id}
+                  id={`match-additions-challenge-${challenge.id}`}
+                  className="grid items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5 sm:gap-3 sm:rounded-2xl sm:p-4 md:grid-cols-[minmax(0,1fr)_96px] lg:grid-cols-[minmax(0,1fr)_120px]"
                 >
-                  <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
-                    {formatNumberWithThousandsSpace(answerTile.value)}
-                  </span>
-                </button>
-              ))
-            )}
+                  <div
+                    id={`match-additions-operation-${challenge.id}`}
+                    className="rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
+                  >
+                    {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
+                  </div>
+
+                  <div
+                    id={`match-additions-drop-zone-${challenge.id}`}
+                    className={`flex min-h-[54px] min-w-[64px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[72px] sm:min-w-[90px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
+                      finished
+                        ? isCorrect
+                          ? "border-emerald-400 bg-emerald-50 text-emerald-700"
+                          : "border-rose-400 bg-rose-50 text-rose-700"
+                        : "border-sky-300 bg-white text-slate-700"
+                    }`}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => handleDrop(challenge.id)}
+                  >
+                    {assignedTile !== undefined ? (
+                      <button
+                        id={`match-additions-assigned-tile-${challenge.id}`}
+                        type="button"
+                        draggable={!finished}
+                        onDragStart={() => handleDragStartFromChallenge(challenge.id)}
+                        onDragEnd={() => setDraggedItem(null)}
+                        className={`min-h-[44px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-2 ${
+                          finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
+                        }`}
+                        style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
+                      >
+                        <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
+                          {formatNumberWithThousandsSpace(assignedTile.value)}
+                        </span>
+                      </button>
+                    ) : (
+                      "?"
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
-      )}
 
-      <section
-        id="match-additions-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4"
-      >
-        <div id="match-additions-challenge-list" className="grid gap-2.5 sm:gap-3">
-          {challenges.map((challenge) => {
-            const assignedTile = assignments[challenge.id];
-            const isCorrect = assignedTile?.value === challenge.result;
-
-            return (
-              <div
-                key={challenge.id}
-                id={`match-additions-challenge-${challenge.id}`}
-                className="grid items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5 sm:gap-3 sm:rounded-2xl sm:p-4 md:grid-cols-[minmax(0,1fr)_96px] lg:grid-cols-[minmax(0,1fr)_120px]"
-              >
-                <div
-                  id={`match-additions-operation-${challenge.id}`}
-                  className="rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
-                >
-                  {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
+        {!finished && (
+          <section
+            id="match-additions-word-pool-section"
+            className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm"
+          >
+            <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
+              <div className="flex flex-col gap-1 sm:items-start sm:justify-between">
+                <div>
+                  <h4 className="text-base font-bold text-slate-800 sm:text-lg">Résultats à placer maintenant</h4>
                 </div>
-
-                <div
-                  id={`match-additions-drop-zone-${challenge.id}`}
-                  className={`flex min-h-[54px] min-w-[64px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[72px] sm:min-w-[90px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
-                    finished
-                      ? isCorrect
-                        ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                        : "border-rose-400 bg-rose-50 text-rose-700"
-                      : "border-sky-300 bg-white text-slate-700"
-                  }`}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={() => handleDrop(challenge.id)}
-                >
-                  {assignedTile !== undefined ? (
-                    <button
-                      id={`match-additions-assigned-tile-${challenge.id}`}
-                      type="button"
-                      draggable={!finished}
-                      onDragStart={() => handleDragStartFromChallenge(challenge.id)}
-                      onDragEnd={() => setDraggedItem(null)}
-                      className={`min-h-[44px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-2 ${
-                        finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
-                      }`}
-                      style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
-                    >
-                      <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
-                        {formatNumberWithThousandsSpace(assignedTile.value)}
-                      </span>
-                    </button>
+                <div className="text-xs text-slate-600 sm:text-sm">
+                  {selectedTile ? (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
+                      Tuile sélectionnée : {formatNumberWithThousandsSpace(selectedTile.value)}
+                    </span>
                   ) : (
-                    "?"
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                      Fais glisser un résultat
+                    </span>
                   )}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+
+            <div
+              id="match-additions-answers-pool"
+              className="flex min-h-[72px] flex-wrap justify-center gap-1.5 bg-slate-50/70 p-2.5 sm:min-h-[92px] sm:gap-3 sm:p-5"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={handleDropToAnswerPool}
+            >
+              {availableAnswers.length === 0 ? (
+                <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
+                  Toutes les tuiles ont été placées.
+                </div>
+              ) : (
+                availableAnswers.map((answerTile, index) => (
+                  <button
+                    key={answerTile.id}
+                    id={`match-additions-tuile-${index}`}
+                    type="button"
+                    draggable={!finished}
+                    onDragStart={() => handleDragStartFromPool(answerTile)}
+                    onDragEnd={() => setDraggedItem(null)}
+                    className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
+                      finished ? "cursor-default" : "cursor-move"
+                    }`}
+                    style={{ transform: `rotate(${answerTile.rotation}deg)` }}
+                  >
+                    <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
+                      {formatNumberWithThousandsSpace(answerTile.value)}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          </section>
+        )}
+      </div>
 
       <div id="match-additions-actions" className="flex flex-wrap justify-center gap-2">
         <ActivityIconButton
