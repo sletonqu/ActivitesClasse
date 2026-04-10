@@ -120,7 +120,7 @@ const ReadNumbersActivity = ({ content }) => {
   };
 
   return (
-    <div id="read-numbers-activity-root" className="space-y-6">
+    <div id="read-numbers-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="read-numbers"
         title={displayTitle}
@@ -150,21 +150,21 @@ const ReadNumbersActivity = ({ content }) => {
         id="read-numbers-pool-section"
         className="rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
+        <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
           <h4 className="text-lg font-bold text-slate-800">Nombre à lire</h4>
         </div>
 
         <div
           id="read-numbers-tiles-pool"
-          className="flex min-h-[160px] items-center justify-center bg-slate-50/70 p-4 sm:p-6"
+          className="flex min-h-[120px] items-center justify-center bg-slate-50/70 p-3 sm:min-h-[160px] sm:p-6"
         >
           <div
             key={currentTile.id}
             id="read-numbers-current-tile"
-            className="flex min-h-[88px] min-w-[140px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm"
+            className="flex min-h-[72px] min-w-[110px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm sm:min-h-[88px] sm:min-w-[140px] sm:px-6 sm:py-5"
             style={{ transform: `rotate(${currentTile.rotation}deg)` }}
           >
-            <span className="block text-3xl font-bold text-slate-800 sm:text-4xl">
+            <span className="block text-2xl font-bold text-slate-800 sm:text-4xl">
               {formatNumberWithThousandsSpace(currentTile.value)}
             </span>
           </div>
@@ -173,7 +173,7 @@ const ReadNumbersActivity = ({ content }) => {
 
       <section
         id="read-numbers-actions"
-        className="flex justify-center rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="flex justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
       >
         <ActivityIconButton
           id="read-numbers-restart-button"

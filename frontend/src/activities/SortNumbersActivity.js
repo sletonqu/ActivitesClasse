@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
   formatNumberWithThousandsSpace,
@@ -253,7 +254,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
   };
 
   return (
-    <div id="sort-numbers-activity-root" className="space-y-6">
+    <div id="sort-numbers-activity-root" className="space-y-2.5 sm:space-y-3">
       <ActivityHero
         idPrefix="sort-numbers"
         title={displayTitle}
@@ -282,18 +283,12 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
       />
 
       {!finished && (
-        <section
+        <ActivityStatus
           id="sort-numbers-status-panel"
-          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-        >
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              id="sort-numbers-progress-bar"
-              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </section>
+          progressBarId="sort-numbers-progress-bar"
+          progressPercent={progressPercent}
+          label="Progression du classement"
+        />
       )}
 
       {!finished && (
@@ -301,12 +296,12 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
           id="sort-numbers-word-pool-section"
           className="rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
-          <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h4 className="text-lg font-bold text-slate-800">Nombres à classer maintenant</h4>
+                <h4 className="text-base font-bold text-slate-800 sm:text-lg">Nombres à classer maintenant</h4>
               </div>
-              <div className="text-sm text-slate-600">
+              <div className="text-xs text-slate-600 sm:text-sm">
                 {selectedTile ? (
                   <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
                     Nombre sélectionné : {formatNumberWithThousandsSpace(selectedTile.value)}
@@ -322,7 +317,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
 
           <div
             id="sort-numbers-tiles-pool"
-            className="flex min-h-[110px] flex-wrap justify-center gap-3 bg-slate-50/70 p-4 sm:p-5"
+            className="flex min-h-[76px] flex-wrap justify-center gap-1.5 bg-slate-50/70 p-2.5 sm:min-h-[110px] sm:gap-3 sm:p-5"
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDropToPool}
           >
@@ -339,10 +334,10 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
                   draggable={!finished}
                   onDragStart={() => handleDragStartFromPool(tile)}
                   onDragEnd={() => setDraggedItem(null)}
-                  className="min-h-[64px] min-w-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default"
+                  className="min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3"
                   style={{ transform: `rotate(${tile.rotation}deg)` }}
                 >
-                  <span className="block text-2xl font-bold text-slate-800">
+                  <span className="block text-lg font-bold text-slate-800 sm:text-2xl">
                     {formatNumberWithThousandsSpace(tile.value)}
                   </span>
                 </button>
@@ -354,11 +349,11 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
 
       <section
         id="sort-numbers-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4"
       >
         <div
           id="sort-numbers-drop-zone-row"
-          className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
+          className="flex flex-wrap items-center justify-center gap-1 sm:gap-2.5"
         >
           {slotIndexes.map((slotIndex) => {
             const assignedTile = assignments[slotIndex];
@@ -368,7 +363,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
               <React.Fragment key={`sort-slot-${slotIndex}`}>
                 <div
                   id={`sort-numbers-drop-zone-${slotIndex}`}
-                  className={`flex min-h-[72px] min-w-[72px] items-center justify-center rounded-2xl border-2 border-dashed px-3 py-2 text-2xl font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] ${
+                  className={`flex min-h-[54px] min-w-[54px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
                     finished
                       ? isCorrect
                         ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -398,7 +393,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
                 {slotIndex < slotIndexes.length - 1 ? (
                   <span
                     id={`sort-numbers-separator-${slotIndex}`}
-                    className="select-none text-3xl font-bold text-slate-400 sm:text-4xl"
+                    className="select-none text-xl font-bold text-slate-400 sm:text-4xl"
                   >
                     {"<"}
                   </span>
@@ -409,7 +404,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
         </div>
       </section>
 
-      <div id="sort-numbers-actions" className="flex flex-wrap justify-center gap-3">
+      <div id="sort-numbers-actions" className="flex flex-wrap justify-center gap-2">
         <ActivityIconButton
           id="sort-numbers-validate-button"
           onClick={handleValidate}

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import { API_URL } from "../config/api";
 import {
@@ -405,7 +406,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
   };
 
   return (
-    <div id="word-classification-activity-root" className="space-y-6">
+    <div id="word-classification-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="word-classification"
         title={displayTitle}
@@ -431,31 +432,28 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
       />
 
       {!finished && (
-        <section id="word-classification-status-panel" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              id="word-classification-progress-bar"
-              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </section>
+        <ActivityStatus
+          id="word-classification-status-panel"
+          progressBarId="word-classification-progress-bar"
+          progressPercent={progressPercent}
+          label="Progression du classement des mots"
+        />
       )}
 
       {loadingWords ? (
-        <div id="word-classification-loading" className="rounded-2xl bg-sky-50 border border-sky-200 p-4 text-sky-800">
+        <div id="word-classification-loading" className="rounded-2xl border border-sky-200 bg-sky-50 p-3 text-sky-800 sm:p-4">
           Chargement des mots...
         </div>
       ) : loadingError ? (
-        <div id="word-classification-error" className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-rose-700">
+        <div id="word-classification-error" className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-rose-700 sm:p-4">
           {loadingError}
         </div>
       ) : (
         <>
           {!finished && (
             <section id="word-classification-word-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h4 className="text-lg font-bold text-slate-800">Mots à classer maintenant</h4>
                   </div>
@@ -475,7 +473,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
 
               <div
                 id="word-classification-word-pool"
-                className="flex flex-wrap justify-center gap-3 min-h-[110px] p-4 sm:p-5 bg-slate-50/70"
+                className="flex min-h-[88px] flex-wrap justify-center gap-2 bg-slate-50/70 p-3 sm:min-h-[110px] sm:gap-3 sm:p-5"
               >
                 {visibleWords.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500 w-full">
@@ -493,7 +491,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                         onDragStart={() => handleDragStart(word.runtimeId)}
                         onDragEnd={() => setDraggedWordId(null)}
                         onClick={() => handleWordClick(word.runtimeId)}
-                        className={`min-w-[120px] rounded-2xl border px-4 py-3 text-center shadow-sm select-none transition-all ${
+                        className={`min-w-[96px] rounded-2xl border px-3 py-2 text-center shadow-sm select-none transition-all sm:min-w-[120px] sm:px-4 sm:py-3 ${
                           isSelected
                             ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                             : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
@@ -502,7 +500,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                           transform: `${isSelected ? "scale(1.02) " : ""}rotate(${word.rotation ?? 0}deg)`,
                         }}
                       >
-                        <span className="block text-lg font-bold text-slate-800">{word.word}</span>
+                        <span className="block text-base font-bold text-slate-800 sm:text-lg">{word.word}</span>
                       </button>
                     );
                   })
@@ -511,7 +509,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
             </section>
           )}
 
-          <div id="word-classification-categories" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div id="word-classification-categories" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {currentLevelRule.classifications.map((categoryLabel) => {
               const categoryKey = normalizeCategoryKey(categoryLabel);
               const mistakes = mistakesByCategory[categoryKey] || [];
@@ -520,7 +518,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                 <section
                   key={categoryKey}
                   id={`word-classification-category-${categoryKey}`}
-                  className={`rounded-2xl border-2 p-4 min-h-[180px] transition-all ${
+                  className={`min-h-[150px] rounded-2xl border-2 p-3 transition-all sm:min-h-[180px] sm:p-4 ${
                     selectedWordId && !finished ? theme.activePanel : theme.panel
                   } ${finished ? "" : "flex items-center justify-center"}`}
                   onDragOver={(event) => event.preventDefault()}
@@ -536,7 +534,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
 
                     <div className="flex justify-center text-center">
                       <span
-                        className={`inline-flex items-center justify-center rounded-full px-5 py-2.5 text-2xl font-bold shadow-sm sm:text-3xl ${theme.badge} ${theme.title}`}
+                        className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-xl font-bold shadow-sm sm:px-5 sm:py-2.5 sm:text-3xl ${theme.badge} ${theme.title}`}
                       >
                         {formatCategoryLabel(categoryLabel)}
                       </span>

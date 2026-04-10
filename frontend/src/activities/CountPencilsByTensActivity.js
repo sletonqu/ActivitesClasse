@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import FloatingNumberPad from "../components/FloatingNumberPad";
@@ -391,7 +392,7 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
   const allAnswered = totalExercises > 0 && answeredCount === totalExercises;
 
   return (
-    <div id="count-pencils-by-tens-activity-root" className="space-y-6">
+    <div id="count-pencils-by-tens-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="count-pencils-by-tens"
         title={displayTitle}
@@ -431,25 +432,19 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         instructionClassName="block w-full text-sm text-slate-800 sm:text-base"
       />
 
-      <section
+      <ActivityStatus
         id="count-pencils-by-tens-status-panel"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-      >
-        <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            id="count-pencils-by-tens-progress-bar"
-            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </section>
+        progressBarId="count-pencils-by-tens-progress-bar"
+        progressPercent={progressPercent}
+        label="Progression des crayons"
+      />
 
       <section
         id="count-pencils-by-tens-word-pool-section"
         className="rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h4 className="text-lg font-bold text-slate-800">Exercices à compléter</h4>
               <p className="text-sm text-slate-600">
@@ -470,15 +465,15 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
           </div>
         </div>
 
-        <div id="count-pencils-by-tens-word-pool" className="bg-slate-50/70 p-4 sm:p-5">
-          <div id="count-pencils-by-tens-grid" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div id="count-pencils-by-tens-word-pool" className="bg-slate-50/70 p-3 sm:p-5">
+          <div id="count-pencils-by-tens-grid" className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {exercises.map((exercise) => {
               const correct = finished ? isExerciseCorrect(exercise) : null;
               return (
                 <div
                   key={exercise.id}
                   id={`count-pencils-by-tens-case-${exercise.id}`}
-                  className={`rounded-2xl border p-4 shadow-sm ${
+                  className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${
                     !finished
                       ? "border-slate-200 bg-white"
                       : correct

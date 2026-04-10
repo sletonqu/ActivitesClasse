@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import {
@@ -289,22 +290,22 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
   return (
     <div
       id={id}
-      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm ${
+      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-3 text-center shadow-sm sm:px-4 sm:py-4 ${
         hasDecomposedDisplay
-          ? "min-h-[112px] w-full max-w-[290px] sm:min-h-[124px]"
-          : "h-[112px] w-[112px] sm:h-[124px] sm:w-[124px]"
+          ? "min-h-[96px] w-full max-w-[250px] sm:min-h-[124px] sm:max-w-[290px]"
+          : "h-[88px] w-[88px] sm:h-[124px] sm:w-[124px]"
       }`}
       style={{ transform: `rotate(${rotation}deg)` }}
     >
       {hasDecomposedDisplay ? (
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           {displayParts.map((part, index) => (
             <React.Fragment key={`${id}-${part.key}-${part.value}-${index}`}>
               {index > 0 ? (
-                <span className="text-xl font-bold text-slate-400 sm:text-2xl">+</span>
+                <span className="text-lg font-bold text-slate-400 sm:text-2xl">+</span>
               ) : null}
               <span
-                className={`inline-flex min-h-[52px] min-w-[62px] items-center justify-center rounded-xl border px-3 py-2 text-lg font-bold sm:text-xl ${part.toneClassName}`}
+                className={`inline-flex min-h-[44px] min-w-[52px] items-center justify-center rounded-xl border px-2.5 py-1.5 text-base font-bold sm:min-h-[52px] sm:min-w-[62px] sm:px-3 sm:py-2 sm:text-xl ${part.toneClassName}`}
               >
                 {part.label}
               </span>
@@ -312,7 +313,7 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
           ))}
         </div>
       ) : (
-        <span className="block text-3xl font-bold text-slate-800 sm:text-4xl">
+        <span className="block text-2xl font-bold text-slate-800 sm:text-4xl">
           {formatNumberWithThousandsSpace(value)}
         </span>
       )}
@@ -485,7 +486,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
   };
 
   return (
-    <div id="compare-numbers-activity-root" className="space-y-6">
+    <div id="compare-numbers-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="compare-numbers"
         title={displayTitle}
@@ -520,18 +521,12 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
       />
 
       {!finished && (
-        <section
+        <ActivityStatus
           id="compare-numbers-status-panel"
-          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-        >
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              id="compare-numbers-progress-bar"
-              className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </section>
+          progressBarId="compare-numbers-progress-bar"
+          progressPercent={progressPercent}
+          label="Progression de la comparaison"
+        />
       )}
 
       {!finished && (
@@ -539,8 +534,8 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
           id="compare-numbers-sign-pool-section"
           className="rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
-          <div className="border-b border-slate-100 px-4 py-3 sm:px-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-lg font-bold text-slate-800">Signes disponibles</h4>
               </div>
@@ -560,7 +555,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
 
           <div
             id="compare-numbers-sign-choices"
-            className="flex min-h-[92px] flex-wrap justify-center gap-3 bg-slate-50/70 p-4 sm:p-5"
+            className="flex min-h-[76px] flex-wrap justify-center gap-2 bg-slate-50/70 p-3 sm:min-h-[92px] sm:gap-3 sm:p-5"
           >
             {SIGN_OPTIONS.map((sign) => {
               const signId = sign === "<" ? "inferieur" : sign === ">" ? "superieur" : "egal";
@@ -574,7 +569,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
                   disabled={finished}
                   onClick={() => setSelectedSign(sign)}
                   aria-label={`Choisir le signe ${SIGN_LABELS[sign]}`}
-                  className={`min-h-[64px] min-w-[88px] rounded-2xl border px-4 py-3 text-center text-2xl font-bold shadow-sm transition-all ${
+                  className={`min-h-[56px] min-w-[72px] rounded-2xl border px-3 py-2 text-center text-xl font-bold shadow-sm transition-all sm:min-h-[64px] sm:min-w-[88px] sm:px-4 sm:py-3 sm:text-2xl ${
                     isSelected
                       ? "border-indigo-600 bg-indigo-600 text-white"
                       : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
@@ -590,7 +585,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
 
       <section
         id="compare-numbers-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
       >
         <div
           id="compare-numbers-exercise-area"
@@ -608,7 +603,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
 
           <div
             id="compare-numbers-answer-slot"
-            className={`mx-auto flex min-h-[72px] min-w-[72px] items-center justify-center rounded-2xl border-2 px-3 py-2 text-4xl font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] ${
+            className={`mx-auto flex min-h-[60px] min-w-[60px] items-center justify-center rounded-2xl border-2 px-2.5 py-1.5 text-3xl font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] sm:px-3 sm:py-2 sm:text-4xl ${
               finished
                 ? isCorrect
                   ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -635,7 +630,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
 
       <section
         id="compare-numbers-help-section"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
       >
         {!showHelp ? (
           <div className="flex flex-col items-center justify-center gap-2 text-center">
@@ -654,7 +649,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
         ) : (
           <div
             id="compare-numbers-help-visuals"
-            className="grid gap-4 lg:grid-cols-2"
+            className="grid gap-3 md:grid-cols-2"
           >
             <div
               id="compare-numbers-left-help-card"
