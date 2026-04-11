@@ -65,6 +65,8 @@ Sur le PC de la classe, le plus simple est d'utiliser le script :
 powershell -ExecutionPolicy Bypass -File .\scripts\update-application.ps1
 ```
 
+> 💡 Guide détaillé d'installation et de mise à jour : voir `scripts/README.md`.
+
 Ce script :
 
 - sauvegarde préventivement la base SQLite dans le volume Docker ;
