@@ -79,10 +79,10 @@ const CATEGORY_THEME_BY_KEY = {
     title: "text-fuchsia-900",
   },
   determinant: {
-    badge: "bg-cyan-100 text-cyan-800",
-    panel: "border-cyan-200 bg-cyan-50/70",
-    activePanel: "border-cyan-400 bg-cyan-50 shadow-sm",
-    title: "text-cyan-900",
+    badge: "bg-emerald-100 text-emerald-800",
+    panel: "border-emerald-200 bg-emerald-50/70",
+    activePanel: "border-emerald-400 bg-emerald-50 shadow-sm",
+    title: "text-emerald-900",
   },
   autres: {
     badge: "bg-slate-100 text-slate-800",
@@ -92,19 +92,45 @@ const CATEGORY_THEME_BY_KEY = {
   },
 };
 
+const CATEGORY_KEY_ALIASES = {
+  noms: "nom",
+  verbes: "verbe",
+  adjectifs: "adjectif",
+  pronoms: "pronom",
+  determinant: "determinant",
+  determinants: "determinant",
+  autre: "autres",
+};
+
+const CATEGORY_DISPLAY_LABELS = {
+  nom: "Nom",
+  verbe: "Verbe",
+  adjectif: "Adjectif",
+  pronom: "Pronom",
+  determinant: "Déterminant",
+  autres: "Autres",
+};
+
 function getCategoryTheme(categoryLabel) {
   return CATEGORY_THEME_BY_KEY[normalizeCategoryKey(categoryLabel)] || DEFAULT_CATEGORY_THEME;
 }
 
 function normalizeCategoryKey(value) {
-  return String(value || "")
+  const normalizedValue = String(value || "")
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+
+  return CATEGORY_KEY_ALIASES[normalizedValue] || normalizedValue;
 }
 
 function formatCategoryLabel(value) {
+  const key = normalizeCategoryKey(value);
+  if (CATEGORY_DISPLAY_LABELS[key]) {
+    return CATEGORY_DISPLAY_LABELS[key];
+  }
+
   const label = String(value || "").trim();
   if (!label) {
     return "Autres";
