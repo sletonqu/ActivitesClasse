@@ -53,7 +53,7 @@ Pour brancher une nouvelle activité dans l'application :
 
 ### 1. `SortNumbersActivity.js`
 
-**But** : ranger des nombres dans l'ordre croissant.
+**But** : ranger des nombres dans l'ordre croissant ou décroissant.
 
 Exemple de configuration :
 
@@ -61,9 +61,9 @@ Exemple de configuration :
 {
   "defaultLevel": "level1",
   "levels": {
-    "level1": { "label": "Niveau 1", "count": 5, "min": 1, "max": 99 },
-    "level2": { "label": "Niveau 2", "count": 7, "min": 1, "max": 999 },
-    "level3": { "label": "Niveau 3", "count": 9, "min": 1, "max": 9999 }
+    "level1": { "label": "Niveau 1", "count": 5, "min": 1, "max": 99, "order": "asc" },
+    "level2": { "label": "Niveau 2", "count": 7, "min": 1, "max": 999, "order": "asc" },
+    "level3": { "label": "Niveau 3", "count": 9, "min": 1, "max": 9999, "order": "desc" }
   }
 }
 ```
@@ -77,11 +77,12 @@ Options utiles :
 - `levels.levelX.count`
 - `levels.levelX.min`
 - `levels.levelX.max`
+- `levels.levelX.order` avec `asc`/`croissant` ou `desc`/`décroissant`
 - `numbersByLevel.levelX` pour imposer une série précise
 
 Comportement :
 
-- interface en glisser-déposer avec en-tête, barre de progression, réserve de tuiles et zone `? < ? < ?` ;
+- interface en glisser-déposer avec en-tête, barre de progression, réserve de tuiles et zone `? < ? < ?` ou `? > ? > ?` selon l'ordre configuré ;
 - tuiles légèrement inclinées grâce à une rotation aléatoire ;
 - affichage des nombres avec espace comme séparateur des milliers pour les valeurs supérieures à `999` ;
 - score enregistré sur 20 ;
@@ -355,7 +356,7 @@ Comportement :
 - classement possible par **glisser-déposer** ou par **clic** (sélection d'un mot puis d'une catégorie) ;
 - tuiles de mots avec **rotation aléatoire** pour un rendu plus vivant ;
 - bilan final par catégorie avec affichage des erreurs et symbole `✓` lorsqu'il n'y a aucune erreur ;
-- score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)`. 
+- score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)`.
 
 ---
 

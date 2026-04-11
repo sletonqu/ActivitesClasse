@@ -13,19 +13,38 @@ import {
 } from "./activityUtils";
 
 export const defaultSortNumbersActivityContent = {
-  title: "Classe les nombres dans l'ordre croissant",
+  title: "Classe les nombres dans le bon ordre",
   instruction:
-    "Fais glisser chaque nombre dans la bonne case pour reconstituer une suite du plus petit au plus grand.",
+    "Fais glisser chaque nombre dans la bonne case pour reconstituer une suite dans l'ordre demandé.",
   defaultLevel: "level1",
   levels: {
-    level1: { label: "Niveau 1", count: 4, min: 1, max: 99 },
-    level2: { label: "Niveau 2", count: 4, min: 1, max: 999 },
-    level3: { label: "Niveau 3", count: 4, min: 1, max: 9999 },
+    level1: { label: "Niveau 1", count: 4, min: 1, max: 99, order: "asc" },
+    level2: { label: "Niveau 2", count: 4, min: 10, max: 199, order: "asc" },
+    level3: { label: "Niveau 3", count: 4, min: 50, max: 999, order: "asc" },
   },
 };
 
 const TILE_ROTATION_MIN_DEGREES = -10;
 const TILE_ROTATION_MAX_DEGREES = 10;
+const SORT_ORDER_ALIASES = {
+  asc: "asc",
+  croissant: "asc",
+  ascending: "asc",
+  "<": "asc",
+  desc: "desc",
+  decroissant: "desc",
+  "décroissant": "desc",
+  descending: "desc",
+  ">": "desc",
+};
+const SORT_ORDER_LABELS = {
+  asc: "Ordre croissant",
+  desc: "Ordre décroissant",
+};
+const SORT_ORDER_SYMBOLS = {
+  asc: "<",
+  desc: ">",
+};
 
 const SLOT_THEME = {
   badge: "bg-indigo-100 text-indigo-800",
@@ -66,6 +85,18 @@ function buildNumberTiles(values) {
   }));
 }
 
+function normalizeSortOrder(value, fallback = "asc") {
+  const fallbackOrder = typeof fallback === "string"
+    ? SORT_ORDER_ALIASES[fallback.toLowerCase()] || "asc"
+    : "asc";
+
+  if (typeof value !== "string") {
+    return fallbackOrder;
+  }
+
+  return SORT_ORDER_ALIASES[value.toLowerCase()] || fallbackOrder;
+}
+
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
 
@@ -85,6 +116,10 @@ function normalizeLevelRule(rule, fallbackRule) {
     count,
     min: Math.min(min, max),
     max: Math.max(min, max),
+    order: normalizeSortOrder(
+      source.order ?? source.sortOrder ?? source.direction,
+      fallbackRule.order ?? fallbackRule.sortOrder ?? "asc"
+    ),
   };
 }
 
@@ -128,19 +163,29 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
 
   const restartLocked = Boolean(student) && finished;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const currentSortOrder = normalizeSortOrder(currentLevelRule.order, "asc");
+  const fallbackTitle = currentSortOrder === "desc"
+    ? "Classe les nombres dans l'ordre décroissant"
+    : "Classe les nombres dans l'ordre croissant";
+  const fallbackInstruction = currentSortOrder === "desc"
+    ? "Fais glisser chaque nombre dans la bonne case pour reconstituer une suite du plus grand au plus petit."
+    : "Fais glisser chaque nombre dans la bonne case pour reconstituer une suite du plus petit au plus grand.";
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
-    defaultSortNumbersActivityContent.title
+    fallbackTitle
   );
   const displayInstruction = getSafeDisplayText(
     parsedContent?.instruction,
-    defaultSortNumbersActivityContent.instruction
+    fallbackInstruction
   );
 
-  const getExpectedValues = (tileList) => tileList.map((tile) => tile.value).slice().sort((a, b) => a - b);
+  const getExpectedValues = (tileList, sortOrder = "asc") => tileList
+    .map((tile) => tile.value)
+    .slice()
+    .sort((a, b) => (sortOrder === "desc" ? b - a : a - b));
 
   const allTiles = [...availableTiles, ...Object.values(assignments)];
-  const expectedValues = getExpectedValues(allTiles);
+  const expectedValues = getExpectedValues(allTiles, currentSortOrder);
   const slotIndexes = expectedValues.map((_, index) => index);
   const totalSlots = slotIndexes.length;
   const answeredCount = slotIndexes.filter((slotIndex) => assignments[slotIndex] !== undefined).length;
@@ -239,6 +284,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
       onComplete(nextScore, {
         levelKey: currentLevel,
         levelLabel: configuredLevels[currentLevel]?.label || currentLevel,
+        sortOrder: currentSortOrder,
       });
     }
   };
@@ -269,6 +315,11 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
             key: "range",
             label: `Entre ${formatNumberWithThousandsSpace(currentLevelRule.min)} et ${formatNumberWithThousandsSpace(currentLevelRule.max)}`,
             className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
+          },
+          {
+            key: "order",
+            label: SORT_ORDER_LABELS[currentSortOrder] || "Ordre croissant",
+            className: "inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800",
           },
         ]}
         levels={allowedLevelKeys.map((levelKey) => ({
@@ -395,7 +446,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
                     id={`sort-numbers-separator-${slotIndex}`}
                     className="select-none text-xl font-bold text-slate-400 sm:text-4xl"
                   >
-                    {"<"}
+                    {SORT_ORDER_SYMBOLS[currentSortOrder] || "<"}
                   </span>
                 ) : null}
               </React.Fragment>

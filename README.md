@@ -192,7 +192,7 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 
 | Activité | Fichier | Objectif | Paramètres principaux |
 | --- | --- | --- | --- |
-| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Glisser des nombres dans des cases `? < ?` pour les ranger dans l'ordre croissant | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
+| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Glisser des nombres dans des cases `? < ?` ou `? > ?` pour les ranger dans l'ordre croissant ou décroissant | `title`, `instruction`, `defaultLevel`, `levels`, `levels.order`, `numbersByLevel` |
 | Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.js` | Afficher un nombre à lire selon le niveau, sans dépôt, validation ni score | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
 | Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Choisir `<`, `=` ou `>` entre deux nombres, avec écriture décomposée possible | `title`, `instruction`, `defaultLevel`, `levels.min/max`, `allowEquality`, `equalityChance`, `decompositionMode`, `pairsByLevel` |
 | Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat | `defaultLevel`, `levels`, `challenges`, `challengesByLevel` |
