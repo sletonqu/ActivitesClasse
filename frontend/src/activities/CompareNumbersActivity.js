@@ -44,11 +44,21 @@ export const defaultCompareNumbersActivityContent = {
       decompositionMode: "right",
       decompositionStyle: "strict",
     },
+    level4: {
+      label: "Niveau 4",
+      min: 100,
+      max: 999,
+      allowEquality: true,
+      equalityChance: 0.2,
+      decompositionMode: "random",
+      decompositionStyle: "medium",
+    },
   },
   pairsByLevel: {
     level1: [],
     level2: [],
     level3: [],
+    level4: [],
   },
 };
 
@@ -324,18 +334,20 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
 const CompareNumbersActivity = ({ student, content, onComplete }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultCompareNumbersActivityContent.levels;
-  const allowedLevelKeys = ["level1", "level2", "level3"];
+  const allowedLevelKeys = ["level1", "level2", "level3", "level4"];
 
   const configuredLevels = {
     level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
     level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
     level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
+    level4: normalizeLevelRule(parsedContent?.levels?.level4, defaultLevels.level4),
   };
 
   const configuredPairsByLevel = {
     level1: sanitizeConfiguredPairs(parsedContent?.pairsByLevel?.level1),
     level2: sanitizeConfiguredPairs(parsedContent?.pairsByLevel?.level2),
     level3: sanitizeConfiguredPairs(parsedContent?.pairsByLevel?.level3),
+    level4: sanitizeConfiguredPairs(parsedContent?.pairsByLevel?.level4),
   };
 
   const initialLevel = allowedLevelKeys.includes(parsedContent?.defaultLevel)
