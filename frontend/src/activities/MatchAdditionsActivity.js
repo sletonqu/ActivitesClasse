@@ -34,7 +34,7 @@ export const defaultMatchAdditionsActivityContent = {
       label: "Niveau 3",
       count: 3,
       min: 10,
-      max: 999,
+      max: 599,
     },
   },
 };
