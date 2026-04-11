@@ -356,3 +356,117 @@ Comportement :
 - tuiles de mots avec **rotation aléatoire** pour un rendu plus vivant ;
 - bilan final par catégorie avec affichage des erreurs et symbole `✓` lorsqu'il n'y a aucune erreur ;
 - score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)`. 
+
+---
+
+### 8. `FillInTheBlanksActivity.js`
+
+**But** : compléter une ou plusieurs phrases à trous, avec saisie libre et éventuellement une banque de mots.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Complète la phrase",
+  "instruction": "Lis la phrase puis écris les mots manquants dans les cases.",
+  "showWordBank": true,
+  "sourceLevel": "CE1",
+  "sourceTheme": "animaux",
+  "sentences": [
+    {
+      "id": "phrase-1",
+      "prompt": "Complète avec les bons mots.",
+      "wordBank": ["petit", "chat"],
+      "tokens": [
+        { "type": "text", "value": "Le" },
+        { "type": "blank", "answer": "petit", "placeholder": "..." },
+        { "type": "blank", "answer": "chat", "placeholder": "..." },
+        { "type": "text", "value": "dort" },
+        { "type": "punctuation", "value": "." }
+      ]
+    }
+  ]
+}
+```
+
+Paramètres utiles :
+
+- `title`
+- `instruction`
+- `showWordBank`
+- `sourceLevel`
+- `sourceTheme`
+- `sentences[]`
+- `sentences[].tokens[]` avec `text`, `blank` et `punctuation`
+
+Comportement :
+
+- activité sans glisser-déposer ;
+- validation mot par mot avec score sur 20 ;
+- comparaison tolérante sur les accents et apostrophes ;
+- `Recommencer` réinitialise toutes les réponses en mode démo.
+
+---
+
+### 9. `FractionsVisualSelectionActivity.js`
+
+**But** : reconnaître la bonne fraction à partir d'un visuel découpé en parts égales.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Reconnais la bonne fraction",
+  "instruction": "Observe la figure colorée à gauche puis clique sur la fraction qui lui correspond.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "answerCount": 3,
+      "fractions": [
+        { "numerator": 1, "denominator": 2 },
+        { "numerator": 1, "denominator": 3 },
+        { "numerator": 1, "denominator": 4 }
+      ],
+      "visualTypes": ["circle", "bar", "square"]
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "answerCount": 6,
+      "fractions": [
+        { "numerator": 1, "denominator": 2 },
+        { "numerator": 1, "denominator": 3 },
+        { "numerator": 1, "denominator": 4 },
+        { "numerator": 1, "denominator": 5 }
+      ]
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "answerCount": 6,
+      "minDenominator": 2,
+      "maxDenominator": 10,
+      "maxNumerator": 9,
+      "visualTypes": ["circle", "bar", "square"]
+    }
+  }
+}
+```
+
+Paramètres utiles :
+
+- `title`
+- `instruction`
+- `defaultLevel`
+- `levels.levelX.label`
+- `levels.levelX.answerCount`
+- `levels.levelX.fractions[]` pour imposer une liste précise
+- `levels.levelX.minDenominator` / `maxDenominator` / `maxNumerator` pour la génération automatique
+- `levels.levelX.visualTypes` avec `circle`, `bar` ou `square`
+
+Comportement :
+
+- visuel affiché à gauche et réponses sur tuiles cliquables à droite ;
+- fractions toujours **strictement inférieures à 1** ;
+- une seule réponse correcte par série ;
+- score sur 20 avec renvoi du niveau courant dans `onComplete(...)`.
+

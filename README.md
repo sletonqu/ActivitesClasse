@@ -194,9 +194,11 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 | --- | --- | --- | --- |
 | Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Glisser des nombres dans des cases `? < ?` pour les ranger dans l'ordre croissant | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
 | Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.js` | Afficher un nombre à lire selon le niveau, sans dépôt, validation ni score | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
-| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots par catégorie grammaticale en glisser-déposer ou par clic | `title`, `instruction`, `defaultLevel`, `levels.totalWords`, `levels.wordsPerRound`, `levels.maxWordLevel`, `levels.classifications` |
+| Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Choisir `<`, `=` ou `>` entre deux nombres, avec écriture décomposée possible | `title`, `instruction`, `defaultLevel`, `levels.min/max`, `allowEquality`, `equalityChance`, `decompositionMode`, `pairsByLevel` |
 | Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat | `defaultLevel`, `levels`, `challenges`, `challengesByLevel` |
 | Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels`, `exerciseCount`, `min/maxCartons`, `min/maxPouches`, `min/maxUnits` |
+| Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Associer un visuel fractionné à la bonne fraction parmi plusieurs tuiles | `title`, `instruction`, `defaultLevel`, `levels.answerCount`, `levels.fractions`, `minDenominator`, `maxDenominator`, `visualTypes` |
+| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots par catégorie grammaticale en glisser-déposer ou par clic | `title`, `instruction`, `defaultLevel`, `levels.totalWords`, `levels.wordsPerRound`, `levels.maxWordLevel`, `levels.classifications` |
 | Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
 
 > Documentation détaillée : voir `frontend/src/activities/README.md`.

@@ -3,6 +3,7 @@ import SortNumbersActivity from "./SortNumbersActivity";
 import MatchAdditionsActivity from "./MatchAdditionsActivity";
 import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
 import CompareNumbersActivity from "./CompareNumbersActivity";
+import FractionsVisualSelectionActivity from "./FractionsVisualSelectionActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 import WordClassificationActivity from "./WordClassificationActivity";
 import ReadNumbersActivity from "./ReadNumbersActivity";
@@ -20,6 +21,9 @@ const componentRegistry = {
   "src/activities/CompareNumbersActivity.js": CompareNumbersActivity,
   "CompareNumbersActivity": CompareNumbersActivity,
   "CompareNumbersActivity.js": CompareNumbersActivity,
+  "src/activities/FractionsVisualSelectionActivity.js": FractionsVisualSelectionActivity,
+  "FractionsVisualSelectionActivity": FractionsVisualSelectionActivity,
+  "FractionsVisualSelectionActivity.js": FractionsVisualSelectionActivity,
   "src/activities/InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity": InteractiveWhiteboardActivity,
   "InteractiveWhiteboardActivity.js": InteractiveWhiteboardActivity,
