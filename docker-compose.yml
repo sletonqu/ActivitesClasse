@@ -14,13 +14,13 @@ services:
       # Optional for AI sentence generation from the admin panel:
       # - OPENAI_API_KEY=sk-...
       # - OPENAI_MODEL=gpt-4.1-mini
-      - GEMINI_API_KEY=AIzaSyBB2wQGw1IWb5QiM12M0yT263p7dmwCcAo
-      - GEMINI_MODEL=gemini-2.5-flash-lite
+      # - GEMINI_API_KEY=...
+      # - GEMINI_MODEL=gemini-2.5-flash-lite
       # - MISTRAL_API_KEY=...
       # - MISTRAL_MODEL=mistral-small-latest
       # Optional for host-side automation from the admin panel:
       # - HOST_UPDATER_URL=http://host.docker.internal:8765/update
-      # - UPDATER_TOKEN=change-this-token
+      # - UPDATER_TOKEN=your_secure_token
     volumes:
       - db-data:/app/data
   frontend:
