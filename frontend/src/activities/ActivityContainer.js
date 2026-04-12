@@ -6,6 +6,7 @@ import CompareNumbersActivity from "./CompareNumbersActivity";
 import FractionsVisualSelectionActivity from "./FractionsVisualSelectionActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 import WordClassificationActivity from "./WordClassificationActivity";
+import FillInTheBlanksActivity from "./FillInTheBlanksActivity";
 import ReadNumbersActivity from "./ReadNumbersActivity";
 
 const componentRegistry = {
@@ -30,6 +31,9 @@ const componentRegistry = {
   "src/activities/WordClassificationActivity.js": WordClassificationActivity,
   "WordClassificationActivity": WordClassificationActivity,
   "WordClassificationActivity.js": WordClassificationActivity,
+  "src/activities/FillInTheBlanksActivity.js": FillInTheBlanksActivity,
+  "FillInTheBlanksActivity": FillInTheBlanksActivity,
+  "FillInTheBlanksActivity.js": FillInTheBlanksActivity,
   "src/activities/ReadNumbersActivity.js": ReadNumbersActivity,
   "ReadNumbersActivity": ReadNumbersActivity,
   "ReadNumbersActivity.js": ReadNumbersActivity,
@@ -50,7 +54,7 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
     <div
       id="activity-container-wrapper"
       className="mx-auto mt-2 w-full min-w-0"
-        >
+    >
       <div
         id="activity-container"
         className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white p-3 shadow sm:p-4 print:max-w-[300mm] print:overflow-visible print:p-6"

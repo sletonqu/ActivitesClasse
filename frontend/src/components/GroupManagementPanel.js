@@ -31,6 +31,7 @@ const GroupManagementPanel = ({
   onAssignStudentToGroup,
   onRemoveStudentFromGroup,
   onRemoveAllStudentsFromGroup,
+  hideTitle = false,
 }) => {
   return (
     <div id="groups-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
@@ -38,9 +39,11 @@ const GroupManagementPanel = ({
         id="groups-panel-form-section"
         className={`w-full ${showGroupsList && selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
-        <h3 id="groups-panel-title" className="text-xl font-bold text-slate-800 mb-4">
-          Gestion des groupes
-        </h3>
+        {!hideTitle && (
+          <h3 id="groups-panel-title" className="text-xl font-bold text-slate-800 mb-4">
+            Gestion des groupes
+          </h3>
+        )}
 
         <form id="groups-panel-form" onSubmit={onAddGroup} className="space-y-4">
           <div id="groups-panel-name-field">

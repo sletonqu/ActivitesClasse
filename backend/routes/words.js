@@ -246,6 +246,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  try {
+    const wordId = Number(req.params.id);
+    if (Number.isNaN(wordId) || wordId <= 0) {
+      return res.status(400).json({ error: 'Identifiant de mot invalide' });
+    }
+
+    const result = await runAsync('DELETE FROM words WHERE id = ?', [wordId]);
+    return res.json({ deleted: result.changes });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete('/', async (req, res) => {
   try {
     const result = await runAsync('DELETE FROM words');

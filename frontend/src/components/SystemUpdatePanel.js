@@ -15,7 +15,7 @@ function formatDate(value) {
   return date.toLocaleString("fr-FR");
 }
 
-const SystemUpdatePanel = () => {
+const SystemUpdatePanel = ({ hideTitle = false }) => {
   const [systemInfo, setSystemInfo] = useState(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [requestingUpdate, setRequestingUpdate] = useState(false);
@@ -103,9 +103,11 @@ const SystemUpdatePanel = () => {
     <section id="system-update-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h3 id="system-update-title" className="text-xl font-bold text-slate-800">
-            Version et mise à jour
-          </h3>
+          {!hideTitle && (
+            <h3 id="system-update-title" className="text-xl font-bold text-slate-800">
+              Version et mise à jour
+            </h3>
+          )}
           <p id="system-update-description" className="text-sm text-slate-500 mt-1">
             Vérifie la version publiée sur GitHub et peut déclencher une mise à jour locale si le poste est configuré.
           </p>

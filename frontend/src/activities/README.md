@@ -362,17 +362,18 @@ Comportement :
 
 ### 8. `FillInTheBlanksActivity.js`
 
-**But** : compléter une ou plusieurs phrases à trous, avec saisie libre et éventuellement une banque de mots.
+**But** : compléter une phrase à trous avec une banque de mots (ou saisie libre), et pouvoir charger automatiquement une phrase depuis la base générée par IA.
 
 Exemple de configuration :
 
 ```json
 {
   "title": "Complète la phrase",
-  "instruction": "Lis la phrase puis écris les mots manquants dans les cases.",
+  "instruction": "Lis la phrase puis glisse ou clique les mots manquants dans les trous.",
   "showWordBank": true,
   "sourceLevel": "CE1",
   "sourceTheme": "animaux",
+  "useGeneratedSentencePool": true,
   "sentences": [
     {
       "id": "phrase-1",
@@ -380,8 +381,8 @@ Exemple de configuration :
       "wordBank": ["petit", "chat"],
       "tokens": [
         { "type": "text", "value": "Le" },
-        { "type": "blank", "answer": "petit", "placeholder": "..." },
-        { "type": "blank", "answer": "chat", "placeholder": "..." },
+        { "type": "blank", "answer": "petit", "placeholder": "Mot à glisser" },
+        { "type": "blank", "answer": "chat", "placeholder": "Mot à glisser" },
         { "type": "text", "value": "dort" },
         { "type": "punctuation", "value": "." }
       ]
@@ -397,15 +398,16 @@ Paramètres utiles :
 - `showWordBank`
 - `sourceLevel`
 - `sourceTheme`
+- `useGeneratedSentencePool`
 - `sentences[]`
 - `sentences[].tokens[]` avec `text`, `blank` et `punctuation`
 
 Comportement :
 
-- activité sans glisser-déposer ;
-- validation mot par mot avec score sur 20 ;
-- comparaison tolérante sur les accents et apostrophes ;
-- `Recommencer` réinitialise toutes les réponses en mode démo.
+- interaction au clic et glisser-déposer avec banque de mots ;
+- correction mot par mot avec score sur 20 ;
+- comparaison tolérante aux accents et apostrophes ;
+- si `useGeneratedSentencePool` est actif, récupération d'une phrase depuis l'API de phrases générées.
 
 ---
 

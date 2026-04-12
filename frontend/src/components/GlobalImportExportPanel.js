@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { API_URL } from "../config/api";
 
-const GlobalImportExportPanel = () => {
+const GlobalImportExportPanel = ({ hideTitle = false }) => {
   const fileInputRef = useRef(null);
   const [loadingImport, setLoadingImport] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
@@ -75,7 +75,9 @@ const GlobalImportExportPanel = () => {
 
   return (
     <section id="global-import-export-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
-      <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Groupes, Élèves, Activités, Résultats)</h3>
+      {!hideTitle && (
+        <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Groupes, Élèves, Activités, Résultats)</h3>
+      )}
 
       <input
         id="global-import-export-file-input"

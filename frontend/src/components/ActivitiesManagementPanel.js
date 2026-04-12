@@ -43,6 +43,7 @@ const ActivitiesManagementPanel = ({
   onActivityStatusChange = null,
   onActivityJsFileChange = null,
   onActivityContentChange = null,
+  hideTitle = false,
 }) => {
   return (
     <div id="activities-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
@@ -50,7 +51,9 @@ const ActivitiesManagementPanel = ({
         id="activities-panel-form-section"
         className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
       >
-        <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
+        {!hideTitle && (
+          <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
+        )}
 
     <div id="activities-panel-actions" className="flex flex-wrap gap-3">
           {showAddForm && (

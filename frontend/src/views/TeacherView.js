@@ -4,6 +4,7 @@ import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import StudentsManagementPanel from "../components/StudentsManagementPanel";
 import GroupManagementPanel from "../components/GroupManagementPanel";
 import ResultsManagementPanel from "../components/ResultsManagementPanel";
+import CollapsibleSection from "../components/CollapsibleSection";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
@@ -19,6 +20,7 @@ import {
 } from "../utils/activityManagement";
 
 const TeacherView = () => {
+  const [openSectionId, setOpenSectionId] = useState("");
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [studentName, setStudentName] = useState("");
@@ -807,137 +809,183 @@ const TeacherView = () => {
     }
   };
 
+  const handleToggleSection = (sectionId) => {
+    setOpenSectionId((currentSectionId) =>
+      currentSectionId === sectionId ? "" : sectionId
+    );
+  };
+
   return (
     <div id="teacher-view-root" className="min-h-screen bg-slate-100 px-4 py-6">
       <div className="w-full max-w-[1024px] mx-auto">
         <h2 className="text-2xl font-bold text-slate-800 mb-6">Espace Enseignant</h2>
 
         <div id="bloc-classe-active" className="w-full bg-white rounded-xl shadow p-6 mb-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Classe ciblée</label>
-        <select
-          value={selectedClassId}
-          onChange={(e) => setSelectedClassId(e.target.value)}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          <label className="block text-sm font-semibold text-slate-700 mb-2">Classe ciblée</label>
+          <select
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          >
+            <option value="">Sélectionner une classe</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.id}>
+                {cls.name} (ID: {cls.id})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <CollapsibleSection
+          id="teacher-students-management"
+          title="Gestion des élèves"
+          isOpen={openSectionId === "students-management"}
+          onToggle={() => handleToggleSection("students-management")}
         >
-          <option value="">Sélectionner une classe</option>
-          {classes.map((cls) => (
-            <option key={cls.id} value={cls.id}>
-              {cls.name} (ID: {cls.id})
-            </option>
-          ))}
-        </select>
-      </div>
+          <StudentsManagementPanel
+            studentName={studentName}
+            studentFirstname={studentFirstname}
+            submittingStudent={submittingStudent}
+            studentMessage={studentMessage}
+            studentError={studentError}
+            showStudentMessage={showStudentMessage}
+            fadeStudentMessage={fadeStudentMessage}
+            showStudentsList={showStudentsList}
+            students={students}
+            selectedClassId={selectedClassId}
+            selectedStudentId={selectedStudentId}
+            loadingStudents={loadingStudents}
+            deletingAllStudents={deletingAllStudents}
+            deletingStudentId={deletingStudentId}
+            onStudentNameChange={setStudentName}
+            onStudentFirstnameChange={setStudentFirstname}
+            onAddStudent={handleAddStudent}
+            onToggleStudentsList={handleToggleStudentsList}
+            onSelectStudent={setSelectedStudentId}
+            onDeleteStudent={handleDeleteStudent}
+            onDeleteAllStudents={handleDeleteAllStudents}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-      <StudentsManagementPanel
-        studentName={studentName}
-        studentFirstname={studentFirstname}
-        submittingStudent={submittingStudent}
-        studentMessage={studentMessage}
-        studentError={studentError}
-        showStudentMessage={showStudentMessage}
-        fadeStudentMessage={fadeStudentMessage}
-        showStudentsList={showStudentsList}
-        students={students}
-        selectedClassId={selectedClassId}
-        selectedStudentId={selectedStudentId}
-        loadingStudents={loadingStudents}
-        deletingAllStudents={deletingAllStudents}
-        deletingStudentId={deletingStudentId}
-        onStudentNameChange={setStudentName}
-        onStudentFirstnameChange={setStudentFirstname}
-        onAddStudent={handleAddStudent}
-        onToggleStudentsList={handleToggleStudentsList}
-        onSelectStudent={setSelectedStudentId}
-        onDeleteStudent={handleDeleteStudent}
-        onDeleteAllStudents={handleDeleteAllStudents}
-      />
+        <CollapsibleSection
+          id="teacher-groups-management"
+          title="Gestion des groupes"
+          isOpen={openSectionId === "groups-management"}
+          onToggle={() => handleToggleSection("groups-management")}
+        >
+          <GroupManagementPanel
+            groupName={groupName}
+            submittingGroup={submittingGroup}
+            groupMessage={groupMessage}
+            groupError={groupError}
+            showGroupMessage={showGroupMessage}
+            fadeGroupMessage={fadeGroupMessage}
+            showGroupsList={showGroupsList}
+            groups={groups}
+            selectedClassId={selectedClassId}
+            selectedGroupId={selectedGroupId}
+            selectedGroup={selectedGroup}
+            loadingGroups={loadingGroups}
+            deletingAllGroups={deletingAllGroups}
+            deletingGroupId={deletingGroupId}
+            availableStudents={availableStudents}
+            selectedAvailableStudentId={selectedAvailableStudentId}
+            assigningStudentToGroup={assigningStudentToGroup}
+            groupStudents={groupStudents}
+            removingGroupStudentId={removingGroupStudentId}
+            removingAllGroupStudents={removingAllGroupStudents}
+            onGroupNameChange={setGroupName}
+            onAddGroup={handleAddGroup}
+            onToggleGroupsList={handleToggleGroupsList}
+            onSelectGroup={handleSelectGroup}
+            onDeleteGroup={handleDeleteGroup}
+            onDeleteAllGroups={handleDeleteAllGroups}
+            onSelectedAvailableStudentChange={setSelectedAvailableStudentId}
+            onAssignStudentToGroup={handleAssignStudentToGroup}
+            onRemoveStudentFromGroup={handleRemoveStudentFromGroup}
+            onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-      <GroupManagementPanel
-        groupName={groupName}
-        submittingGroup={submittingGroup}
-        groupMessage={groupMessage}
-        groupError={groupError}
-        showGroupMessage={showGroupMessage}
-        fadeGroupMessage={fadeGroupMessage}
-        showGroupsList={showGroupsList}
-        groups={groups}
-        selectedClassId={selectedClassId}
-        selectedGroupId={selectedGroupId}
-        selectedGroup={selectedGroup}
-        loadingGroups={loadingGroups}
-        deletingAllGroups={deletingAllGroups}
-        deletingGroupId={deletingGroupId}
-        availableStudents={availableStudents}
-        selectedAvailableStudentId={selectedAvailableStudentId}
-        assigningStudentToGroup={assigningStudentToGroup}
-        groupStudents={groupStudents}
-        removingGroupStudentId={removingGroupStudentId}
-        removingAllGroupStudents={removingAllGroupStudents}
-        onGroupNameChange={setGroupName}
-        onAddGroup={handleAddGroup}
-        onToggleGroupsList={handleToggleGroupsList}
-        onSelectGroup={handleSelectGroup}
-        onDeleteGroup={handleDeleteGroup}
-        onDeleteAllGroups={handleDeleteAllGroups}
-        onSelectedAvailableStudentChange={setSelectedAvailableStudentId}
-        onAssignStudentToGroup={handleAssignStudentToGroup}
-        onRemoveStudentFromGroup={handleRemoveStudentFromGroup}
-        onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
-      />
+        <CollapsibleSection
+          id="teacher-results-management"
+          title="Gestion des résultats"
+          isOpen={openSectionId === "results-management"}
+          onToggle={() => handleToggleSection("results-management")}
+        >
+          <ResultsManagementPanel
+            selectedClassId={selectedClassId}
+            selectedResultStudentId={selectedResultStudentId}
+            selectedResultId={selectedResultId}
+            students={students}
+            studentResults={studentResults}
+            selectedResultStudent={selectedResultStudent}
+            loadingResults={loadingResults}
+            resultsError={resultsError}
+            deletingAllResults={deletingAllResults}
+            deletingResultId={deletingResultId}
+            calculatingAverageResultId={calculatingAverageResultId}
+            onSelectResultStudent={setSelectedResultStudentId}
+            onSelectResult={setSelectedResultId}
+            onCalculateAverage={handleCalculateAverage}
+            onDeleteResult={handleDeleteResult}
+            onDeleteAllResults={handleDeleteAllResults}
+            getActivityLabel={getActivityLabel}
+            getResultLevelLabel={getResultLevelLabel}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-      <ResultsManagementPanel
-        selectedClassId={selectedClassId}
-        selectedResultStudentId={selectedResultStudentId}
-        selectedResultId={selectedResultId}
-        students={students}
-        studentResults={studentResults}
-        selectedResultStudent={selectedResultStudent}
-        loadingResults={loadingResults}
-        resultsError={resultsError}
-        deletingAllResults={deletingAllResults}
-        deletingResultId={deletingResultId}
-        calculatingAverageResultId={calculatingAverageResultId}
-        onSelectResultStudent={setSelectedResultStudentId}
-        onSelectResult={setSelectedResultId}
-        onCalculateAverage={handleCalculateAverage}
-        onDeleteResult={handleDeleteResult}
-        onDeleteAllResults={handleDeleteAllResults}
-        getActivityLabel={getActivityLabel}
-        getResultLevelLabel={getResultLevelLabel}
-      />
+        <CollapsibleSection
+          id="teacher-activities-management"
+          title="Gestion des activités"
+          isOpen={openSectionId === "activities-management"}
+          onToggle={() => handleToggleSection("activities-management")}
+        >
+          <div id="zone-gestion-activites" className="w-full mb-6">
+            <ActivitiesManagementPanel
+              activities={activities}
+              loadingActivities={loadingActivities}
+              showActivitiesList={showActivitiesList}
+              selectedActivityEditId={selectedActivityEditId}
+              editActivityTitle={editActivityTitle}
+              editActivityDescription={editActivityDescription}
+              editActivityStatus={editActivityStatus}
+              editActivityJsFile={editActivityJsFile}
+              editActivityContentText={editActivityContentText}
+              submittingEditActivity={submittingEditActivity}
+              editActivityError={editActivityError}
+              activityMessage={activityMessage}
+              showActivityMessage={showActivityMessage}
+              fadeActivityMessage={fadeActivityMessage}
+              onToggleActivitiesList={handleToggleActivitiesList}
+              onSelectActivityToEdit={handleSelectActivityToEdit}
+              onUpdateActivity={handleUpdateActivity}
+              onEditTitleChange={setEditActivityTitle}
+              onEditDescriptionChange={setEditActivityDescription}
+              onEditStatusChange={setEditActivityStatus}
+              onEditJsFileChange={setEditActivityJsFile}
+              onEditContentChange={setEditActivityContentText}
+              hideTitle
+            />
+          </div>
+        </CollapsibleSection>
 
-      <div id="zone-gestion-activites" className="w-full mb-6">
-        <ActivitiesManagementPanel
-          activities={activities}
-          loadingActivities={loadingActivities}
-          showActivitiesList={showActivitiesList}
-          selectedActivityEditId={selectedActivityEditId}
-          editActivityTitle={editActivityTitle}
-          editActivityDescription={editActivityDescription}
-          editActivityStatus={editActivityStatus}
-          editActivityJsFile={editActivityJsFile}
-          editActivityContentText={editActivityContentText}
-          submittingEditActivity={submittingEditActivity}
-          editActivityError={editActivityError}
-          activityMessage={activityMessage}
-          showActivityMessage={showActivityMessage}
-          fadeActivityMessage={fadeActivityMessage}
-          onToggleActivitiesList={handleToggleActivitiesList}
-          onSelectActivityToEdit={handleSelectActivityToEdit}
-          onUpdateActivity={handleUpdateActivity}
-          onEditTitleChange={setEditActivityTitle}
-          onEditDescriptionChange={setEditActivityDescription}
-          onEditStatusChange={setEditActivityStatus}
-          onEditJsFileChange={setEditActivityJsFile}
-          onEditContentChange={setEditActivityContentText}
-        />
-      </div>
-
-        <StudentsImportExportPanel
+        <CollapsibleSection
+          id="teacher-students-import-export"
           title="Import / Export des élèves (Enseignant)"
-          selectedClassId={selectedClassId}
-          requireClassSelection
-        />
+          isOpen={openSectionId === "students-import-export"}
+          onToggle={() => handleToggleSection("students-import-export")}
+        >
+          <StudentsImportExportPanel
+            title="Import / Export des élèves (Enseignant)"
+            selectedClassId={selectedClassId}
+            requireClassSelection
+            hideTitle
+          />
+        </CollapsibleSection>
       </div>
     </div>
   );

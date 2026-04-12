@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { API_URL } from "../config/api";
 
-const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClassSelection = false }) => {
+const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClassSelection = false, hideTitle = false }) => {
   const [csvText, setCsvText] = useState("name,firstname,class_id,group_id,group_name\nDupont,Alice,1,,");
   const [loadingImport, setLoadingImport] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
@@ -74,7 +74,9 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
 
   return (
     <section id="students-import-export-section" className="w-full bg-white rounded-xl shadow p-6">
-      <h3 id="students-import-export-title" className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
+      {!hideTitle && (
+        <h3 id="students-import-export-title" className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
+      )}
 
       {mustSelectClass && (
         <div id="students-import-export-class-alert" className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">

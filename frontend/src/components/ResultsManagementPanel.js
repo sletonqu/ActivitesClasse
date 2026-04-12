@@ -19,11 +19,14 @@ const ResultsManagementPanel = ({
   onDeleteAllResults,
   getActivityLabel,
   getResultLevelLabel,
+  hideTitle = false,
 }) => {
   return (
     <div id="results-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section id="results-panel-filter-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
-        <h3 id="results-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
+        {!hideTitle && (
+          <h3 id="results-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
+        )}
 
         {!selectedClassId ? (
           <p className="text-slate-500 text-sm">Sélectionnez une classe active pour gérer les résultats.</p>

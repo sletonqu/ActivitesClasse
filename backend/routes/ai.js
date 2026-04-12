@@ -1,0 +1,758 @@
+const express = require("express");
+const db = require("../db");
+
+const router = express.Router();
+
+function allAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(Array.isArray(rows) ? rows : []);
+    });
+  });
+}
+
+function getAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(row || null);
+    });
+  });
+}
+
+function runAsync(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function onRun(err) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve({ lastID: this.lastID, changes: this.changes });
+    });
+  });
+}
+
+const PROVIDERS = {
+  openai: {
+    id: "openai",
+    label: "ChatGPT / OpenAI",
+    apiKeyEnv: "OPENAI_API_KEY",
+    modelEnv: "OPENAI_MODEL",
+    defaultModel: "gpt-4.1-mini",
+  },
+  gemini: {
+    id: "gemini",
+    label: "Gemini",
+    apiKeyEnv: "GEMINI_API_KEY",
+    modelEnv: "GEMINI_MODEL",
+    defaultModel: "gemini-2.0-flash",
+  },
+  mistral: {
+    id: "mistral",
+    label: "MistralAI",
+    apiKeyEnv: "MISTRAL_API_KEY",
+    modelEnv: "MISTRAL_MODEL",
+    defaultModel: "mistral-small-latest",
+  },
+};
+
+const ALLOWED_LEVELS = new Set(["CE1", "CE2"]);
+const VARIABLE_NATURES = [
+  "déterminant",
+  "determinant",
+  "nom",
+  "nom commun",
+  "nom propre",
+  "verbe",
+  "adjectif",
+  "adjectif qualificatif",
+  "pronom",
+];
+const INVARIABLE_NATURES = [
+  "adverbe",
+  "préposition",
+  "preposition",
+  "conjonction",
+  "interjection",
+];
+
+function normalizeText(value, fallback = "") {
+  return String(value ?? fallback).trim();
+}
+
+function parseJsonSafely(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function stripCodeFences(value) {
+  return String(value || "")
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function extractFirstJsonObject(value) {
+  const cleaned = stripCodeFences(value);
+  const directParse = parseJsonSafely(cleaned);
+  if (directParse && typeof directParse === "object") {
+    return directParse;
+  }
+
+  const startIndex = cleaned.indexOf("{");
+  if (startIndex === -1) {
+    throw new Error("La réponse du fournisseur IA ne contient pas de JSON exploitable");
+  }
+
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = startIndex; index < cleaned.length; index += 1) {
+    const char = cleaned[index];
+
+    if (isEscaped) {
+      isEscaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      isEscaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        const jsonSlice = cleaned.slice(startIndex, index + 1);
+        const parsed = parseJsonSafely(jsonSlice);
+        if (parsed && typeof parsed === "object") {
+          return parsed;
+        }
+      }
+    }
+  }
+
+  throw new Error("Impossible de lire le JSON renvoyé par le fournisseur IA");
+}
+
+function isPunctuationToken(token) {
+  return !/[\p{L}\p{N}]/u.test(token);
+}
+
+function tokenizeSentence(sentence) {
+  const tokens = String(sentence || "").match(/\p{L}+(?:['’\-]\p{L}+)*|\p{N}+|[^\s]/gu);
+  return Array.isArray(tokens) ? tokens.map((token) => token.trim()).filter(Boolean) : [];
+}
+
+function normalizeNature(value) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function guessCategoryFromNature(nature) {
+  const normalizedNature = normalizeNature(nature);
+
+  if (VARIABLE_NATURES.includes(normalizedNature)) {
+    return "mot variable";
+  }
+
+  if (INVARIABLE_NATURES.includes(normalizedNature)) {
+    return "mot invariable";
+  }
+
+  return "autre";
+}
+
+function normalizeGeneratedPayload(payload, context) {
+  const sentence = normalizeText(payload?.sentence || payload?.phrase);
+  if (!sentence) {
+    throw new Error("La phrase générée est vide");
+  }
+
+  const tokens = tokenizeSentence(sentence);
+  if (tokens.length === 0) {
+    throw new Error("Aucun mot n'a pu être extrait de la phrase générée");
+  }
+
+  const sourceWords = Array.isArray(payload?.words)
+    ? payload.words
+    : Array.isArray(payload?.mots)
+      ? payload.mots
+      : [];
+
+  const words = tokens.map((token, index) => {
+    const sourceEntry = sourceWords[index] && typeof sourceWords[index] === "object" ? sourceWords[index] : {};
+    const proposedNature = normalizeText(sourceEntry.nature || sourceEntry.pos || sourceEntry.type);
+    const proposedCategory = normalizeText(
+      sourceEntry.category || sourceEntry.categorie || sourceEntry.classification
+    );
+
+    if (isPunctuationToken(token)) {
+      return {
+        position: index + 1,
+        word: token,
+        nature: "ponctuation",
+        category: "ponctuation",
+      };
+    }
+
+    return {
+      position: index + 1,
+      word: token,
+      nature: proposedNature || "à préciser",
+      category: proposedCategory || guessCategoryFromNature(proposedNature),
+    };
+  });
+
+  return {
+    sentence,
+    level: context.level,
+    theme: context.theme || "libre",
+    provider: context.provider,
+    model: context.model,
+    words,
+  };
+}
+
+function normalizeGeneratedPayloadList(payload, context, requestedCount) {
+  const rawEntries = Array.isArray(payload?.sentences)
+    ? payload.sentences
+    : Array.isArray(payload?.phrases)
+      ? payload.phrases
+      : payload && typeof payload === "object"
+        ? [payload]
+        : [];
+
+  const normalizedEntries = rawEntries
+    .map((entry) => normalizeGeneratedPayload(entry, context))
+    .filter((entry) => Boolean(entry?.sentence));
+
+  if (normalizedEntries.length === 0) {
+    throw new Error("Aucune phrase exploitable n'a été renvoyée par le fournisseur IA");
+  }
+
+  return normalizedEntries.slice(0, requestedCount);
+}
+
+function buildSentencePrompt({ level, theme, maxWords, customInstruction, phraseCount }) {
+  const extraInstruction = normalizeText(customInstruction);
+  const cleanTheme = normalizeText(theme, "vie quotidienne");
+
+  return [
+    "Rôle : assistant de français pour l'école élémentaire.",
+    `Produit ${phraseCount} phrase(s) très simple(s) pour ${level}, thème \"${cleanTheme}\", avec ${maxWords} mots maximum hors ponctuation par phrase.`,
+    "Utilise un vocabulaire concret, positif et adapté au CE1/CE2.",
+    extraInstruction ? `Contrainte : ${extraInstruction}` : "",
+    "Réponds uniquement avec un JSON valide, sans Markdown.",
+    'Format attendu : {"sentences":[{"sentence":"Le petit chat dort.","words":[{"position":1,"word":"Le","nature":"déterminant","category":"mot variable"},{"position":2,"word":"petit","nature":"adjectif qualificatif","category":"mot variable"},{"position":3,"word":"chat","nature":"nom commun","category":"mot variable"},{"position":4,"word":"dort","nature":"verbe","category":"mot variable"},{"position":5,"word":".","nature":"ponctuation","category":"ponctuation"}]}]}',
+    "Chaque entrée de sentences doit suivre exactement l'ordre des mots de la phrase, ponctuation comprise.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function estimateOutputTokenLimit(phraseCount, maxWords) {
+  const estimated = phraseCount * (maxWords + 4) * 18;
+  return Math.min(Math.max(estimated, 280), 1400);
+}
+
+async function parseErrorResponse(response, fallbackMessage) {
+  const rawText = await response.text();
+  const json = parseJsonSafely(rawText);
+
+  return (
+    json?.error?.message ||
+    json?.error ||
+    json?.message ||
+    rawText ||
+    fallbackMessage
+  );
+}
+
+async function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("Le fournisseur IA a mis trop de temps à répondre");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function requestOpenAiLikeCompletion(providerConfig, prompt, endpoint, outputTokenLimit) {
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${providerConfig.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: providerConfig.model,
+      temperature: 0.2,
+      max_tokens: outputTokenLimit,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "Tu produis uniquement du JSON valide pour une application scolaire en français.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(
+      response,
+      `Erreur lors de l'appel à ${providerConfig.label}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content || "";
+}
+
+async function requestGeminiCompletion(providerConfig, prompt, outputTokenLimit) {
+  const response = await fetchWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/models/${providerConfig.model}:generateContent?key=${providerConfig.apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          topP: 0.1,
+          maxOutputTokens: outputTokenLimit,
+          responseMimeType: "application/json",
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response, "Erreur lors de l'appel à Gemini");
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  const parts = data?.candidates?.[0]?.content?.parts;
+  return Array.isArray(parts) ? parts.map((part) => part?.text || "").join("\n") : "";
+}
+
+function getProviderSetup(providerId) {
+  const provider = PROVIDERS[providerId] || PROVIDERS.openai;
+  return {
+    ...provider,
+    apiKey: normalizeText(process.env[provider.apiKeyEnv]),
+    model: normalizeText(process.env[provider.modelEnv], provider.defaultModel),
+  };
+}
+
+router.get('/providers', (req, res) => {
+  const providers = Object.values(PROVIDERS).map((provider) => {
+    const setup = getProviderSetup(provider.id);
+    return {
+      id: provider.id,
+      label: provider.label,
+      configured: Boolean(setup.apiKey),
+      model: setup.model,
+    };
+  });
+
+  return res.json({ providers });
+});
+
+async function storeGeneratedSentences(sentences) {
+  const insertedSentences = [];
+
+  for (const sentenceEntry of sentences) {
+    const serializedPayload = JSON.stringify(sentenceEntry);
+    const insertResult = await runAsync(
+      `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur)
+       VALUES (?, ?, ?, ?, ?, ?, 0)`,
+      [
+        sentenceEntry.sentence,
+        sentenceEntry.level || null,
+        sentenceEntry.theme || null,
+        sentenceEntry.provider || null,
+        sentenceEntry.model || null,
+        serializedPayload,
+      ]
+    );
+
+    const insertedRow = await getAsync(
+      `SELECT id, compteur, created_at
+       FROM generated_sentences
+       WHERE id = ?`,
+      [insertResult.lastID]
+    );
+
+    insertedSentences.push({
+      ...sentenceEntry,
+      id: insertedRow?.id || insertResult.lastID,
+      compteur: insertedRow?.compteur ?? 0,
+      createdAt: insertedRow?.created_at || null,
+    });
+  }
+
+  return insertedSentences;
+}
+
+function buildGeneratedSentenceFilters(query = {}) {
+  const where = [];
+  const params = [];
+  const level = normalizeText(query?.level).toUpperCase();
+  const theme = normalizeText(query?.theme).toLowerCase();
+  const search = normalizeText(query?.search).toLowerCase();
+
+  if (level) {
+    if (!ALLOWED_LEVELS.has(level)) {
+      throw new Error('Le niveau doit être CE1 ou CE2');
+    }
+    where.push('UPPER(level) = ?');
+    params.push(level);
+  }
+
+  if (theme) {
+    where.push('LOWER(theme) LIKE ?');
+    params.push(`%${theme}%`);
+  }
+
+  if (search) {
+    where.push('LOWER(sentence) LIKE ?');
+    params.push(`%${search}%`);
+  }
+
+  return { where, params };
+}
+
+async function getLeastUsedSentence(level, theme) {
+  const attempts = [];
+  const normalizedLevel = normalizeText(level).toUpperCase();
+  const normalizedTheme = normalizeText(theme).toLowerCase();
+
+  if (normalizedLevel && normalizedTheme) {
+    attempts.push({ level: normalizedLevel, theme: normalizedTheme });
+  }
+  if (normalizedLevel) {
+    attempts.push({ level: normalizedLevel, theme: "" });
+  }
+  if (normalizedTheme) {
+    attempts.push({ level: "", theme: normalizedTheme });
+  }
+  attempts.push({ level: "", theme: "" });
+
+  const seenKeys = new Set();
+
+  for (const attempt of attempts) {
+    const key = `${attempt.level}|${attempt.theme}`;
+    if (seenKeys.has(key)) {
+      continue;
+    }
+    seenKeys.add(key);
+
+    const where = [];
+    const params = [];
+
+    if (attempt.level) {
+      where.push("UPPER(level) = ?");
+      params.push(attempt.level);
+    }
+
+    if (attempt.theme) {
+      where.push("LOWER(theme) = ?");
+      params.push(attempt.theme);
+    }
+
+    const row = await getAsync(
+      `SELECT *
+       FROM generated_sentences
+       ${where.length > 0 ? `WHERE ${where.join(" AND ")}` : ""}
+       ORDER BY COALESCE(compteur, 0) ASC, id ASC
+       LIMIT 1`,
+      params
+    );
+
+    if (row) {
+      return row;
+    }
+  }
+
+  return null;
+}
+
+router.get('/generated-sentences', async (req, res) => {
+  try {
+    const parsedLimit = Number(req.query?.limit);
+    const limit = Number.isNaN(parsedLimit)
+      ? 100
+      : Math.min(Math.max(Math.round(parsedLimit), 1), 500);
+    const { where, params } = buildGeneratedSentenceFilters(req.query);
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const [rows, totalRow] = await Promise.all([
+      allAsync(
+        `SELECT id, sentence, level, theme, provider, model, compteur, created_at
+         FROM generated_sentences
+         ${whereClause}
+         ORDER BY COALESCE(compteur, 0) ASC, id DESC
+         LIMIT ?`,
+        [...params, limit]
+      ),
+      getAsync(
+        `SELECT COUNT(*) AS total
+         FROM generated_sentences
+         ${whereClause}`,
+        params
+      ),
+    ]);
+
+    return res.json({
+      total: totalRow?.total ?? rows.length,
+      sentences: rows,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors du chargement des phrases générées',
+    });
+  }
+});
+
+router.get('/generated-sentences/next', async (req, res) => {
+  try {
+    const level = normalizeText(req.query?.level).toUpperCase();
+    const theme = normalizeText(req.query?.theme);
+
+    if (level && !ALLOWED_LEVELS.has(level)) {
+      return res.status(400).json({ error: 'Le niveau doit être CE1 ou CE2' });
+    }
+
+    const row = await getLeastUsedSentence(level, theme);
+    if (!row) {
+      return res.status(404).json({ error: 'Aucune phrase générée n\'est disponible dans la base.' });
+    }
+
+    await runAsync(
+      'UPDATE generated_sentences SET compteur = COALESCE(compteur, 0) + 1 WHERE id = ?',
+      [row.id]
+    );
+
+    const payload = parseJsonSafely(row.payload);
+    const sentence = payload && typeof payload === 'object'
+      ? payload
+      : {
+          sentence: row.sentence,
+          level: row.level || level || 'CE1',
+          theme: row.theme || theme || 'libre',
+          provider: row.provider || '',
+          model: row.model || '',
+          words: [],
+        };
+
+    return res.json({
+      sentence: {
+        ...sentence,
+        id: row.id,
+        compteur: Number(row.compteur || 0) + 1,
+        createdAt: row.created_at || null,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la récupération de la phrase en base',
+    });
+  }
+});
+
+router.post('/generated-sentences/reset-counters', async (req, res) => {
+  try {
+    const { where, params } = buildGeneratedSentenceFilters(req.query);
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const result = await runAsync(
+      `UPDATE generated_sentences SET compteur = 0 ${whereClause}`,
+      params
+    );
+
+    return res.json({ reset: result.changes || 0 });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la réinitialisation des compteurs',
+    });
+  }
+});
+
+router.delete('/generated-sentences/:id', async (req, res) => {
+  try {
+    const sentenceId = Number(req.params.id);
+    if (Number.isNaN(sentenceId)) {
+      return res.status(400).json({ error: 'Identifiant de phrase invalide' });
+    }
+
+    const result = await runAsync('DELETE FROM generated_sentences WHERE id = ?', [sentenceId]);
+    if (!result.changes) {
+      return res.status(404).json({ error: 'Phrase non trouvée' });
+    }
+
+    return res.json({ deleted: result.changes });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la suppression de la phrase',
+    });
+  }
+});
+
+router.delete('/generated-sentences', async (req, res) => {
+  try {
+    const { where, params } = buildGeneratedSentenceFilters(req.query);
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const result = await runAsync(
+      `DELETE FROM generated_sentences ${whereClause}`,
+      params
+    );
+
+    return res.json({ deleted: result.changes || 0 });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la suppression des phrases générées',
+    });
+  }
+});
+
+router.post('/generate-sentence', async (req, res) => {
+  try {
+    const providerId = normalizeText(req.body?.provider, 'openai').toLowerCase();
+    const level = normalizeText(req.body?.level, 'CE1').toUpperCase();
+    const theme = normalizeText(req.body?.theme, 'vie quotidienne');
+    const customInstruction = normalizeText(req.body?.customInstruction);
+    const parsedMaxWords = Number(req.body?.maxWords);
+    const maxWords = Number.isNaN(parsedMaxWords)
+      ? 6
+      : Math.min(Math.max(Math.round(parsedMaxWords), 3), 10);
+    const parsedPhraseCount = Number(req.body?.phraseCount);
+    const phraseCount = Number.isNaN(parsedPhraseCount)
+      ? 1
+      : Math.min(Math.max(Math.round(parsedPhraseCount), 1), 12);
+
+    if (!PROVIDERS[providerId]) {
+      return res.status(400).json({ error: 'Fournisseur IA non pris en charge' });
+    }
+
+    if (!ALLOWED_LEVELS.has(level)) {
+      return res.status(400).json({ error: 'Le niveau doit être CE1 ou CE2' });
+    }
+
+    const providerSetup = getProviderSetup(providerId);
+    if (!providerSetup.apiKey) {
+      return res.status(400).json({
+        error: `La clé API ${providerSetup.apiKeyEnv} est absente sur le backend`,
+      });
+    }
+
+    const prompt = buildSentencePrompt({
+      level,
+      theme,
+      maxWords,
+      customInstruction,
+      phraseCount,
+    });
+    const outputTokenLimit = estimateOutputTokenLimit(phraseCount, maxWords);
+
+    let rawContent = '';
+
+    if (providerId === 'gemini') {
+      rawContent = await requestGeminiCompletion(providerSetup, prompt, outputTokenLimit);
+    } else if (providerId === 'mistral') {
+      rawContent = await requestOpenAiLikeCompletion(
+        providerSetup,
+        prompt,
+        'https://api.mistral.ai/v1/chat/completions',
+        outputTokenLimit
+      );
+    } else {
+      rawContent = await requestOpenAiLikeCompletion(
+        providerSetup,
+        prompt,
+        'https://api.openai.com/v1/chat/completions',
+        outputTokenLimit
+      );
+    }
+
+    const parsedPayload = extractFirstJsonObject(rawContent);
+    const normalizedSentences = normalizeGeneratedPayloadList(
+      parsedPayload,
+      {
+        level,
+        theme,
+        provider: providerId,
+        model: providerSetup.model,
+      },
+      phraseCount
+    );
+    const storedSentences = await storeGeneratedSentences(normalizedSentences);
+
+    return res.json({
+      result: {
+        requestedCount: phraseCount,
+        generatedCount: storedSentences.length,
+        importedCount: storedSentences.length,
+        sentences: storedSentences,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la génération de la phrase par IA',
+    });
+  }
+});
+
+module.exports = router;

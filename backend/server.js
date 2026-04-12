@@ -18,6 +18,7 @@ app.use('/api/groups', require('./routes/groups'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/activities', require('./routes/activities'));
 app.use('/api/words', require('./routes/words'));
+app.use('/api/ai', require('./routes/ai'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/import', require('./routes/import'));

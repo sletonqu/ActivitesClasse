@@ -2,15 +2,19 @@ import React, { useEffect, useRef, useState } from "react";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
-const WordsManagementPanel = () => {
+const WordsManagementPanel = ({ hideTitle = false }) => {
   const fileInputRef = useRef(null);
   const [loadingImport, setLoadingImport] = useState(false);
   const [loadingStats, setLoadingStats] = useState(false);
   const [deletingAllWords, setDeletingAllWords] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [deletingWordId, setDeletingWordId] = useState("");
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [stats, setStats] = useState({ total: 0, byCategory: [], byClass: [] });
+  const [searchText, setSearchText] = useState("");
+  const [searchedWords, setSearchedWords] = useState([]);
 
   const { show: showMessage, fade: fadeMessage } = useAutoDismissMessage(message, setMessage);
 
@@ -40,6 +44,33 @@ const WordsManagementPanel = () => {
   useEffect(() => {
     loadStats();
   }, []);
+
+  const loadSearchedWords = async (rawSearchText = "") => {
+    setLoadingSearch(true);
+    setError("");
+
+    try {
+      const query = String(rawSearchText || "").trim();
+      const params = new URLSearchParams({ limit: "25" });
+      if (query) {
+        params.set("search", query);
+      }
+
+      const response = await fetch(`${API_URL}/words?${params.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors du chargement des mots");
+      }
+
+      setSearchedWords(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setSearchedWords([]);
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
 
   const handleFilePick = () => {
     setError("");
@@ -76,6 +107,7 @@ const WordsManagementPanel = () => {
       setResult(data);
       setMessage(`${data.imported ?? 0} mots importés avec succès`);
       await loadStats();
+      await loadSearchedWords(searchText);
     } catch (err) {
       setError(err.message || "Erreur inconnue");
     } finally {
@@ -113,6 +145,7 @@ const WordsManagementPanel = () => {
         data.deleted > 0 ? "Tous les mots ont été supprimés" : "Aucun mot à supprimer"
       );
       await loadStats();
+      setSearchedWords([]);
     } catch (err) {
       setError(err.message || "Erreur inconnue");
     } finally {
@@ -120,15 +153,55 @@ const WordsManagementPanel = () => {
     }
   };
 
+  const handleSearchWords = async (event) => {
+    event.preventDefault();
+    await loadSearchedWords(searchText);
+  };
+
+  const handleDeleteWord = async (word) => {
+    if (!word?.id) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(`Supprimer le mot « ${word.word || "(vide)"} » de la base ?`);
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingWordId(String(word.id));
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/words/${word.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la suppression du mot");
+      }
+
+      setMessage(data.deleted > 0 ? "Mot supprimé de la base." : "Aucun mot supprimé.");
+      await loadStats();
+      await loadSearchedWords(searchText);
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setDeletingWordId("");
+    }
+  };
+
   return (
     <section id="words-management-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
       <div id="words-management-header" className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
         <div>
-          <h3 id="words-management-title" className="text-xl font-bold text-slate-800 mb-2">
-            Gestion Mots
-          </h3>
+          {!hideTitle && (
+            <h3 id="words-management-title" className="text-xl font-bold text-slate-800 mb-2">
+              Gestion Mots
+            </h3>
+          )}
           <p id="words-management-description" className="text-sm text-slate-500 max-w-2xl">
-            Import du référentiel Dubois-Buyse pour préparer les futures activités de vocabulaire et de grammaire.
+            Importe le référentiel Dubois-Buyse, consulte les mots en base et supprime les entrées qui ne sont plus utiles.
           </p>
         </div>
 
@@ -174,6 +247,31 @@ const WordsManagementPanel = () => {
       <p id="words-management-format" className="mt-3 text-sm text-slate-500">
         Colonnes attendues : <span className="font-mono">Mot, EchelonDB, Nature, Categorie, Classe, Niveau</span>
       </p>
+
+      <form id="words-management-search-form" className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={handleSearchWords}>
+        <div>
+          <label className="mb-1 block text-sm font-semibold text-slate-700">Recherche d'un mot</label>
+          <input
+            id="words-management-search-input"
+            type="text"
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="Exemple : chat"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
+        </div>
+
+        <div className="flex items-end">
+          <button
+            id="words-management-search-button"
+            type="submit"
+            disabled={loadingSearch || loadingImport || deletingAllWords}
+            className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+          >
+            {loadingSearch ? "Recherche..." : "Rechercher"}
+          </button>
+        </div>
+      </form>
 
       {showMessage && message && (
         <div
@@ -230,6 +328,56 @@ const WordsManagementPanel = () => {
           </div>
         </div>
       )}
+
+      <div id="words-management-search-results" className="mt-4 space-y-3">
+        {searchedWords.length === 0 && !loadingSearch ? (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">
+            {searchText.trim()
+              ? "Aucun mot trouvé pour cette recherche."
+              : "Utilise la recherche pour afficher les mots en base."}
+          </div>
+        ) : (
+          searchedWords.map((item) => (
+            <div
+              key={item.id}
+              id={`words-management-item-${item.id}`}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+            >
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-1">
+                  <div className="text-base font-semibold text-slate-800">{item.word || "—"}</div>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full bg-sky-100 px-2.5 py-1 font-semibold text-sky-800">
+                      Nature : {item.nature || "—"}
+                    </span>
+                    <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">
+                      Catégorie : {item.category || "—"}
+                    </span>
+                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 font-semibold text-emerald-800">
+                      Classe : {item.school_class || "—"}
+                    </span>
+                    <span className="rounded-full bg-slate-200 px-2.5 py-1 font-semibold text-slate-700">
+                      Niveau : {item.level ?? "—"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  id={`words-management-delete-word-button-${item.id}`}
+                  type="button"
+                  onClick={() => {
+                    void handleDeleteWord(item);
+                  }}
+                  disabled={deletingWordId === String(item.id) || deletingAllWords || loadingImport}
+                  className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+                >
+                  {deletingWordId === String(item.id) ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </section>
   );
 };

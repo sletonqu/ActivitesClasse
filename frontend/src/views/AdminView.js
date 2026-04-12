@@ -6,6 +6,8 @@ import TeachersManagementPanel from "../components/TeachersManagementPanel";
 import ClassesManagementPanel from "../components/ClassesManagementPanel";
 import SystemUpdatePanel from "../components/SystemUpdatePanel";
 import WordsManagementPanel from "../components/WordsManagementPanel";
+import SentencesManagementPanel from "../components/SentencesManagementPanel";
+import CollapsibleSection from "../components/CollapsibleSection";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
@@ -23,6 +25,7 @@ import {
 } from "../utils/activityManagement";
 
 const AdminView = () => {
+  const [openSectionId, setOpenSectionId] = useState("");
   const [teacherName, setTeacherName] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherPassword, setTeacherPassword] = useState("");
@@ -669,116 +672,206 @@ const AdminView = () => {
     }
   };
 
+  const handleUseAiSentenceAsActivityTemplate = (template) => {
+    if (!template?.content) {
+      return;
+    }
+
+    setActivityTitle(template.title || "Phrase à trous");
+    setActivityDescription(
+      template.description || "Complète la phrase avec les mots manquants."
+    );
+    setActivityStatus(template.status || "Active");
+    setActivityJsFile(template.jsFile || "src/activities/FillInTheBlanksActivity.js");
+    setActivityContentText(JSON.stringify(template.content, null, 2));
+    setActivityError("");
+    setActivityMessage("La base de l'activité phrase à trous a été préparée dans le formulaire ci-dessus.");
+
+    document.getElementById("activities-panel-root")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    setOpenSectionId("activities-management");
+  };
+
+  const handleToggleSection = (sectionId) => {
+    setOpenSectionId((currentSectionId) =>
+      currentSectionId === sectionId ? "" : sectionId
+    );
+  };
+
   return (
     <div id="admin-view-root" className="min-h-screen bg-slate-100 px-4 py-6">
       <div className="w-full max-w-[1024px] mx-auto">
         <h2 id="admin-view-title" className="text-2xl font-bold text-slate-800 mb-6">Tableau de bord Administrateur</h2>
 
-        <TeachersManagementPanel
-        teacherName={teacherName}
-        teacherEmail={teacherEmail}
-        teacherPassword={teacherPassword}
-        teacherSelectedClassId={teacherSelectedClassId}
-        submittingTeacher={submittingTeacher}
-        teacherMessage={teacherMessage}
-        teacherError={teacherError}
-        showTeacherMessage={showTeacherMessage}
-        fadeTeacherMessage={fadeTeacherMessage}
-        showTeachersList={showTeachersList}
-        teachers={teachers}
-        classes={classes}
-        loadingTeachers={loadingTeachers}
-        selectedTeacherId={selectedTeacherId}
-        deletingTeacherId={deletingTeacherId}
-        deletingAllTeachers={deletingAllTeachers}
-        onTeacherNameChange={setTeacherName}
-        onTeacherEmailChange={setTeacherEmail}
-        onTeacherPasswordChange={setTeacherPassword}
-        onTeacherSelectedClassIdChange={setTeacherSelectedClassId}
-        onAddTeacher={handleAddTeacher}
-        onToggleTeachersList={handleToggleTeachersList}
-        onSelectTeacher={handleSelectTeacher}
-        onDeleteTeacher={handleDeleteTeacher}
-        onDeleteAllTeachers={handleDeleteAllTeachers}
-      />
+        <CollapsibleSection
+          id="admin-teachers-management"
+          title="Gestion des enseignants"
+          isOpen={openSectionId === "teachers-management"}
+          onToggle={() => handleToggleSection("teachers-management")}
+        >
+          <TeachersManagementPanel
+            teacherName={teacherName}
+            teacherEmail={teacherEmail}
+            teacherPassword={teacherPassword}
+            teacherSelectedClassId={teacherSelectedClassId}
+            submittingTeacher={submittingTeacher}
+            teacherMessage={teacherMessage}
+            teacherError={teacherError}
+            showTeacherMessage={showTeacherMessage}
+            fadeTeacherMessage={fadeTeacherMessage}
+            showTeachersList={showTeachersList}
+            teachers={teachers}
+            classes={classes}
+            loadingTeachers={loadingTeachers}
+            selectedTeacherId={selectedTeacherId}
+            deletingTeacherId={deletingTeacherId}
+            deletingAllTeachers={deletingAllTeachers}
+            onTeacherNameChange={setTeacherName}
+            onTeacherEmailChange={setTeacherEmail}
+            onTeacherPasswordChange={setTeacherPassword}
+            onTeacherSelectedClassIdChange={setTeacherSelectedClassId}
+            onAddTeacher={handleAddTeacher}
+            onToggleTeachersList={handleToggleTeachersList}
+            onSelectTeacher={handleSelectTeacher}
+            onDeleteTeacher={handleDeleteTeacher}
+            onDeleteAllTeachers={handleDeleteAllTeachers}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-      <ClassesManagementPanel
-        className={className}
-        classTeacherId={classTeacherId}
-        submittingClass={submittingClass}
-        classMessage={classMessage}
-        classError={classError}
-        showClassMessage={showClassMessage}
-        fadeClassMessage={fadeClassMessage}
-        showClassesList={showClassesList}
-        classes={classes}
-        teachers={teachers}
-        loadingClasses={loadingClasses}
-        selectedClassId={selectedClassListId}
-        deletingClassId={deletingClassId}
-        deletingAllClasses={deletingAllClasses}
-        onClassNameChange={setClassName}
-        onClassTeacherIdChange={setClassTeacherId}
-        onAddClass={handleAddClass}
-        onToggleClassesList={handleToggleClassesList}
-        onSelectClass={handleSelectClass}
-        onDeleteClass={handleDeleteClass}
-        onDeleteAllClasses={handleDeleteAllClasses}
-      />
+        <CollapsibleSection
+          id="admin-classes-management"
+          title="Gestion des classes"
+          isOpen={openSectionId === "classes-management"}
+          onToggle={() => handleToggleSection("classes-management")}
+        >
+          <ClassesManagementPanel
+            className={className}
+            classTeacherId={classTeacherId}
+            submittingClass={submittingClass}
+            classMessage={classMessage}
+            classError={classError}
+            showClassMessage={showClassMessage}
+            fadeClassMessage={fadeClassMessage}
+            showClassesList={showClassesList}
+            classes={classes}
+            teachers={teachers}
+            loadingClasses={loadingClasses}
+            selectedClassId={selectedClassListId}
+            deletingClassId={deletingClassId}
+            deletingAllClasses={deletingAllClasses}
+            onClassNameChange={setClassName}
+            onClassTeacherIdChange={setClassTeacherId}
+            onAddClass={handleAddClass}
+            onToggleClassesList={handleToggleClassesList}
+            onSelectClass={handleSelectClass}
+            onDeleteClass={handleDeleteClass}
+            onDeleteAllClasses={handleDeleteAllClasses}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-      <ActivitiesManagementPanel
-        activities={activities}
-        loadingActivities={loadingActivities}
-        showActivitiesList={showActivitiesList}
-        selectedActivityEditId={selectedActivityEditId}
-        editActivityTitle={editActivityTitle}
-        editActivityDescription={editActivityDescription}
-        editActivityStatus={editActivityStatus}
-        editActivityJsFile={editActivityJsFile}
-        editActivityContentText={editActivityContentText}
-        submittingEditActivity={submittingEditActivity}
-        editActivityError={editActivityError}
-        activityMessage={activityMessage}
-        showActivityMessage={showActivityMessage}
-        fadeActivityMessage={fadeActivityMessage}
-        deletingAllActivities={deletingAllActivities}
-        deletingActivityId={deletingActivityId}
-        onToggleActivitiesList={handleToggleActivitiesList}
-        onSelectActivityToEdit={handleSelectActivityToEdit}
-        onUpdateActivity={handleUpdateActivity}
-        onDeleteActivity={handleDeleteActivity}
-        onDeleteAllActivities={handleDeleteAllActivities}
-        onEditTitleChange={setEditActivityTitle}
-        onEditDescriptionChange={setEditActivityDescription}
-        onEditStatusChange={setEditActivityStatus}
-        onEditJsFileChange={setEditActivityJsFile}
-        onEditContentChange={setEditActivityContentText}
-        showAddForm={true}
-        activityTitle={activityTitle}
-        activityDescription={activityDescription}
-        activityStatus={activityStatus}
-        activityJsFile={activityJsFile}
-        activityContentText={activityContentText}
-        submittingActivity={submittingActivity}
-        activityError={activityError}
-        onAddActivity={handleAddActivity}
-        onActivityTitleChange={setActivityTitle}
-        onActivityDescriptionChange={setActivityDescription}
-        onActivityStatusChange={setActivityStatus}
-        onActivityJsFileChange={(nextJsFile) => {
-          setActivityJsFile(nextJsFile);
-          setActivityContentText(getDefaultActivityContentText(nextJsFile));
-        }}
-        onActivityContentChange={setActivityContentText}
-      />
+        <CollapsibleSection
+          id="admin-activities-management"
+          title="Gestion des activités"
+          isOpen={openSectionId === "activities-management"}
+          onToggle={() => handleToggleSection("activities-management")}
+        >
+          <ActivitiesManagementPanel
+            activities={activities}
+            loadingActivities={loadingActivities}
+            showActivitiesList={showActivitiesList}
+            selectedActivityEditId={selectedActivityEditId}
+            editActivityTitle={editActivityTitle}
+            editActivityDescription={editActivityDescription}
+            editActivityStatus={editActivityStatus}
+            editActivityJsFile={editActivityJsFile}
+            editActivityContentText={editActivityContentText}
+            submittingEditActivity={submittingEditActivity}
+            editActivityError={editActivityError}
+            activityMessage={activityMessage}
+            showActivityMessage={showActivityMessage}
+            fadeActivityMessage={fadeActivityMessage}
+            deletingAllActivities={deletingAllActivities}
+            deletingActivityId={deletingActivityId}
+            onToggleActivitiesList={handleToggleActivitiesList}
+            onSelectActivityToEdit={handleSelectActivityToEdit}
+            onUpdateActivity={handleUpdateActivity}
+            onDeleteActivity={handleDeleteActivity}
+            onDeleteAllActivities={handleDeleteAllActivities}
+            onEditTitleChange={setEditActivityTitle}
+            onEditDescriptionChange={setEditActivityDescription}
+            onEditStatusChange={setEditActivityStatus}
+            onEditJsFileChange={setEditActivityJsFile}
+            onEditContentChange={setEditActivityContentText}
+            showAddForm={true}
+            activityTitle={activityTitle}
+            activityDescription={activityDescription}
+            activityStatus={activityStatus}
+            activityJsFile={activityJsFile}
+            activityContentText={activityContentText}
+            submittingActivity={submittingActivity}
+            activityError={activityError}
+            onAddActivity={handleAddActivity}
+            onActivityTitleChange={setActivityTitle}
+            onActivityDescriptionChange={setActivityDescription}
+            onActivityStatusChange={setActivityStatus}
+            onActivityJsFileChange={(nextJsFile) => {
+              setActivityJsFile(nextJsFile);
+              setActivityContentText(getDefaultActivityContentText(nextJsFile));
+            }}
+            onActivityContentChange={setActivityContentText}
+            hideTitle
+          />
+        </CollapsibleSection>
 
-        <WordsManagementPanel />
+        <CollapsibleSection
+          id="admin-words-management"
+          title="Gestion des mots"
+          isOpen={openSectionId === "words-management"}
+          onToggle={() => handleToggleSection("words-management")}
+        >
+          <WordsManagementPanel hideTitle />
+        </CollapsibleSection>
 
-        <SystemUpdatePanel />
+        <CollapsibleSection
+          id="admin-sentences-management"
+          title="Gestion des phrases"
+          isOpen={openSectionId === "sentences-management"}
+          onToggle={() => handleToggleSection("sentences-management")}
+        >
+          <SentencesManagementPanel onUseAsActivityTemplate={handleUseAiSentenceAsActivityTemplate} hideTitle />
+        </CollapsibleSection>
 
-        <GlobalImportExportPanel />
+        <CollapsibleSection
+          id="admin-system-update"
+          title="Mise à jour de l'application"
+          isOpen={openSectionId === "system-update"}
+          onToggle={() => handleToggleSection("system-update")}
+        >
+          <SystemUpdatePanel hideTitle />
+        </CollapsibleSection>
 
-        <StudentsImportExportPanel title="Import / Export des élèves (Admin)" />
+        <CollapsibleSection
+          id="admin-global-import-export"
+          title="Import / Export global"
+          isOpen={openSectionId === "global-import-export"}
+          onToggle={() => handleToggleSection("global-import-export")}
+        >
+          <GlobalImportExportPanel hideTitle />
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          id="admin-students-import-export"
+          title="Import / Export des élèves (Admin)"
+          isOpen={openSectionId === "students-import-export"}
+          onToggle={() => handleToggleSection("students-import-export")}
+        >
+          <StudentsImportExportPanel title="Import / Export des élèves (Admin)" hideTitle />
+        </CollapsibleSection>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ function initializeTables() {
     }
 
     ensureGroupsSchema();
+    ensureGeneratedSentencesSchema();
   });
 }
 
@@ -89,6 +90,31 @@ function ensureGroupsSchema() {
         });
       }
     });
+  });
+}
+
+function ensureGeneratedSentencesSchema() {
+  db.serialize(() => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS generated_sentences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sentence TEXT NOT NULL,
+        level TEXT,
+        theme TEXT,
+        provider TEXT,
+        model TEXT,
+        payload TEXT NOT NULL,
+        compteur INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    db.run(
+      'CREATE INDEX IF NOT EXISTS idx_generated_sentences_lookup ON generated_sentences(level, theme, compteur, id)'
+    );
+    db.run(
+      'CREATE INDEX IF NOT EXISTS idx_generated_sentences_compteur ON generated_sentences(compteur, id)'
+    );
   });
 }
 
@@ -154,6 +180,24 @@ function createTables() {
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_words_unique_entry
     ON words(word, echelon_db, nature, category, school_class, level, source);
+
+    CREATE TABLE IF NOT EXISTS generated_sentences (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sentence TEXT NOT NULL,
+      level TEXT,
+      theme TEXT,
+      provider TEXT,
+      model TEXT,
+      payload TEXT NOT NULL,
+      compteur INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_generated_sentences_lookup
+    ON generated_sentences(level, theme, compteur, id);
+
+    CREATE INDEX IF NOT EXISTS idx_generated_sentences_compteur
+    ON generated_sentences(compteur, id);
 
     CREATE TABLE IF NOT EXISTS results (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

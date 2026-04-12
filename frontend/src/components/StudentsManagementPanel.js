@@ -22,11 +22,14 @@ const StudentsManagementPanel = ({
   onSelectStudent,
   onDeleteStudent,
   onDeleteAllStudents,
+  hideTitle = false,
 }) => {
   return (
     <div id="students-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section id="students-panel-form-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
-        <h3 id="students-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
+        {!hideTitle && (
+          <h3 id="students-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
+        )}
 
         <form id="students-panel-form" onSubmit={onAddStudent} className="space-y-4">
           <div id="students-panel-lastname-field">
