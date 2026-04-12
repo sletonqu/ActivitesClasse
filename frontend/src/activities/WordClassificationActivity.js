@@ -537,9 +537,13 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
             </section>
           )}
 
-          <div id="word-classification-categories" className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+          <div
+            id="word-classification-categories"
+            className="grid grid-flow-col auto-cols-[minmax(170px,1fr)] gap-2.5 overflow-x-auto pb-1"
+          >
             {currentLevelRule.classifications.map((categoryLabel) => {
               const categoryKey = normalizeCategoryKey(categoryLabel);
+              const formattedCategoryLabel = formatCategoryLabel(categoryLabel);
               const mistakes = mistakesByCategory[categoryKey] || [];
               const theme = getCategoryTheme(categoryLabel);
               return (
@@ -560,11 +564,12 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                       </span>
                     )}
 
-                    <div className="flex justify-center text-center">
+                    <div className="flex min-w-0 justify-center text-center">
                       <span
-                        className={`inline-flex items-center justify-center rounded-full px-3.5 py-1.5 text-lg font-bold shadow-sm sm:px-4 sm:py-2 sm:text-2xl ${theme.badge} ${theme.title}`}
+                        title={formattedCategoryLabel}
+                        className={`inline-flex max-w-full items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-3 py-1.5 text-base font-bold shadow-sm sm:px-3.5 sm:py-2 sm:text-xl ${theme.badge} ${theme.title}`}
                       >
-                        {formatCategoryLabel(categoryLabel)}
+                        {formattedCategoryLabel}
                       </span>
                     </div>
                   </div>
