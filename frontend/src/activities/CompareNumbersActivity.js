@@ -294,16 +294,23 @@ function getBaseTenParts(value) {
   };
 }
 
-function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
+function ComparisonValueCard({ id, rotation = 0, value, displayParts = null, sizeVariant = "default" }) {
   const hasDecomposedDisplay = Array.isArray(displayParts) && displayParts.length > 0;
+  const isCompact = sizeVariant === "compact";
 
   return (
     <div
       id={id}
-      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-3 text-center shadow-sm sm:px-4 sm:py-4 ${
+      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white text-center shadow-sm ${
+        isCompact ? "px-2.5 py-2 sm:px-3 sm:py-3" : "px-3 py-3 sm:px-4 sm:py-4"
+      } ${
         hasDecomposedDisplay
-          ? "min-h-[96px] w-full max-w-[250px] sm:min-h-[124px] sm:max-w-[290px]"
-          : "h-[88px] w-[88px] sm:h-[124px] sm:w-[124px]"
+          ? isCompact
+            ? "min-h-[72px] w-full max-w-[170px] sm:min-h-[80px] sm:max-w-[190px]"
+            : "min-h-[96px] w-full max-w-[250px] sm:min-h-[124px] sm:max-w-[290px]"
+          : isCompact
+            ? "h-[58px] w-[58px] sm:h-[80px] sm:w-[80px]"
+            : "h-[88px] w-[88px] sm:h-[124px] sm:w-[124px]"
       }`}
       style={{ transform: `rotate(${rotation}deg)` }}
     >
@@ -312,10 +319,14 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
           {displayParts.map((part, index) => (
             <React.Fragment key={`${id}-${part.key}-${part.value}-${index}`}>
               {index > 0 ? (
-                <span className="text-lg font-bold text-slate-400 sm:text-2xl">+</span>
+                <span className={`${isCompact ? "text-sm sm:text-lg" : "text-lg sm:text-2xl"} font-bold text-slate-400`}>+</span>
               ) : null}
               <span
-                className={`inline-flex min-h-[44px] min-w-[52px] items-center justify-center rounded-xl border px-2.5 py-1.5 text-base font-bold sm:min-h-[52px] sm:min-w-[62px] sm:px-3 sm:py-2 sm:text-xl ${part.toneClassName}`}
+                className={`inline-flex items-center justify-center rounded-xl border font-bold ${
+                  isCompact
+                    ? "min-h-[32px] min-w-[38px] px-2 py-1 text-xs sm:min-h-[36px] sm:min-w-[42px] sm:px-2.5 sm:py-1 sm:text-sm"
+                    : "min-h-[44px] min-w-[52px] px-2.5 py-1.5 text-base sm:min-h-[52px] sm:min-w-[62px] sm:px-3 sm:py-2 sm:text-xl"
+                } ${part.toneClassName}`}
               >
                 {part.label}
               </span>
@@ -323,7 +334,7 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null }) {
           ))}
         </div>
       ) : (
-        <span className="block text-2xl font-bold text-slate-800 sm:text-4xl">
+        <span className={`block font-bold text-slate-800 ${isCompact ? "text-xl sm:text-3xl" : "text-2xl sm:text-4xl"}`}>
           {formatNumberWithThousandsSpace(value)}
         </span>
       )}
@@ -503,7 +514,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
         idPrefix="compare-numbers"
         title={displayTitle}
         instruction={displayInstruction}
-showInstruction={!student}
+        showInstruction={!student}
         showBadges={!student}
         badges={[
           {
@@ -548,10 +559,10 @@ showInstruction={!student}
           id="compare-numbers-sign-pool-section"
           className="rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
-          <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h4 className="text-lg font-bold text-slate-800">Signes disponibles</h4>
+                <h4 className="text-base font-bold text-slate-800 sm:text-lg">Signes disponibles</h4>
               </div>
               <div className="text-sm text-slate-600">
                 <span
@@ -569,7 +580,7 @@ showInstruction={!student}
 
           <div
             id="compare-numbers-sign-choices"
-            className="flex min-h-[76px] flex-wrap justify-center gap-2 bg-slate-50/70 p-3 sm:min-h-[92px] sm:gap-3 sm:p-5"
+            className="flex min-h-[60px] flex-wrap justify-center gap-2 bg-slate-50/70 px-3 py-2.5 sm:min-h-[74px] sm:gap-2.5 sm:px-4 sm:py-4"
           >
             {SIGN_OPTIONS.map((sign) => {
               const signId = sign === "<" ? "inferieur" : sign === ">" ? "superieur" : "egal";
@@ -583,7 +594,7 @@ showInstruction={!student}
                   disabled={finished}
                   onClick={() => setSelectedSign(sign)}
                   aria-label={`Choisir le signe ${SIGN_LABELS[sign]}`}
-                  className={`min-h-[56px] min-w-[72px] rounded-2xl border px-3 py-2 text-center text-xl font-bold shadow-sm transition-all sm:min-h-[64px] sm:min-w-[88px] sm:px-4 sm:py-3 sm:text-2xl ${
+                  className={`min-h-[45px] min-w-[58px] rounded-2xl border px-2.5 py-1.5 text-center text-lg font-bold shadow-sm transition-all sm:min-h-[51px] sm:min-w-[70px] sm:px-3 sm:py-2 sm:text-xl ${
                     isSelected
                       ? "border-indigo-600 bg-indigo-600 text-white"
                       : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
@@ -599,11 +610,11 @@ showInstruction={!student}
 
       <section
         id="compare-numbers-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+        className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-2.5"
       >
         <div
           id="compare-numbers-exercise-area"
-          className="grid items-center gap-3 sm:gap-4 md:grid-cols-[1fr_auto_1fr]"
+          className="grid items-center gap-2 sm:gap-2.5 md:grid-cols-[1fr_auto_1fr]"
         >
           <div className="flex justify-center md:justify-end">
             <ComparisonValueCard
@@ -612,12 +623,13 @@ showInstruction={!student}
               rotation={currentComparison.leftRotation || 0}
               value={currentComparison.leftValue}
               displayParts={currentComparison.leftDisplayParts}
+              sizeVariant="compact"
             />
           </div>
 
           <div
             id="compare-numbers-answer-slot"
-            className={`mx-auto flex min-h-[60px] min-w-[60px] items-center justify-center rounded-2xl border-2 px-2.5 py-1.5 text-3xl font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] sm:px-3 sm:py-2 sm:text-4xl ${
+            className={`mx-auto flex min-h-[39px] min-w-[39px] items-center justify-center rounded-2xl border-2 px-1.5 py-1 text-2xl font-bold shadow-sm transition-all sm:min-h-[57px] sm:min-w-[57px] sm:px-2 sm:py-1.5 sm:text-3xl ${
               finished
                 ? isCorrect
                   ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -637,6 +649,7 @@ showInstruction={!student}
               rotation={currentComparison.rightRotation || 0}
               value={currentComparison.rightValue}
               displayParts={currentComparison.rightDisplayParts}
+              sizeVariant="compact"
             />
           </div>
         </div>
@@ -644,21 +657,21 @@ showInstruction={!student}
 
       <section
         id="compare-numbers-help-section"
-        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+        className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${showHelp ? "p-3 sm:p-4" : "p-1.5 sm:p-2"}`}
       >
         {!showHelp ? (
-          <div className="flex flex-col items-center justify-center gap-2 text-center">
+          <div className="flex flex-col items-center justify-center gap-1 text-center">
             <button
               id="compare-numbers-help-button"
               type="button"
               onClick={() => setShowHelp(true)}
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-300 bg-amber-50 text-2xl shadow-sm transition hover:bg-amber-100"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-300 bg-amber-50 text-lg shadow-sm transition hover:bg-amber-100"
               aria-label="Afficher une aide"
               title="Afficher une aide"
             >
               <span aria-hidden="true">💡</span>
             </button>
-            <p className="text-sm text-slate-600">Besoin d&apos;une aide ?</p>
+            <p className="text-xs text-slate-600">Besoin d&apos;une aide ?</p>
           </div>
         ) : (
           <div
