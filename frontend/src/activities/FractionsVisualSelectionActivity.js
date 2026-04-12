@@ -235,7 +235,7 @@ function FractionLabel({ numerator, denominator, className = "" }) {
       aria-label={`fraction ${numerator} sur ${denominator}`}
     >
       <span className="leading-none">{numerator}</span>
-      <span className="my-1 block h-[2px] w-8 rounded-full bg-current" />
+      <span className="my-1 block h-[2px] w-6 rounded-full bg-current" />
       <span className="leading-none">{denominator}</span>
     </span>
   );
@@ -268,7 +268,7 @@ function FractionChoiceTile({
       type="button"
       disabled={disabled}
       onClick={onSelect}
-      className={`mx-auto flex aspect-square min-h-[78px] w-full max-w-[92px] items-center justify-center rounded-2xl border px-2 py-2 text-2xl font-bold shadow-sm transition-all sm:min-h-[88px] sm:max-w-[104px] ${className} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
+      className={`mx-auto flex aspect-square min-h-[59px] w-full max-w-[69px] items-center justify-center rounded-2xl border px-1.5 py-1.5 text-xl font-bold shadow-sm transition-all sm:min-h-[66px] sm:max-w-[78px] ${className} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
       style={{ transform: `rotate(${fraction.rotation || 0}deg)` }}
       aria-pressed={selected}
       aria-label={`Choisir ${formatFraction(fraction)}`}
@@ -276,7 +276,7 @@ function FractionChoiceTile({
       <FractionLabel
         numerator={fraction.numerator}
         denominator={fraction.denominator}
-        className="text-2xl font-bold sm:text-3xl"
+        className="text-xl font-bold sm:text-2xl"
       />
     </button>
   );
@@ -312,7 +312,7 @@ function CircleFractionVisual({ id, numerator, denominator }) {
     <svg
       id={id}
       viewBox="0 0 120 120"
-      className="h-44 w-44 sm:h-48 sm:w-48"
+      className="h-36 w-36 sm:h-40 sm:w-40"
       aria-label={`Cercle fractionné en ${safeDenominator} parts, avec ${numerator} part${numerator > 1 ? "s" : ""} colorée${numerator > 1 ? "s" : ""}`}
       role="img"
     >
@@ -343,7 +343,7 @@ function StripFractionVisual({ id, numerator, denominator, orientation = "horizo
     <div
       id={id}
       className={`grid overflow-hidden border-2 border-slate-300 bg-white shadow-inner ${
-        isHorizontal ? "h-16 w-full max-w-[320px]" : "h-44 w-44 sm:h-48 sm:w-48"
+        isHorizontal ? "h-14 w-full max-w-[280px]" : "h-36 w-36 sm:h-40 sm:w-40"
       }`}
       style={
         isHorizontal
@@ -523,14 +523,16 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
         >
           <div className="mb-3 border-b border-slate-100 pb-3">
             <h4 className="text-lg font-bold text-slate-800">Observe la fraction</h4>
-            <p className="text-sm text-slate-600">
-              Compte les parts égales et regarde combien sont colorées.
-            </p>
+            {!student && (
+              <p className="text-sm text-slate-600">
+                Compte les parts égales et regarde combien sont colorées.
+              </p>
+            )}
           </div>
 
           <div
             id="fractions-selection-visual-wrapper"
-            className="flex min-h-[240px] flex-col items-center justify-center gap-4 rounded-2xl bg-slate-50/80 p-4"
+            className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-2xl bg-slate-50/80 p-3"
           >
             <FractionVisual
               id="fractions-selection-visual"
@@ -551,9 +553,11 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-lg font-bold text-slate-800">Choisis la bonne fraction</h4>
-                <p className="text-sm text-slate-600">
-                  Une seule réponse correspond au visuel.
-                </p>
+                {!student && (
+                  <p className="text-sm text-slate-600">
+                    Une seule réponse correspond au visuel.
+                  </p>
+                )}
               </div>
               <span
                 className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
