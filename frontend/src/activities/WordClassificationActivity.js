@@ -437,6 +437,8 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
         idPrefix="word-classification"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={currentLevelRule.classifications.map((categoryLabel) => {
           const theme = getCategoryTheme(categoryLabel);
           return {

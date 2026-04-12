@@ -288,6 +288,8 @@ const MatchAdditionsActivity = ({ student, content, onComplete }) => {
         idPrefix="match-additions"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[
           {
             key: "count",

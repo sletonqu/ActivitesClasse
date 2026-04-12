@@ -397,6 +397,8 @@ const CountPencilsByTensActivity = ({ student, content, onComplete }) => {
         idPrefix="count-pencils-by-tens"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[
           {
             key: "count",

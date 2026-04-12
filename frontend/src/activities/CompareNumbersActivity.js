@@ -503,6 +503,8 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
         idPrefix="compare-numbers"
         title={displayTitle}
         instruction={displayInstruction}
+showInstruction={!student}
+        showBadges={!student}
         badges={[
           {
             key: "count",

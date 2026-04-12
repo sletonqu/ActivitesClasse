@@ -14,6 +14,8 @@ const ActivityHero = ({
   idPrefix,
   title,
   instruction,
+  showInstruction = true,
+  showBadges = true,
   badges = [],
   levels = [],
   currentLevel,
@@ -34,12 +36,14 @@ const ActivityHero = ({
           <h3 id={`${idPrefix}-title`} className="mb-1 block w-full break-words text-lg font-bold text-slate-800 sm:text-2xl">
             {title}
           </h3>
-          <p id={`${idPrefix}-instructions`} className={instructionClassName}>
-            {instruction}
-          </p>
+          {showInstruction && instruction && (
+            <p id={`${idPrefix}-instructions`} className={instructionClassName}>
+              {instruction}
+            </p>
+          )}
 
-          {badges.length > 0 && (
-            <div id={badgesId || `${idPrefix}-current-settings`} className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
+          {showBadges && badges.length > 0 && (
+            <div id={badgesId || `${idPrefix}-current-settings`} className={`${showInstruction && instruction ? "mt-2" : "mt-1"} flex flex-wrap gap-1.5 sm:gap-2`}>
               {badges.map((badge, index) => (
                 <span
                   key={getBadgeKey(badge, index)}

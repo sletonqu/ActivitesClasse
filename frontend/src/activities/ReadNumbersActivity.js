@@ -68,7 +68,7 @@ function sanitizeConfiguredNumbers(numbers) {
     .filter((numberValue) => Number.isFinite(numberValue));
 }
 
-const ReadNumbersActivity = ({ content }) => {
+const ReadNumbersActivity = ({ student, content }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultReadNumbersActivityContent.levels;
   const allowedLevelKeys = ["level1", "level2", "level3"];
@@ -125,6 +125,8 @@ const ReadNumbersActivity = ({ content }) => {
         idPrefix="read-numbers"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[
           {
             key: "count",

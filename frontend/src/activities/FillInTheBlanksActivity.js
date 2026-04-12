@@ -550,6 +550,8 @@ const FillInTheBlanksActivity = ({ student, content, onComplete }) => {
         idPrefix="fill-in-the-blanks"
         title={normalizedContent.title}
         instruction={normalizedContent.instruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[
           normalizedContent.sourceLevel
             ? { key: "level", content: `Niveau : ${normalizedContent.sourceLevel}` }

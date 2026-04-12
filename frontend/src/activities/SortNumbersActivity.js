@@ -305,6 +305,8 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
         idPrefix="sort-numbers"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[
           {
             key: "count",

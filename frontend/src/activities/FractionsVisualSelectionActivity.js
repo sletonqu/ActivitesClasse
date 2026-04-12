@@ -491,6 +491,8 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
         idPrefix="fractions-selection"
         title={displayTitle}
         instruction={displayInstruction}
+        showInstruction={!student}
+        showBadges={!student}
         badges={[]}
         levels={allowedLevelKeys.map((levelKey) => ({
           key: levelKey,
