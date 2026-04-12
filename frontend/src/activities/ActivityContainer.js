@@ -53,11 +53,11 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
   return (
     <div
       id="activity-container-wrapper"
-      className="mx-auto mt-2 w-full min-w-0"
+      className="mx-auto mt-0 w-full min-w-0"
     >
       <div
         id="activity-container"
-        className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white p-3 shadow sm:p-4 print:max-w-[300mm] print:overflow-visible print:p-6"
+        className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white px-1.5 pt-1.5 pb-0 shadow sm:px-2 sm:pt-2 sm:pb-0 print:max-w-[300mm] print:overflow-visible print:p-6"
       >
         <SelectedActivityComponent student={student} content={content} onComplete={onComplete} />
       </div>

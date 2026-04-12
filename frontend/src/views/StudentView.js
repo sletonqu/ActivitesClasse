@@ -198,8 +198,8 @@ const StudentView = () => {
   };
 
   return (
-    <div id="student-view-root" className="min-h-screen bg-gray-100 px-1 py-3 lg:px-1 lg:py-2">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center">
+    <div id="student-view-root" className="min-h-screen bg-gray-100 px-1 py-3 lg:px-1 lg:py-2 flex flex-col">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center">
         <h2 id="student-view-title" className="mb-3 text-xl font-bold lg:mb-2">Espace Élève</h2>
 
         <div id="student-view-controls-grid" className="mb-2 grid w-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
@@ -294,7 +294,7 @@ const StudentView = () => {
 
         <div
           id="student-view-main-layout"
-          className={`sticky bottom-0 z-10 grid w-full grid-cols-1 items-start gap-1.5 lg:gap-2 ${
+          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-start gap-1.5 lg:gap-2 ${
             isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[180px_minmax(0,1fr)_190px]"
           }`}
         >

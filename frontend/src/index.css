@@ -21,6 +21,21 @@ body {
   user-select: auto;
 }
 
+/* Harmonise vertical rhythm in all activity layouts */
+#activity-container [id$="-hero"] + [id$="-status-panel"] {
+  margin-top: 0.25rem !important;
+}
+
+#activity-container [id$="-status-panel"] + * {
+  margin-top: 0.6rem !important;
+}
+
+@media (min-width: 640px) {
+  #activity-container [id$="-status-panel"] + * {
+    margin-top: 0.8rem !important;
+  }
+}
+
 h1 {
   color: #2d3a4b;
   text-align: center;
