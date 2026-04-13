@@ -313,7 +313,7 @@ const StudentView = () => {
           {!isDemoMode && (
             <div
               id="student-view-students-panel"
-              className="w-full min-w-0 bg-white rounded shadow p-3"
+              className="w-full min-w-0 self-end bg-white rounded shadow p-3"
             >
               <h3 id="student-view-students-title" className="mb-2 text-sm font-semibold">
                 Élèves {selectedGroup ? `- ${selectedGroup.name}` : ""}
@@ -406,7 +406,7 @@ const StudentView = () => {
           {!isDemoMode && (
             <div
               id="student-view-leaderboard-panel"
-              className="w-full min-w-0 bg-white rounded shadow p-3"
+              className="w-full min-w-0 self-end bg-white rounded shadow p-3"
             >
               <div id="student-view-leaderboard-header" className="mb-2 flex items-center justify-between gap-2">
                 <h3 id="student-view-leaderboard-title" className="text-sm font-semibold">Classement</h3>
