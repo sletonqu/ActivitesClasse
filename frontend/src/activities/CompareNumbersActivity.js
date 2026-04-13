@@ -7,6 +7,7 @@ import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
+  handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
   randomRotation,
@@ -342,7 +343,13 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null, siz
   );
 }
 
-const CompareNumbersActivity = ({ student, content, onComplete }) => {
+const CompareNumbersActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultCompareNumbersActivityContent.levels;
   const allowedLevelKeys = ["level1", "level2", "level3", "level4"];
@@ -378,7 +385,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
   const [score, setScore] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
 
-  const restartLocked = Boolean(student) && finished;
+  const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
@@ -505,6 +512,10 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     resetForLevel(currentLevel);
   };
 
@@ -755,7 +766,7 @@ const CompareNumbersActivity = ({ student, content, onComplete }) => {
           title="Recommencer"
           icon="↻"
           srText="Recommencer"
-          variant="restart"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
     </div>

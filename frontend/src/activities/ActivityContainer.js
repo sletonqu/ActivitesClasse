@@ -44,7 +44,7 @@ const resolveActivityComponent = (activityJsFile) => {
   return componentRegistry[activityJsFile] || SortNumbersActivity;
 };
 
-const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => {
+const ActivityContainer = ({ student, content, onComplete, activityJsFile, activityProps = {} }) => {
   const SelectedActivityComponent = resolveActivityComponent(activityJsFile);
   const handlePrint = () => {
     window.print();
@@ -59,7 +59,12 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile }) => 
         id="activity-container"
         className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white px-1.5 pt-1.5 pb-0 shadow sm:px-2 sm:pt-2 sm:pb-0 print:max-w-[300mm] print:overflow-visible print:p-6"
       >
-        <SelectedActivityComponent student={student} content={content} onComplete={onComplete} />
+        <SelectedActivityComponent
+          student={student}
+          content={content}
+          onComplete={onComplete}
+          {...activityProps}
+        />
       </div>
     </div>
   );

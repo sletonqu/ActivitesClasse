@@ -5,6 +5,7 @@ import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
   getSafeDisplayText,
+  handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
   parsePositiveInt,
@@ -401,7 +402,13 @@ function FractionVisual({ id, fraction, visualType }) {
   );
 }
 
-const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
+const FractionsVisualSelectionActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultFractionsVisualSelectionActivityContent.levels;
   const allowedLevelKeys = ["level1", "level2", "level3"];
@@ -425,7 +432,7 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
   const [isCorrect, setIsCorrect] = useState(null);
   const [score, setScore] = useState(null);
 
-  const restartLocked = Boolean(student) && finished;
+  const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
@@ -482,6 +489,10 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     resetForLevel(currentLevel);
   };
 
@@ -644,7 +655,7 @@ const FractionsVisualSelectionActivity = ({ student, content, onComplete }) => {
           title="Recommencer"
           icon="↻"
           srText="Recommencer"
-          variant="restart"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
     </div>

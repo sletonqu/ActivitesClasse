@@ -56,3 +56,12 @@ export function randomRotation(minDegrees = -10, maxDegrees = 10) {
 
   return Math.round((Math.random() * rotationRange + safeMin) * 10) / 10;
 }
+
+export function handleRoundRestart(allStudentsCompleted, onResetStudentRound) {
+  if (allStudentsCompleted && typeof onResetStudentRound === "function") {
+    onResetStudentRound();
+    return true;
+  }
+
+  return false;
+}

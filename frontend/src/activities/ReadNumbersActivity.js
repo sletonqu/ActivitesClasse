@@ -4,6 +4,7 @@ import ActivityIconButton from "../components/ActivityIconButton";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
+  handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
   randomRotation,
@@ -68,7 +69,12 @@ function sanitizeConfiguredNumbers(numbers) {
     .filter((numberValue) => Number.isFinite(numberValue));
 }
 
-const ReadNumbersActivity = ({ student, content }) => {
+const ReadNumbersActivity = ({
+  student,
+  content,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultReadNumbersActivityContent.levels;
   const allowedLevelKeys = ["level1", "level2", "level3"];
@@ -116,6 +122,10 @@ const ReadNumbersActivity = ({ student, content }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     setCurrentTile(buildTileForLevel(currentLevel));
   };
 
@@ -184,7 +194,7 @@ const ReadNumbersActivity = ({ student, content }) => {
           title="Recommencer"
           icon="↻"
           srText="Recommencer"
-          variant="warning"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </section>
     </div>

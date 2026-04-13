@@ -6,6 +6,7 @@ import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
+  handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
   parsePositiveInt,
@@ -123,7 +124,13 @@ function normalizeLevelRule(rule, fallbackRule) {
   };
 }
 
-const SortNumbersActivity = ({ student, content, onComplete }) => {
+const SortNumbersActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultSortNumbersActivityContent.levels;
 
@@ -161,7 +168,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
 
-  const restartLocked = Boolean(student) && finished;
+  const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const currentSortOrder = normalizeSortOrder(currentLevelRule.order, "asc");
   const fallbackTitle = currentSortOrder === "desc"
@@ -290,6 +297,10 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     resetForLevel(currentLevel);
   };
 
@@ -476,7 +487,7 @@ const SortNumbersActivity = ({ student, content, onComplete }) => {
           title="Recommencer"
           icon="↻"
           srText="Recommencer"
-          variant="restart"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
 

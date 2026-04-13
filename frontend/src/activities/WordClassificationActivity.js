@@ -6,6 +6,7 @@ import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import CharacterSprite from "../components/CharacterSprite";
 import { API_URL } from "../config/api";
 import {
+  handleRoundRestart,
   getSafeDisplayText,
   parseActivityContent,
   parsePositiveInt,
@@ -202,7 +203,13 @@ function buildEmptyMistakes(classifications) {
   }, {});
 }
 
-const WordClassificationActivity = ({ student, content, onComplete }) => {
+const WordClassificationActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultWordClassificationActivityContent.levels;
 
@@ -236,7 +243,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
   const requestIdRef = useRef(0);
 
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
-  const restartLocked = Boolean(student) && finished;
+  const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const answeredCount = Math.max(0, loadedWordsCount - visibleWords.length - remainingWords.length);
   const remainingCount = visibleWords.length + remainingWords.length;
   const progressPercent = loadedWordsCount > 0 ? Math.round((answeredCount / loadedWordsCount) * 100) : 0;
@@ -449,6 +456,10 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     loadWordsForLevel(currentLevel);
   };
 
@@ -651,7 +662,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
           title="Recommencer avec de nouveaux mots"
           icon="↻"
           srText="Recommencer avec de nouveaux mots"
-          variant="restart"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
 

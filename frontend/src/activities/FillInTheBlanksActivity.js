@@ -3,7 +3,12 @@ import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import { API_URL } from "../config/api";
-import { getSafeDisplayText, parseActivityContent, randomRotation } from "./activityUtils";
+import {
+  getSafeDisplayText,
+  handleRoundRestart,
+  parseActivityContent,
+  randomRotation,
+} from "./activityUtils";
 
 const WORD_TILE_ROTATION_MIN = -6;
 const WORD_TILE_ROTATION_MAX = 6;
@@ -261,7 +266,13 @@ function buildSentenceFromGeneratedEntry(entry) {
   };
 }
 
-const FillInTheBlanksActivity = ({ student, content, onComplete }) => {
+const FillInTheBlanksActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+}) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
 
   const normalizedContent = useMemo(() => {
@@ -376,7 +387,7 @@ const FillInTheBlanksActivity = ({ student, content, onComplete }) => {
     () => Object.values(validationMap).filter(Boolean).length,
     [validationMap]
   );
-  const restartLocked = Boolean(student) && finished;
+  const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
 
   const wordBankTiles = useMemo(
     () => buildWordBankTiles(activeSentences),
@@ -526,6 +537,10 @@ const FillInTheBlanksActivity = ({ student, content, onComplete }) => {
   };
 
   const handleRestart = () => {
+    if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+      return;
+    }
+
     if (restartLocked) {
       return;
     }
@@ -796,7 +811,7 @@ const FillInTheBlanksActivity = ({ student, content, onComplete }) => {
           title="Recommencer"
           icon="↻"
           srText="Recommencer"
-          variant="restart"
+          variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
 
