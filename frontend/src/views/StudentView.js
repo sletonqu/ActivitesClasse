@@ -376,14 +376,6 @@ const StudentView = () => {
               </div>
             ) : selectedStudent ? (
               <div className="space-y-2.5">
-                {allStudentsCompleted && (
-                  <div
-                    id="student-view-round-complete-banner"
-                    className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800"
-                  >
-                    Tous les élèves ont terminé. Appuie sur le bouton recommencer de l'activité pour relancer un nouveau tour.
-                  </div>
-                )}
                 <ActivityContainer
                   key={`${selectedStudent.id}-${selectedActivityId}`}
                   student={selectedStudent}
