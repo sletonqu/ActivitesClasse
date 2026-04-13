@@ -7,6 +7,7 @@ import ClassesManagementPanel from "../components/ClassesManagementPanel";
 import SystemUpdatePanel from "../components/SystemUpdatePanel";
 import WordsManagementPanel from "../components/WordsManagementPanel";
 import SentencesManagementPanel from "../components/SentencesManagementPanel";
+import CharactersManagementPanel from "../components/CharactersManagementPanel";
 import CollapsibleSection from "../components/CollapsibleSection";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
@@ -835,6 +836,15 @@ const AdminView = () => {
           onToggle={() => handleToggleSection("words-management")}
         >
           <WordsManagementPanel hideTitle />
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          id="admin-characters-management"
+          title="Gestion des personnages"
+          isOpen={openSectionId === "characters-management"}
+          onToggle={() => handleToggleSection("characters-management")}
+        >
+          <CharactersManagementPanel hideTitle />
         </CollapsibleSection>
 
         <CollapsibleSection
