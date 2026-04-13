@@ -107,6 +107,13 @@ function appendExcludedIdsClause(where, params, excludedIds) {
   params.push(...excludedIds);
 }
 
+function shuffleArrayInPlace(items) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+  }
+}
+
 router.get('/stats', async (req, res) => {
   try {
     const totalRow = await getAsync('SELECT COUNT(*) AS total FROM words');
@@ -213,6 +220,8 @@ router.get('/random', async (req, res) => {
         }
       });
     }
+
+    shuffleArrayInPlace(selectedRows);
 
     return res.json({
       requested: safeLimit,
