@@ -3,6 +3,7 @@ import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
+import CharacterSprite from "../components/CharacterSprite";
 import { API_URL } from "../config/api";
 import {
   getSafeDisplayText,
@@ -110,6 +111,19 @@ const CATEGORY_DISPLAY_LABELS = {
   determinant: "Déterminant",
   autres: "Autres",
 };
+
+const CATEGORY_SPRITE_IMAGE_BY_KEY = {
+  nom: "/images/Nom.png",
+  verbe: "/images/Verbe.png",
+  adjectif: "/images/Adjectif.png",
+  pronom: "/images/PronomPersonnel.png",
+  determinant: "/images/Déterminant.png",
+};
+
+function resolveSpriteImageByCategory(categoryLabel) {
+  const categoryKey = normalizeCategoryKey(categoryLabel);
+  return CATEGORY_SPRITE_IMAGE_BY_KEY[categoryKey] || null;
+}
 
 function getCategoryTheme(categoryLabel) {
   return CATEGORY_THEME_BY_KEY[normalizeCategoryKey(categoryLabel)] || DEFAULT_CATEGORY_THEME;
@@ -227,6 +241,13 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
   const remainingCount = visibleWords.length + remainingWords.length;
   const progressPercent = loadedWordsCount > 0 ? Math.round((answeredCount / loadedWordsCount) * 100) : 0;
   const selectedWord = visibleWords.find((word) => word.runtimeId === selectedWordId) || null;
+  const spritePositionByCategory = useMemo(() => {
+    return currentLevelRule.classifications.reduce((accumulator, categoryLabel) => {
+      const categoryKey = normalizeCategoryKey(categoryLabel);
+      accumulator[categoryKey] = Math.floor(Math.random() * 9);
+      return accumulator;
+    }, {});
+  }, [currentLevelRule.classifications]);
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
     defaultWordClassificationActivityContent.title
@@ -546,6 +567,7 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
               const formattedCategoryLabel = formatCategoryLabel(categoryLabel);
               const mistakes = mistakesByCategory[categoryKey] || [];
               const theme = getCategoryTheme(categoryLabel);
+              const spriteImage = resolveSpriteImageByCategory(categoryLabel);
               return (
                 <section
                   key={categoryKey}
@@ -567,8 +589,20 @@ const WordClassificationActivity = ({ student, content, onComplete }) => {
                     <div className="flex min-w-0 justify-center text-center">
                       <span
                         title={formattedCategoryLabel}
-                        className={`inline-flex max-w-full items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-3 py-1.5 text-base font-bold shadow-sm sm:px-3.5 sm:py-2 sm:text-xl ${theme.badge} ${theme.title}`}
+                        className={`inline-flex max-w-full items-center justify-center gap-3 overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-6 py-3 text-2xl font-bold shadow-sm sm:px-7 sm:py-4 sm:text-4xl ${theme.badge} ${theme.title}`}
                       >
+                        {spriteImage && (
+                          <CharacterSprite
+                            id={`word-classification-category-sprite-${categoryKey}`}
+                            src={spriteImage}
+                            position={spritePositionByCategory[categoryKey] ?? 0}
+                            columns={3}
+                            rows={3}
+                            size={60}
+                            alt={`Personnage ${formattedCategoryLabel}`}
+                            className="shrink-0"
+                          />
+                        )}
                         {formattedCategoryLabel}
                       </span>
                     </div>
