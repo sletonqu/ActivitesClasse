@@ -169,7 +169,7 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
             : "non configurée — le script PowerShell manuel reste disponible"}
         </div>
         <div className="mt-1">
-          Script manuel recommandé : <code>scripts/update-application.ps1</code>
+          Script manuel recommandé : <code>powershell -ExecutionPolicy Bypass -File .\scripts\update-application.ps1</code>
         </div>
         {systemInfo?.lastUpdateRequest?.requestedAt && (
           <div className="mt-1">
