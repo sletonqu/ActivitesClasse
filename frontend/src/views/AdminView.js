@@ -166,11 +166,15 @@ const AdminView = () => {
 
 
   const handleSelectActivityToEdit = (activity) => {
+    const normalizedJsFile = activity.js_file === "src/activities/FillInTheBlanksActivity.js"
+      ? "src/activities/SentenceWordClassificationActivity.js"
+      : activity.js_file || ACTIVITY_FILES[0];
+
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");
     setEditActivityDescription(activity.description || "");
     setEditActivityStatus(activity.status || "Active");
-    setEditActivityJsFile(activity.js_file || ACTIVITY_FILES[0]);
+    setEditActivityJsFile(normalizedJsFile);
     setEditActivityContentText(normalizeActivityContentForEditor(activity.content));
     setEditActivityError("");
     setActivityMessage("");
@@ -678,15 +682,15 @@ const AdminView = () => {
       return;
     }
 
-    setActivityTitle(template.title || "Phrase à trous");
+    setActivityTitle(template.title || "Classification des mots d'une phrase");
     setActivityDescription(
-      template.description || "Complète la phrase avec les mots manquants."
+      template.description || "Classe les mots demandés dans plusieurs phrases issues de la base."
     );
     setActivityStatus(template.status || "Active");
-    setActivityJsFile(template.jsFile || "src/activities/FillInTheBlanksActivity.js");
+    setActivityJsFile(template.jsFile || "src/activities/SentenceWordClassificationActivity.js");
     setActivityContentText(JSON.stringify(template.content, null, 2));
     setActivityError("");
-    setActivityMessage("La base de l'activité phrase à trous a été préparée dans le formulaire ci-dessus.");
+    setActivityMessage("La nouvelle activité de classification des mots d'une phrase a été préparée dans le formulaire ci-dessus.");
 
     document.getElementById("activities-panel-root")?.scrollIntoView({
       behavior: "smooth",

@@ -6,7 +6,7 @@ import CompareNumbersActivity from "./CompareNumbersActivity";
 import FractionsVisualSelectionActivity from "./FractionsVisualSelectionActivity";
 import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
 import WordClassificationActivity from "./WordClassificationActivity";
-import FillInTheBlanksActivity from "./FillInTheBlanksActivity";
+import SentenceWordClassificationActivity from "./SentenceWordClassificationActivity";
 import ReadNumbersActivity from "./ReadNumbersActivity";
 
 const componentRegistry = {
@@ -31,9 +31,12 @@ const componentRegistry = {
   "src/activities/WordClassificationActivity.js": WordClassificationActivity,
   "WordClassificationActivity": WordClassificationActivity,
   "WordClassificationActivity.js": WordClassificationActivity,
-  "src/activities/FillInTheBlanksActivity.js": FillInTheBlanksActivity,
-  "FillInTheBlanksActivity": FillInTheBlanksActivity,
-  "FillInTheBlanksActivity.js": FillInTheBlanksActivity,
+  "src/activities/SentenceWordClassificationActivity.js": SentenceWordClassificationActivity,
+  "SentenceWordClassificationActivity": SentenceWordClassificationActivity,
+  "SentenceWordClassificationActivity.js": SentenceWordClassificationActivity,
+  "src/activities/FillInTheBlanksActivity.js": SentenceWordClassificationActivity,
+  "FillInTheBlanksActivity": SentenceWordClassificationActivity,
+  "FillInTheBlanksActivity.js": SentenceWordClassificationActivity,
   "src/activities/ReadNumbersActivity.js": ReadNumbersActivity,
   "ReadNumbersActivity": ReadNumbersActivity,
   "ReadNumbersActivity.js": ReadNumbersActivity,

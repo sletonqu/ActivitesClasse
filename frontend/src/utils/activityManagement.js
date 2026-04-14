@@ -5,7 +5,7 @@ import { defaultCompareNumbersActivityContent } from "../activities/CompareNumbe
 import { defaultFractionsVisualSelectionActivityContent } from "../activities/FractionsVisualSelectionActivity";
 import { defaultInteractiveWhiteboardActivityContent } from "../activities/InteractiveWhiteboardActivity";
 import { defaultWordClassificationActivityContent } from "../activities/WordClassificationActivity";
-import { defaultFillInTheBlanksActivityContent } from "../activities/FillInTheBlanksActivity";
+import { defaultSentenceWordClassificationActivityContent } from "../activities/SentenceWordClassificationActivity";
 import { defaultReadNumbersActivityContent } from "../activities/ReadNumbersActivity";
 
 export const ACTIVITY_FILES = [
@@ -16,7 +16,7 @@ export const ACTIVITY_FILES = [
   "src/activities/FractionsVisualSelectionActivity.js",
   "src/activities/InteractiveWhiteboardActivity.js",
   "src/activities/WordClassificationActivity.js",
-  "src/activities/FillInTheBlanksActivity.js",
+  "src/activities/SentenceWordClassificationActivity.js",
   "src/activities/ReadNumbersActivity.js",
 ];
 
@@ -28,7 +28,8 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/FractionsVisualSelectionActivity.js": defaultFractionsVisualSelectionActivityContent,
   "src/activities/InteractiveWhiteboardActivity.js": defaultInteractiveWhiteboardActivityContent,
   "src/activities/WordClassificationActivity.js": defaultWordClassificationActivityContent,
-  "src/activities/FillInTheBlanksActivity.js": defaultFillInTheBlanksActivityContent,
+  "src/activities/SentenceWordClassificationActivity.js": defaultSentenceWordClassificationActivityContent,
+  "src/activities/FillInTheBlanksActivity.js": defaultSentenceWordClassificationActivityContent,
   "src/activities/ReadNumbersActivity.js": defaultReadNumbersActivityContent,
 };
 

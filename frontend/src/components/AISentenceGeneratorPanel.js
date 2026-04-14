@@ -9,7 +9,7 @@ const DEFAULT_PROVIDER_OPTIONS = [
 ];
 
 const SCHOOL_LEVEL_OPTIONS = ["CE1", "CE2"];
-const FILL_IN_THE_BLANKS_ACTIVITY_FILE = "src/activities/FillInTheBlanksActivity.js";
+const SENTENCE_WORD_CLASSIFICATION_ACTIVITY_FILE = "src/activities/SentenceWordClassificationActivity.js";
 const BLANK_NATURE_PRIORITY = [
   "verbe",
   "nom commun",
@@ -26,6 +26,22 @@ function normalizeNatureKey(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function resolveSentenceNatureFamily(value) {
+  const natureKey = normalizeNatureKey(value);
+
+  if (!natureKey) {
+    return "";
+  }
+
+  if (/\bpronoms?\b/.test(natureKey)) return "pronom";
+  if (/\bdeterminants?\b/.test(natureKey)) return "determinant";
+  if (/\badjectifs?\b/.test(natureKey)) return "adjectif";
+  if (/\bverbes?\b/.test(natureKey)) return "verbe";
+  if (/\bnoms?\b/.test(natureKey)) return "nom";
+
+  return "";
 }
 
 function isPunctuationEntry(item) {
@@ -113,10 +129,9 @@ function buildFallbackSentenceConfig(result) {
   };
 }
 
-function buildFillInTheBlanksTemplate(result, fallbackLevel, fallbackTheme) {
+function buildSentenceClassificationTemplate(result, fallbackLevel, fallbackTheme) {
   const generatedSentences = Array.isArray(result?.sentences) ? result.sentences : [];
   const firstSentence = generatedSentences[0] || null;
-  const fallbackSentence = buildFallbackSentenceConfig(firstSentence);
   const cleanTheme = String(firstSentence?.theme || fallbackTheme || "phrase simple").trim() || "phrase simple";
   const cleanLevel = String(firstSentence?.level || fallbackLevel || "CE1").trim() || "CE1";
 
@@ -124,19 +139,49 @@ function buildFillInTheBlanksTemplate(result, fallbackLevel, fallbackTheme) {
     return null;
   }
 
+  const detectedNatures = Array.from(
+    new Set(
+      (Array.isArray(firstSentence.words) ? firstSentence.words : [])
+        .map((item) => resolveSentenceNatureFamily(item?.nature))
+        .filter(Boolean)
+    )
+  );
+
+  const requiredNatures = detectedNatures.length > 0 ? detectedNatures : ["nom", "verbe"];
+  const maxSentenceCount = Math.max(1, generatedSentences.length || 1);
+
   return {
-    title: `Phrase à trous - ${cleanTheme}`,
-    description: `Complète une phrase issue de la base sur le thème « ${cleanTheme} » avec les mots manquants.`,
+    title: `Classification des mots - ${cleanTheme}`,
+    description: `Classe les mots demandés dans des phrases issues de la base sur le thème « ${cleanTheme} ».`,
     status: "Active",
-    jsFile: FILL_IN_THE_BLANKS_ACTIVITY_FILE,
+    jsFile: SENTENCE_WORD_CLASSIFICATION_ACTIVITY_FILE,
     content: {
-      title: `Complète la phrase : ${cleanTheme}`,
-      instruction: "Lis la phrase puis glisse ou clique les mots manquants dans les trous.",
-      showWordBank: true,
-      sourceLevel: cleanLevel,
-      sourceTheme: cleanTheme,
-      useGeneratedSentencePool: true,
-      sentences: fallbackSentence ? [fallbackSentence] : [],
+      title: `Classification des mots : ${cleanTheme}`,
+      instruction: "Lis chaque phrase puis classe les mots demandés dans la bonne catégorie grammaticale.",
+      defaultLevel: "level1",
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 1,
+          sourceLevel: cleanLevel,
+          sourceTheme: cleanTheme,
+          requiredNatures: requiredNatures.slice(0, 2),
+        },
+        level2: {
+          label: "Niveau 2",
+          sentenceCount: Math.min(Math.max(2, 1), maxSentenceCount),
+          sourceLevel: cleanLevel,
+          sourceTheme: cleanTheme,
+          requiredNatures: requiredNatures.slice(0, Math.min(3, requiredNatures.length || 3)),
+        },
+        level3: {
+          label: "Niveau 3",
+          sentenceCount: Math.min(Math.max(3, 1), Math.max(3, maxSentenceCount)),
+          sourceLevel: cleanLevel,
+          sourceTheme: cleanTheme,
+          requiredNatures,
+        },
+      },
     },
   };
 }
@@ -175,8 +220,8 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
 
   const firstGeneratedSentence = generatedSentences[0] || null;
 
-  const fillInTheBlanksTemplate = useMemo(
-    () => buildFillInTheBlanksTemplate(generatedResult, schoolLevel, theme),
+  const sentenceClassificationTemplate = useMemo(
+    () => buildSentenceClassificationTemplate(generatedResult, schoolLevel, theme),
     [generatedResult, schoolLevel, theme]
   );
 
@@ -246,7 +291,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
       }
 
       const nextResult = data.result || null;
-      const nextTemplate = buildFillInTheBlanksTemplate(nextResult, schoolLevel, theme);
+      const nextTemplate = buildSentenceClassificationTemplate(nextResult, schoolLevel, theme);
 
       setGeneratedResult(nextResult);
       setProviderErrorContent("");
@@ -291,13 +336,13 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
   };
 
   const handleUseAsActivityTemplate = () => {
-    if (!fillInTheBlanksTemplate) {
+    if (!sentenceClassificationTemplate) {
       return;
     }
 
     if (typeof onUseAsActivityTemplate === "function") {
-      onUseAsActivityTemplate(fillInTheBlanksTemplate);
-      setMessage("La base de l'activité phrase à trous a été envoyée vers le formulaire des activités avec un chargement depuis la base de phrases.");
+      onUseAsActivityTemplate(sentenceClassificationTemplate);
+      setMessage("La nouvelle activité de classification des mots d'une phrase a été envoyée vers le formulaire des activités.");
       return;
     }
 

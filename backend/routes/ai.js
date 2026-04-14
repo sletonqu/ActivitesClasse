@@ -188,6 +188,36 @@ function normalizeNature(value) {
     .toLowerCase();
 }
 
+function resolveNatureFamily(value) {
+  const normalizedNature = normalizeNature(value);
+
+  if (!normalizedNature) {
+    return "";
+  }
+
+  if (/\bpronoms?\b/.test(normalizedNature)) {
+    return "pronom";
+  }
+
+  if (/\bdeterminants?\b/.test(normalizedNature)) {
+    return "determinant";
+  }
+
+  if (/\badjectifs?\b/.test(normalizedNature)) {
+    return "adjectif";
+  }
+
+  if (/\bverbes?\b/.test(normalizedNature)) {
+    return "verbe";
+  }
+
+  if (/\bnoms?\b/.test(normalizedNature)) {
+    return "nom";
+  }
+
+  return normalizedNature;
+}
+
 function guessCategoryFromNature(nature) {
   const normalizedNature = normalizeNature(nature);
 
@@ -271,6 +301,83 @@ function normalizeGeneratedPayloadList(payload, context, requestedCount) {
   }
 
   return normalizedEntries.slice(0, requestedCount);
+}
+
+function normalizeRequiredNatureFilters(value) {
+  return Array.from(
+    new Set(
+      String(value || "")
+        .split(",")
+        .map((item) => resolveNatureFamily(item))
+        .filter(Boolean)
+    )
+  );
+}
+
+function buildGeneratedSentenceFromRow(row) {
+  const parsedPayload = parseJsonSafely(row?.payload);
+  const payload = parsedPayload && typeof parsedPayload === "object"
+    ? parsedPayload
+    : {
+        sentence: row?.sentence || "",
+        words: [],
+      };
+
+  return {
+    id: row?.id,
+    compteur: Number(row?.compteur || 0),
+    createdAt: row?.created_at || null,
+    ...normalizeGeneratedPayload(payload, {
+      level: row?.level || payload?.level || "CE1",
+      theme: row?.theme || payload?.theme || "libre",
+      provider: row?.provider || payload?.provider || "",
+      model: row?.model || payload?.model || "",
+    }),
+  };
+}
+
+function sentenceContainsRequiredNatures(sentence, requiredNatureKeys) {
+  if (!Array.isArray(requiredNatureKeys) || requiredNatureKeys.length === 0) {
+    return true;
+  }
+
+  const words = Array.isArray(sentence?.words) ? sentence.words : [];
+
+  return requiredNatureKeys.every((requiredNature) => {
+    const requiredFamily = resolveNatureFamily(requiredNature);
+
+    return words.some((item) => {
+      const natureFamily = resolveNatureFamily(item?.nature);
+      return Boolean(natureFamily) && natureFamily !== "ponctuation" && natureFamily === requiredFamily;
+    });
+  });
+}
+
+function selectPracticeSentences(sentences, requestedCount) {
+  const groupedByCounter = new Map();
+
+  sentences.forEach((sentence) => {
+    const counter = Number(sentence?.compteur || 0);
+    if (!groupedByCounter.has(counter)) {
+      groupedByCounter.set(counter, []);
+    }
+
+    groupedByCounter.get(counter).push(sentence);
+  });
+
+  const orderedCounters = Array.from(groupedByCounter.keys()).sort((first, second) => first - second);
+  const selectedSentences = [];
+
+  orderedCounters.forEach((counter) => {
+    if (selectedSentences.length >= requestedCount) {
+      return;
+    }
+
+    const shuffledGroup = [...groupedByCounter.get(counter)].sort(() => Math.random() - 0.5);
+    selectedSentences.push(...shuffledGroup.slice(0, requestedCount - selectedSentences.length));
+  });
+
+  return selectedSentences;
 }
 
 function buildSentencePrompt({ level, theme, maxWords, customInstruction, phraseCount }) {
@@ -759,6 +866,78 @@ router.get('/generated-sentences/export', async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Erreur lors de l\'export JSON des phrases générées',
+    });
+  }
+});
+
+router.get('/generated-sentences/practice', async (req, res) => {
+  try {
+    const parsedCount = Number(req.query?.count);
+    const requestedCount = Number.isNaN(parsedCount)
+      ? 1
+      : Math.min(Math.max(Math.round(parsedCount), 1), 20);
+    const level = normalizeText(req.query?.level).toUpperCase();
+    const theme = normalizeText(req.query?.theme);
+    const requiredNatureKeys = normalizeRequiredNatureFilters(
+      req.query?.requiredNatures || req.query?.required_natures
+    );
+
+    if (level && !ALLOWED_LEVELS.has(level)) {
+      return res.status(400).json({ error: 'Le niveau doit être CE1 ou CE2' });
+    }
+
+    const where = [];
+    const params = [];
+
+    if (level) {
+      where.push('UPPER(level) = ?');
+      params.push(level);
+    }
+
+    if (theme) {
+      where.push('LOWER(theme) LIKE ?');
+      params.push(`%${theme.toLowerCase()}%`);
+    }
+
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const rows = await allAsync(
+      `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+       FROM generated_sentences
+       ${whereClause}
+       ORDER BY COALESCE(compteur, 0) ASC, id ASC
+       LIMIT 500`,
+      params
+    );
+
+    const eligibleSentences = rows
+      .map((row) => buildGeneratedSentenceFromRow(row))
+      .filter((sentence) => sentenceContainsRequiredNatures(sentence, requiredNatureKeys));
+
+    if (eligibleSentences.length === 0) {
+      return res.status(404).json({
+        error: 'Aucune phrase générée ne correspond aux paramètres demandés.',
+      });
+    }
+
+    const selectedSentences = selectPracticeSentences(eligibleSentences, requestedCount);
+
+    for (const sentence of selectedSentences) {
+      await runAsync(
+        'UPDATE generated_sentences SET compteur = COALESCE(compteur, 0) + 1 WHERE id = ?',
+        [sentence.id]
+      );
+      sentence.compteur = Number(sentence.compteur || 0) + 1;
+    }
+
+    return res.json({
+      requestedCount,
+      returnedCount: selectedSentences.length,
+      totalAvailable: eligibleSentences.length,
+      sentences: selectedSentences,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la récupération des phrases pour l\'activité',
     });
   }
 });

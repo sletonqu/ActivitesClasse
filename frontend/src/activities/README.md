@@ -360,54 +360,51 @@ Comportement :
 
 ---
 
-### 8. `FillInTheBlanksActivity.js`
+### 8. `SentenceWordClassificationActivity.js`
 
-**But** : compléter une phrase à trous avec une banque de mots (ou saisie libre), et pouvoir charger automatiquement une phrase depuis la base générée par IA.
+**But** : analyser une ou plusieurs phrases issues de la base, puis classer uniquement certains mots dans la bonne catégorie grammaticale.
 
 Exemple de configuration :
 
 ```json
 {
-  "title": "Complète la phrase",
-  "instruction": "Lis la phrase puis glisse ou clique les mots manquants dans les trous.",
-  "showWordBank": true,
-  "sourceLevel": "CE1",
-  "sourceTheme": "animaux",
-  "useGeneratedSentencePool": true,
-  "sentences": [
-    {
-      "id": "phrase-1",
-      "prompt": "Complète avec les bons mots.",
-      "wordBank": ["petit", "chat"],
-      "tokens": [
-        { "type": "text", "value": "Le" },
-        { "type": "blank", "answer": "petit", "placeholder": "Mot à glisser" },
-        { "type": "blank", "answer": "chat", "placeholder": "Mot à glisser" },
-        { "type": "text", "value": "dort" },
-        { "type": "punctuation", "value": "." }
-      ]
+  "title": "Classification des mots d'une phrase",
+  "instruction": "Lis chaque phrase puis classe les mots demandés dans la bonne catégorie grammaticale.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "sentenceCount": 1,
+      "sourceLevel": "CE1",
+      "sourceTheme": "animaux",
+      "requiredNatures": ["nom", "verbe"]
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "sentenceCount": 2,
+      "sourceLevel": "CE1",
+      "sourceTheme": "école",
+      "requiredNatures": ["nom", "verbe", "determinant"]
     }
-  ]
+  }
 }
 ```
 
 Paramètres utiles :
 
-- `title`
-- `instruction`
-- `showWordBank`
-- `sourceLevel`
-- `sourceTheme`
-- `useGeneratedSentencePool`
-- `sentences[]`
-- `sentences[].tokens[]` avec `text`, `blank` et `punctuation`
+- `defaultLevel`
+- `levels[].sentenceCount`
+- `levels[].sourceLevel`
+- `levels[].sourceTheme`
+- `levels[].requiredNatures`
 
 Comportement :
 
-- interaction au clic et glisser-déposer avec banque de mots ;
-- correction mot par mot avec score sur 20 ;
-- comparaison tolérante aux accents et apostrophes ;
-- si `useGeneratedSentencePool` est actif, récupération d'une phrase depuis l'API de phrases générées.
+- sélection aléatoire de phrases stockées en base avec priorité aux compteurs les plus bas ;
+- filtrage optionnel par niveau, thème et natures de mots attendues ;
+- affichage de la phrase en cours avec les mots à classer sous forme de petites tuiles ;
+- classement par glisser-déposer ou par clic, puis passage automatique à la phrase suivante ;
+- bilan final avec score sur 20 et affichage des erreurs par catégorie.
 
 ---
 
