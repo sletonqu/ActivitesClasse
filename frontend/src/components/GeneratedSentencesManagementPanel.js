@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
@@ -49,6 +49,7 @@ function sortSentencesList(sentences, sortOrder) {
 }
 
 const GeneratedSentencesManagementPanel = () => {
+  const importFileRef = useRef(null);
   const [sentences, setSentences] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -60,6 +61,8 @@ const GeneratedSentencesManagementPanel = () => {
   const [deletingSentenceId, setDeletingSentenceId] = useState("");
   const [deletingAll, setDeletingAll] = useState(false);
   const [resettingCounters, setResettingCounters] = useState(false);
+  const [loadingImportJson, setLoadingImportJson] = useState(false);
+  const [loadingExportJson, setLoadingExportJson] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -68,6 +71,11 @@ const GeneratedSentencesManagementPanel = () => {
   const sortedSentences = useMemo(
     () => sortSentencesList(sentences, sortOrder),
     [sentences, sortOrder]
+  );
+
+  const visibleSentences = useMemo(
+    () => sortedSentences.slice(0, 10),
+    [sortedSentences]
   );
 
   const selectedSentence = useMemo(
@@ -127,6 +135,77 @@ const GeneratedSentencesManagementPanel = () => {
     setSelectedSentenceId((currentId) =>
       String(currentId) === String(sentenceId) ? "" : String(sentenceId)
     );
+  };
+
+  const handlePickImportJson = () => {
+    setError("");
+
+    if (importFileRef.current) {
+      importFileRef.current.value = "";
+      importFileRef.current.click();
+    }
+  };
+
+  const handleImportJsonFileChange = async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    setLoadingImportJson(true);
+    setError("");
+
+    try {
+      const json = await file.text();
+      const response = await fetch(`${API_URL}/ai/generated-sentences/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ json }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de l'import JSON des phrases");
+      }
+
+      setMessage(
+        `${data.imported ?? 0} phrase(s) importée(s) et ${data.skippedDuplicates ?? 0} doublon(s) ignoré(s).`
+      );
+      await loadSentences();
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setLoadingImportJson(false);
+    }
+  };
+
+  const handleExportJson = async () => {
+    setLoadingExportJson(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/ai/generated-sentences/export${buildFilterQueryString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de l'export JSON des phrases");
+      }
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `generated_sentences_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setMessage(`${data.total ?? 0} phrase(s) exportée(s) en JSON.`);
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setLoadingExportJson(false);
+    }
   };
 
   const handleDeleteSelected = async () => {
@@ -255,6 +334,15 @@ const GeneratedSentencesManagementPanel = () => {
 
   return (
     <section id="generated-sentences-management-section" className="w-full rounded-xl bg-white p-6 shadow mb-6">
+      <input
+        id="generated-sentences-import-json-input"
+        ref={importFileRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleImportJsonFileChange}
+      />
+
       <div
         id="generated-sentences-management-header"
         className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
@@ -352,6 +440,26 @@ const GeneratedSentencesManagementPanel = () => {
           </button>
 
           <button
+            id="generated-sentences-import-json-button"
+            type="button"
+            onClick={handlePickImportJson}
+            disabled={loadingImportJson || deletingAll || resettingCounters || loading}
+            className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+          >
+            {loadingImportJson ? "Import JSON..." : "Importer JSON"}
+          </button>
+
+          <button
+            id="generated-sentences-export-json-button"
+            type="button"
+            onClick={handleExportJson}
+            disabled={loadingExportJson || deletingAll || resettingCounters || loading || total === 0}
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {loadingExportJson ? "Export JSON..." : "Exporter JSON"}
+          </button>
+
+          <button
             id="generated-sentences-delete-all-button"
             type="button"
             onClick={handleDeleteAll}
@@ -389,7 +497,7 @@ const GeneratedSentencesManagementPanel = () => {
             Aucune phrase enregistrée pour le moment.
           </div>
         ) : (
-          sortedSentences.map((sentence) => {
+          visibleSentences.map((sentence) => {
             const isSelected = String(selectedSentenceId) === String(sentence.id);
 
             return (

@@ -471,6 +471,154 @@ async function storeGeneratedSentences(sentences) {
   return insertedSentences;
 }
 
+function buildGeneratedSentenceSignature(entry) {
+  return [
+    normalizeText(entry?.sentence).toLowerCase(),
+    normalizeText(entry?.level).toUpperCase(),
+    normalizeText(entry?.theme).toLowerCase(),
+    normalizeText(entry?.provider).toLowerCase(),
+    normalizeText(entry?.model).toLowerCase(),
+  ].join("::");
+}
+
+function normalizeImportedGeneratedSentenceEntry(entry, index = 0) {
+  if (!entry || typeof entry !== "object") {
+    throw new Error(`L'entrée ${index + 1} du fichier JSON est invalide`);
+  }
+
+  const payloadSource = entry.payload && typeof entry.payload === "object"
+    ? entry.payload
+    : typeof entry.payload === "string"
+      ? parseJsonSafely(entry.payload)
+      : entry;
+
+  if (!payloadSource || typeof payloadSource !== "object") {
+    throw new Error(`Le contenu de l'entrée ${index + 1} ne contient pas de phrase exploitable`);
+  }
+
+  const level = normalizeText(entry.level || payloadSource.level, "CE1").toUpperCase();
+  if (level && !ALLOWED_LEVELS.has(level)) {
+    throw new Error(`Le niveau de l'entrée ${index + 1} doit être CE1 ou CE2`);
+  }
+
+  const normalizedEntry = normalizeGeneratedPayload(payloadSource, {
+    level,
+    theme: normalizeText(entry.theme || payloadSource.theme, "libre"),
+    provider: normalizeText(entry.provider || payloadSource.provider),
+    model: normalizeText(entry.model || payloadSource.model),
+  });
+
+  const parsedCounter = Number(entry.compteur ?? entry.counter ?? 0);
+
+  return {
+    ...normalizedEntry,
+    compteur: Number.isNaN(parsedCounter) ? 0 : Math.max(0, Math.round(parsedCounter)),
+    createdAt: normalizeText(entry.created_at || entry.createdAt) || null,
+  };
+}
+
+function buildGeneratedSentenceExportItem(row) {
+  const parsedPayload = parseJsonSafely(row.payload);
+  const payload = parsedPayload && typeof parsedPayload === "object"
+    ? parsedPayload
+    : {
+        sentence: row.sentence,
+        level: row.level || "",
+        theme: row.theme || "",
+        provider: row.provider || "",
+        model: row.model || "",
+        words: [],
+      };
+
+  return {
+    id: row.id,
+    sentence: row.sentence,
+    level: row.level || payload.level || "",
+    theme: row.theme || payload.theme || "",
+    provider: row.provider || payload.provider || "",
+    model: row.model || payload.model || "",
+    compteur: Number(row.compteur || 0),
+    created_at: row.created_at || null,
+    payload,
+  };
+}
+
+async function storeImportedGeneratedSentences(sentences) {
+  const existingRows = await allAsync(
+    `SELECT sentence, level, theme, provider, model
+     FROM generated_sentences`
+  );
+  const existingKeys = new Set(existingRows.map((row) => buildGeneratedSentenceSignature(row)));
+  const payloadKeys = new Set();
+  const insertedSentences = [];
+  let skippedDuplicates = 0;
+
+  for (const sentenceEntry of sentences) {
+    const signature = buildGeneratedSentenceSignature(sentenceEntry);
+    if (existingKeys.has(signature) || payloadKeys.has(signature)) {
+      skippedDuplicates += 1;
+      continue;
+    }
+
+    payloadKeys.add(signature);
+    existingKeys.add(signature);
+
+    const serializedPayload = JSON.stringify({
+      sentence: sentenceEntry.sentence,
+      level: sentenceEntry.level || null,
+      theme: sentenceEntry.theme || null,
+      provider: sentenceEntry.provider || null,
+      model: sentenceEntry.model || null,
+      words: Array.isArray(sentenceEntry.words) ? sentenceEntry.words : [],
+    });
+
+    const insertResult = sentenceEntry.createdAt
+      ? await runAsync(
+          `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            sentenceEntry.sentence,
+            sentenceEntry.level || null,
+            sentenceEntry.theme || null,
+            sentenceEntry.provider || null,
+            sentenceEntry.model || null,
+            serializedPayload,
+            Number(sentenceEntry.compteur || 0),
+            sentenceEntry.createdAt,
+          ]
+        )
+      : await runAsync(
+          `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            sentenceEntry.sentence,
+            sentenceEntry.level || null,
+            sentenceEntry.theme || null,
+            sentenceEntry.provider || null,
+            sentenceEntry.model || null,
+            serializedPayload,
+            Number(sentenceEntry.compteur || 0),
+          ]
+        );
+
+    const insertedRow = await getAsync(
+      `SELECT id, compteur, created_at
+       FROM generated_sentences
+       WHERE id = ?`,
+      [insertResult.lastID]
+    );
+
+    insertedSentences.push({
+      ...sentenceEntry,
+      id: insertedRow?.id || insertResult.lastID,
+      compteur: insertedRow?.compteur ?? sentenceEntry.compteur ?? 0,
+      createdAt: insertedRow?.created_at || sentenceEntry.createdAt || null,
+    });
+  }
+
+  return { insertedSentences, skippedDuplicates };
+}
+
 function buildGeneratedSentenceFilters(query = {}) {
   const where = [];
   const params = [];
@@ -591,6 +739,30 @@ router.get('/generated-sentences', async (req, res) => {
   }
 });
 
+router.get('/generated-sentences/export', async (req, res) => {
+  try {
+    const { where, params } = buildGeneratedSentenceFilters(req.query);
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const rows = await allAsync(
+      `SELECT id, sentence, level, theme, provider, model, compteur, created_at, payload
+       FROM generated_sentences
+       ${whereClause}
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC`,
+      params
+    );
+
+    return res.json({
+      exportedAt: new Date().toISOString(),
+      total: rows.length,
+      sentences: rows.map((row) => buildGeneratedSentenceExportItem(row)),
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de l\'export JSON des phrases générées',
+    });
+  }
+});
+
 router.get('/generated-sentences/next', async (req, res) => {
   try {
     const level = normalizeText(req.query?.level).toUpperCase();
@@ -633,6 +805,48 @@ router.get('/generated-sentences/next', async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Erreur lors de la récupération de la phrase en base',
+    });
+  }
+});
+
+router.post('/generated-sentences/import', async (req, res) => {
+  try {
+    const input = typeof req.body?.json === 'string'
+      ? parseJsonSafely(req.body.json)
+      : req.body;
+
+    if (!input) {
+      return res.status(400).json({
+        error: 'Le fichier JSON est vide ou invalide',
+      });
+    }
+
+    const rawSentences = Array.isArray(input)
+      ? input
+      : Array.isArray(input?.sentences)
+        ? input.sentences
+        : [];
+
+    if (rawSentences.length === 0) {
+      return res.status(400).json({
+        error: 'Aucune phrase à importer n\'a été trouvée dans le JSON',
+      });
+    }
+
+    const normalizedSentences = rawSentences.map((entry, index) =>
+      normalizeImportedGeneratedSentenceEntry(entry, index)
+    );
+
+    const { insertedSentences, skippedDuplicates } = await storeImportedGeneratedSentences(normalizedSentences);
+
+    return res.json({
+      received: rawSentences.length,
+      imported: insertedSentences.length,
+      skippedDuplicates,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message || 'Erreur lors de l\'import JSON des phrases générées',
     });
   }
 });
