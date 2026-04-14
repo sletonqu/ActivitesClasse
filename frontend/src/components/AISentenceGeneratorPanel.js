@@ -154,6 +154,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
   const [generatedResult, setGeneratedResult] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [providerErrorContent, setProviderErrorContent] = useState("");
 
   const { show: showMessage, fade: fadeMessage } = useAutoDismissMessage(message, setMessage);
 
@@ -222,6 +223,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
   const handleGenerateSentence = async () => {
     setLoadingGeneration(true);
     setError("");
+    setProviderErrorContent("");
 
     try {
       const response = await fetch(`${API_URL}/ai/generate-sentence`, {
@@ -239,6 +241,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
 
       const data = await response.json();
       if (!response.ok) {
+        setProviderErrorContent(String(data.providerContent || "").trim());
         throw new Error(data.error || "Erreur lors de la génération de la phrase");
       }
 
@@ -246,6 +249,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
       const nextTemplate = buildFillInTheBlanksTemplate(nextResult, schoolLevel, theme);
 
       setGeneratedResult(nextResult);
+      setProviderErrorContent("");
       setMessage(
         `${nextResult?.importedCount ?? 0} phrase(s) générée(s) et enregistrée(s) dans la base.`
       );
@@ -482,9 +486,22 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
       {error && (
         <div
           id="ai-sentence-generator-error"
-          className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+          className="mt-4 space-y-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
         >
-          {error}
+          <div>{error}</div>
+
+          {providerErrorContent && (
+            <div id="ai-sentence-generator-provider-error-content">
+              <label className="mb-1 block text-sm font-semibold text-rose-800">
+                Réponse brute du fournisseur IA
+              </label>
+              <textarea
+                readOnly
+                value={providerErrorContent}
+                className="h-40 w-full rounded-lg border border-rose-200 bg-white px-3 py-2 font-mono text-sm text-slate-700 focus:outline-none"
+              />
+            </div>
+          )}
         </div>
       )}
 

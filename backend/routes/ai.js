@@ -90,6 +90,16 @@ function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
 }
 
+function createProviderError(message, providerContent = "") {
+  const error = new Error(message);
+
+  if (providerContent) {
+    error.providerContent = providerContent;
+  }
+
+  return error;
+}
+
 function parseJsonSafely(value) {
   try {
     return JSON.parse(value);
@@ -281,21 +291,25 @@ function buildSentencePrompt({ level, theme, maxWords, customInstruction, phrase
 }
 
 function estimateOutputTokenLimit(phraseCount, maxWords) {
-  const estimated = phraseCount * (maxWords + 4) * 18;
-  return Math.min(Math.max(estimated, 280), 1400);
+  const estimatedWordObjects = phraseCount * (maxWords + 1);
+  const estimated = (estimatedWordObjects * 45) + (phraseCount * 120);
+
+  return Math.min(Math.max(estimated, 600), 5000);
 }
 
 async function parseErrorResponse(response, fallbackMessage) {
   const rawText = await response.text();
   const json = parseJsonSafely(rawText);
 
-  return (
-    json?.error?.message ||
-    json?.error ||
-    json?.message ||
-    rawText ||
-    fallbackMessage
-  );
+  return {
+    message:
+      json?.error?.message ||
+      json?.error ||
+      json?.message ||
+      rawText ||
+      fallbackMessage,
+    providerContent: rawText || "",
+  };
 }
 
 async function fetchWithTimeout(url, options, timeoutMs = 30000) {
@@ -343,15 +357,21 @@ async function requestOpenAiLikeCompletion(providerConfig, prompt, endpoint, out
   });
 
   if (!response.ok) {
-    const errorMessage = await parseErrorResponse(
+    const { message, providerContent } = await parseErrorResponse(
       response,
       `Erreur lors de l'appel à ${providerConfig.label}`
     );
-    throw new Error(errorMessage);
+    throw createProviderError(message, providerContent);
   }
 
   const data = await response.json();
-  return data?.choices?.[0]?.message?.content || "";
+  const choice = data?.choices?.[0] || {};
+
+  return {
+    content: choice?.message?.content || "",
+    finishReason: String(choice?.finish_reason || ""),
+    usage: data?.usage || null,
+  };
 }
 
 async function requestGeminiCompletion(providerConfig, prompt, outputTokenLimit) {
@@ -380,8 +400,11 @@ async function requestGeminiCompletion(providerConfig, prompt, outputTokenLimit)
   );
 
   if (!response.ok) {
-    const errorMessage = await parseErrorResponse(response, "Erreur lors de l'appel à Gemini");
-    throw new Error(errorMessage);
+    const { message, providerContent } = await parseErrorResponse(
+      response,
+      "Erreur lors de l'appel à Gemini"
+    );
+    throw createProviderError(message, providerContent);
   }
 
   const data = await response.json();
@@ -708,36 +731,89 @@ router.post('/generate-sentence', async (req, res) => {
     const outputTokenLimit = estimateOutputTokenLimit(phraseCount, maxWords);
 
     let rawContent = '';
+    let finishReason = '';
+    let usage = null;
 
     if (providerId === 'gemini') {
       rawContent = await requestGeminiCompletion(providerSetup, prompt, outputTokenLimit);
     } else if (providerId === 'mistral') {
-      rawContent = await requestOpenAiLikeCompletion(
+      const completion = await requestOpenAiLikeCompletion(
         providerSetup,
         prompt,
         'https://api.mistral.ai/v1/chat/completions',
         outputTokenLimit
       );
+      rawContent = completion.content;
+      finishReason = completion.finishReason;
+      usage = completion.usage;
     } else {
-      rawContent = await requestOpenAiLikeCompletion(
+      const completion = await requestOpenAiLikeCompletion(
         providerSetup,
         prompt,
         'https://api.openai.com/v1/chat/completions',
         outputTokenLimit
       );
+      rawContent = completion.content;
+      finishReason = completion.finishReason;
+      usage = completion.usage;
     }
 
-    const parsedPayload = extractFirstJsonObject(rawContent);
-    const normalizedSentences = normalizeGeneratedPayloadList(
-      parsedPayload,
-      {
-        level,
-        theme,
+    if (finishReason && finishReason !== 'stop') {
+      console.warn('[AI][generate-sentence] Réponse potentiellement tronquée', {
         provider: providerId,
         model: providerSetup.model,
-      },
-      phraseCount
-    );
+        finishReason,
+        outputTokenLimit,
+        usage,
+        rawLength: rawContent.length,
+      });
+    }
+
+    let normalizedSentences = [];
+
+    try {
+      const parsedPayload = extractFirstJsonObject(rawContent);
+      normalizedSentences = normalizeGeneratedPayloadList(
+        parsedPayload,
+        {
+          level,
+          theme,
+          provider: providerId,
+          model: providerSetup.model,
+        },
+        phraseCount
+      );
+    } catch (err) {
+      console.error('[AI][generate-sentence] Échec d\'analyse de la réponse fournisseur', {
+        provider: providerId,
+        model: providerSetup.model,
+        finishReason,
+        outputTokenLimit,
+        usage,
+        rawLength: rawContent.length,
+        rawPreview: String(rawContent || '').slice(0, 1200),
+      });
+
+      const debugDetails = [
+        `Fournisseur : ${providerId}`,
+        `Modèle : ${providerSetup.model}`,
+        `finish_reason : ${finishReason || 'indisponible'}`,
+        `max_tokens demandé : ${outputTokenLimit}`,
+        `Longueur brute : ${rawContent.length} caractères`,
+        usage ? `Usage : ${JSON.stringify(usage, null, 2)}` : '',
+        '',
+        'Contenu brut retourné :',
+        rawContent,
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      throw createProviderError(
+        err.message || 'Erreur lors de l\'analyse de la réponse du fournisseur IA',
+        debugDetails
+      );
+    }
+
     const storedSentences = await storeGeneratedSentences(normalizedSentences);
 
     return res.json({
@@ -751,6 +827,7 @@ router.post('/generate-sentence', async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Erreur lors de la génération de la phrase par IA',
+      providerContent: normalizeText(err.providerContent),
     });
   }
 });
