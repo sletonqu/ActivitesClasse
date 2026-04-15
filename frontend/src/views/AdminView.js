@@ -166,9 +166,7 @@ const AdminView = () => {
 
 
   const handleSelectActivityToEdit = (activity) => {
-    const normalizedJsFile = activity.js_file === "src/activities/FillInTheBlanksActivity.js"
-      ? "src/activities/SentenceWordClassificationActivity.js"
-      : activity.js_file || ACTIVITY_FILES[0];
+    const normalizedJsFile = activity.js_file || ACTIVITY_FILES[0];
 
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");

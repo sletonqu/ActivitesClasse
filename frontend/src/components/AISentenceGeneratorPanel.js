@@ -10,15 +10,6 @@ const DEFAULT_PROVIDER_OPTIONS = [
 
 const SCHOOL_LEVEL_OPTIONS = ["CE1", "CE2"];
 const SENTENCE_WORD_CLASSIFICATION_ACTIVITY_FILE = "src/activities/SentenceWordClassificationActivity.js";
-const BLANK_NATURE_PRIORITY = [
-  "verbe",
-  "nom commun",
-  "nom",
-  "adjectif qualificatif",
-  "adjectif",
-  "determinant",
-  "pronom",
-];
 
 function normalizeNatureKey(value) {
   return String(value || "")
@@ -42,91 +33,6 @@ function resolveSentenceNatureFamily(value) {
   if (/\bnoms?\b/.test(natureKey)) return "nom";
 
   return "";
-}
-
-function isPunctuationEntry(item) {
-  const word = String(item?.word || "").trim();
-  const nature = normalizeNatureKey(item?.nature);
-
-  return !word || nature === "ponctuation" || !/[A-Za-zÀ-ÿ0-9]/.test(word);
-}
-
-function buildFallbackSentenceConfig(result) {
-  if (!result?.sentence || !Array.isArray(result.words) || result.words.length === 0) {
-    return null;
-  }
-
-  const eligibleWords = result.words.filter((item) => !isPunctuationEntry(item));
-  if (eligibleWords.length === 0) {
-    return null;
-  }
-
-  const targetBlankCount = Math.min(4, Math.max(1, Math.round(eligibleWords.length / 3)));
-  const rankedCandidates = eligibleWords
-    .map((item, index) => {
-      const natureKey = normalizeNatureKey(item?.nature);
-      const priorityIndex = BLANK_NATURE_PRIORITY.findIndex((entry) => natureKey.includes(entry));
-
-      return {
-        ...item,
-        __key: String(item?.position ?? index + 1),
-        __priority: priorityIndex === -1 ? BLANK_NATURE_PRIORITY.length : priorityIndex,
-        __length: String(item?.word || "").trim().length,
-      };
-    })
-    .sort(
-      (first, second) =>
-        first.__priority - second.__priority ||
-        second.__length - first.__length ||
-        Number(first.position || 0) - Number(second.position || 0)
-    );
-
-  const selectedKeys = new Set(
-    rankedCandidates.slice(0, targetBlankCount).map((item) => item.__key)
-  );
-
-  const tokens = result.words
-    .map((item, index) => {
-      const word = String(item?.word || "").trim();
-      if (!word) {
-        return null;
-      }
-
-      if (isPunctuationEntry(item)) {
-        return {
-          type: "punctuation",
-          value: word,
-        };
-      }
-
-      const tokenKey = String(item?.position ?? index + 1);
-      if (selectedKeys.has(tokenKey)) {
-        return {
-          type: "blank",
-          answer: word,
-          placeholder: "Mot à glisser",
-          nature: String(item?.nature || "").trim(),
-          category: String(item?.category || "").trim(),
-        };
-      }
-
-      return {
-        type: "text",
-        value: word,
-      };
-    })
-    .filter(Boolean);
-
-  return {
-    id: `phrase-${result?.id || 1}`,
-    prompt: "Complète la phrase avec les bons mots.",
-    wordBank: result.words
-      .filter((item, index) => selectedKeys.has(String(item?.position ?? index + 1)))
-      .filter((item) => !isPunctuationEntry(item))
-      .map((item) => String(item?.word || "").trim())
-      .filter(Boolean),
-    tokens,
-  };
 }
 
 function buildSentenceClassificationTemplate(result, fallbackLevel, fallbackTheme) {
@@ -491,7 +397,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             >
               Copier le JSON
             </button>
-            {fillInTheBlanksTemplate && (
+            {sentenceClassificationTemplate && (
               <button
                 type="button"
                 onClick={handleUseAsActivityTemplate}

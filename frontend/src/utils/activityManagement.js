@@ -29,7 +29,6 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/InteractiveWhiteboardActivity.js": defaultInteractiveWhiteboardActivityContent,
   "src/activities/WordClassificationActivity.js": defaultWordClassificationActivityContent,
   "src/activities/SentenceWordClassificationActivity.js": defaultSentenceWordClassificationActivityContent,
-  "src/activities/FillInTheBlanksActivity.js": defaultSentenceWordClassificationActivityContent,
   "src/activities/ReadNumbersActivity.js": defaultReadNumbersActivityContent,
 };
 
