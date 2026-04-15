@@ -812,6 +812,15 @@ function buildGeneratedSentenceExportItem(row) {
   };
 }
 
+async function getGeneratedSentenceRowById(sentenceId) {
+  return getAsync(
+    `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+     FROM generated_sentences
+     WHERE id = ?`,
+    [sentenceId]
+  );
+}
+
 async function storeImportedGeneratedSentences(sentences) {
   const existingRows = await allAsync(
     `SELECT sentence, level, theme, provider, model
@@ -1032,6 +1041,106 @@ router.get('/generated-sentences/export', async (req, res) => {
   }
 });
 
+router.get('/generated-sentences/:id(\\d+)', async (req, res) => {
+  try {
+    const sentenceId = Number(req.params.id);
+    if (Number.isNaN(sentenceId)) {
+      return res.status(400).json({ error: 'Identifiant de phrase invalide' });
+    }
+
+    const row = await getGeneratedSentenceRowById(sentenceId);
+    if (!row) {
+      return res.status(404).json({ error: 'Phrase non trouvée' });
+    }
+
+    return res.json({
+      sentence: buildGeneratedSentenceFromRow(row),
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors du chargement de la phrase',
+    });
+  }
+});
+
+router.put('/generated-sentences/:id(\\d+)', async (req, res) => {
+  try {
+    const sentenceId = Number(req.params.id);
+    if (Number.isNaN(sentenceId)) {
+      return res.status(400).json({ error: 'Identifiant de phrase invalide' });
+    }
+
+    const row = await getGeneratedSentenceRowById(sentenceId);
+    if (!row) {
+      return res.status(404).json({ error: 'Phrase non trouvée' });
+    }
+
+    const parsedPayload = parseJsonSafely(row.payload);
+    const payload = parsedPayload && typeof parsedPayload === 'object'
+      ? parsedPayload
+      : {
+          sentence: row.sentence,
+          words: [],
+          level: row.level || 'CE1',
+          theme: row.theme || 'libre',
+          provider: row.provider || '',
+          model: row.model || '',
+        };
+
+    const nextSentence = normalizeText(req.body?.sentence || payload.sentence || row.sentence);
+    if (!nextSentence) {
+      return res.status(400).json({
+        error: 'La phrase est obligatoire pour enregistrer les corrections',
+      });
+    }
+
+    const requestedWords = Array.isArray(req.body?.words)
+      ? req.body.words
+      : Array.isArray(payload.words)
+        ? payload.words
+        : [];
+
+    const normalizedEntry = normalizeGeneratedPayload(
+      {
+        sentence: nextSentence,
+        words: requestedWords,
+      },
+      {
+        level: normalizeText(row.level || payload.level, 'CE1').toUpperCase(),
+        theme: normalizeText(row.theme || payload.theme, 'libre'),
+        provider: normalizeText(row.provider || payload.provider),
+        model: normalizeText(row.model || payload.model),
+      }
+    );
+
+    const serializedPayload = JSON.stringify({
+      sentence: normalizedEntry.sentence,
+      words: normalizedEntry.words,
+      level: normalizedEntry.level,
+      theme: normalizedEntry.theme,
+      provider: normalizedEntry.provider,
+      model: normalizedEntry.model,
+    });
+
+    await runAsync(
+      `UPDATE generated_sentences
+       SET sentence = ?, payload = ?
+       WHERE id = ?`,
+      [normalizedEntry.sentence, serializedPayload, sentenceId]
+    );
+
+    const updatedRow = await getGeneratedSentenceRowById(sentenceId);
+
+    return res.json({
+      sentence: buildGeneratedSentenceFromRow(updatedRow),
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message || 'Erreur lors de la mise à jour de la phrase',
+    });
+  }
+});
+
 router.get('/generated-sentences/practice', async (req, res) => {
   try {
     const parsedCount = Number(req.query?.count);
@@ -1209,7 +1318,7 @@ router.post('/generated-sentences/reset-counters', async (req, res) => {
   }
 });
 
-router.delete('/generated-sentences/:id', async (req, res) => {
+router.delete('/generated-sentences/:id(\\d+)', async (req, res) => {
   try {
     const sentenceId = Number(req.params.id);
     if (Number.isNaN(sentenceId)) {

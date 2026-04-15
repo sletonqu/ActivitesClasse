@@ -59,10 +59,16 @@ const GeneratedSentencesManagementPanel = () => {
   const [sortOrder, setSortOrder] = useState("least-used");
   const [selectedSentenceId, setSelectedSentenceId] = useState("");
   const [deletingSentenceId, setDeletingSentenceId] = useState("");
+  const [savingSentenceId, setSavingSentenceId] = useState("");
+  const [loadingSentenceDetails, setLoadingSentenceDetails] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
   const [resettingCounters, setResettingCounters] = useState(false);
   const [loadingImportJson, setLoadingImportJson] = useState(false);
   const [loadingExportJson, setLoadingExportJson] = useState(false);
+  const [selectedSentenceDetails, setSelectedSentenceDetails] = useState(null);
+  const [sentenceEditorText, setSentenceEditorText] = useState("");
+  const [wordsEditorText, setWordsEditorText] = useState("[]");
+  const [lastSavedSentenceId, setLastSavedSentenceId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -125,6 +131,45 @@ const GeneratedSentencesManagementPanel = () => {
   useEffect(() => {
     loadSentences();
   }, []);
+
+  useEffect(() => {
+    const loadSelectedSentenceDetails = async () => {
+      if (!selectedSentenceId) {
+        setSelectedSentenceDetails(null);
+        setSentenceEditorText("");
+        setWordsEditorText("[]");
+        return;
+      }
+
+      setLoadingSentenceDetails(true);
+      setError("");
+
+      try {
+        const response = await fetch(`${API_URL}/ai/generated-sentences/${selectedSentenceId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Erreur lors du chargement de la phrase sélectionnée");
+        }
+
+        const sentence = data?.sentence || null;
+        const words = Array.isArray(sentence?.words) ? sentence.words : [];
+
+        setSelectedSentenceDetails(sentence);
+        setSentenceEditorText(String(sentence?.sentence || ""));
+        setWordsEditorText(JSON.stringify(words, null, 2));
+      } catch (err) {
+        setSelectedSentenceDetails(null);
+        setSentenceEditorText("");
+        setWordsEditorText("[]");
+        setError(err.message || "Erreur inconnue");
+      } finally {
+        setLoadingSentenceDetails(false);
+      }
+    };
+
+    void loadSelectedSentenceDetails();
+  }, [selectedSentenceId]);
 
   const handleApplyFilters = async (event) => {
     event.preventDefault();
@@ -240,6 +285,57 @@ const GeneratedSentencesManagementPanel = () => {
       setError(err.message || "Erreur inconnue");
     } finally {
       setDeletingSentenceId("");
+    }
+  };
+
+  const handleSaveSelectedCorrections = async () => {
+    if (!selectedSentence?.id || !selectedSentenceDetails?.id) {
+      return;
+    }
+
+    setSavingSentenceId(String(selectedSentence.id));
+    setError("");
+
+    try {
+      let parsedWords = [];
+
+      if (wordsEditorText.trim()) {
+        parsedWords = JSON.parse(wordsEditorText);
+      }
+
+      if (!Array.isArray(parsedWords)) {
+        throw new Error("Le champ words doit contenir un tableau JSON valide");
+      }
+
+      const response = await fetch(`${API_URL}/ai/generated-sentences/${selectedSentence.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sentence: sentenceEditorText,
+          words: parsedWords,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la mise à jour de la phrase");
+      }
+
+      const updatedSentence = data?.sentence || null;
+      const updatedWords = Array.isArray(updatedSentence?.words) ? updatedSentence.words : parsedWords;
+      const savedSentenceId = String(updatedSentence?.id || selectedSentence.id || "");
+
+      setSelectedSentenceDetails(updatedSentence);
+      setSentenceEditorText(String(updatedSentence?.sentence || sentenceEditorText || ""));
+      setWordsEditorText(JSON.stringify(updatedWords, null, 2));
+      setLastSavedSentenceId(savedSentenceId);
+      setMessage(`Phrase et mots corrigés enregistrés en base (id ${savedSentenceId}).`);
+      await loadSentences();
+      setSelectedSentenceId("");
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setSavingSentenceId("");
     }
   };
 
@@ -491,6 +587,26 @@ const GeneratedSentencesManagementPanel = () => {
         </div>
       )}
 
+      {lastSavedSentenceId && !selectedSentenceId && (
+        <div
+          id="generated-sentences-last-saved-hint"
+          className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm text-violet-900"
+        >
+          <span>
+            Dernière correction enregistrée : phrase #{lastSavedSentenceId}
+          </span>
+          <button
+            id="generated-sentences-reopen-last-saved-button"
+            type="button"
+            onClick={() => setSelectedSentenceId(String(lastSavedSentenceId))}
+            disabled={!sortedSentences.some((item) => String(item.id) === String(lastSavedSentenceId))}
+            className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+          >
+            Rouvrir la phrase corrigée
+          </button>
+        </div>
+      )}
+
       <div id="generated-sentences-management-list" className="mt-4 space-y-3">
         {sortedSentences.length === 0 && !loading ? (
           <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">
@@ -534,20 +650,85 @@ const GeneratedSentencesManagementPanel = () => {
                   </div>
 
                   {isSelected && (
-                    <button
-                      id={`generated-sentences-delete-button-${sentence.id}`}
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleDeleteSelected();
-                      }}
-                      disabled={deletingSentenceId === String(sentence.id)}
-                      className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
-                    >
-                      {deletingSentenceId === String(sentence.id) ? "Suppression..." : "Supprimer"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        id={`generated-sentences-save-button-${sentence.id}`}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleSaveSelectedCorrections();
+                        }}
+                        disabled={
+                          loadingSentenceDetails ||
+                          savingSentenceId === String(sentence.id) ||
+                          deletingSentenceId === String(sentence.id)
+                        }
+                        className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:opacity-60"
+                      >
+                        {savingSentenceId === String(sentence.id) ? "Enregistrement..." : "Enregistrer les corrections"}
+                      </button>
+
+                      <button
+                        id={`generated-sentences-delete-button-${sentence.id}`}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleDeleteSelected();
+                        }}
+                        disabled={deletingSentenceId === String(sentence.id) || savingSentenceId === String(sentence.id)}
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        {deletingSentenceId === String(sentence.id) ? "Suppression..." : "Supprimer"}
+                      </button>
+                    </div>
                   )}
                 </div>
+
+                {isSelected && (
+                  <div
+                    id={`generated-sentences-editor-${sentence.id}`}
+                    onClick={(event) => event.stopPropagation()}
+                    className="mt-4 space-y-3 rounded-lg border border-violet-200 bg-white p-3"
+                  >
+                    <div className="text-sm font-semibold text-violet-800">
+                      Correction de la phrase sélectionnée
+                    </div>
+
+                    {loadingSentenceDetails ? (
+                      <div className="text-sm text-slate-600">Chargement des détails...</div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="mb-1 block text-sm font-semibold text-slate-700">
+                            Phrase
+                          </label>
+                          <input
+                            id={`generated-sentences-editor-sentence-${sentence.id}`}
+                            type="text"
+                            value={sentenceEditorText}
+                            onChange={(event) => setSentenceEditorText(event.target.value)}
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="mb-1 block text-sm font-semibold text-slate-700">
+                            words (JSON)
+                          </label>
+                          <textarea
+                            id={`generated-sentences-editor-words-${sentence.id}`}
+                            value={wordsEditorText}
+                            onChange={(event) => setWordsEditorText(event.target.value)}
+                            className="h-48 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                          />
+                          <p className="mt-1 text-xs text-slate-500">
+                            Modifie les natures/catégories dans le JSON puis clique sur « Enregistrer les corrections ».
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })
