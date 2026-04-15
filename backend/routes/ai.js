@@ -90,6 +90,11 @@ function normalizeText(value, fallback = "") {
   return String(value ?? fallback).trim();
 }
 
+function isLocalTokenCorrectionEnabled() {
+  const rawValue = String(process.env.AI_LOCAL_TOKEN_CORRECTION || "").trim().toLowerCase();
+  return rawValue === "1" || rawValue === "true" || rawValue === "yes" || rawValue === "on";
+}
+
 function createProviderError(message, providerContent = "") {
   const error = new Error(message);
 
@@ -201,10 +206,16 @@ function tokenizeSentence(sentence) {
     return [];
   }
 
-  return tokens
+  const normalizedTokens = tokens
     .map((token) => token.trim())
-    .filter(Boolean)
-    .flatMap((token) => splitFrenchElisionToken(token));
+    .filter(Boolean);
+
+  // Par défaut, on garde les tokens bruts pour les tests.
+  if (!isLocalTokenCorrectionEnabled()) {
+    return normalizedTokens;
+  }
+
+  return normalizedTokens.flatMap((token) => splitFrenchElisionToken(token));
 }
 
 function inferElisionPrefixNature(tokenPrefix) {
@@ -395,41 +406,57 @@ function normalizeGeneratedPayload(payload, context) {
     throw new Error("La phrase générée est vide");
   }
 
-  const tokens = tokenizeSentence(sentence);
-  if (tokens.length === 0) {
-    throw new Error("Aucun mot n'a pu être extrait de la phrase générée");
-  }
-
   const sourceWords = Array.isArray(payload?.words)
     ? payload.words
     : Array.isArray(payload?.mots)
       ? payload.mots
       : [];
-  const expandedSourceWords = expandSourceWords(sourceWords);
-  const canUseSourceAlignment = expandedSourceWords.length === tokens.length;
 
-  const words = tokens.map((token, index) => {
-    const sourceEntry = canUseSourceAlignment ? expandedSourceWords[index] || {} : {};
-    const proposedNature = normalizeText(sourceEntry.nature);
-    const proposedCategory = normalizeText(sourceEntry.category);
-    const prefixNature = inferElisionPrefixNature(token);
+  let words = [];
 
-    if (isPunctuationToken(token)) {
+  // Prioriser le résultat brut du fournisseur IA sans correction locale.
+  if (sourceWords.length > 0) {
+    words = sourceWords.map((entry, index) => {
+      const rawPosition = Number(entry?.position);
+      const position = Number.isFinite(rawPosition) && rawPosition > 0
+        ? Math.round(rawPosition)
+        : index + 1;
+
+      const word = normalizeText(entry?.word || entry?.mot);
+      const nature = normalizeText(entry?.nature, "à préciser");
+      const category = normalizeText(entry?.category, "autre");
+
+      return {
+        position,
+        word: word || "",
+        nature,
+        category,
+      };
+    });
+  } else {
+    const tokens = tokenizeSentence(sentence);
+    if (tokens.length === 0) {
+      throw new Error("Aucun mot n'a pu être extrait de la phrase générée");
+    }
+
+    words = tokens.map((token, index) => {
+      if (isPunctuationToken(token)) {
+        return {
+          position: index + 1,
+          word: token,
+          nature: "ponctuation",
+          category: "ponctuation",
+        };
+      }
+
       return {
         position: index + 1,
         word: token,
-        nature: "ponctuation",
-        category: "ponctuation",
+        nature: "à préciser",
+        category: "autre",
       };
-    }
-
-    return {
-      position: index + 1,
-      word: token,
-      nature: proposedNature || prefixNature || "à préciser",
-      category: proposedCategory || guessCategoryFromNature(proposedNature || prefixNature),
-    };
-  });
+    });
+  }
 
   return {
     sentence,
@@ -581,7 +608,7 @@ async function parseErrorResponse(response, fallbackMessage) {
   };
 }
 
-async function fetchWithTimeout(url, options, timeoutMs = 30000) {
+async function fetchWithTimeout(url, options, timeoutMs = 60000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 

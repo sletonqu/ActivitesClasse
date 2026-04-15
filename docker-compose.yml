@@ -17,7 +17,8 @@ services:
       # - GEMINI_API_KEY=...
       # - GEMINI_MODEL=gemini-2.5-flash-lite
       # - MISTRAL_API_KEY=...
-      # - MISTRAL_MODEL=mistral-small-latest
+      # - MISTRAL_MODEL=mistral-medium-latest
+      # - AI_LOCAL_TOKEN_CORRECTION=false
       # Optional for host-side automation from the admin panel:
       # - HOST_UPDATER_URL=http://host.docker.internal:8765/update
       # - UPDATER_TOKEN=your_secure_token
