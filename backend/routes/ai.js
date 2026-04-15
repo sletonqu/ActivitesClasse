@@ -1202,7 +1202,7 @@ router.get('/generated-sentences/practice', async (req, res) => {
       `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
        FROM generated_sentences
        ${whereClause}
-       ORDER BY COALESCE(compteur, 0) ASC, id ASC
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC
        LIMIT 500`,
       params
     );
