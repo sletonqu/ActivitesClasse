@@ -176,9 +176,166 @@ function isPunctuationToken(token) {
   return !/[\p{L}\p{N}]/u.test(token);
 }
 
+function splitFrenchElisionToken(token) {
+  const cleanToken = normalizeText(token);
+  const match = cleanToken.match(/^([\p{L}]+)(['’])([\p{L}].*)$/u);
+  if (!match) {
+    return [cleanToken];
+  }
+
+  const prefix = String(match[1] || "").toLowerCase();
+  const apostrophe = match[2];
+  const suffix = String(match[3] || "").trim();
+  const splitPrefixes = new Set(["j", "l", "m", "t", "s", "c", "n", "d", "qu"]);
+
+  if (!suffix || !splitPrefixes.has(prefix)) {
+    return [cleanToken];
+  }
+
+  return [`${match[1]}${apostrophe}`, suffix];
+}
+
 function tokenizeSentence(sentence) {
   const tokens = String(sentence || "").match(/\p{L}+(?:['’\-]\p{L}+)*|\p{N}+|[^\s]/gu);
-  return Array.isArray(tokens) ? tokens.map((token) => token.trim()).filter(Boolean) : [];
+  if (!Array.isArray(tokens)) {
+    return [];
+  }
+
+  return tokens
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .flatMap((token) => splitFrenchElisionToken(token));
+}
+
+function inferElisionPrefixNature(tokenPrefix) {
+  const normalizedPrefix = normalizeText(tokenPrefix).toLowerCase().replace(/['’]/g, "");
+
+  if (!normalizedPrefix) {
+    return "";
+  }
+
+  if (normalizedPrefix === "j" || normalizedPrefix === "m" || normalizedPrefix === "t" || normalizedPrefix === "s" || normalizedPrefix === "c") {
+    return "pronom";
+  }
+
+  if (normalizedPrefix === "l") {
+    return "déterminant";
+  }
+
+  if (normalizedPrefix === "d") {
+    return "préposition";
+  }
+
+  if (normalizedPrefix === "n") {
+    return "adverbe";
+  }
+
+  if (normalizedPrefix === "qu") {
+    return "pronom";
+  }
+
+  return "";
+}
+
+function inferElisionSuffixNature(tokenPrefix, tokenSuffix, proposedNature) {
+  const normalizedPrefix = normalizeText(tokenPrefix).toLowerCase().replace(/['’]/g, "");
+  const normalizedSuffix = normalizeText(tokenSuffix).toLowerCase();
+  const normalizedProposedNature = normalizeNature(proposedNature);
+
+  if (normalizedPrefix === "j") {
+    return "verbe";
+  }
+
+  if (normalizedPrefix === "l") {
+    if (/\b(nom|adjectif|verbe|pronom)\b/.test(normalizedProposedNature)) {
+      return proposedNature;
+    }
+
+    if (/^(a|ai|as|avait|avons|avez|ont|est|es|etait|etaient|ete)$/.test(normalizedSuffix)) {
+      return "verbe";
+    }
+  }
+
+  return proposedNature;
+}
+
+function expandSourceWords(sourceWords) {
+  return sourceWords.flatMap((entry) => {
+    const sourceEntry = entry && typeof entry === "object" ? entry : {};
+    const sourceWord = normalizeText(sourceEntry.word);
+    const sourceNature = normalizeText(sourceEntry.nature || sourceEntry.pos || sourceEntry.type);
+    const sourceCategory = normalizeText(
+      sourceEntry.category || sourceEntry.categorie || sourceEntry.classification
+    );
+    const parts = splitFrenchElisionToken(sourceWord);
+
+    if (parts.length < 2) {
+      return [{
+        word: sourceWord,
+        nature: sourceNature,
+        category: sourceCategory,
+      }];
+    }
+
+    const [prefixPart, suffixPart] = parts;
+    const prefixNature = inferElisionPrefixNature(prefixPart);
+    const suffixNature = inferElisionSuffixNature(prefixPart, suffixPart, sourceNature);
+
+    return [
+      {
+        word: prefixPart,
+        nature: prefixNature || sourceNature,
+        category: sourceCategory || guessCategoryFromNature(prefixNature || sourceNature),
+      },
+      {
+        word: suffixPart,
+        nature: suffixNature,
+        category: sourceCategory || guessCategoryFromNature(suffixNature),
+      },
+    ];
+  });
+}
+
+function inferTokenNatureFromContext(tokens, index) {
+  const token = normalizeText(tokens[index]);
+  if (!token) {
+    return "à préciser";
+  }
+
+  if (isPunctuationToken(token)) {
+    return "ponctuation";
+  }
+
+  const directNature = inferElisionPrefixNature(token);
+  if (directNature) {
+    return directNature;
+  }
+
+  const previousToken = normalizeText(tokens[index - 1]);
+  if (/['’]$/u.test(previousToken)) {
+    const suffixNature = inferElisionSuffixNature(previousToken, token, "");
+    if (suffixNature) {
+      return suffixNature;
+    }
+  }
+
+  return "à préciser";
+}
+
+function buildTokenizationPreview(sentence) {
+  const tokens = tokenizeSentence(sentence);
+
+  return tokens.map((token, index) => {
+    const nature = inferTokenNatureFromContext(tokens, index);
+    const category = nature === "ponctuation" ? "ponctuation" : guessCategoryFromNature(nature);
+
+    return {
+      position: index + 1,
+      word: token,
+      nature,
+      category,
+    };
+  });
 }
 
 function normalizeNature(value) {
@@ -248,13 +405,14 @@ function normalizeGeneratedPayload(payload, context) {
     : Array.isArray(payload?.mots)
       ? payload.mots
       : [];
+  const expandedSourceWords = expandSourceWords(sourceWords);
+  const canUseSourceAlignment = expandedSourceWords.length === tokens.length;
 
   const words = tokens.map((token, index) => {
-    const sourceEntry = sourceWords[index] && typeof sourceWords[index] === "object" ? sourceWords[index] : {};
-    const proposedNature = normalizeText(sourceEntry.nature || sourceEntry.pos || sourceEntry.type);
-    const proposedCategory = normalizeText(
-      sourceEntry.category || sourceEntry.categorie || sourceEntry.classification
-    );
+    const sourceEntry = canUseSourceAlignment ? expandedSourceWords[index] || {} : {};
+    const proposedNature = normalizeText(sourceEntry.nature);
+    const proposedCategory = normalizeText(sourceEntry.category);
+    const prefixNature = inferElisionPrefixNature(token);
 
     if (isPunctuationToken(token)) {
       return {
@@ -268,8 +426,8 @@ function normalizeGeneratedPayload(payload, context) {
     return {
       position: index + 1,
       word: token,
-      nature: proposedNature || "à préciser",
-      category: proposedCategory || guessCategoryFromNature(proposedNature),
+      nature: proposedNature || prefixNature || "à préciser",
+      category: proposedCategory || guessCategoryFromNature(proposedNature || prefixNature),
     };
   });
 
@@ -389,6 +547,10 @@ function buildSentencePrompt({ level, theme, maxWords, customInstruction, phrase
     `Produit ${phraseCount} phrase(s) très simple(s) pour ${level}, thème \"${cleanTheme}\", avec ${maxWords} mots maximum hors ponctuation par phrase.`,
     "Utilise un vocabulaire concret, positif et adapté au CE1/CE2.",
     extraInstruction ? `Contrainte : ${extraInstruction}` : "",
+    "Règle obligatoire de segmentation : en cas d'élision avec apostrophe, sépare toujours en deux mots distincts dans words[].",
+    "Exemples obligatoires : « J'ai » => [\"J'\", \"ai\"] ; « L'artiste » => [\"L'\", \"artiste\"].",
+    "Le token avant apostrophe garde l'apostrophe (ex: J', L').",
+    "Attribue une nature grammaticale juste pour chaque token séparé (ex: J' = pronom ; L' devant un nom = déterminant ; ai = verbe ; artiste = nom commun).",
     "Réponds uniquement avec un JSON valide, sans Markdown.",
     'Format attendu : {"sentences":[{"sentence":"Le petit chat dort.","words":[{"position":1,"word":"Le","nature":"déterminant","category":"mot variable"},{"position":2,"word":"petit","nature":"adjectif qualificatif","category":"mot variable"},{"position":3,"word":"chat","nature":"nom commun","category":"mot variable"},{"position":4,"word":"dort","nature":"verbe","category":"mot variable"},{"position":5,"word":".","nature":"ponctuation","category":"ponctuation"}]}]}',
     "Chaque entrée de sentences doit suivre exactement l'ordre des mots de la phrase, ponctuation comprise.",
@@ -1221,6 +1383,35 @@ router.post('/generate-sentence', async (req, res) => {
     return res.status(500).json({
       error: err.message || 'Erreur lors de la génération de la phrase par IA',
       providerContent: normalizeText(err.providerContent),
+    });
+  }
+});
+
+router.post('/debug-tokenization', (req, res) => {
+  try {
+    const sentence = normalizeText(req.body?.sentence);
+
+    if (!sentence) {
+      return res.status(400).json({
+        error: 'La phrase est obligatoire pour tester le découpage',
+      });
+    }
+
+    const preview = buildTokenizationPreview(sentence);
+    if (preview.length === 0) {
+      return res.status(400).json({
+        error: 'Aucun token exploitable n\'a été détecté dans la phrase fournie',
+      });
+    }
+
+    return res.json({
+      sentence,
+      tokenCount: preview.length,
+      words: preview,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de l\'analyse de la phrase',
     });
   }
 });
