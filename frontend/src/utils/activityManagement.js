@@ -8,6 +8,7 @@ import { defaultWordClassificationActivityContent } from "../activities/WordClas
 import { defaultSentenceWordClassificationActivityContent } from "../activities/SentenceWordClassificationActivity";
 import { defaultReadNumbersActivityContent } from "../activities/ReadNumbersActivity";
 import { defaultMakeChangeActivityContent } from "../activities/MakeChangeActivity";
+import { defaultAlphabeticalSortActivityContent } from "../activities/AlphabeticalSortActivity";
 
 export const ACTIVITY_FILES = [
   "src/activities/SortNumbersActivity.js",
@@ -20,6 +21,7 @@ export const ACTIVITY_FILES = [
   "src/activities/SentenceWordClassificationActivity.js",
   "src/activities/ReadNumbersActivity.js",
   "src/activities/MakeChangeActivity.js",
+  "src/activities/AlphabeticalSortActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -33,6 +35,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/SentenceWordClassificationActivity.js": defaultSentenceWordClassificationActivityContent,
   "src/activities/ReadNumbersActivity.js": defaultReadNumbersActivityContent,
   "src/activities/MakeChangeActivity.js": defaultMakeChangeActivityContent,
+  "src/activities/AlphabeticalSortActivity.js": defaultAlphabeticalSortActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {
