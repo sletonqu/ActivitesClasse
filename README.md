@@ -32,6 +32,32 @@ Le projet propose trois espaces complémentaires :
 - Docker Desktop démarré
 - Ports `3000` et `4000` disponibles
 
+### Configuration des variables d'environnement
+
+Le backend lit les clés API via le fichier local `.env` (non versionné).
+
+1. Créer le fichier `.env` à partir de `.env.example`.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+2. Renseigner vos valeurs réelles dans `.env` :
+
+```env
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4.1-mini
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash-lite
+MISTRAL_API_KEY=
+MISTRAL_MODEL=mistral-medium-latest
+AI_LOCAL_TOKEN_CORRECTION=false
+```
+
+3. Garder `docker-compose.yml` sans secret en clair (uniquement des références `${...}`).
+
+> ⚠️ Si des clés ont déjà été exposées dans l'historique Git ou dans un fichier partagé, il faut les révoquer puis les régénérer.
+
 ### Lancer l'application
 
 ```bash
@@ -94,6 +120,8 @@ ENABLE_ADMIN_UPDATE_TRIGGER=true
 HOST_UPDATER_URL=http://host.docker.internal:8765/update
 UPDATER_TOKEN=change-this-token
 ```
+
+> Conseil sécurité : évitez d'écrire des tokens en clair dans `docker-compose.yml`. Préférez des variables d'environnement chargées depuis `.env`.
 
 Ce mode garde la logique de mise à jour **hors du conteneur** : l'interface admin demande l'opération, mais c'est bien le poste Windows qui exécute le script PowerShell.
 
@@ -320,6 +348,7 @@ Quelques routes utiles :
 
 - application conçue pour un TNI `1024x768` (4:3), type Smart Board M600 DViT ;
 - les mots de passe enseignants sont encore stockés en clair : à sécuriser avant une mise en production ;
+- les clés/tokens ne doivent jamais être commités en clair dans `docker-compose.yml` ;
 - le projet est pensé pour un usage **local / MVP** ;
 - le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
 
