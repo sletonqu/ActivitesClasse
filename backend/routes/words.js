@@ -255,6 +255,76 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  try {
+    const wordId = Number(req.params.id);
+    if (Number.isNaN(wordId) || wordId <= 0) {
+      return res.status(400).json({ error: 'Identifiant de mot invalide' });
+    }
+
+    const existingWord = await getAsync('SELECT * FROM words WHERE id = ?', [wordId]);
+    if (!existingWord) {
+      return res.status(404).json({ error: 'Mot introuvable' });
+    }
+
+    const normalizedWord = String(req.body?.word || '').trim();
+    const normalizedNature = String(req.body?.nature || '').trim();
+    const normalizedCategory = String(req.body?.category || '').trim();
+    const normalizedSchoolClass = String(req.body?.school_class || '').trim();
+    const normalizedSource = String(req.body?.source || existingWord.source || '').trim() || 'Dubois-Buyse';
+
+    if (!normalizedWord) {
+      return res.status(400).json({ error: 'Le mot est obligatoire' });
+    }
+
+    const rawEchelonDb = String(req.body?.echelon_db ?? '').trim();
+    const rawLevel = String(req.body?.level ?? '').trim();
+
+    const parsedEchelonDb = rawEchelonDb === '' ? null : Number(rawEchelonDb);
+    if (rawEchelonDb !== '' && (Number.isNaN(parsedEchelonDb) || !Number.isInteger(parsedEchelonDb) || parsedEchelonDb < 0)) {
+      return res.status(400).json({ error: "L'échelon DB doit être un nombre entier positif" });
+    }
+
+    const parsedLevel = rawLevel === '' ? null : Number(rawLevel);
+    if (rawLevel !== '' && (Number.isNaN(parsedLevel) || !Number.isInteger(parsedLevel) || parsedLevel < 0)) {
+      return res.status(400).json({ error: 'Le niveau doit être un nombre entier positif' });
+    }
+
+    await runAsync(
+      `UPDATE words
+       SET word = ?,
+           echelon_db = ?,
+           nature = ?,
+           category = ?,
+           school_class = ?,
+           level = ?,
+           source = ?
+       WHERE id = ?`,
+      [
+        normalizedWord,
+        parsedEchelonDb,
+        normalizedNature || null,
+        normalizedCategory || null,
+        normalizedSchoolClass || null,
+        parsedLevel,
+        normalizedSource,
+        wordId,
+      ]
+    );
+
+    const updatedWord = await getAsync('SELECT * FROM words WHERE id = ?', [wordId]);
+    return res.json({ word: updatedWord });
+  } catch (err) {
+    if (String(err.message || '').includes('idx_words_unique_entry')) {
+      return res.status(409).json({
+        error: 'Ce mot existe déjà avec les mêmes propriétés dans la base',
+      });
+    }
+
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete('/:id', async (req, res) => {
   try {
     const wordId = Number(req.params.id);
