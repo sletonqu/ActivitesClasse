@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS activities (
   description TEXT,
   content TEXT,
   status TEXT,
-  js_file TEXT
+  js_file TEXT,
+  discipline TEXT,
+  category TEXT
 );
 
 CREATE TABLE IF NOT EXISTS words (

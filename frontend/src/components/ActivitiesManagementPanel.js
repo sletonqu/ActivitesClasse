@@ -8,6 +8,8 @@ const ActivitiesManagementPanel = ({
   selectedActivityEditId,
   editActivityTitle,
   editActivityDescription,
+  editActivityDiscipline,
+  editActivityCategory,
   editActivityStatus,
   editActivityJsFile,
   editActivityContentText,
@@ -25,6 +27,8 @@ const ActivitiesManagementPanel = ({
   onDeleteAllActivities,
   onEditTitleChange,
   onEditDescriptionChange,
+  onEditDisciplineChange,
+  onEditCategoryChange,
   onEditStatusChange,
   onEditJsFileChange,
   onEditContentChange,
@@ -32,6 +36,8 @@ const ActivitiesManagementPanel = ({
   showAddForm = false,
   activityTitle = "",
   activityDescription = "",
+  activityDiscipline = "",
+  activityCategory = "",
   activityStatus = "Active",
   activityJsFile = ACTIVITY_FILES[0],
   activityContentText = "",
@@ -40,6 +46,8 @@ const ActivitiesManagementPanel = ({
   onAddActivity = null,
   onActivityTitleChange = null,
   onActivityDescriptionChange = null,
+  onActivityDisciplineChange = null,
+  onActivityCategoryChange = null,
   onActivityStatusChange = null,
   onActivityJsFileChange = null,
   onActivityContentChange = null,
@@ -98,6 +106,50 @@ const ActivitiesManagementPanel = ({
                 placeholder="Description de l'activité"
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div id="activities-panel-discipline-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Discipline</label>
+                <input
+                  type="text"
+                  value={activityDiscipline}
+                  onChange={(e) => onActivityDisciplineChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  placeholder="Ex: Mathématiques"
+                  autoComplete="on"
+                  list="disciplines-list"
+                />
+              </div>
+
+              <div id="activities-panel-category-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Catégorie</label>
+                <input
+                  type="text"
+                  value={activityCategory}
+                  onChange={(e) => onActivityCategoryChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  placeholder="Ex: Calcul"
+                  autoComplete="on"
+                  list="categories-list"
+                />
+              </div>
+            </div>
+
+            <datalist id="disciplines-list">
+              <option value="Mathématiques" />
+              <option value="Français" />
+              <option value="Questionner le monde" />
+              <option value="Outils" />
+            </datalist>
+
+            <datalist id="categories-list">
+              <option value="Calcul" />
+              <option value="Numération" />
+              <option value="Grandeurs et Mesures" />
+              <option value="Grammaire" />
+              <option value="Lecture" />
+              <option value="TNI" />
+            </datalist>
 
             <div id="activities-panel-status-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
@@ -173,7 +225,7 @@ const ActivitiesManagementPanel = ({
             <p className="text-slate-500 text-sm">Aucune activité trouvée.</p>
           ) : (
             <ul id="activities-panel-list" className="space-y-3">
-              {activities.map((activity) => (
+              {[...activities].sort((a, b) => a.title.localeCompare(b.title)).map((activity) => (
                 <li
                   id={`activity-card-${activity.id}`}
                   key={activity.id}
@@ -193,7 +245,14 @@ const ActivitiesManagementPanel = ({
                   }`}
                 >
                   <div id={`activity-card-actions-${activity.id}`} className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-slate-800">{activity.title}</p>
+                    <p className="font-semibold text-slate-800">
+                      {activity.title}
+                      {activity.discipline && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                          {activity.discipline} {activity.category ? `- ${activity.category}` : ""}
+                        </span>
+                      )}
+                    </p>
                     {String(selectedActivityEditId) === String(activity.id) && (
                       <button
                         id={`activity-delete-button-${activity.id}`}
@@ -210,8 +269,18 @@ const ActivitiesManagementPanel = ({
                       </button>
                     )}
                   </div>
-                  <p className="text-sm text-slate-600">Statut: {activity.status || "Non défini"}</p>
-                  <p className="text-sm text-slate-600">Fichier: {activity.js_file || "Aucun"}</p>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                        activity.status === "Inactive"
+                          ? "bg-rose-50 text-rose-700 ring-rose-600/20"
+                          : "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+                      }`}
+                    >
+                      {activity.status === "Inactive" ? "● Inactive" : "● Active"}
+                    </span>
+                    <span className="text-xs text-slate-400">{activity.js_file || "Aucun fichier"}</span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -242,6 +311,30 @@ const ActivitiesManagementPanel = ({
                 onChange={(e) => onEditDescriptionChange(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div id="activities-panel-edit-discipline-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Discipline</label>
+                <input
+                  type="text"
+                  value={editActivityDiscipline}
+                  onChange={(e) => onEditDisciplineChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  list="disciplines-list"
+                />
+              </div>
+
+              <div id="activities-panel-edit-category-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Catégorie</label>
+                <input
+                  type="text"
+                  value={editActivityCategory}
+                  onChange={(e) => onEditCategoryChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  list="categories-list"
+                />
+              </div>
             </div>
 
             <div id="activities-panel-edit-status-field">

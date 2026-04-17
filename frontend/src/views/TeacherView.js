@@ -62,6 +62,8 @@ const TeacherView = () => {
   const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
   const [editActivityTitle, setEditActivityTitle] = useState("");
   const [editActivityDescription, setEditActivityDescription] = useState("");
+  const [editActivityDiscipline, setEditActivityDiscipline] = useState("");
+  const [editActivityCategory, setEditActivityCategory] = useState("");
   const [editActivityStatus, setEditActivityStatus] = useState("Active");
   const [editActivityJsFile, setEditActivityJsFile] = useState(ACTIVITY_FILES[0]);
   const [editActivityContentText, setEditActivityContentText] = useState("{}");
@@ -697,6 +699,8 @@ const TeacherView = () => {
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");
     setEditActivityDescription(activity.description || "");
+    setEditActivityDiscipline(activity.discipline || "");
+    setEditActivityCategory(activity.category || "");
     setEditActivityStatus(activity.status || "Active");
     setEditActivityJsFile(activity.js_file || ACTIVITY_FILES[0]);
     setEditActivityContentText(normalizeActivityContentForEditor(activity.content));
@@ -733,6 +737,8 @@ const TeacherView = () => {
           content: parsedContent,
           status: editActivityStatus,
           js_file: editActivityJsFile || null,
+          discipline: editActivityDiscipline.trim() || null,
+          category: editActivityCategory.trim() || null,
         }),
       });
 
@@ -952,6 +958,8 @@ const TeacherView = () => {
               selectedActivityEditId={selectedActivityEditId}
               editActivityTitle={editActivityTitle}
               editActivityDescription={editActivityDescription}
+              editActivityDiscipline={editActivityDiscipline}
+              editActivityCategory={editActivityCategory}
               editActivityStatus={editActivityStatus}
               editActivityJsFile={editActivityJsFile}
               editActivityContentText={editActivityContentText}
@@ -965,6 +973,8 @@ const TeacherView = () => {
               onUpdateActivity={handleUpdateActivity}
               onEditTitleChange={setEditActivityTitle}
               onEditDescriptionChange={setEditActivityDescription}
+              onEditDisciplineChange={setEditActivityDiscipline}
+              onEditCategoryChange={setEditActivityCategory}
               onEditStatusChange={setEditActivityStatus}
               onEditJsFileChange={setEditActivityJsFile}
               onEditContentChange={setEditActivityContentText}

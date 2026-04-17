@@ -43,6 +43,8 @@ const AdminView = () => {
 
   const [activityTitle, setActivityTitle] = useState("");
   const [activityDescription, setActivityDescription] = useState("");
+  const [activityDiscipline, setActivityDiscipline] = useState("");
+  const [activityCategory, setActivityCategory] = useState("");
   const [activityStatus, setActivityStatus] = useState("Active");
   const [activityJsFile, setActivityJsFile] = useState(ACTIVITY_FILES[0]);
   const [activityContentText, setActivityContentText] = useState(
@@ -57,6 +59,8 @@ const AdminView = () => {
   const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
   const [editActivityTitle, setEditActivityTitle] = useState("");
   const [editActivityDescription, setEditActivityDescription] = useState("");
+  const [editActivityDiscipline, setEditActivityDiscipline] = useState("");
+  const [editActivityCategory, setEditActivityCategory] = useState("");
   const [editActivityStatus, setEditActivityStatus] = useState("Active");
   const [editActivityJsFile, setEditActivityJsFile] = useState(ACTIVITY_FILES[0]);
   const [editActivityContentText, setEditActivityContentText] = useState("{}");
@@ -107,6 +111,8 @@ const AdminView = () => {
     setSelectedActivityEditId("");
     setEditActivityTitle("");
     setEditActivityDescription("");
+    setEditActivityDiscipline("");
+    setEditActivityCategory("");
     setEditActivityStatus("Active");
     setEditActivityJsFile(ACTIVITY_FILES[0]);
     setEditActivityContentText(getDefaultActivityContentText(ACTIVITY_FILES[0]));
@@ -171,6 +177,8 @@ const AdminView = () => {
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");
     setEditActivityDescription(activity.description || "");
+    setEditActivityDiscipline(activity.discipline || "");
+    setEditActivityCategory(activity.category || "");
     setEditActivityStatus(activity.status || "Active");
     setEditActivityJsFile(normalizedJsFile);
     setEditActivityContentText(normalizeActivityContentForEditor(activity.content));
@@ -209,6 +217,8 @@ const AdminView = () => {
           content: parsedContent,
           status: editActivityStatus,
           js_file: editActivityJsFile || null,
+          discipline: editActivityDiscipline.trim() || null,
+          category: editActivityCategory.trim() || null,
         }),
       });
 
@@ -653,6 +663,8 @@ const AdminView = () => {
           content: parsedContent,
           status: activityStatus,
           js_file: activityJsFile || null,
+          discipline: activityDiscipline.trim() || null,
+          category: activityCategory.trim() || null,
         }),
       });
 
@@ -664,6 +676,8 @@ const AdminView = () => {
       setActivityMessage("Activité créée");
       setActivityTitle("");
       setActivityDescription("");
+      setActivityDiscipline("");
+      setActivityCategory("");
       setActivityStatus("Active");
       setActivityJsFile(ACTIVITY_FILES[0]);
       setActivityContentText(getDefaultActivityContentText(ACTIVITY_FILES[0]));
@@ -684,6 +698,8 @@ const AdminView = () => {
     setActivityDescription(
       template.description || "Classe les mots demandés dans plusieurs phrases issues de la base."
     );
+    setActivityDiscipline("Français");
+    setActivityCategory("Grammaire");
     setActivityStatus(template.status || "Active");
     setActivityJsFile(template.jsFile || "src/activities/SentenceWordClassificationActivity.js");
     setActivityContentText(JSON.stringify(template.content, null, 2));
@@ -790,6 +806,8 @@ const AdminView = () => {
             selectedActivityEditId={selectedActivityEditId}
             editActivityTitle={editActivityTitle}
             editActivityDescription={editActivityDescription}
+            editActivityDiscipline={editActivityDiscipline}
+            editActivityCategory={editActivityCategory}
             editActivityStatus={editActivityStatus}
             editActivityJsFile={editActivityJsFile}
             editActivityContentText={editActivityContentText}
@@ -807,12 +825,16 @@ const AdminView = () => {
             onDeleteAllActivities={handleDeleteAllActivities}
             onEditTitleChange={setEditActivityTitle}
             onEditDescriptionChange={setEditActivityDescription}
+            onEditDisciplineChange={setEditActivityDiscipline}
+            onEditCategoryChange={setEditActivityCategory}
             onEditStatusChange={setEditActivityStatus}
             onEditJsFileChange={setEditActivityJsFile}
             onEditContentChange={setEditActivityContentText}
             showAddForm={true}
             activityTitle={activityTitle}
             activityDescription={activityDescription}
+            activityDiscipline={activityDiscipline}
+            activityCategory={activityCategory}
             activityStatus={activityStatus}
             activityJsFile={activityJsFile}
             activityContentText={activityContentText}
@@ -821,6 +843,8 @@ const AdminView = () => {
             onAddActivity={handleAddActivity}
             onActivityTitleChange={setActivityTitle}
             onActivityDescriptionChange={setActivityDescription}
+            onActivityDisciplineChange={setActivityDiscipline}
+            onActivityCategoryChange={setActivityCategory}
             onActivityStatusChange={setActivityStatus}
             onActivityJsFileChange={(nextJsFile) => {
               setActivityJsFile(nextJsFile);

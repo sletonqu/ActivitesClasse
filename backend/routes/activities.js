@@ -12,10 +12,10 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { title, description, content, status, js_file } = req.body;
+  const { title, description, content, status, js_file, discipline, category } = req.body;
   db.run(
-    'INSERT INTO activities (title, description, content, status, js_file) VALUES (?, ?, ?, ?, ?)',
-    [title, description, JSON.stringify(content), status, js_file || null],
+    'INSERT INTO activities (title, description, content, status, js_file, discipline, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, description, JSON.stringify(content), status, js_file || null, discipline || null, category || null],
     function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id: this.lastID });
@@ -34,10 +34,10 @@ router.get('/:id', (req, res) => {
 
 // PUT update activity
 router.put('/:id', (req, res) => {
-  const { title, description, content, status, js_file } = req.body;
+  const { title, description, content, status, js_file, discipline, category } = req.body;
   db.run(
-    'UPDATE activities SET title = ?, description = ?, content = ?, status = ?, js_file = ? WHERE id = ?',
-    [title, description, JSON.stringify(content), status, js_file || null, req.params.id],
+    'UPDATE activities SET title = ?, description = ?, content = ?, status = ?, js_file = ?, discipline = ?, category = ? WHERE id = ?',
+    [title, description, JSON.stringify(content), status, js_file || null, discipline || null, category || null, req.params.id],
     function(err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ updated: this.changes });

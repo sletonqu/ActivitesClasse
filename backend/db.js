@@ -32,6 +32,7 @@ function initializeTables() {
     }
 
     ensureGroupsSchema();
+    ensureActivitiesSchema();
     ensureGeneratedSentencesSchema();
   });
 }
@@ -118,6 +119,35 @@ function ensureGeneratedSentencesSchema() {
   });
 }
 
+function ensureActivitiesSchema() {
+  db.serialize(() => {
+    db.all('PRAGMA table_info(activities)', [], (err, columns) => {
+      if (err) {
+        console.error('Erreur lors de la vérification du schéma activities:', err.message);
+        return;
+      }
+
+      const hasDiscipline = Array.isArray(columns) && columns.some((column) => column.name === 'discipline');
+      if (!hasDiscipline) {
+        db.run('ALTER TABLE activities ADD COLUMN discipline TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration discipline:', alterErr.message);
+          }
+        });
+      }
+
+      const hasCategory = Array.isArray(columns) && columns.some((column) => column.name === 'category');
+      if (!hasCategory) {
+        db.run('ALTER TABLE activities ADD COLUMN category TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration category:', alterErr.message);
+          }
+        });
+      }
+    });
+  });
+}
+
 // Fonction pour créer les tables manuellement
 function createTables() {
   const tables = `
@@ -164,7 +194,9 @@ function createTables() {
       description TEXT,
       content TEXT,
       status TEXT,
-      js_file TEXT
+      js_file TEXT,
+      discipline TEXT,
+      category TEXT
     );
 
     CREATE TABLE IF NOT EXISTS words (
@@ -219,6 +251,7 @@ function createTables() {
     }
 
     ensureGroupsSchema();
+    ensureActivitiesSchema();
   });
 }
 

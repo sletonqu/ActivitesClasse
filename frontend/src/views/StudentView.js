@@ -17,6 +17,7 @@ const StudentView = () => {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedActivityId, setSelectedActivityId] = useState("");
+  const [selectedDiscipline, setSelectedDiscipline] = useState("");
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activityContent, setActivityContent] = useState(DEFAULT_ACTIVITY_CONTENT);
@@ -27,6 +28,15 @@ const StudentView = () => {
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
   const activityName = selectedActivity?.title || "Activite";
+
+  const availableDisciplines = Array.from(new Set(activities.map(a => a.discipline).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  const activeActivities = activities.filter((a) => !a.status || a.status === "Active");
+  const filteredActivities = activeActivities.filter((activity) => {
+    if (!selectedDiscipline) return true;
+    if (selectedDiscipline === "Autre") return !activity.discipline;
+    return activity.discipline === selectedDiscipline;
+  }).sort((a, b) => a.title.localeCompare(b.title));
+
   const demoBannerMessage = isDemoMode && selectedActivityId ? "Mode démo actif" : "";
   const { show: showDemoBanner, fade: fadeDemoBanner } = useAutoDismissMessage(
     demoBannerMessage,
@@ -214,7 +224,7 @@ const StudentView = () => {
       <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center">
         <h2 id="student-view-title" className="mb-3 text-xl font-bold lg:mb-2">Espace Élève</h2>
 
-        <div id="student-view-controls-grid" className="mb-2 grid w-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
+        <div id="student-view-controls-grid" className="mb-2 grid w-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-5">
           <div id="student-view-class-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
             <label
               id="student-view-class-selector-label"
@@ -265,12 +275,37 @@ const StudentView = () => {
             </p>
           </div>
 
+          <div id="student-view-discipline-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
+            <label
+              id="student-view-discipline-selector-label"
+              className="mb-1.5 block text-sm font-semibold text-slate-700"
+            >
+              Discipline
+            </label>
+            <select
+              value={selectedDiscipline}
+              onChange={(e) => {
+                setSelectedDiscipline(e.target.value);
+                setSelectedActivityId("");
+              }}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            >
+              <option value="">Toutes disciplines</option>
+              {availableDisciplines.map((disc) => (
+                <option key={disc} value={disc}>
+                  {disc}
+                </option>
+              ))}
+              <option value="Autre">Sans discipline</option>
+            </select>
+          </div>
+
           <div id="student-view-activity-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
             <label
               id="student-view-activity-selector-label"
               className="mb-1.5 block text-sm font-semibold text-slate-700"
             >
-              Activités disponibles
+              Activité
             </label>
             <select
               value={selectedActivityId}
@@ -278,7 +313,7 @@ const StudentView = () => {
               className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
             >
               <option value="">Sélectionner une activité</option>
-              {activities.map((activity) => (
+              {filteredActivities.map((activity) => (
                 <option key={activity.id} value={activity.id}>
                   {activity.title}
                 </option>
