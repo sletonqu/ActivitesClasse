@@ -57,9 +57,9 @@ const MoneyCoin = ({ value, label, onClick, className = "" }) => {
   let styles = "rounded-full shadow-sm flex items-center justify-center font-bold font-sans cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ";
   
   if (is1) {
-    styles += "w-12 h-12 text-slate-800 bg-yellow-300 border-4 border-slate-300";
+    styles += "w-10 h-10 sm:w-12 sm:h-12 text-slate-800 bg-yellow-300 border-[3px] border-slate-300";
   } else if (is2) {
-    styles += "w-14 h-14 text-slate-800 bg-slate-200 border-4 border-yellow-400 text-xl";
+    styles += "w-12 h-12 sm:w-14 sm:h-14 text-slate-800 bg-slate-200 border-[3px] border-yellow-400 text-lg sm:text-xl";
   }
 
   return (
@@ -80,7 +80,7 @@ const MoneyBill = ({ value, label, onClick, className = "" }) => {
     <button
       type="button"
       onClick={onClick}
-      className={`w-20 h-12 sm:w-28 sm:h-16 rounded shadow-md border-2 flex items-center justify-center font-bold text-lg sm:text-2xl cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ${bgColors} ${className}`}
+      className={`w-[4.5rem] h-10 sm:w-24 sm:h-14 rounded shadow-md border-2 flex items-center justify-center font-bold text-base sm:text-xl cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ${bgColors} ${className}`}
     >
       {label}
     </button>
@@ -193,7 +193,7 @@ const MakeChangeActivity = ({
   const sortedDeposited = [...depositedMoney].sort((a, b) => b.value - a.value);
 
   return (
-    <div id="make-change-root" className="space-y-4 sm:space-y-6">
+    <div id="make-change-root" className="space-y-2 sm:space-y-3">
       <ActivityHero
         idPrefix="make-change"
         title={displayTitle}
@@ -212,20 +212,20 @@ const MakeChangeActivity = ({
 
       <div className="flex flex-col gap-4">
         {/* En-tête : Montant à payer */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
-          <span className="text-slate-500 font-medium mb-1">Montant à préparer :</span>
-          <span className="text-5xl font-extrabold text-indigo-700 bg-indigo-50 px-8 py-3 rounded-full border border-indigo-100">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
+          <span className="text-slate-500 text-sm sm:text-base font-medium mb-1">Montant à préparer :</span>
+          <span className="text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
             {targetAmount} €
           </span>
         </div>
 
         {/* Zone de Dépôt */}
-        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl min-h-[220px] p-6 relative">
-          <div className="absolute top-4 left-6 text-slate-400 font-semibold tracking-wider uppercase text-sm">
+        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl sm:rounded-3xl min-h-[140px] sm:min-h-[160px] p-3 sm:p-4 relative">
+          <div className="absolute top-2 left-4 text-slate-400 font-semibold tracking-wider uppercase text-xs sm:text-sm">
             Mon Dépôt
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-6 w-full h-full">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-4 sm:pt-6 w-full h-full min-h-[100px] sm:min-h-[120px]">
             {sortedDeposited.length === 0 ? (
               <span className="text-slate-400 italic">Vide. Ajoute des pièces ou des billets...</span>
             ) : (
@@ -244,11 +244,11 @@ const MakeChangeActivity = ({
 
         {/* Réserve d'Argent */}
         {!finished && (
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col gap-4">
-            <div className="text-slate-600 font-semibold text-center uppercase tracking-wide text-sm">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col gap-2 sm:gap-3">
+            <div className="text-slate-600 font-semibold text-center uppercase tracking-wide text-xs sm:text-sm">
               Réserve (Clique pour ajouter)
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
+            <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
               {AVAILABLE_MONEY.filter(m => m.value <= targetAmount || m.value <= 50).map((moneyTemplate) => (
                 <MoneyElement
                   key={`reserve-${moneyTemplate.value}`}
@@ -262,7 +262,7 @@ const MakeChangeActivity = ({
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap justify-center gap-3 pt-4">
+      <div className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2">
         <ActivityIconButton
           id="make-change-validate"
           onClick={handleValidate}

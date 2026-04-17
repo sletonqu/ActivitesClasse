@@ -571,7 +571,7 @@ const WordClassificationActivity = ({
 
           <div
             id="word-classification-categories"
-            className="grid grid-flow-col auto-cols-[minmax(170px,1fr)] gap-2.5 overflow-x-auto pb-1"
+            className="grid grid-cols-2 lg:flex lg:flex-wrap lg:justify-center gap-2 sm:gap-2.5 pb-1 w-full"
           >
             {currentLevelRule.classifications.map((categoryLabel) => {
               const categoryKey = normalizeCategoryKey(categoryLabel);
@@ -583,7 +583,7 @@ const WordClassificationActivity = ({
                 <section
                   key={categoryKey}
                   id={`word-classification-category-${categoryKey}`}
-                  className={`min-h-[120px] rounded-2xl border-2 p-2.5 transition-all sm:min-h-[144px] sm:p-3 ${
+                  className={`min-h-[100px] sm:min-h-[120px] rounded-2xl border-2 p-2 sm:p-2.5 transition-all lg:flex-1 lg:min-w-[180px] ${
                     selectedWordId && !finished ? theme.activePanel : theme.panel
                   } ${finished ? "" : "flex items-center justify-center"}`}
                   onDragOver={(event) => event.preventDefault()}
@@ -597,10 +597,10 @@ const WordClassificationActivity = ({
                       </span>
                     )}
 
-                    <div className="flex min-w-0 justify-center text-center">
+                    <div className="flex min-w-0 justify-center text-center w-full">
                       <span
                         title={formattedCategoryLabel}
-                        className={`inline-flex max-w-full items-center justify-center gap-3 overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-6 py-3 text-2xl font-bold shadow-sm sm:px-7 sm:py-4 sm:text-4xl ${theme.badge} ${theme.title}`}
+                        className={`inline-flex max-w-full flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 overflow-hidden rounded-xl sm:rounded-full px-2 py-2 sm:px-6 sm:py-3 text-lg font-bold shadow-sm sm:text-2xl lg:text-3xl ${theme.badge} ${theme.title} w-full`}
                       >
                         {spriteImage && (
                           <CharacterSprite
@@ -611,10 +611,10 @@ const WordClassificationActivity = ({
                             rows={3}
                             size={60}
                             alt={`Personnage ${formattedCategoryLabel}`}
-                            className="shrink-0"
+                            className="shrink-0 !w-10 !h-10 sm:!w-[50px] sm:!h-[50px] lg:!w-[60px] lg:!h-[60px]"
                           />
                         )}
-                        {formattedCategoryLabel}
+                        <span className="truncate w-full text-center">{formattedCategoryLabel}</span>
                       </span>
                     </div>
                   </div>
