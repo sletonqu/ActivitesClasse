@@ -620,69 +620,75 @@ const AlphabeticalSortActivity = ({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropToSlot(slotIndex)}
                   >
-                    {/* Numéro de rang */}
-                    <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${finished
-                        ? isCorrect
-                          ? "bg-emerald-200 text-emerald-800"
-                          : isWrong
-                          ? "bg-rose-200 text-rose-800"
-                          : "bg-slate-200 text-slate-600"
-                        : "bg-violet-100 text-violet-800"
-                      }`}
-                    >
-                      {slotIndex + 1}
-                    </span>
+                    <div className="mx-auto flex w-fit max-w-full items-center justify-center gap-2">
+                      {/* Numéro de rang */}
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${finished
+                          ? isCorrect
+                            ? "bg-emerald-200 text-emerald-800"
+                            : isWrong
+                            ? "bg-rose-200 text-rose-800"
+                            : "bg-slate-200 text-slate-600"
+                          : "bg-violet-100 text-violet-800"
+                        }`}
+                      >
+                        {slotIndex + 1}
+                      </span>
 
-                    {/* Tuile ou zone vide */}
-                    <div className="flex flex-1 items-center">
-                      {assigned !== undefined ? (
-                        <button
-                          id={`alphabetical-sort-slot-tile-${slotIndex}`}
-                          type="button"
-                          draggable={!finished}
-                          onDragStart={() => handleDragStartFromSlot(slotIndex)}
-                          onDragEnd={() => setDraggedItem(null)}
-                          className={`rounded-lg border px-2.5 py-0.5 text-center font-bold shadow-sm transition-all ${!finished
-                            ? "cursor-move border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
-                            : "cursor-default border-transparent bg-transparent"
-                          }`}
-                          style={{
-                            transform: !finished
-                              ? `rotate(${assigned.rotation}deg)`
-                              : "none",
-                          }}
-                        >
-                          <span
-                            className={`text-sm font-bold sm:text-base ${finished
-                              ? isCorrect
-                                ? "text-emerald-700"
-                                : "text-rose-700"
-                              : "text-slate-800"
+                      {/* Tuile ou zone vide */}
+                      <div className="flex min-h-[30px] items-center justify-center">
+                        {assigned !== undefined ? (
+                          <button
+                            id={`alphabetical-sort-slot-tile-${slotIndex}`}
+                            type="button"
+                            draggable={!finished}
+                            onDragStart={() => handleDragStartFromSlot(slotIndex)}
+                            onDragEnd={() => setDraggedItem(null)}
+                            className={`rounded-lg border px-2.5 py-0.5 text-center font-bold shadow-sm transition-all ${!finished
+                              ? "cursor-move border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
+                              : "cursor-default border-transparent bg-transparent"
                             }`}
+                            style={{
+                              transform: !finished
+                                ? `rotate(${assigned.rotation}deg)`
+                                : "none",
+                            }}
                           >
-                            {assigned.word}
+                            <span
+                              className={`text-sm font-bold sm:text-base ${finished
+                                ? isCorrect
+                                  ? "text-emerald-700"
+                                  : "text-rose-700"
+                                : "text-slate-800"
+                              }`}
+                            >
+                              {assigned.word}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-center text-xs italic text-slate-400">
+                            Place un mot ici…
                           </span>
-                        </button>
-                      ) : (
-                        <span className="text-xs italic text-slate-400">
-                          Place un mot ici…
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </div>
 
-                    {/* Icône résultat */}
-                    {finished && (
-                      <span className="shrink-0 text-sm">
-                        {isCorrect ? "✅" : isWrong ? "❌" : "—"}
-                      </span>
-                    )}
+                    {(finished || isWrong) && (
+                      <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                        {/* Icône résultat */}
+                        {finished && (
+                          <span className="text-sm">
+                            {isCorrect ? "✅" : isWrong ? "❌" : "—"}
+                          </span>
+                        )}
 
-                    {/* Correction affiché en cas d'erreur */}
-                    {finished && isWrong && (
-                      <span className="shrink-0 rounded-full bg-rose-100 px-1.5 py-0 text-xs font-semibold text-rose-700">
-                        → {correctOrder[slotIndex]}
-                      </span>
+                        {/* Correction affiché en cas d'erreur */}
+                        {finished && isWrong && (
+                          <span className="rounded-full bg-rose-100 px-1.5 py-0 text-xs font-semibold text-rose-700">
+                            → {correctOrder[slotIndex]}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 );
