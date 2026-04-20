@@ -220,124 +220,109 @@ const StudentView = () => {
   };
 
   return (
-    <div id="student-view-root" className="min-h-screen bg-gray-100 px-1 py-3 lg:px-1 lg:py-2 flex flex-col">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center">
-        <h2 id="student-view-title" className="mb-3 text-xl font-bold lg:mb-2">Espace Élève</h2>
-
-        <div id="student-view-controls-grid" className="mb-2 grid w-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-5">
-          <div id="student-view-class-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
-            <label
-              id="student-view-class-selector-label"
-              className="mb-1.5 block text-sm font-semibold text-slate-700"
-            >
-              Classe active
-            </label>
-            <select
-              value={selectedClassId}
-              onChange={(e) => {
-                setSelectedClassId(e.target.value);
-                setSelectedGroupId("");
-              }}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="">Sélectionner une classe</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div id="student-view-group-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Groupe visible</label>
-            <select
-              value={selectedGroupId}
-              onChange={(e) => setSelectedGroupId(e.target.value)}
-              disabled={!selectedClassId || loadingGroups}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400 disabled:bg-slate-100"
-            >
-              <option value="">Toute la classe</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              {loadingGroups
-                ? "Chargement des groupes..."
-                : !selectedClassId
-                ? "Sélectionnez d'abord une classe."
-                : groups.length === 0
-                ? "Aucun groupe défini pour cette classe."
-                : "Filtre les élèves affichés dans la liste."}
-            </p>
-          </div>
-
-          <div id="student-view-discipline-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
-            <label
-              id="student-view-discipline-selector-label"
-              className="mb-1.5 block text-sm font-semibold text-slate-700"
-            >
-              Discipline
-            </label>
-            <select
-              value={selectedDiscipline}
-              onChange={(e) => {
-                setSelectedDiscipline(e.target.value);
-                setSelectedActivityId("");
-              }}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="">Toutes disciplines</option>
-              {availableDisciplines.map((disc) => (
-                <option key={disc} value={disc}>
-                  {disc}
-                </option>
-              ))}
-              <option value="Autre">Sans discipline</option>
-            </select>
-          </div>
-
-          <div id="student-view-activity-selector" className="w-full rounded-xl bg-white p-2.5 shadow">
-            <label
-              id="student-view-activity-selector-label"
-              className="mb-1.5 block text-sm font-semibold text-slate-700"
-            >
-              Activité
-            </label>
-            <select
-              value={selectedActivityId}
-              onChange={(e) => setSelectedActivityId(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="">Sélectionner une activité</option>
-              {filteredActivities.map((activity) => (
-                <option key={activity.id} value={activity.id}>
-                  {activity.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div id="student-view-demo-mode-panel" className="w-full rounded-xl bg-white p-2.5 shadow">
-            <label className="flex cursor-pointer items-start gap-2.5">
-              <input
-                type="checkbox"
-                checked={isDemoMode}
-                onChange={(e) => setIsDemoMode(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-slate-700">Mode démo</span>
-                <span className="block text-[11px] leading-snug text-slate-500">
-                  Lance une activité sans élève, sans classement et sans enregistrement de résultat.
-                </span>
+    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-2 py-4 lg:px-4 flex flex-col">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center">
+        
+        {/* Header Glassy Unifié - Version Compacte */}
+        <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
+          <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
+            <div id="student-logo" className="h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
+              <span className="text-lg font-bold">E</span>
+            </div>
+            <div id="student-title-block" className="flex flex-col min-w-0 items-start">
+              <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
+              <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
+                {selectedActivity?.title || "Choisir une activité"}
               </span>
-            </label>
+            </div>
           </div>
-        </div>
+
+          <div id="student-controls" className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
+            {/* Groupe Classe/Groupe */}
+            <div id="student-grouping-controls" className="flex gap-2 flex-1 sm:flex-initial">
+              <div className="relative group flex-1 sm:w-32">
+                <select
+                  id="student-class-selector"
+                  value={selectedClassId}
+                  onChange={(e) => {
+                    setSelectedClassId(e.target.value);
+                    setSelectedGroupId("");
+                  }}
+                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                >
+                  <option value="">Classe</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="relative group flex-1 sm:w-28">
+                <select
+                  id="student-group-selector"
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  disabled={!selectedClassId || loadingGroups}
+                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
+                >
+                  <option value="">Groupes</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>{group.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Groupe Discipline/Activité */}
+            <div id="student-activity-controls" className="flex gap-2 flex-1 sm:flex-initial">
+              <div className="relative group flex-1 sm:w-32">
+                <select
+                  id="student-discipline-selector"
+                  value={selectedDiscipline}
+                  onChange={(e) => {
+                    setSelectedDiscipline(e.target.value);
+                    setSelectedActivityId("");
+                  }}
+                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                >
+                  <option value="">Discipline</option>
+                  {availableDisciplines.map((disc) => (
+                    <option key={disc} value={disc}>{disc}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="relative group flex-1 sm:w-40">
+                <select
+                  id="student-activity-selector"
+                  value={selectedActivityId}
+                  onChange={(e) => setSelectedActivityId(e.target.value)}
+                  className="w-full border border-slate-200 bg-indigo-50/50 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                >
+                  <option value="">Activité</option>
+                  {filteredActivities.map((activity) => (
+                    <option key={activity.id} value={activity.id}>{activity.title}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Mode Démo Toggle */}
+            <button
+              id="student-demo-mode-toggle"
+              type="button"
+              onClick={() => setIsDemoMode(!isDemoMode)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                isDemoMode 
+                ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-sm" 
+                : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
+              }`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
+              Mode Démo
+            </button>
+          </div>
+        </header>
 
         <div
           id="student-view-main-layout"
