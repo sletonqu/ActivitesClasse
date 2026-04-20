@@ -51,6 +51,8 @@ Pour brancher une nouvelle activité dans l'application :
 
 ## Activités existantes
 
+Les activités sont organisées par **discipline** (ex: Mathématiques, Français) et **catégorie** (ex: Nombres, Calcul, Grammaire). Cette classification peut être modifiée depuis l'espace Administration pour faciliter le filtrage dans les vues Enseignant et Élève.
+
 ### 1. `SortNumbersActivity.js`
 
 **But** : ranger des nombres dans l'ordre croissant ou décroissant.
@@ -469,4 +471,57 @@ Comportement :
 - fractions toujours **strictement inférieures à 1** ;
 - une seule réponse correcte par série ;
 - score sur 20 avec renvoi du niveau courant dans `onComplete(...)`.
+
+---
+
+### 10. `MakeChangeActivity.js`
+
+**But** : préparer la somme exacte demandée en manipulant des pièces et des billets.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Le Jeu de la Monnaie",
+  "instruction": "Prépare la somme demandée en utilisant le moins de pièces et billets possible.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Euros uniquement",
+      "min": 1,
+      "max": 10,
+      "useCents": false
+    },
+    "level2": {
+      "label": "Euros et centimes (pas de 5)",
+      "min": 11,
+      "max": 40,
+      "useCents": true,
+      "centsStep": 5
+    },
+    "level3": {
+      "label": "Euros et centimes (pas de 1)",
+      "min": 41,
+      "max": 100,
+      "useCents": true,
+      "centsStep": 1
+    }
+  }
+}
+```
+
+Paramètres disponibles par niveau :
+
+- `min` : valeur minimale de la somme à générer (en euros).
+- `max` : valeur maximale de la somme à générer (en euros).
+- `useCents` : `true` pour activer les centimes, `false` pour rester sur des sommes rondes en euros.
+- `centsStep` : définit le multiple des centimes (`1` pour tous les centimes, `5` pour des multiples de 0,05 €).
+
+Comportement :
+
+- **Rendu réaliste** : Les pièces de centimes utilisent des couleurs distinctes (cuivré pour 1c/2c/5c, doré pour 10c/20c/50c).
+- **Précision** : La logique interne utilise des calculs en centimes entiers pour éviter les erreurs de virgule flottante.
+- **Validation** : Le bouton "Valider" compare la somme déposée avec la cible. Un feedback visuel immédiat est fourni.
+- **Réinitialisation** : Le bouton "Vider" permet de retirer tout l'argent déposé pour recommencer.
+- **Score** : Enregistré avec le niveau courant via `onComplete(...)`.
 

@@ -16,19 +16,28 @@ export const defaultMakeChangeActivityContent = {
     "Utilise les pièces et les billets pour préparer la somme exacte demandée. Touche une pièce ou un billet pour l'ajouter, et touche-le à nouveau dans la zone de dépôt pour le retirer.",
   defaultLevel: "level1",
   levels: {
-    level1: { label: "Niveau 1", min: 1, max: 10 },
-    level2: { label: "Niveau 2", min: 11, max: 40 },
-    level3: { label: "Niveau 3", min: 41, max: 100 },
+    level1: { label: "Niveau 1", min: 1, max: 10, useCents: false, centsStep: 1 },
+    level2: { label: "Niveau 2", min: 11, max: 40, useCents: true, centsStep: 5 },
+    level3: { label: "Niveau 3", min: 41, max: 100, useCents: true, centsStep: 1 },
   },
 };
 
 const AVAILABLE_MONEY = [
-  { value: 1, type: "coin", label: "1 €" },
-  { value: 2, type: "coin", label: "2 €" },
-  { value: 5, type: "bill", label: "5 €" },
-  { value: 10, type: "bill", label: "10 €" },
-  { value: 20, type: "bill", label: "20 €" },
-  { value: 50, type: "bill", label: "50 €" },
+  // Billets
+  { value: 50, type: "bill", label: "50 €", valueCents: 5000 },
+  { value: 20, type: "bill", label: "20 €", valueCents: 2000 },
+  { value: 10, type: "bill", label: "10 €", valueCents: 1000 },
+  { value: 5, type: "bill", label: "5 €", valueCents: 500 },
+  // Pièces Euros
+  { value: 2, type: "coin", label: "2 €", valueCents: 200 },
+  { value: 1, type: "coin", label: "1 €", valueCents: 100 },
+  // Pièces Centimes
+  { value: 0.5, type: "coin", label: "50c", valueCents: 50, isCent: true },
+  { value: 0.2, type: "coin", label: "20c", valueCents: 20, isCent: true },
+  { value: 0.1, type: "coin", label: "10c", valueCents: 10, isCent: true },
+  { value: 0.05, type: "coin", label: "5c", valueCents: 5, isCent: true },
+  { value: 0.02, type: "coin", label: "2c", valueCents: 2, isCent: true },
+  { value: 0.01, type: "coin", label: "1c", valueCents: 1, isCent: true },
 ];
 
 function normalizeLevelRule(rule, fallbackRule) {
@@ -43,6 +52,8 @@ function normalizeLevelRule(rule, fallbackRule) {
     label: source.label || fallbackRule.label,
     min: Math.min(min, max),
     max: Math.max(min, max),
+    useCents: source.useCents !== undefined ? Boolean(source.useCents) : fallbackRule.useCents,
+    centsStep: parseIntWithFallback(source.centsStep, fallbackRule.centsStep || 1),
   };
 }
 
@@ -50,9 +61,9 @@ function getRandomTarget(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const MoneyCoin = ({ value, label, onClick, className = "" }) => {
-  const is1 = value === 1;
-  const is2 = value === 2;
+const MoneyCoin = ({ value, label, isCent, onClick, className = "" }) => {
+  const is1 = value === 1 && !isCent;
+  const is2 = value === 2 && !isCent;
 
   let styles = "rounded-full shadow-sm flex items-center justify-center font-bold font-sans cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ";
   
@@ -60,6 +71,21 @@ const MoneyCoin = ({ value, label, onClick, className = "" }) => {
     styles += "w-10 h-10 sm:w-12 sm:h-12 text-slate-800 bg-yellow-300 border-[3px] border-slate-300";
   } else if (is2) {
     styles += "w-12 h-12 sm:w-14 sm:h-14 text-slate-800 bg-slate-200 border-[3px] border-yellow-400 text-lg sm:text-xl";
+  } else if (isCent) {
+    // Styles pour les centimes
+    const isCopper = value <= 0.051; // 1c, 2c, 5c (use 0.051 to avoid precision issues)
+    if (isCopper) {
+      styles += "text-white bg-amber-700 border-2 border-amber-900 ";
+      if (value === 0.01) styles += "w-7 h-7 sm:w-8 sm:h-8 text-[10px]";
+      else if (value === 0.02) styles += "w-8 h-8 sm:w-9 sm:h-9 text-xs";
+      else styles += "w-9 h-9 sm:w-10 sm:h-10 text-xs";
+    } else {
+      // 10c, 20c, 50c
+      styles += "text-amber-900 bg-yellow-500 border-2 border-yellow-600 ";
+      if (value === 0.1) styles += "w-8 h-8 sm:w-9 sm:h-9 text-xs";
+      else if (value === 0.2) styles += "w-9 h-9 sm:w-10 sm:h-10 text-sm";
+      else styles += "w-10 h-10 sm:w-11 sm:h-11 text-sm";
+    }
   }
 
   return (
@@ -89,7 +115,7 @@ const MoneyBill = ({ value, label, onClick, className = "" }) => {
 
 const MoneyElement = ({ money, onClick, className }) => {
   if (money.type === "coin") {
-    return <MoneyCoin value={money.value} label={money.label} onClick={onClick} className={className} />;
+    return <MoneyCoin value={money.value} label={money.label} isCent={money.isCent} onClick={onClick} className={className} />;
   }
   return <MoneyBill value={money.value} label={money.label} onClick={onClick} className={className} />;
 };
@@ -116,13 +142,39 @@ const MakeChangeActivity = ({
     ? parsedContent.defaultLevel
     : "level1";
 
-  const generateTargetForLevel = (levelKey) => {
-    const level = configuredLevels[levelKey] || configuredLevels.level1;
-    return getRandomTarget(level.min, level.max);
+  const [currentLevel, setCurrentLevel] = useState(initialLevel);
+
+  // Valeurs dérivées du niveau actuel
+  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const useCents = currentLevelRule.useCents;
+  const centsStep = currentLevelRule.centsStep;
+
+  const formatCurrency = (amountInCents) => {
+    const euros = Math.floor(amountInCents / 100);
+    const cents = amountInCents % 100;
+    if (cents === 0 && !useCents) return `${euros} €`;
+    return `${euros},${cents.toString().padStart(2, "0")} €`;
   };
 
-  const [currentLevel, setCurrentLevel] = useState(initialLevel);
-  const [targetAmount, setTargetAmount] = useState(() => generateTargetForLevel(initialLevel));
+  const generateTargetForLevel = (levelKey) => {
+    const level = configuredLevels[levelKey] || configuredLevels.level1;
+    const minCents = level.min * 100;
+    const maxCents = level.max * 100;
+    const levelUseCents = level.useCents;
+    const levelCentsStep = level.centsStep;
+
+    if (!levelUseCents) {
+      return (Math.floor(Math.random() * (level.max - level.min + 1)) + level.min) * 100;
+    }
+
+    // Calculer le nombre de paliers possibles
+    const range = maxCents - minCents;
+    const steps = Math.floor(range / levelCentsStep);
+    const randomStep = Math.floor(Math.random() * (steps + 1));
+    return minCents + randomStep * levelCentsStep;
+  };
+
+  const [targetAmountCents, setTargetAmountCents] = useState(() => generateTargetForLevel(initialLevel));
   const [depositedMoney, setDepositedMoney] = useState([]);
   
   const [finished, setFinished] = useState(false);
@@ -131,15 +183,14 @@ const MakeChangeActivity = ({
   const [moneyIdCounter, setMoneyIdCounter] = useState(1);
 
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
-  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const displayTitle = getSafeDisplayText(parsedContent?.title, defaultMakeChangeActivityContent.title);
   const displayInstruction = getSafeDisplayText(parsedContent?.instruction, defaultMakeChangeActivityContent.instruction);
 
-  // Derive the current total amount (hidden from user visually, but needed logic)
-  const currentTotal = depositedMoney.reduce((sum, item) => sum + item.value, 0);
+  // Derive the current total amount in cents
+  const currentTotalCents = depositedMoney.reduce((sum, item) => sum + (item.valueCents || (item.value * 100)), 0);
 
   const resetForLevel = (levelKey) => {
-    setTargetAmount(generateTargetForLevel(levelKey));
+    setTargetAmountCents(generateTargetForLevel(levelKey));
     setDepositedMoney([]);
     setFinished(false);
     setScore(null);
@@ -161,7 +212,7 @@ const MakeChangeActivity = ({
   };
 
   const handleValidate = () => {
-    const success = currentTotal === targetAmount;
+    const success = currentTotalCents === targetAmountCents;
     setIsSuccess(success);
     const nextScore = success ? 20 : 0;
 
@@ -190,7 +241,7 @@ const MakeChangeActivity = ({
   };
 
   // On trie l'affichage par valeur décroissante pour faire plus réaliste et ordonné
-  const sortedDeposited = [...depositedMoney].sort((a, b) => b.value - a.value);
+  const sortedDeposited = [...depositedMoney].sort((a, b) => (b.valueCents || 0) - (a.valueCents || 0));
 
   return (
     <div id="make-change-root" className="space-y-2 sm:space-y-3">
@@ -215,7 +266,7 @@ const MakeChangeActivity = ({
         <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
           <span className="text-slate-500 text-sm sm:text-base font-medium mb-1">Montant à préparer :</span>
           <span className="text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
-            {targetAmount} €
+            {formatCurrency(targetAmountCents)}
           </span>
         </div>
 
@@ -249,9 +300,13 @@ const MakeChangeActivity = ({
               Réserve (Clique pour ajouter)
             </div>
             <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
-              {AVAILABLE_MONEY.filter(m => m.value <= targetAmount || m.value <= 50).map((moneyTemplate) => (
+              {AVAILABLE_MONEY.filter(m => {
+                if (m.isCent && !useCents) return false;
+                // On limite la réserve à ce qui est utile (optionnel, mais garde l'UI propre)
+                return m.valueCents <= targetAmountCents || m.valueCents <= 5000;
+              }).map((moneyTemplate) => (
                 <MoneyElement
-                  key={`reserve-${moneyTemplate.value}`}
+                  key={`reserve-${moneyTemplate.label}`}
                   money={moneyTemplate}
                   onClick={() => handleAddMoney(moneyTemplate)}
                 />
@@ -293,8 +348,8 @@ const MakeChangeActivity = ({
             title={isSuccess ? "Félicitations !" : "Ce n'est pas tout à fait ça..."}
             message={
               isSuccess 
-                ? `Tu as parfaitement préparé les ${targetAmount} € !`
-                : `Tu as déposé ${currentTotal} € au lieu de ${targetAmount} €.`
+                ? `Tu as parfaitement préparé les ${formatCurrency(targetAmountCents)} !`
+                : `Tu as déposé ${formatCurrency(currentTotalCents)} au lieu de ${formatCurrency(targetAmountCents)}.`
             }
             score={score}
             stats={[]}

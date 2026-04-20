@@ -145,12 +145,12 @@ docker compose up --build
 ### Administration
 
 - interface en accordéon : sections repliées par défaut, ouverture au clic sur le titre, une seule section ouverte à la fois ;
-- création, consultation et suppression des enseignants ;
-- création, consultation et suppression des classes ;
-- création, modification et suppression des activités ;
+- **Enseignants** : création, consultation et suppression ;
+- **Classes** : création, consultation et suppression ;
+- **Activités** : création, modification, suppression et organisation par **discipline** (ex: Mathématiques) et **catégorie** (ex: Calcul) ;
 - suppression unitaire ou globale des activités ;
-- import du référentiel de mots, recherche d'un mot en base et suppression unitaire / globale des mots ;
-- génération de phrases par IA et gestion des phrases générées en base ;
+- **Mots** : import du référentiel, recherche et suppression unitaire / globale ;
+- **Phrases** : génération par IA et gestion des phrases générées en base ;
 - import / export global CSV des `teachers`, `classes`, `groups`, `students`, `activities` et `results` ;
 - conservation des colonnes de niveau des résultats (`activity_level`, `activity_level_label`) lors des imports/exports globaux.
 
@@ -158,14 +158,14 @@ docker compose up --build
 
 - sélection d'une classe active ;
 - interface en accordéon sur les panneaux de gestion (la section `Classe ciblée` reste visible en permanence) ;
-- ajout, consultation et suppression d'élèves ;
+- **Élèves** : ajout, consultation et suppression ;
 - suppression globale des élèves de la classe ;
-- **gestion des groupes** :
+- **Groupes** :
   - une classe peut avoir plusieurs groupes ou aucun ;
   - un groupe peut contenir plusieurs élèves ou aucun ;
   - un élève ne peut appartenir qu'à un seul groupe dans sa classe ;
   - ajout, affichage, suppression, vidage et affectation/retrait d'élèves ;
-- **gestion des résultats** :
+- **Résultats** :
   - consultation des résultats d'un élève ;
   - suppression unitaire ou globale ;
   - calcul d'une moyenne qui remplace uniquement les résultats de la **même activité** et du **même niveau** ;
@@ -206,7 +206,7 @@ Le format global attend une colonne `entity` avec l'une des valeurs suivantes :
 - `class`
 - `group`
 - `student`
-- `activity`
+- `activity` (supporte les colonnes `discipline` et `category`)
 - `result`
 
 Pour les lignes de type `result`, les colonnes suivantes sont désormais supportées :
@@ -232,6 +232,7 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 | Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Associer un visuel fractionné à la bonne fraction parmi plusieurs tuiles | `title`, `instruction`, `defaultLevel`, `levels.answerCount`, `levels.fractions`, `minDenominator`, `maxDenominator`, `visualTypes` |
 | Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots par catégorie grammaticale en glisser-déposer ou par clic | `title`, `instruction`, `defaultLevel`, `levels.totalWords`, `levels.wordsPerRound`, `levels.maxWordLevel`, `levels.classifications` |
 | Phrase à trous | `frontend/src/activities/FillInTheBlanksActivity.js` | Compléter des phrases avec des mots manquants (banque de mots ou saisie), avec possibilité de charger une phrase depuis la base générée par IA | `title`, `instruction`, `showWordBank`, `sourceLevel`, `sourceTheme`, `useGeneratedSentencePool`, `sentences[]` |
+| Le Jeu de la Monnaie | `frontend/src/activities/MakeChangeActivity.js` | Préparer une somme exacte avec des pièces et billets (support des euros et centimes) | `title`, `instruction`, `defaultLevel`, `levels.useCents`, `levels.centsStep`, `levels.min`, `levels.max` |
 | Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
 
 > Documentation détaillée : voir `frontend/src/activities/README.md`.
