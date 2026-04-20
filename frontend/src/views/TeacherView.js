@@ -844,7 +844,7 @@ const TeacherView = () => {
 
         <CollapsibleSection
           id="teacher-students-management"
-          title="Gestion des élèves"
+          title="Elèves"
           isOpen={openSectionId === "students-management"}
           onToggle={() => handleToggleSection("students-management")}
         >
@@ -876,7 +876,7 @@ const TeacherView = () => {
 
         <CollapsibleSection
           id="teacher-groups-management"
-          title="Gestion des groupes"
+          title="Groupes"
           isOpen={openSectionId === "groups-management"}
           onToggle={() => handleToggleSection("groups-management")}
         >
@@ -917,7 +917,7 @@ const TeacherView = () => {
 
         <CollapsibleSection
           id="teacher-results-management"
-          title="Gestion des résultats"
+          title="Résultats"
           isOpen={openSectionId === "results-management"}
           onToggle={() => handleToggleSection("results-management")}
         >
@@ -946,7 +946,7 @@ const TeacherView = () => {
 
         <CollapsibleSection
           id="teacher-activities-management"
-          title="Gestion des activités"
+          title="Activités"
           isOpen={openSectionId === "activities-management"}
           onToggle={() => handleToggleSection("activities-management")}
         >

@@ -727,7 +727,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-teachers-management"
-          title="Gestion des enseignants"
+          title="Enseignants"
           isOpen={openSectionId === "teachers-management"}
           onToggle={() => handleToggleSection("teachers-management")}
         >
@@ -763,7 +763,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-classes-management"
-          title="Gestion des classes"
+          title="Classes"
           isOpen={openSectionId === "classes-management"}
           onToggle={() => handleToggleSection("classes-management")}
         >
@@ -795,7 +795,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-activities-management"
-          title="Gestion des activités"
+          title="Activités"
           isOpen={openSectionId === "activities-management"}
           onToggle={() => handleToggleSection("activities-management")}
         >
@@ -857,7 +857,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-words-management"
-          title="Gestion des mots"
+          title="Mots"
           isOpen={openSectionId === "words-management"}
           onToggle={() => handleToggleSection("words-management")}
         >
@@ -866,7 +866,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-characters-management"
-          title="Gestion des personnages"
+          title="Personnages"
           isOpen={openSectionId === "characters-management"}
           onToggle={() => handleToggleSection("characters-management")}
         >
@@ -875,7 +875,7 @@ const AdminView = () => {
 
         <CollapsibleSection
           id="admin-sentences-management"
-          title="Gestion des phrases"
+          title="Phrases"
           isOpen={openSectionId === "sentences-management"}
           onToggle={() => handleToggleSection("sentences-management")}
         >
