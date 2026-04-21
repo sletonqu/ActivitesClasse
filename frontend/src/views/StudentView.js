@@ -8,6 +8,8 @@ import {
   loadClassesIntoState,
   loadStudentsIntoState,
 } from "../utils/dataLoaders";
+import StudentPanel from "../components/StudentPanel";
+import LeaderboardPanel from "../components/LeaderboardPanel";
 const DEFAULT_ACTIVITY_CONTENT = {};
 
 const StudentView = () => {
@@ -220,8 +222,8 @@ const StudentView = () => {
   };
 
   return (
-    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-2 py-4 lg:px-4 flex flex-col">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center">
+    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col">
+      <div className="flex w-full flex-1 flex-col items-center">
         
         {/* Header Glassy Unifié - Version Compacte */}
         <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
@@ -275,7 +277,7 @@ const StudentView = () => {
 
             {/* Groupe Discipline/Activité */}
             <div id="student-activity-controls" className="flex gap-2 flex-1 sm:flex-initial">
-              <div className="relative group flex-1 sm:w-32">
+              <div id="student-view-discipline-container" className="relative group flex-1 sm:w-32">
                 <select
                   id="student-discipline-selector"
                   value={selectedDiscipline}
@@ -292,7 +294,7 @@ const StudentView = () => {
                 </select>
               </div>
 
-              <div className="relative group flex-1 sm:w-40">
+              <div id="student-view-activity-container" className="relative group flex-1 sm:w-40">
                 <select
                   id="student-activity-selector"
                   value={selectedActivityId}
@@ -326,46 +328,21 @@ const StudentView = () => {
 
         <div
           id="student-view-main-layout"
-          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-start gap-1.5 lg:gap-2 ${
-            isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[180px_minmax(0,1fr)_190px]"
+          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-stretch gap-1 ${
+            isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[130px_minmax(0,1fr)_140px]"
           }`}
         >
           {!isDemoMode && (
-            <div
-              id="student-view-students-panel"
-              className="w-full min-w-0 self-end bg-white rounded shadow p-3"
-            >
-              <h3 id="student-view-students-title" className="mb-2 text-sm font-semibold">
-                Élèves {selectedGroup ? `- ${selectedGroup.name}` : ""}
-              </h3>
-              {!selectedClassId ? (
-                <p className="text-gray-500 text-sm">Sélectionnez une classe active</p>
-              ) : !selectedActivityId ? (
-                <p className="text-gray-500 text-sm">Sélectionnez une activité active</p>
-              ) : filteredStudents.length > 0 ? (
-                <ul id="student-view-students-list" className="space-y-1">
-                  {filteredStudents.map((student) => (
-                    <li
-                      key={student.id}
-                      id={`student-view-student-${student.id}`}
-                      className={`mb-1 rounded px-2 py-1 text-sm ${
-                        scoresByStudentId[student.id] !== undefined
-                          ? "bg-slate-100 text-slate-400 grayscale pointer-events-none"
-                          : "cursor-pointer hover:bg-blue-100"
-                      } ${selectedStudent?.id === student.id ? "bg-blue-200 font-bold" : ""}`}
-                      onClick={() => handleStudentClick(student)}
-                    >
-                      {student.firstname} {student.name}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  {selectedGroupId
-                    ? "Aucun élève disponible pour ce groupe"
-                    : "Aucun élève disponible pour cette classe"}
-                </p>
-              )}
+            <div id="student-view-students-panel" className="w-full min-w-0 self-stretch">
+              <StudentPanel 
+                students={filteredStudents}
+                selectedStudent={selectedStudent}
+                scoresByStudentId={scoresByStudentId}
+                selectedGroup={selectedGroup}
+                onStudentClick={handleStudentClick}
+                selectedClassId={selectedClassId}
+                selectedActivityId={selectedActivityId}
+              />
             </div>
           )}
 
@@ -416,43 +393,13 @@ const StudentView = () => {
           </div>
 
           {!isDemoMode && (
-            <div
-              id="student-view-leaderboard-panel"
-              className="w-full min-w-0 self-end bg-white rounded shadow p-3"
-            >
-              <div id="student-view-leaderboard-header" className="mb-2 flex items-center justify-between gap-2">
-                <h3 id="student-view-leaderboard-title" className="text-sm font-semibold">Classement</h3>
-                <button
-                  type="button"
-                  onClick={handleExportLeaderboard}
-                  disabled={leaderboard.length === 0}
-                  className="rounded bg-emerald-600 px-2.5 py-1 text-xs text-white hover:bg-emerald-700 disabled:opacity-60"
-                >
-                  Exporter
-                </button>
-              </div>
-              {!selectedClassId ? (
-                <p className="text-gray-500 text-sm">Sélectionnez une classe active</p>
-              ) : !selectedActivityId ? (
-                <p className="text-gray-500 text-sm">Sélectionnez une activité active</p>
-              ) : leaderboard.length === 0 ? (
-                <p className="text-gray-500 text-sm">Aucun élève n'a encore validé l'activité</p>
-              ) : (
-                <ol id="student-view-leaderboard-list" className="space-y-2">
-                  {leaderboard.map((student, index) => (
-                    <li
-                      key={student.id}
-                      id={`student-view-leaderboard-item-${student.id}`}
-                      className="flex items-center justify-between rounded border border-slate-200 px-2 py-2"
-                    >
-                      <span className="text-xs font-medium text-slate-700">
-                        {index + 1}. {student.firstname} {student.name}
-                      </span>
-                      <span className="text-sm font-bold text-sky-700">{student.score}/20</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
+            <div id="student-view-leaderboard-panel" className="w-full min-w-0 self-stretch">
+              <LeaderboardPanel 
+                leaderboard={leaderboard}
+                selectedClassId={selectedClassId}
+                selectedActivityId={selectedActivityId}
+                onExport={handleExportLeaderboard}
+              />
             </div>
           )}
         </div>
