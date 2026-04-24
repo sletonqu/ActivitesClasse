@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import CharacterSprite from "../components/CharacterSprite";
@@ -666,18 +666,22 @@ const WordClassificationActivity = ({
         />
       )}
 
-      <div id="word-classification-actions" className="flex justify-center gap-3 flex-wrap">
-        <ActivityIconButton
-          id="word-classification-restart-button"
-          onClick={handleRestart}
-          disabled={loadingWords || restartLocked}
-          ariaLabel="Recommencer avec de nouveaux mots"
-          title="Recommencer avec de nouveaux mots"
-          icon="↻"
-          srText="Recommencer avec de nouveaux mots"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="word-classification-actions"
+        className="flex flex-wrap justify-center gap-3"
+        actions={[
+          {
+            id: "word-classification-restart-button",
+            onClick: handleRestart,
+            disabled: loadingWords || restartLocked,
+            ariaLabel: "Recommencer avec de nouveaux mots",
+            title: "Recommencer avec de nouveaux mots",
+            icon: "↻",
+            srText: "Recommencer avec de nouveaux mots",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import CharacterSprite from "../components/CharacterSprite";
@@ -819,18 +819,22 @@ const SentenceWordClassificationActivity = ({
         />
       )}
 
-      <div id="sentence-word-classification-actions" className="flex flex-wrap justify-center gap-3">
-        <ActivityIconButton
-          id="sentence-word-classification-restart-button"
-          onClick={handleRestart}
-          disabled={loadingSentences || restartLocked}
-          ariaLabel="Recommencer avec d'autres phrases"
-          title="Recommencer avec d'autres phrases"
-          icon="↻"
-          srText="Recommencer avec d'autres phrases"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="sentence-word-classification-actions"
+        className="flex flex-wrap justify-center gap-3"
+        actions={[
+          {
+            id: "sentence-word-classification-restart-button",
+            onClick: handleRestart,
+            disabled: loadingSentences || restartLocked,
+            ariaLabel: "Recommencer avec d'autres phrases",
+            title: "Recommencer avec d'autres phrases",
+            icon: "↻",
+            srText: "Recommencer avec d'autres phrases",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

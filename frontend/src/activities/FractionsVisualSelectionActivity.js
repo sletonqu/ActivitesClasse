@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
@@ -635,29 +635,32 @@ const FractionsVisualSelectionActivity = ({
         />
       )}
 
-      <div id="fractions-selection-actions" className="flex flex-wrap justify-center gap-3">
-        <ActivityIconButton
-          id="fractions-selection-validate-button"
-          onClick={handleValidate}
-          disabled={!selectedAnswerKey || finished}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-
-        <ActivityIconButton
-          id="fractions-selection-restart-button"
-          onClick={handleRestart}
-          disabled={restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="fractions-selection-actions"
+        className="flex flex-wrap justify-center gap-3"
+        actions={[
+          {
+            id: "fractions-selection-validate-button",
+            onClick: handleValidate,
+            disabled: !selectedAnswerKey || finished,
+            ariaLabel: "Valider",
+            title: "Valider",
+            icon: "✓",
+            srText: "Valider",
+            variant: "validate",
+          },
+          {
+            id: "fractions-selection-restart-button",
+            onClick: handleRestart,
+            disabled: restartLocked,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

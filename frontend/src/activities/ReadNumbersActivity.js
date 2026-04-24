@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
@@ -183,20 +183,21 @@ const ReadNumbersActivity = ({
         </div>
       </section>
 
-      <section
+      <ActivityActionsBar
         id="read-numbers-actions"
-        className="flex justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
-      >
-        <ActivityIconButton
-          id="read-numbers-restart-button"
-          onClick={handleRestart}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </section>
+        className="flex flex-wrap justify-center gap-3"
+        actions={[
+          {
+            id: "read-numbers-restart-button",
+            onClick: handleRestart,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

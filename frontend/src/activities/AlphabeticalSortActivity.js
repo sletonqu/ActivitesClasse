@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import { API_URL } from "../config/api";
@@ -722,28 +722,32 @@ const AlphabeticalSortActivity = ({
       )}
 
       {/* Boutons d'action */}
-      <div id="alphabetical-sort-actions" className="flex flex-wrap justify-center gap-2">
-        <ActivityIconButton
-          id="alphabetical-sort-validate"
-          onClick={handleValidate}
-          disabled={finished || !allAssigned || loadingWords}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-        <ActivityIconButton
-          id="alphabetical-sort-restart"
-          onClick={handleRestart}
-          disabled={loadingWords || restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="alphabetical-sort-actions"
+        className="flex flex-wrap justify-center gap-2"
+        actions={[
+          {
+            id: "alphabetical-sort-validate",
+            onClick: handleValidate,
+            disabled: finished || !allAssigned || loadingWords,
+            ariaLabel: "Valider",
+            title: "Valider",
+            icon: "✓",
+            srText: "Valider",
+            variant: "validate",
+          },
+          {
+            id: "alphabetical-sort-restart",
+            onClick: handleRestart,
+            disabled: loadingWords || restartLocked,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

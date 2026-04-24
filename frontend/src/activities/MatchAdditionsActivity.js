@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
@@ -476,28 +476,32 @@ const MatchAdditionsActivity = ({
         />
       )}
 
-      <div id="match-additions-actions" className="flex flex-wrap justify-center gap-2">
-        <ActivityIconButton
-          id="match-additions-validate-button"
-          onClick={handleValidate}
-          disabled={finished || !allAssigned}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-        <ActivityIconButton
-          id="match-additions-restart-button"
-          onClick={handleRestart}
-          disabled={restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="match-additions-actions"
+        className="flex flex-wrap justify-center gap-2"
+        actions={[
+          {
+            id: "match-additions-validate-button",
+            onClick: handleValidate,
+            disabled: finished || !allAssigned,
+            ariaLabel: "Valider",
+            title: "Valider",
+            icon: "✓",
+            srText: "Valider",
+            variant: "validate",
+          },
+          {
+            id: "match-additions-restart-button",
+            onClick: handleRestart,
+            disabled: restartLocked,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

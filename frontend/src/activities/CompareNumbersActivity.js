@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
@@ -746,29 +746,32 @@ const CompareNumbersActivity = ({
         />
       )}
 
-      <div id="compare-numbers-actions" className="flex flex-wrap justify-center gap-3">
-        <ActivityIconButton
-          id="compare-numbers-validate-button"
-          onClick={handleValidate}
-          disabled={!selectedSign || finished}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-
-        <ActivityIconButton
-          id="compare-numbers-restart-button"
-          onClick={handleRestart}
-          disabled={restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="compare-numbers-actions"
+        className="flex flex-wrap justify-center gap-3"
+        actions={[
+          {
+            id: "compare-numbers-validate-button",
+            onClick: handleValidate,
+            disabled: !selectedSign || finished,
+            ariaLabel: "Valider",
+            title: "Valider",
+            icon: "✓",
+            srText: "Valider",
+            variant: "validate",
+          },
+          {
+            id: "compare-numbers-restart-button",
+            onClick: handleRestart,
+            disabled: restartLocked,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };

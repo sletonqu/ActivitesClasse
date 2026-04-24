@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
-import ActivityIconButton from "../components/ActivityIconButton";
+import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
   getSafeDisplayText,
@@ -328,28 +328,32 @@ const MakeChangeActivity = ({
       )}
 
       {/* Actions */}
-      <div id="make-change-actions" className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2">
-        <ActivityIconButton
-          id="make-change-validate"
-          onClick={handleValidate}
-          disabled={finished || depositedMoney.length === 0}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-        <ActivityIconButton
-          id="make-change-restart"
-          onClick={handleRestart}
-          disabled={restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
+      <ActivityActionsBar
+        id="make-change-actions"
+        className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2"
+        actions={[
+          {
+            id: "make-change-validate",
+            onClick: handleValidate,
+            disabled: finished || depositedMoney.length === 0,
+            ariaLabel: "Valider",
+            title: "Valider",
+            icon: "✓",
+            srText: "Valider",
+            variant: "validate",
+          },
+          {
+            id: "make-change-restart",
+            onClick: handleRestart,
+            disabled: restartLocked,
+            ariaLabel: "Recommencer",
+            title: "Recommencer",
+            icon: "↻",
+            srText: "Recommencer",
+            variant: allStudentsCompleted ? "warning" : "restart",
+          },
+        ]}
+      />
     </div>
   );
 };
