@@ -222,7 +222,7 @@ const StudentView = () => {
   };
 
   return (
-    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col">
+    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex w-full flex-1 flex-col items-center">
         
         {/* Header Glassy Unifié - Version Compacte */}
