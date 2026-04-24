@@ -7,11 +7,12 @@ export const defaultInteractiveWhiteboardActivityContent = {
   backgroundColor: "#ffffff",
   paperStyle: "seyes",
   fontFamily: "Cursif",
-  defaultZoom: 0.7,
+  defaultZoom: 1.0,
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
 
 let fabricLoaderPromise = null;
+const LOCAL_FABRIC_SCRIPT_PATH = "/vendor/fabric.js";
 
 function loadFabricScript() {
   if (window.fabric) {
@@ -32,7 +33,7 @@ function loadFabricScript() {
     }
 
     const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js";
+    script.src = LOCAL_FABRIC_SCRIPT_PATH;
     script.async = true;
     script.dataset.fabricLoader = "true";
     script.onload = () => resolve(window.fabric);
@@ -64,16 +65,12 @@ const WHITEBOARD_FONT_OPTIONS = [
   { label: "Cursif", value: "Cursif" },
   { label: "Cursif ligné", value: "Cursifl" },
   { label: "Cursive standard", value: "Cursive Standard" },
-  { label: "Écolier", value: "Ecolier" },
-  { label: "Écolier cour.", value: "Ecolier Courant" },
   { label: "Inter", value: "Inter, Arial, sans-serif" },
 ];
 const CUSTOM_WHITEBOARD_FONTS = [
   { family: "Cursif", url: "/polices/Cursif.TTF" },
   { family: "Cursifl", url: "/polices/Cursifl.TTF" },
   { family: "Cursive Standard", url: "/polices/Cursive%20standard.ttf" },
-  { family: "Ecolier", url: "/polices/ec.TTF" },
-  { family: "Ecolier Courant", url: "/polices/ec_cour.TTF" },
 ];
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
@@ -159,11 +156,16 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
     const smallLineSpacing = 8;
     const majorLineSpacing = smallLineSpacing * 4;
     const leftMarginX = 96;
+    const secondaryLineColor = "#8bb8ff";
+    const majorLineColor = "#c257ff";
+    const outerGuideColor = "#d9dbe8";
+    const innerGuideColor = "#d38cff";
+    const marginLineColor = "#ff5a5a";
 
     for (let y = 0; y <= safeHeight; y += smallLineSpacing) {
       context.beginPath();
-      context.strokeStyle = y % majorLineSpacing === 0 ? "#9fc5e8" : "#d9edf9";
-      context.lineWidth = y % majorLineSpacing === 0 ? 1.15 : 0.7;
+      context.strokeStyle = y % majorLineSpacing === 0 ? majorLineColor : secondaryLineColor;
+      context.lineWidth = y % majorLineSpacing === 0 ? 1.2 : 0.85;
       context.moveTo(0, y + 0.5);
       context.lineTo(safeWidth, y + 0.5);
       context.stroke();
@@ -171,7 +173,7 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
 
     [leftMarginX - majorLineSpacing, leftMarginX - majorLineSpacing / 2].forEach((x) => {
       context.beginPath();
-      context.strokeStyle = "#d1d5db";
+      context.strokeStyle = outerGuideColor;
       context.lineWidth = 0.8;
       context.moveTo(x + 0.5, 0);
       context.lineTo(x + 0.5, safeHeight);
@@ -179,15 +181,15 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
     });
 
     context.beginPath();
-    context.strokeStyle = "#f29cab";
-    context.lineWidth = 1.2;
+    context.strokeStyle = marginLineColor;
+    context.lineWidth = 1.3;
     context.moveTo(leftMarginX + 0.5, 0);
     context.lineTo(leftMarginX + 0.5, safeHeight);
     context.stroke();
 
     for (let x = leftMarginX + majorLineSpacing; x <= safeWidth; x += majorLineSpacing) {
       context.beginPath();
-      context.strokeStyle = "#c7cedd";
+      context.strokeStyle = innerGuideColor;
       context.lineWidth = 0.8;
       context.moveTo(x + 0.5, 0);
       context.lineTo(x + 0.5, safeHeight);
@@ -217,26 +219,75 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
   const fabric = window.fabric;
   if (!canvas || !fabric) return;
 
-  if (!paperStyle || paperStyle === "blank") {
-    canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
-    return;
-  }
-
+  const resolvedPaperStyle = resolvePaperStyleValue(paperStyle, "blank");
   const patternSource = createPaperPatternCanvas(
-    paperStyle,
+    resolvedPaperStyle,
     backgroundColor,
     canvas.getWidth(),
     canvas.getHeight()
   );
-  const pattern = new fabric.Pattern({
-    source: patternSource,
-    repeat: "no-repeat",
+
+  const backgroundImage = new fabric.Image(patternSource, {
+    originX: "left",
+    originY: "top",
+    left: 0,
+    top: 0,
+    selectable: false,
+    evented: false,
+    erasable: false,
   });
 
-  canvas.setBackgroundColor(pattern, canvas.renderAll.bind(canvas));
+  backgroundImage.scaleX = canvas.getWidth() / Math.max(1, patternSource.width);
+  backgroundImage.scaleY = canvas.getHeight() / Math.max(1, patternSource.height);
+
+  canvas.backgroundVpt = true;
+  canvas.setBackgroundColor(backgroundColor, () => {
+    canvas.setBackgroundImage(backgroundImage, () => {
+      if (canvas.backgroundImage) {
+        canvas.backgroundImage.set({ erasable: false, selectable: false, evented: false });
+      }
+      canvas.renderAll();
+    });
+  });
 }
 
-const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
+function alignFabricLayersTopLeft(canvas) {
+  if (!canvas) return;
+
+  if (canvas.wrapperEl) {
+    canvas.wrapperEl.style.position = "relative";
+  }
+
+  [canvas.lowerCanvasEl, canvas.upperCanvasEl].forEach((element) => {
+    if (!element) return;
+    element.style.position = "absolute";
+    element.style.left = "0px";
+    element.style.top = "0px";
+  });
+}
+
+function logWhiteboardFabricDiagnostics(fabric) {
+  if (!fabric) {
+    console.warn("[Tableau blanc] Fabric.js introuvable au chargement.");
+    return;
+  }
+
+  const diagnostics = {
+    versionFabric: fabric.version || "inconnue",
+    eraserBrushDisponible: typeof fabric.EraserBrush !== "undefined",
+    pencilBrushDisponible: typeof fabric.PencilBrush !== "undefined",
+  };
+
+  console.info("[Tableau blanc] Diagnostic Fabric au chargement :", diagnostics);
+
+  if (!diagnostics.eraserBrushDisponible) {
+    console.warn(
+      "[Tableau blanc] EraserBrush indisponible : le mode gomme utilisera le fallback de suppression d'objets."
+    );
+  }
+}
+
+const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
   const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
 
@@ -249,11 +300,14 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const imagePendingRef = useRef(null);
   const inputJsonRef = useRef(null);
   const inputImageRef = useRef(null);
+  const eraserFallbackLoggedRef = useRef(false);
   const modeRef = useRef("draw");
   const colorRef = useRef("black");
   const brushSizeRef = useRef("5");
   const paperStyleRef = useRef(configuredPaperStyle);
   const fontFamilyRef = useRef(configuredFontFamily);
+  const isPanningRef = useRef(false);
+  const lastPanPointRef = useRef({ x: 0, y: 0 });
 
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -267,7 +321,6 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const canvasWidth = Number(content?.width) || defaultInteractiveWhiteboardActivityContent.width;
   const canvasHeight = Number(content?.height) || defaultInteractiveWhiteboardActivityContent.height;
@@ -355,6 +408,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
       if (parsed.width && parsed.height) {
         canvas.setDimensions({ width: parsed.width, height: parsed.height });
       }
+      alignFabricLayersTopLeft(canvas);
       applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
       historyLockedRef.current = false;
       updateHistoryButtons();
@@ -377,20 +431,44 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
+    const fabric = window.fabric;
+    if (!fabric) return;
+
     canvas.isDrawingMode = mode === "draw" || mode === "erase";
 
-    if (!canvas.freeDrawingBrush && window.fabric) {
-      canvas.freeDrawingBrush = new window.fabric.PencilBrush(canvas);
+    if (mode === "erase") {
+      if (fabric.EraserBrush) {
+        if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) {
+          canvas.freeDrawingBrush = new fabric.EraserBrush(canvas);
+        }
+      } else {
+        if (!eraserFallbackLoggedRef.current) {
+          console.warn("[Tableau blanc] Mode gomme sans EraserBrush : fallback activé.");
+          eraserFallbackLoggedRef.current = true;
+        }
+        if (!(canvas.freeDrawingBrush instanceof fabric.PencilBrush)) {
+          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        }
+        canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
+        canvas.freeDrawingBrush.color = "rgba(0, 0, 0, 0)";
+      }
+    } else if (mode === "draw") {
+      const isEraserBrushActive =
+        typeof fabric.EraserBrush !== "undefined" && canvas.freeDrawingBrush instanceof fabric.EraserBrush;
+      if (isEraserBrushActive || !(canvas.freeDrawingBrush instanceof fabric.PencilBrush)) {
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      }
+      canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
+      canvas.freeDrawingBrush.color = color;
     }
 
-    if (!canvas.freeDrawingBrush) return;
-
-    canvas.freeDrawingBrush.decimate = 2;
-    canvas.freeDrawingBrush.strokeLineCap = "round";
-    canvas.freeDrawingBrush.strokeLineJoin = "round";
-    canvas.freeDrawingBrush.shadow = null;
-    canvas.freeDrawingBrush.width = parseInt(brushSize, 10) || 1;
-    canvas.freeDrawingBrush.color = mode === "erase" ? backgroundColor : color;
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.decimate = 2;
+      canvas.freeDrawingBrush.strokeLineCap = "round";
+      canvas.freeDrawingBrush.strokeLineJoin = "round";
+      canvas.freeDrawingBrush.shadow = null;
+      canvas.freeDrawingBrush.width = parseInt(brushSize, 10) || 1;
+    }
 
     const selectable = mode === "select";
     canvas.selection = selectable;
@@ -399,6 +477,15 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
       obj.evented = selectable;
     });
     canvas.discardActiveObject();
+
+    if (mode === "pan") {
+      canvas.defaultCursor = "grab";
+      canvas.hoverCursor = "grab";
+    } else {
+      canvas.defaultCursor = "default";
+      canvas.hoverCursor = "move";
+    }
+
     canvas.requestRenderAll();
   };
 
@@ -430,6 +517,8 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
       .then(([fabric]) => {
         if (disposed || !canvasRef.current) return;
 
+        logWhiteboardFabricDiagnostics(fabric);
+
         const canvas = new fabric.Canvas(canvasRef.current, {
           width: canvasWidth,
           height: canvasHeight,
@@ -443,10 +532,15 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         if (canvas.upperCanvasEl) {
           canvas.upperCanvasEl.style.touchAction = "none";
         }
+        if (canvas.lowerCanvasEl) {
+          canvas.lowerCanvasEl.style.touchAction = "none";
+        }
         if (canvas.wrapperEl) {
           canvas.wrapperEl.style.touchAction = "none";
           canvas.wrapperEl.style.userSelect = "none";
         }
+
+        alignFabricLayersTopLeft(canvas);
 
         fabricCanvasRef.current = canvas;
         setIsReady(true);
@@ -492,10 +586,71 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
           if (modeRef.current === "text") {
             addTextAtPointer(opt.pointer);
           }
+
+          if (modeRef.current === "pan") {
+            isPanningRef.current = true;
+            lastPanPointRef.current = { x: opt.e.clientX, y: opt.e.clientY };
+            canvas.setCursor("grabbing");
+          }
+        });
+
+        canvas.on("mouse:move", (opt) => {
+          if (!isPanningRef.current || modeRef.current !== "pan") return;
+          const deltaX = opt.e.clientX - lastPanPointRef.current.x;
+          const deltaY = opt.e.clientY - lastPanPointRef.current.y;
+          lastPanPointRef.current = { x: opt.e.clientX, y: opt.e.clientY };
+          canvas.relativePan(new fabric.Point(deltaX, deltaY));
+        });
+
+        canvas.on("mouse:up", () => {
+          if (isPanningRef.current) {
+            isPanningRef.current = false;
+            if (modeRef.current === "pan") canvas.setCursor("grab");
+          }
         });
 
         canvas.on("object:modified", saveHistory);
-        canvas.on("path:created", saveHistory);
+        canvas.on("path:created", (event) => {
+          const createdPath = event?.path;
+
+          if (modeRef.current === "erase" && !fabric.EraserBrush && createdPath) {
+            const objectsToRemove = canvas
+              .getObjects()
+              .filter((obj) => obj !== createdPath)
+              .filter((obj) => {
+                if (typeof obj.intersectsWithObject === "function" && obj.intersectsWithObject(createdPath)) {
+                  return true;
+                }
+
+                if (typeof createdPath.intersectsWithObject === "function" && createdPath.intersectsWithObject(obj)) {
+                  return true;
+                }
+
+                if (typeof obj.containsPoint === "function") {
+                  const center = createdPath.getCenterPoint?.();
+                  if (center && obj.containsPoint(center)) {
+                    return true;
+                  }
+                }
+
+                return false;
+              });
+
+            canvas.remove(createdPath);
+            objectsToRemove.forEach((obj) => canvas.remove(obj));
+            canvas.discardActiveObject();
+            canvas.requestRenderAll();
+
+            if (objectsToRemove.length > 0) {
+              saveHistory();
+            }
+
+            return;
+          }
+
+          saveHistory();
+        });
+        canvas.on("erasing:end", saveHistory);
         canvas.on("object:added", (e) => {
           if (!historyLockedRef.current && e.target?.type !== "path") {
             saveHistory();
@@ -532,6 +687,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
               if (savedCanvas.width && savedCanvas.height) {
                 canvas.setDimensions({ width: savedCanvas.width, height: savedCanvas.height });
               }
+              alignFabricLayersTopLeft(canvas);
               applyPaperStyleToCanvas(canvas, savedPaperStyle, backgroundColor);
               historyLockedRef.current = false;
               historyRef.current = [JSON.stringify(savedCanvas)];
@@ -656,6 +812,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     if (!canvas || !window.confirm("Voulez-vous vraiment tout effacer ?")) return;
     canvas.clear();
     canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
+    alignFabricLayersTopLeft(canvas);
     applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
     saveHistory();
   };
@@ -666,7 +823,35 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     const width = canvas.getWidth();
     const height = canvas.getHeight();
     canvas.setDimensions({ width: height, height: width });
+    alignFabricLayersTopLeft(canvas);
+    applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
     saveHistory();
+  };
+
+  const resetCanvasViewportToOrigin = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    canvas.requestRenderAll();
+  };
+
+  const handlePanButtonClick = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) {
+      setMode("pan");
+      return;
+    }
+
+    if (modeRef.current === "pan") {
+      isPanningRef.current = false;
+      lastPanPointRef.current = { x: 0, y: 0 };
+      resetCanvasViewportToOrigin();
+      canvas.setCursor("grab");
+      return;
+    }
+
+    setMode("pan");
   };
 
   const handleCopy = () => {
@@ -825,6 +1010,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
           if (payload.width && payload.height) {
             fabricCanvasRef.current.setDimensions({ width: payload.width, height: payload.height });
           }
+          alignFabricLayersTopLeft(fabricCanvasRef.current);
           applyPaperStyleToCanvas(
             fabricCanvasRef.current,
             parsed?.meta?.paperStyle || paperStyleRef.current,
@@ -876,41 +1062,12 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
     img.src = boardDataUrl;
   };
 
-  const handleSubmitActivity = () => {
-    if (isSubmitted) return;
-    if (onComplete) {
-      onComplete(20);
-    }
-    setIsSubmitted(true);
-  };
-
   if (loadError) {
     return <div className="text-rose-600 font-medium">{loadError}</div>;
   }
 
   return (
     <div id="interactive-whiteboard-activity" className="relative pb-40">
-      <div id="interactive-whiteboard-header" className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div id="interactive-whiteboard-student-info">
-          <h3 className="text-lg font-bold text-slate-800">Tableau blanc interactif</h3>
-          <p className="text-sm text-slate-600">Élève : <span className="font-semibold">{studentFullName}</span></p>
-        </div>
-
-        <div id="interactive-whiteboard-submit-action" className="print:hidden">
-          <button
-            type="button"
-            onClick={handleSubmitActivity}
-            disabled={isSubmitted}
-            aria-label={isSubmitted ? "Activité validée" : "Valider l'activité"}
-            title={isSubmitted ? "Activité validée" : "Valider l'activité"}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-emerald-600 text-2xl font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60"
-          >
-            <span aria-hidden="true">✓</span>
-            <span className="sr-only">{isSubmitted ? "Activité validée" : "Valider l'activité"}</span>
-          </button>
-        </div>
-      </div>
-
       {showImageHint && (
         <div id="interactive-whiteboard-image-hint" className="mb-3 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow inline-block print:hidden">
           Cliquez sur le canevas pour poser l'image.
@@ -942,13 +1099,6 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
         <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
           <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/90 px-3 py-2 shadow-xl backdrop-blur">
             <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <span className="text-xs font-medium text-slate-500">Titre</span>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="h-9 w-32 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400"
-              />
               <span className="text-xs font-medium text-slate-500">Fond</span>
               <select
                 id="interactive-whiteboard-paper-style"
@@ -989,6 +1139,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
             </div>
 
             <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
+              <button type="button" onClick={handlePanButtonClick} className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>✋</button>
               <button type="button" onClick={() => setMode("draw")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>✏️</button>
               <button type="button" onClick={() => setMode("text")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>T</button>
               <button type="button" onClick={() => setMode("erase")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>🧽</button>
@@ -1004,8 +1155,9 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
             </div>
           </section>
 
-          <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
-            {(mode === "draw" || mode === "text" || mode === "erase") && (
+          {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select") && (
+            <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
+              {(mode === "draw" || mode === "text" || mode === "erase") && (
               <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
                 {mode !== "erase" && (
                   <select
@@ -1033,7 +1185,7 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
               </div>
             )}
 
-            {mode === "select" && (
+              {mode === "select" && (
               <div id="interactive-whiteboard-selection-group" className="flex flex-wrap items-center gap-2">
                 <button type="button" onClick={handleCut} className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50">✂️</button>
                 <button type="button" onClick={handleCopy} className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50">📋</button>
@@ -1043,8 +1195,9 @@ const InteractiveWhiteboardActivity = ({ content, onComplete, student }) => {
                 <button type="button" onClick={handleSendBackward} className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50">🔻</button>
                 <button type="button" onClick={handleToggleLock} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">🔒</button>
               </div>
-            )}
-          </section>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>
