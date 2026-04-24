@@ -1,4 +1,4 @@
-Mot,EchelonDB,Nature,Categorie,Classe,Niveau
+Mot,echelonDB,Nature,Categorie,Classe,Niveau
 maison,1,nom feminin,nom,CP,1
 papa,1,nom masculin,nom,CP,1
 porte,1,nom feminin,nom,CP,1
@@ -30,11 +30,9 @@ feu,6,nom masculin,nom,CP,1
 lion,6,nom masculin,nom,CP,1
 matin,6,nom masculin,nom,CP,1
 revenir,6,verbe 3eme groupe,verbe,CP,1
-rive,6,nom feminin,nom,CP,1
 robe,6,nom feminin,nom,CP,1
 soir,6,nom masculin,nom,CP,1
 vendredi,6,nom masculin,nom,CP,1
-vigne,6,nom feminin,nom,CP,1
 branche,7,nom feminin,nom,CP,1
 brique,7,nom feminin,nom,CP,1
 chat,7,nom masculin,nom,CP,1
@@ -66,7 +64,7 @@ brave,8,adjectif qualificatif,adjectif,CE1,2
 chemin,8,nom masculin,nom,CE1,2
 cheval,8,nom masculin,nom,CE1,2
 culture,8,nom feminin,nom,CE1,2
-devoir,8,verbe 3eme groupe,verbe,CE1,2
+sauter,8,verbe 1er groupe,verbe,CE1,2
 église,8,nom feminin,nom,CE1,2
 enfant,8,nom commun,nom,CE1,2
 étude,8,nom feminin,nom,CE1,2
@@ -81,7 +79,7 @@ niche,8,nom feminin,nom,CE1,2
 ordre,8,nom masculin,nom,CE1,2
 plume,8,nom feminin,nom,CE1,2
 poupée,8,nom feminin,nom,CE1,2
-pouvoir,8,verbe 3eme groupe,verbe,CE1,2
+vouloir,8,verbe 3eme groupe,verbe,CE1,2
 propre,8,adjectif qualificatif,adjectif,CE1,2
 retenir,8,verbe 3eme groupe,verbe,CE1,2
 rire,8,verbe 3eme groupe,verbe,CE1,2
@@ -91,7 +89,7 @@ soupe,8,nom feminin,nom,CE1,2
 année,9,nom feminin,nom,CE1,2
 article,9,nom masculin,nom,CE1,2
 aviateur,9,nom masculin,nom,CE1,2
-bonne,9,nom feminin,nom,CE1,2
+bonne,9,adjectif qualificatif,adjectif,CE1,2
 café,9,nom masculin,nom,CE1,2
 cage,9,nom feminin,nom,CE1,2
 carton,9,nom masculin,nom,CE1,2
@@ -123,7 +121,7 @@ marche,9,nom feminin,nom,CE1,2
 marque,9,nom feminin,nom,CE1,2
 mère,9,nom feminin,nom,CE1,2
 midi,9,nom masculin,nom,CE1,2
-morne,9,adjectif qualificatif,adjectif,CE1,2
+fatigué,9,adjectif qualificatif,adjectif,CE1,2
 octobre,9,nom masculin,nom,CE1,2
 os,9,nom masculin,nom,CE1,2
 pauvre,9,adjectif qualificatif,adjectif,CE1,2
@@ -144,7 +142,7 @@ tasse,9,nom feminin,nom,CE1,2
 tige,9,nom feminin,nom,CE1,2
 voiture,9,nom feminin,nom,CE1,2
 tuer,9,verbe 1er groupe,verbe,CE1,2
-acte,10,nom masculin,nom,CE1,2
+journaliste,10,nom masculin,nom,CE1,2
 artiste,10,nom masculin,nom,CE1,2
 astre,10,nom masculin,nom,CE1,2
 blé,10,nom masculin,nom,CE1,2
@@ -171,12 +169,11 @@ dans,10,preposition,autres,CE1,2
 entre,10,preposition,autres,CE1,2
 étable,10,nom feminin,nom,CE1,2
 établir,10,verbe 2eme groupe,verbe,CE1,2
-fabrique,10,nom feminin,nom,CE1,2
+fabrication,10,nom feminin,nom,CE1,2
 faute,10,nom feminin,nom,CE1,2
 fleuve,10,nom masculin,nom,CE1,2
 fortement,10,adverbe,autres,CE1,2
 froid,10,adjectif qualificatif,adjectif,CE1,2
-futur,10,adjectif qualificatif,adjectif,CE1,2
 gros,10,adjectif qualificatif,adjectif,CE1,2
 journée,10,nom feminin,nom,CE1,2
 juste,10,adjectif qualificatif,adjectif,CE1,2
@@ -190,13 +187,13 @@ monde,10,nom masculin,nom,CE1,2
 musique,10,nom feminin,nom,CE1,2
 neige,10,nom feminin,nom,CE1,2
 oeuf,10,nom masculin,nom,CE1,2
-orange,10,adjectif qualificatif,adjectif,CE1,2
+jaune,10,adjectif qualificatif,adjectif,CE1,2
 pénible,10,adjectif qualificatif,adjectif,CE1,2
 personne,10,nom feminin,nom,CE1,2
 peur,10,nom feminin,nom,CE1,2
 prince,10,nom masculin,nom,CE1,2
 regarder,10,verbe 1er groupe,verbe,CE1,2
-reste,10,nom masculin,nom,CE1,2
+repas,10,nom masculin,nom,CE1,2
 réunir,10,verbe 2eme groupe,verbe,CE1,2
 ronde,10,nom feminin,nom,CE1,2
 ruche,10,nom feminin,nom,CE1,2
@@ -273,14 +270,14 @@ revue,11,nom feminin,nom,CE1,2
 roi,11,nom masculin,nom,CE1,2
 rose,11,nom feminin,nom,CE1,2
 sac,11,nom masculin,nom,CE1,2
-salutation,11,nom feminin,nom,CE1,2
+sorcière,11,nom feminin,nom,CE1,2
 singe,11,nom masculin,nom,CE1,2
-sorte,11,nom feminin,nom,CE1,2
+sortie,11,nom feminin,nom,CE1,2
 statue,11,nom feminin,nom,CE1,2
 tarte,11,nom feminin,nom,CE1,2
 des,11,adjectif indefini,determinant,CE1,2
 un,11,adjectif indefini,determinant,CE1,2
-usage,11,nom masculin,nom,CE1,2
+panier,11,nom masculin,nom,CE1,2
 usine,11,nom feminin,nom,CE1,2
 vapeur,11,nom feminin,nom,CE1,2
 village,11,nom masculin,nom,CE1,2
@@ -302,7 +299,7 @@ brume,12,nom feminin,nom,CE2,3
 cadre,12,nom masculin,nom,CE2,3
 campagne,12,nom feminin,nom,CE2,3
 canon,12,nom masculin,nom,CE2,3
-chantre,12,nom masculin,nom,CE2,3
+champignon,12,nom masculin,nom,CE2,3
 chapeau,12,nom masculin,nom,CE2,3
 chaque,12,adjectif indefini,determinant,CE2,3
 généreux,12,adjectif qualificatif,adjectif,CE2,3
@@ -324,7 +321,7 @@ entier,12,adjectif qualificatif,adjectif,CE2,3
 entretenir,12,verbe 3eme groupe,verbe,CE2,3
 banque,12,nom feminin,nom,CE2,3
 épine,12,nom feminin,nom,CE2,3
-fauve,12,adjectif qualificatif,adjectif,CE2,3
+sauvage,12,adjectif qualificatif,adjectif,CE2,3
 fer,12,nom masculin,nom,CE2,3
 finir,12,verbe 2eme groupe,verbe,CE2,3
 fleur,12,nom feminin,nom,CE2,3
@@ -335,7 +332,7 @@ garde,12,nom masculin,nom,CE2,3
 gauche,12,adjectif qualificatif,adjectif,CE2,3
 idée,12,nom feminin,nom,CE2,3
 invisible,12,adjectif qualificatif,adjectif,CE2,3
-jaune,12,adjectif qualificatif,adjectif,CE2,3
+rouge,12,adjectif qualificatif,adjectif,CE2,3
 joue,12,nom feminin,nom,CE2,3
 juillet,12,nom masculin,nom,CE2,3
 travail,12,nom masculin,nom,CE2,3
@@ -362,12 +359,12 @@ nid,12,nom masculin,nom,CE2,3
 nuisible,12,adjectif qualificatif,adjectif,CE2,3
 odeur,12,nom feminin,nom,CE2,3
 papier,12,nom masculin,nom,CE2,3
-pardon,12,nom masculin,nom,CE2,3
+blouson,12,nom masculin,nom,CE2,3
 parfait,12,adjectif qualificatif,adjectif,CE2,3
 partie,12,nom feminin,nom,CE2,3
 parvenir,12,verbe 3eme groupe,verbe,CE2,3
 patte,12,nom feminin,nom,CE2,3
-perche,12,nom feminin,nom,CE2,3
+raquette,12,nom feminin,nom,CE2,3
 pluie,12,nom feminin,nom,CE2,3
 pondre,12,verbe 3eme groupe,verbe,CE2,3
 porteur,12,nom masculin,nom,CE2,3
@@ -429,7 +426,7 @@ bras,13,nom masculin,nom,CE2,3
 brise,13,nom feminin,nom,CE2,3
 canal,13,nom masculin,nom,CE2,3
 canard,13,nom masculin,nom,CE2,3
-carabine,13,nom feminin,nom,CE2,3
+cabine,13,nom feminin,nom,CE2,3
 caverne,13,nom feminin,nom,CE2,3
 chant,13,nom masculin,nom,CE2,3
 chaudement,13,adverbe,autres,CE2,3
@@ -459,7 +456,7 @@ estrade,13,nom feminin,nom,CE2,3
 faire,13,verbe 3eme groupe,verbe,CE2,3
 fée,13,nom feminin,nom,CE2,3
 feuille,13,nom feminin,nom,CE2,3
-fleurette,13,nom feminin,nom,CE2,3
+fleur,13,nom feminin,nom,CE2,3
 fondre,13,verbe 3eme groupe,verbe,CE2,3
 formidable,13,adjectif qualificatif,adjectif,CE2,3
 foule,13,nom feminin,nom,CE2,3
@@ -500,10 +497,8 @@ miel,13,nom masculin,nom,CE2,3
 ministre,13,nom masculin,nom,CE2,3
 minuit,13,nom masculin,nom,CE2,3
 misérable,13,adjectif qualificatif,adjectif,CE2,3
-moudre,13,verbe 3eme groupe,verbe,CE2,3
-mouvoir,13,verbe 3eme groupe,verbe,CE2,3
-multitude,13,nom feminin,nom,CE2,3
-nation,13,nom feminin,nom,CE2,3
+magie,13,nom feminin,nom,CE2,3
+sortilège,13,nom feminin,nom,CE2,3
 navire,13,nom masculin,nom,CE2,3
 nez,13,nom masculin,nom,CE2,3
 nom,13,nom masculin,nom,CE2,3
@@ -512,8 +507,8 @@ or,13,nom masculin,nom,CE2,3
 orage,13,nom masculin,nom,CE2,3
 oreille,13,nom feminin,nom,CE2,3
 ouverture,13,nom feminin,nom,CE2,3
-patrie,13,nom feminin,nom,CE2,3
-patron,13,nom masculin,nom,CE2,3
+barque,13,nom feminin,nom,CE2,3
+bateau,13,nom masculin,nom,CE2,3
 petit,13,adjectif qualificatif,adjectif,CE2,3
 pie,13,nom feminin,nom,CE2,3
 pied,13,nom masculin,nom,CE2,3
@@ -521,21 +516,19 @@ place,13,nom feminin,nom,CE2,3
 plage,13,nom feminin,nom,CE2,3
 plumage,13,nom masculin,nom,CE2,3
 poitrine,13,nom feminin,nom,CE2,3
-politique,13,nom feminin,nom,CE2,3
+neige,13,nom feminin,nom,CE2,3
 poulet,13,nom masculin,nom,CE2,3
 pratique,13,adjectif qualificatif,adjectif,CE2,3
-preuve,13,nom feminin,nom,CE2,3
-prime,13,nom feminin,nom,CE2,3
+plume,13,nom feminin,nom,CE2,3
+plante,13,nom feminin,nom,CE2,3
 problème,13,nom masculin,nom,CE2,3
 paysan,13,nom masculin,nom,CE2,3
 promenade,13,nom feminin,nom,CE2,3
-provenir,13,verbe 3eme groupe,verbe,CE2,3
 récolte,13,nom feminin,nom,CE2,3
 redoutable,13,adjectif qualificatif,adjectif,CE2,3
 renard,13,nom masculin,nom,CE2,3
 rencontre,13,nom feminin,nom,CE2,3
-reprise,13,nom feminin,nom,CE2,3
-rétablir,13,verbe 2eme groupe,verbe,CE2,3
+campagne,13,nom feminin,nom,CE2,3
 rivière,13,nom feminin,nom,CE2,3
 robuste,13,adjectif qualificatif,adjectif,CE2,3
 rosée,13,nom feminin,nom,CE2,3
@@ -556,20 +549,20 @@ suivre,13,verbe 3eme groupe,verbe,CE2,3
 superbe,13,adjectif qualificatif,adjectif,CE2,3
 tableau,13,nom masculin,nom,CE2,3
 tablier,13,nom masculin,nom,CE2,3
-terme,13,nom masculin,nom,CE2,3
+frère,13,nom masculin,nom,CE2,3
 tigre,13,nom masculin,nom,CE2,3
 timbre,13,nom masculin,nom,CE2,3
 tortue,13,nom feminin,nom,CE2,3
 tour,13,nom commun,nom,CE2,3
 tranche,13,nom feminin,nom,CE2,3
-trouble,13,nom masculin,nom,CE2,3
+père,13,nom masculin,nom,CE2,3
 tulipe,13,nom feminin,nom,CE2,3
 valise,13,nom feminin,nom,CE2,3
 vendeur,13,nom masculin,nom,CE2,3
 venir,13,verbe 3eme groupe,verbe,CE2,3
 vent,13,nom masculin,nom,CE2,3
 verdure,13,nom feminin,nom,CE2,3
-verger,13,nom masculin,nom,CE2,3
+coussin,13,nom masculin,nom,CE2,3
 vin,13,nom masculin,nom,CE2,3
 vitre,13,nom feminin,nom,CE2,3
 vitrine,13,nom feminin,nom,CE2,3
@@ -578,6 +571,9 @@ voisin,13,nom masculin,nom,CE2,3
 voisinage,13,nom masculin,nom,CE2,3
 aussi,14,adverbe,autres,CE2,2
 douze,14,adjectif numeral,determinant,CE2,2
+sa,14,adjectif indefini,determinant,CE2,2
+ta,14,adjectif indefini,determinant,CE2,2
+ma,14,adjectif indefini,determinant,CE2,2
 quatre,14,adjectif numeral,determinant,CE2,2
 action,14,nom feminin,nom,CE2,3
 adroit,14,adjectif qualificatif,adjectif,CE2,3
@@ -595,14 +591,14 @@ blouse,14,nom feminin,nom,CE2,3
 boue,14,nom feminin,nom,CE2,3
 boulanger,14,nom masculin,nom,CE2,3
 boulangerie,14,nom feminin,nom,CE2,3
-cadavre,14,nom masculin,nom,CE2,3
+corps,14,nom masculin,nom,CE2,3
 tu,14,pronom,pronom,CE2,3
-chapelle,14,nom feminin,nom,CE2,3
+chanson,14,nom feminin,nom,CE2,3
 chocolat,14,nom masculin,nom,CE2,3
 ciel,14,nom masculin,nom,CE2,3
 clochette,14,nom feminin,nom,CE2,3
-comble,14,nom masculin,nom,CE2,3
-compliment,14,nom masculin,nom,CE2,3
+chou,14,nom masculin,nom,CE2,3
+poireau,14,nom masculin,nom,CE2,3
 conduire,14,verbe 3eme groupe,verbe,CE2,3
 convenable,14,adjectif qualificatif,adjectif,CE2,3
 corbeille,14,nom feminin,nom,CE2,3
@@ -617,7 +613,7 @@ date,14,nom feminin,nom,CE2,3
 demande,14,nom feminin,nom,CE2,3
 désagréable,14,adjectif qualificatif,adjectif,CE2,3
 docteur,14,nom masculin,nom,CE2,3
-doute,14,nom masculin,nom,CE2,3
+radis,14,nom masculin,nom,CE2,3
 durée,14,nom feminin,nom,CE2,3
 eau,14,nom feminin,nom,CE2,3
 écolier,14,nom masculin,nom,CE2,3
@@ -628,7 +624,7 @@ engager,14,verbe 1er groupe,verbe,CE2,3
 escalier,14,nom masculin,nom,CE2,3
 farine,14,nom feminin,nom,CE2,3
 fatigue,14,nom feminin,nom,CE2,3
-favorable,14,adjectif qualificatif,adjectif,CE2,3
+gigantesque,14,adjectif qualificatif,adjectif,CE2,3
 fenêtre,14,nom feminin,nom,CE2,3
 fidèle,14,adjectif qualificatif,adjectif,CE2,3
 fils,14,nom masculin,nom,CE2,3
@@ -646,18 +642,13 @@ robe,14,nom feminin,nom,CE2,3
 groupe,14,nom masculin,nom,CE2,3
 hier,14,adverbe,autres,CE2,3
 hiver,14,nom masculin,nom,CE2,3
-inconnu,14,nom masculin,nom,CE2,3
-industrie,14,nom feminin,nom,CE2,3
 inspecteur,14,nom masculin,nom,CE2,3
 instituteur,14,nom masculin,nom,CE2,3
-intervenir,14,verbe 3eme groupe,verbe,CE2,3
 jeune,14,adjectif qualificatif,adjectif,CE2,3
 vomir,14,verbe 2eme groupe,verbe,CE2,3
 joujou,14,nom masculin,nom,CE2,3
-laboureur,14,nom masculin,nom,CE2,3
 laine,14,nom feminin,nom,CE2,3
 leçon,14,nom feminin,nom,CE2,3
-limite,14,nom feminin,nom,CE2,3
 liste,14,nom masculin,nom,CE2,3
 long,14,adjectif qualificatif,adjectif,CE2,3
 lys,14,nom masculin,nom,CE2,3
@@ -665,12 +656,12 @@ manger,14,verbe 1er groupe,verbe,CE2,3
 mari,14,nom masculin,nom,CE2,3
 marquer,14,verbe 1er groupe,verbe,CE2,3
 matinal,14,adjectif qualificatif,adjectif,CE2,3
-ménagerie,14,nom feminin,nom,CE2,3
+vendeuse,14,nom feminin,nom,CE2,3
 menteur,14,nom masculin,nom,CE2,3
-messe,14,nom feminin,nom,CE2,3
+boulangère,14,nom feminin,nom,CE2,3
 mois,14,nom masculin,nom,CE2,3
 monstre,14,nom masculin,nom,CE2,3
-motif,14,nom masculin,nom,CE2,3
+gendarme,14,nom masculin,nom,CE2,3
 mouvement,14,nom masculin,nom,CE2,3
 multiple,14,adjectif qualificatif,adjectif,CE2,3
 muraille,14,nom feminin,nom,CE2,3
@@ -680,11 +671,11 @@ nombre,14,nom masculin,nom,CE2,3
 nord,14,nom masculin,nom,CE2,3
 nuit,14,nom feminin,nom,CE2,3
 outre,14,preposition,autres,CE2,3
-ouvrage,14,nom masculin,nom,CE2,3
+dentiste,14,nom masculin,nom,CE2,3
 ouvrier,14,nom masculin,nom,CE2,3
 page,14,nom feminin,nom,CE2,3
 paille,14,nom feminin,nom,CE2,3
-paire,14,nom feminin,nom,CE2,3
+planète,14,nom feminin,nom,CE2,3
 partir,14,verbe 3eme groupe,verbe,CE2,3
 pâte,14,nom feminin,nom,CE2,3
 pays,14,nom masculin,nom,CE2,3
@@ -701,13 +692,13 @@ pratiquer,14,verbe 1er groupe,verbe,CE2,3
 presque,14,adverbe,autres,CE2,3
 prévoir,14,verbe 3eme groupe,verbe,CE2,3
 portière,14,nom feminin,nom,CE2,3
-production,14,nom feminin,nom,CE2,3
-protecteur,14,nom masculin,nom,CE2,3
+poule,14,nom feminin,nom,CE2,3
+gardien,14,nom masculin,nom,CE2,3
 pur,14,adjectif qualificatif,adjectif,CE2,3
 rame,14,nom feminin,nom,CE2,3
 réduire,14,verbe 3eme groupe,verbe,CE2,3
 régime,14,nom masculin,nom,CE2,3
-relatif,14,adjectif qualificatif,adjectif,CE2,3
+rêveur,14,adjectif qualificatif,adjectif,CE2,3
 reprendre,14,verbe 3eme groupe,verbe,CE2,3
 respiration,14,nom feminin,nom,CE2,3
 roue,14,nom feminin,nom,CE2,3
@@ -718,7 +709,7 @@ serviable,14,adjectif qualificatif,adjectif,CE2,3
 seul,14,adjectif qualificatif,adjectif,CE2,3
 si,14,conjonction,autres,CE2,3
 signature,14,nom feminin,nom,CE2,3
-soulagement,14,nom masculin,nom,CE2,3
+renardeau,14,nom masculin,nom,CE2,3
 souvenir,14,nom masculin,nom,CE2,3
 sport,14,nom masculin,nom,CE2,3
 tache,14,nom feminin,nom,CE2,3
@@ -726,10 +717,10 @@ tirelire,14,nom feminin,nom,CE2,3
 titre,14,nom masculin,nom,CE2,3
 tordre,14,verbe 3eme groupe,verbe,CE2,3
 train,14,nom masculin,nom,CE2,3
-tribunal,14,nom masculin,nom,CE2,3
+lion,14,nom masculin,nom,CE2,3
 tricolore,14,adjectif qualificatif,adjectif,CE2,3
-union,14,nom feminin,nom,CE2,3
-utilité,14,nom feminin,nom,CE2,3
+lionne,14,nom feminin,nom,CE2,3
+lapine,14,nom feminin,nom,CE2,3
 vendre,14,verbe 3eme groupe,verbe,CE2,3
 vernir,14,verbe 2eme groupe,verbe,CE2,3
 vieux,14,adjectif qualificatif,adjectif,CE2,3
@@ -745,13 +736,13 @@ air,15,nom masculin,nom,CE2,3
 armée,15,nom feminin,nom,CE2,3
 bain,15,nom masculin,nom,CE2,3
 balcon,15,nom masculin,nom,CE2,3
-besogne,15,nom feminin,nom,CE2,3
+chienne,15,nom feminin,nom,CE2,3
 billet,15,nom masculin,nom,CE2,3
 blanc,15,adjectif qualificatif,adjectif,CE2,3
 bonheur,15,nom masculin,nom,CE2,3
 bouquet,15,nom masculin,nom,CE2,3
-bourse,15,nom feminin,nom,CE2,3
-brochure,15,nom feminin,nom,CE2,3
+blouse,15,nom feminin,nom,CE2,3
+baguette,15,nom feminin,nom,CE2,3
 brusque,15,adjectif qualificatif,adjectif,CE2,3
 bureau,15,nom masculin,nom,CE2,3
 calculer,15,verbe 1er groupe,verbe,CE2,3
@@ -759,14 +750,13 @@ camion,15,nom masculin,nom,CE2,3
 capitaine,15,nom masculin,nom,CE2,3
 car,15,conjonction,autres,CE2,3
 carnet,15,nom masculin,nom,CE2,3
-charité,15,nom feminin,nom,CE2,3
+bougie,15,nom feminin,nom,CE2,3
 chose,15,nom feminin,nom,CE2,3
 cirque,15,nom masculin,nom,CE2,3
 commun,15,adjectif qualificatif,adjectif,CE2,3
 compagnie,15,nom feminin,nom,CE2,3
 comparer,15,verbe 1er groupe,verbe,CE2,3
 confondre,15,verbe 3eme groupe,verbe,CE2,3
-contribuer,15,verbe 1er groupe,verbe,CE2,3
 coq,15,nom masculin,nom,CE2,3
 corbeau,15,nom masculin,nom,CE2,3
 corne,15,nom feminin,nom,CE2,3
@@ -774,14 +764,14 @@ course,15,nom feminin,nom,CE2,3
 coutume,15,nom feminin,nom,CE2,3
 croire,15,verbe 3eme groupe,verbe,CE2,3
 cuire,15,verbe 3eme groupe,verbe,CE2,3
-demi,15,nom masculin,nom,CE2,3
+plongeoir,15,nom masculin,nom,CE2,3
 dépenser,15,verbe 1er groupe,verbe,CE2,3
 depuis,15,preposition,autres,CE2,3
-destination,15,nom feminin,nom,CE2,3
+balançoire,15,nom feminin,nom,CE2,3
 devant,15,preposition,autres,CE2,3
-dieu,15,nom masculin,nom,CE2,3
+matin,15,nom masculin,nom,CE2,3
 directement,15,adverbe,autres,CE2,3
-domestique,15,adjectif qualificatif,adjectif,CE2,3
+vieille,15,adjectif qualificatif,adjectif,CE2,3
 douloureux,15,adjectif qualificatif,adjectif,CE2,3
 doux,15,adjectif qualificatif,adjectif,CE2,3
 échapper,15,verbe 1er groupe,verbe,CE2,3
@@ -800,7 +790,7 @@ esprit,15,nom masculin,nom,CE2,3
 fauvette,15,nom feminin,nom,CE2,3
 faveur,15,nom feminin,nom,CE2,3
 fontaine,15,nom feminin,nom,CE2,3
-forge,15,nom feminin,nom,CE2,3
+forme,15,nom feminin,nom,CE2,3
 four,15,nom masculin,nom,CE2,3
 fournir,15,verbe 2eme groupe,verbe,CE2,3
 franc,15,adjectif qualificatif,adjectif,CE2,3
@@ -810,23 +800,23 @@ gamin,15,nom masculin,nom,CE2,3
 gardien,15,nom masculin,nom,CE2,3
 gare,15,nom feminin,nom,CE2,3
 garnir,15,verbe 2eme groupe,verbe,CE2,3
-gibier,15,nom masculin,nom,CE2,3
+carré,15,nom masculin,nom,CE2,3
 grandeur,15,nom feminin,nom,CE2,3
 gras,15,adjectif qualificatif,adjectif,CE2,3
 grenouille,15,nom feminin,nom,CE2,3
 heure,15,nom feminin,nom,CE2,3
-indigne,15,adjectif qualificatif,adjectif,CE2,3
+jeune,15,adjectif qualificatif,adjectif,CE2,3
 inscrire,15,verbe 3eme groupe,verbe,CE2,3
 instrument,15,nom masculin,nom,CE2,3
 jambe,15,nom feminin,nom,CE2,3
-journalier,15,adjectif qualificatif,adjectif,CE2,3
-juge,15,nom masculin,nom,CE2,3
+âgé,15,adjectif qualificatif,adjectif,CE2,3
+rectangle,15,nom masculin,nom,CE2,3
 jusque,15,preposition,autres,CE2,3
 justement,15,adverbe,autres,CE2,3
 langue,15,nom feminin,nom,CE2,3
 lever,15,verbe 1er groupe,verbe,CE2,3
 liberté,15,nom feminin,nom,CE2,3
-ligue,15,nom feminin,nom,CE2,3
+ligne,15,nom feminin,nom,CE2,3
 livrer,15,verbe 1er groupe,verbe,CE2,3
 locomotive,15,nom feminin,nom,CE2,3
 lot,15,nom masculin,nom,CE2,3
@@ -858,8 +848,7 @@ une,15,adjectif indefini,determinant,CE2,3
 objet,15,nom masculin,nom,CE2,3
 obliger,15,verbe 1er groupe,verbe,CE2,3
 oiseau,15,nom masculin,nom,CE2,3
-ombrage,15,nom masculin,nom,CE2,3
-onde,15,nom feminin,nom,CE2,3
+triangle,15,nom masculin,nom,CE2,3
 oui,15,adverbe,autres,CE2,3
 panier,15,nom masculin,nom,CE2,3
 parcourir,15,verbe 3eme groupe,verbe,CE2,3
@@ -871,7 +860,6 @@ perdre,15,verbe 3eme groupe,verbe,CE2,3
 périr,15,verbe 2eme groupe,verbe,CE2,3
 pierre,15,nom feminin,nom,CE2,3
 piscine,15,nom feminin,nom,CE2,3
-pitié,15,nom feminin,nom,CE2,3
 plaisir,15,nom masculin,nom,CE2,3
 poésie,15,nom feminin,nom,CE2,3
 point,15,nom masculin,nom,CE2,3
@@ -882,7 +870,6 @@ pot,15,nom masculin,nom,CE2,3
 pourquoi,15,conjonction,autres,CE2,3
 pourvoir,15,verbe 3eme groupe,verbe,CE2,3
 produit,15,nom masculin,nom,CE2,3
-proposition,15,nom feminin,nom,CE2,3
 proprement,15,adverbe,autres,CE2,3
 puis,15,adverbe,autres,CE2,3
 puisque,15,conjonction,autres,CE2,3
@@ -908,18 +895,14 @@ satin,15,nom masculin,nom,CE2,3
 série,15,nom feminin,nom,CE2,3
 soie,15,nom feminin,nom,CE2,3
 sot,15,adjectif qualificatif,adjectif,CE2,3
-suave,15,adjectif qualificatif,adjectif,CE2,3
-sud,15,nom masculin,nom,CE2,3
+sage,15,adjectif qualificatif,adjectif,CE2,3
 surtout,15,adverbe,autres,CE2,3
-tabac,15,nom masculin,nom,CE2,3
 taille,15,nom feminin,nom,CE2,3
 tante,15,nom feminin,nom,CE2,3
 tenir,15,verbe 3eme groupe,verbe,CE2,3
 toit,15,nom masculin,nom,CE2,3
-tombeau,15,nom masculin,nom,CE2,3
+losange,15,nom masculin,nom,CE2,3
 tomber,15,verbe 1er groupe,verbe,CE2,3
-tram,15,nom masculin,nom,CE2,3
-tramway,15,nom masculin,nom,CE2,3
 traverser,15,verbe 1er groupe,verbe,CE2,3
 trésor,15,nom masculin,nom,CE2,3
 tristement,15,adverbe,autres,CE2,3
@@ -928,7 +911,7 @@ troupe,15,nom feminin,nom,CE2,3
 unique,15,adjectif qualificatif,adjectif,CE2,3
 utile,15,adjectif qualificatif,adjectif,CE2,3
 vert,15,adjectif qualificatif,adjectif,CE2,3
-vierge,15,adjectif qualificatif,adjectif,CE2,3
+propre,15,adjectif qualificatif,adjectif,CE2,3
 villa,15,nom feminin,nom,CE2,3
 vitesse,15,nom feminin,nom,CE2,3
 vivement,15,adverbe,autres,CE2,3
@@ -946,9 +929,8 @@ avaler,16,verbe 1er groupe,verbe,CM1,4
 avenue,16,nom feminin,nom,CM1,4
 avouer,16,verbe 1er groupe,verbe,CM1,4
 bas,16,adjectif qualificatif,adjectif,CM1,4
-basse,16,nom feminin,nom,CM1,4
-bêche,16,nom feminin,nom,CM1,4
-bénédiction,16,nom feminin,nom,CM1,4
+basse,16,adjectif qualificatif,adjectif,CM1,4
+pêche,16,nom feminin,nom,CM1,4
 berger,16,nom masculin,nom,CM1,4
 boeuf,16,nom masculin,nom,CM1,4
 boisson,16,nom feminin,nom,CM1,4
@@ -979,20 +961,18 @@ coureur,16,nom masculin,nom,CM1,4
 courir,16,verbe 3eme groupe,verbe,CM1,4
 crise,16,nom feminin,nom,CM1,4
 cultivateur,16,nom masculin,nom,CM1,4
-curé,16,nom masculin,nom,CM1,4
+curieux,16,adjectif qualificatif,adjectif,CM1,4
 dangereux,16,adjectif qualificatif,adjectif,CM1,4
 découvrir,16,verbe 3eme groupe,verbe,CM1,4
 demoiselle,16,nom feminin,nom,CM1,4
 désireux,16,adjectif qualificatif,adjectif,CM1,4
 désordre,16,nom masculin,nom,CM1,4
-dévouement,16,nom masculin,nom,CM1,4
 digne,16,adjectif qualificatif,adjectif,CM1,4
 divin,16,adjectif qualificatif,adjectif,CM1,4
 dos,16,nom masculin,nom,CM1,4
 drapeau,16,nom masculin,nom,CM1,4
 également,16,adverbe,autres,CM1,4
 électrique,16,adjectif qualificatif,adjectif,CM1,4
-émouvoir,16,verbe 3eme groupe,verbe,CM1,4
 enfermer,16,verbe 1er groupe,verbe,CM1,4
 envie,16,nom feminin,nom,CM1,4
 épaule,16,nom feminin,nom,CM1,4
@@ -1006,20 +986,17 @@ farouche,16,adjectif qualificatif,adjectif,CM1,4
 foulard,16,nom masculin,nom,CM1,4
 fixe,16,adjectif qualificatif,adjectif,CM1,4
 foire,16,nom feminin,nom,CM1,4
-fonction,16,nom feminin,nom,CM1,4
 garniture,16,nom feminin,nom,CM1,4
 gelée,16,nom feminin,nom,CM1,4
 glace,16,nom feminin,nom,CM1,4
 gorge,16,nom feminin,nom,CM1,4
-gratitude,16,nom feminin,nom,CM1,4
+danse,16,nom feminin,nom,CM1,4
 grue,16,nom feminin,nom,CM1,4
 guide,16,nom masculin,nom,CM1,4
 hirondelle,16,nom feminin,nom,CM1,4
 huit,16,adjectif numeral,determinant,CM1,4
 inférieur,16,adjectif qualificatif,adjectif,CM1,4
-infirme,16,adjectif qualificatif,adjectif,CM1,4
 infirmier,16,nom masculin,nom,CM1,4
-injure,16,nom feminin,nom,CM1,4
 intime,16,adjectif qualificatif,adjectif,CM1,4
 invitation,16,nom feminin,nom,CM1,4
 jamais,16,adverbe,autres,CM1,4
@@ -1029,7 +1006,6 @@ jugement,16,nom masculin,nom,CM1,4
 lécher,16,verbe 1er groupe,verbe,CM1,4
 lèvre,16,nom feminin,nom,CM1,4
 lilas,16,nom masculin,nom,CM1,4
-local,16,nom masculin,nom,CM1,4
 loi,16,nom feminin,nom,CM1,4
 marchand,16,nom masculin,nom,CM1,4
 marchandise,16,nom feminin,nom,CM1,4
@@ -1068,7 +1044,6 @@ parfaitement,16,adverbe,autres,CM1,4
 parfum,16,nom masculin,nom,CM1,4
 parler,16,verbe 1er groupe,verbe,CM1,4
 part,16,nom feminin,nom,CM1,4
-particulier,16,adjectif qualificatif,adjectif,CM1,4
 passé,16,nom masculin,nom,CM1,4
 pêcher,16,verbe 1er groupe,verbe,CM1,4
 peine,16,nom feminin,nom,CM1,4
@@ -1106,10 +1081,10 @@ représentation,16,nom feminin,nom,CM1,4
 réserve,16,nom feminin,nom,CM1,4
 retrouver,16,verbe 1er groupe,verbe,CM1,4
 jument,16,nom feminin,nom,CM1,4
-romain,16,adjectif qualificatif,adjectif,CM1,4
+roux,16,adjectif qualificatif,adjectif,CM1,4
 ronger,16,verbe 1er groupe,verbe,CM1,4
 rougir,16,verbe 2eme groupe,verbe,CM1,4
-rustique,16,adjectif qualificatif,adjectif,CM1,4
+rural,16,adjectif qualificatif,adjectif,CM1,4
 sagement,16,adverbe,autres,CM1,4
 sauver,16,verbe 1er groupe,verbe,CM1,4
 secourir,16,verbe 3eme groupe,verbe,CM1,4
@@ -1126,12 +1101,11 @@ sonner,16,verbe 1er groupe,verbe,CM1,4
 sonore,16,adjectif qualificatif,adjectif,CM1,4
 souper,16,verbe 1er groupe,verbe,CM1,4
 spectacle,16,nom masculin,nom,CM1,4
-suivant,16,adjectif qualificatif,adjectif,CM1,4
 sujet,16,nom masculin,nom,CM1,4
 surface,16,nom feminin,nom,CM1,4
 jaguar,16,nom masculin,nom,CM1,4
 tapis,16,nom masculin,nom,CM1,4
-tel,16,adjectif qualificatif,adjectif,CM1,4
+terrible,16,adjectif qualificatif,adjectif,CM1,4
 tendrement,16,adverbe,autres,CM1,4
 tente,16,nom feminin,nom,CM1,4
 travail,16,nom masculin,nom,CM1,4
@@ -1147,7 +1121,6 @@ voltiger,16,verbe 1er groupe,verbe,CM1,4
 voyage,16,nom masculin,nom,CM1,4
 yeux,16,nom masculin,nom,CM1,4
 acheter,17,verbe 1er groupe,verbe,CM1,4
-actif,17,adjectif qualificatif,adjectif,CM1,4
 pyjama,17,nom masculin,nom,CM1,4
 agréablement,17,adverbe,autres,CM1,4
 aide,17,nom feminin,nom,CM1,4
@@ -1216,13 +1189,11 @@ domicile,17,nom masculin,nom,CM1,4
 elle,17,pronom,pronom,CM1,4
 drap,17,nom masculin,nom,CM1,4
 droit,17,adjectif qualificatif,adjectif,CM1,4
-duvet,17,nom masculin,nom,CM1,4
 écouter,17,verbe 1er groupe,verbe,CM1,4
 courir,17,verbe 3eme groupe,verbe,CM1,4
 énergie,17,nom feminin,nom,CM1,4
 enfance,17,nom feminin,nom,CM1,4
 entendre,17,verbe 3eme groupe,verbe,CM1,4
-équipage,17,nom masculin,nom,CM1,4
 escalader,17,verbe 1er groupe,verbe,CM1,4
 estime,17,nom feminin,nom,CM1,4
 étoffe,17,nom feminin,nom,CM1,4
@@ -1235,7 +1206,6 @@ fourniture,17,nom feminin,nom,CM1,4
 fureur,17,nom feminin,nom,CM1,4
 fusil,17,nom masculin,nom,CM1,4
 géographie,17,nom feminin,nom,CM1,4
-gosse,17,nom masculin,nom,CM1,4
 grain,17,nom masculin,nom,CM1,4
 gravement,17,adverbe,autres,CM1,4
 gravure,17,nom feminin,nom,CM1,4
@@ -1248,11 +1218,11 @@ hauteur,17,nom feminin,nom,CM1,4
 heureusement,17,adverbe,autres,CM1,4
 horloge,17,nom feminin,nom,CM1,4
 huile,17,nom feminin,nom,CM1,4
-illustre,17,adjectif qualificatif,adjectif,CM1,4
-ingratitude,17,nom feminin,nom,CM1,4
-insigne,17,nom masculin,nom,CM1,4
-instruction,17,nom feminin,nom,CM1,4
-introduction,17,nom feminin,nom,CM1,4
+illustré,17,adjectif qualificatif,adjectif,CM1,4
+crème,17,nom feminin,nom,CM1,4
+yaourt,17,nom masculin,nom,CM1,4
+bêtise,17,nom feminin,nom,CM1,4
+bouche,17,nom feminin,nom,CM1,4
 inutile,17,adjectif qualificatif,adjectif,CM1,4
 ivre,17,adjectif qualificatif,adjectif,CM1,4
 joyeux,17,adjectif qualificatif,adjectif,CM1,4
@@ -1263,7 +1233,7 @@ lendemain,17,nom masculin,nom,CM1,4
 relier,17,verbe 1er groupe,verbe,CM1,4
 lisse,17,adjectif qualificatif,adjectif,CM1,4
 lorsque,17,conjonction,autres,CM1,4
-louange,17,nom feminin,nom,CM1,4
+louve,17,nom feminin,nom,CM1,4
 lourd,17,adjectif qualificatif,adjectif,CM1,4
 lugubre,17,adjectif qualificatif,adjectif,CM1,4
 luire,17,verbe 3eme groupe,verbe,CM1,4
@@ -1275,17 +1245,17 @@ médecin,17,nom masculin,nom,CM1,4
 mener,17,verbe 1er groupe,verbe,CM1,4
 métal,17,nom masculin,nom,CM1,4
 meule,17,nom feminin,nom,CM1,4
-militaire,17,adjectif qualificatif,adjectif,CM1,4
+électrique,17,adjectif qualificatif,adjectif,CM1,4
 mille,17,adjectif numeral,determinant,CM1,4
-mobile,17,adjectif qualificatif,adjectif,CM1,4
+liquide,17,adjectif qualificatif,adjectif,CM1,4
 modestie,17,nom feminin,nom,CM1,4
-moindre,17,adjectif qualificatif,adjectif,CM1,4
+solide,17,adjectif qualificatif,adjectif,CM1,4
 morale,17,nom feminin,nom,CM1,4
 moyen,17,adjectif qualificatif,adjectif,CM1,4
 muet,17,adjectif qualificatif,adjectif,CM1,4
 multicolore,17,adjectif qualificatif,adjectif,CM1,4
 nager,17,verbe 1er groupe,verbe,CM1,4
-natal,17,adjectif qualificatif,adjectif,CM1,4
+gazeux,17,adjectif qualificatif,adjectif,CM1,4
 normal,17,adjectif qualificatif,adjectif,CM1,4
 novembre,17,nom masculin,nom,CM1,4
 numéro,17,nom masculin,nom,CM1,4
@@ -1297,7 +1267,6 @@ osier,17,nom masculin,nom,CM1,4
 pain,17,nom masculin,nom,CM1,4
 palais,17,nom masculin,nom,CM1,4
 pâle,17,adjectif qualificatif,adjectif,CM1,4
-panorama,17,nom masculin,nom,CM1,4
 parc,17,nom masculin,nom,CM1,4
 parfois,17,adverbe,autres,CM1,4
 parquet,17,nom masculin,nom,CM1,4
@@ -1321,14 +1290,11 @@ police,17,nom feminin,nom,CM1,4
 pont,17,nom masculin,nom,CM1,4
 portée,17,nom feminin,nom,CM1,4
 poumon,17,nom masculin,nom,CM1,4
-présent,17,adjectif qualificatif,adjectif,CM1,4
+absent,17,adjectif qualificatif,adjectif,CM1,4
 profondément,17,adverbe,autres,CM1,4
-propreté,17,nom feminin,nom,CM1,4
 propriété,17,nom feminin,nom,CM1,4
-prudence,17,nom feminin,nom,CM1,4
 punition,17,nom feminin,nom,CM1,4
 purifier,17,verbe 1er groupe,verbe,CM1,4
-ravin,17,nom masculin,nom,CM1,4
 ravir,17,verbe 2eme groupe,verbe,CM1,4
 rayon,17,nom masculin,nom,CM1,4
 recherche,17,nom feminin,nom,CM1,4
@@ -1340,7 +1306,6 @@ région,17,nom feminin,nom,CM1,4
 réjouir,17,verbe 2eme groupe,verbe,CM1,4
 remonter,17,verbe 1er groupe,verbe,CM1,4
 remplir,17,verbe 2eme groupe,verbe,CM1,4
-renouvellement,17,nom masculin,nom,CM1,4
 répartir,17,verbe 2eme groupe,verbe,CM1,4
 repentir,17,verbe 3eme groupe,verbe,CM1,4
 repos,17,nom masculin,nom,CM1,4
@@ -1408,61 +1373,39 @@ angle,18,nom masculin,nom,CM1,4
 apprendre,18,verbe 3eme groupe,verbe,CM1,4
 arbitre,18,nom masculin,nom,CM1,4
 arbuste,18,nom masculin,nom,CM1,4
-architecte,18,nom masculin,nom,CM1,4
-ardent,18,adjectif qualificatif,adjectif,CM1,4
+brûlant,18,adjectif qualificatif,adjectif,CM1,4
 argent,18,nom masculin,nom,CM1,4
 arracher,18,verbe 1er groupe,verbe,CM1,4
 attaque,18,nom feminin,nom,CM1,4
-auberge,18,nom feminin,nom,CM1,4
 automobile,18,nom feminin,nom,CM1,4
 autrefois,18,adverbe,autres,CM1,4
 autrement,18,adverbe,autres,CM1,4
-avantage,18,nom masculin,nom,CM1,4
 aventure,18,nom feminin,nom,CM1,4
 bagage,18,nom masculin,nom,CM1,4
 battre,18,verbe 3eme groupe,verbe,CM1,4
 beaucoup,18,adverbe,autres,CM1,4
-besoin,18,nom masculin,nom,CM1,4
-bienfait,18,nom masculin,nom,CM1,4
-bienfaiteur,18,nom masculin,nom,CM1,4
-bloc,18,nom masculin,nom,CM1,4
-bonsoir,18,nom masculin,nom,CM1,4
-bosquet,18,nom masculin,nom,CM1,4
 boucher,18,verbe 1er groupe,verbe,CM1,4
 broyer,18,verbe 1er groupe,verbe,CM1,4
 brusquement,18,adverbe,autres,CM1,4
-cadet,18,adjectif qualificatif,adjectif,CM1,4
 nous,18,pronom,pronom,CM1,4
 vous,18,pronom,pronom,CM1,4
 cent,18,adjectif numeral,determinant,CM1,4
 cerisier,18,nom masculin,nom,CM1,4
 ils,18,pronom,pronom,CM1,4
 chapitre,18,nom masculin,nom,CM1,4
-charbonnage,18,nom masculin,nom,CM1,4
 chauffeur,18,nom masculin,nom,CM1,4
-chaussée,18,nom feminin,nom,CM1,4
 chaussure,18,nom feminin,nom,CM1,4
-cigarette,18,nom feminin,nom,CM1,4
 cinéma,18,nom masculin,nom,CM1,4
 cinquante,18,adjectif numeral,determinant,CM1,4
-circulation,18,nom feminin,nom,CM1,4
 classique,18,adjectif qualificatif,adjectif,CM1,4
 complet,18,adjectif qualificatif,adjectif,CM1,4
-congé,18,nom masculin,nom,CM1,4
-considérable,18,adjectif qualificatif,adjectif,CM1,4
 consoler,18,verbe 1er groupe,verbe,CM1,4
 constater,18,verbe 1er groupe,verbe,CM1,4
 content,18,adjectif qualificatif,adjectif,CM1,4
 contraire,18,adjectif qualificatif,adjectif,CM1,4
-contrée,18,nom feminin,nom,CM1,4
-conviction,18,nom feminin,nom,CM1,4
-côte,18,nom feminin,nom,CM1,4
 coup,18,nom masculin,nom,CM1,4
 couteau,18,nom masculin,nom,CM1,4
 couvercle,18,nom masculin,nom,CM1,4
-crainte,18,nom feminin,nom,CM1,4
-craquement,18,nom masculin,nom,CM1,4
-créateur,18,nom masculin,nom,CM1,4
 cuisinière,18,nom feminin,nom,CM1,4
 cultiver,18,verbe 1er groupe,verbe,CM1,4
 curieux,18,adjectif qualificatif,adjectif,CM1,4
@@ -1472,27 +1415,18 @@ défenseur,18,nom masculin,nom,CM1,4
 délicat,18,adjectif qualificatif,adjectif,CM1,4
 délivrer,18,verbe 1er groupe,verbe,CM1,4
 dentelle,18,nom feminin,nom,CM1,4
-dénudé,18,adjectif qualificatif,adjectif,CM1,4
-désolation,18,nom feminin,nom,CM1,4
-destinée,18,nom feminin,nom,CM1,4
-détour,18,nom masculin,nom,CM1,4
+contente,18,adjectif qualificatif,adjectif,CM1,4
 diriger,18,verbe 1er groupe,verbe,CM1,4
-disposition,18,nom feminin,nom,CM1,4
-distraction,18,nom feminin,nom,CM1,4
 distrait,18,adjectif qualificatif,adjectif,CM1,4
 douceur,18,nom feminin,nom,CM1,4
 douter,18,verbe 1er groupe,verbe,CM1,4
 éblouir,18,verbe 2eme groupe,verbe,CM1,4
 éclater,18,verbe 1er groupe,verbe,CM1,4
-économie,18,nom feminin,nom,CM1,4
 élégant,18,adjectif qualificatif,adjectif,CM1,4
 endroit,18,nom masculin,nom,CM1,4
 environ,18,adverbe,autres,CM1,4
 épanouir,18,verbe 2eme groupe,verbe,CM1,4
-état,18,nom masculin,nom,CM1,4
-être,18,nom masculin,nom,CM1,4
 étroit,18,adjectif qualificatif,adjectif,CM1,4
-exposition,18,nom feminin,nom,CM1,4
 exprimer,18,verbe 1er groupe,verbe,CM1,4
 facile,18,adjectif qualificatif,adjectif,CM1,4
 faible,18,adjectif qualificatif,adjectif,CM1,4
@@ -1503,39 +1437,26 @@ forger,18,verbe 1er groupe,verbe,CM1,4
 former,18,verbe 1er groupe,verbe,CM1,4
 friandise,18,nom feminin,nom,CM1,4
 fuir,18,verbe 3eme groupe,verbe,CM1,4
-galerie,18,nom feminin,nom,CM1,4
 garder,18,verbe 1er groupe,verbe,CM1,4
-gazon,18,nom masculin,nom,CM1,4
 généralement,18,adverbe,autres,CM1,4
 généreux,18,adjectif qualificatif,adjectif,CM1,4
-grange,18,nom feminin,nom,CM1,4
 graver,18,verbe 1er groupe,verbe,CM1,4
 gravir,18,verbe 2eme groupe,verbe,CM1,4
 gronder,18,verbe 1er groupe,verbe,CM1,4
-hache,18,nom feminin,nom,CM1,4
 heureux,18,adjectif qualificatif,adjectif,CM1,4
-histoire,18,nom feminin,nom,CM1,4
-honte,18,nom feminin,nom,CM1,4
-indication,18,nom feminin,nom,CM1,4
 infini,18,adjectif qualificatif,adjectif,CM1,4
-instructif,18,adjectif qualificatif,adjectif,CM1,4
+attentif,18,adjectif qualificatif,adjectif,CM1,4
 irriter,18,verbe 1er groupe,verbe,CM1,4
 jambon,18,nom masculin,nom,CM1,4
 jaunir,18,verbe 2eme groupe,verbe,CM1,4
-jeu,18,nom masculin,nom,CM1,4
-justice,18,nom feminin,nom,CM1,4
-lin,18,nom masculin,nom,CM1,4
 maigre,18,adjectif qualificatif,adjectif,CM1,4
 maintenir,18,verbe 3eme groupe,verbe,CM1,4
 malheureux,18,adjectif qualificatif,adjectif,CM1,4
 mare,18,nom feminin,nom,CM1,4
 maternel,18,adjectif qualificatif,adjectif,CM1,4
 mélanger,18,verbe 1er groupe,verbe,CM1,4
-mètre,18,nom masculin,nom,CM1,4
 mettre,18,verbe 3eme groupe,verbe,CM1,4
-moisson,18,nom feminin,nom,CM1,4
 montrer,18,verbe 1er groupe,verbe,CM1,4
-monument,18,nom masculin,nom,CM1,4
 neiger,18,verbe 1er groupe,verbe,CM1,4
 noisette,18,nom feminin,nom,CM1,4
 nouvelle,18,nom feminin,nom,CM1,4
@@ -1559,23 +1480,15 @@ présenter,18,verbe 1er groupe,verbe,CM1,4
 prétendre,18,verbe 3eme groupe,verbe,CM1,4
 prier,18,verbe 1er groupe,verbe,CM1,4
 princesse,18,nom feminin,nom,CM1,4
-principe,18,nom masculin,nom,CM1,4
 probablement,18,adverbe,autres,CM1,4
 joie,18,nom feminin,nom,CM1,4
-protection,18,nom feminin,nom,CM1,4
-puissance,18,nom feminin,nom,CM1,4
 puissant,18,adjectif qualificatif,adjectif,CM1,4
-qualité,18,nom feminin,nom,CM1,4
 quand,18,conjonction,autres,CM1,4
 ramener,18,verbe 1er groupe,verbe,CM1,4
-rapidité,18,nom feminin,nom,CM1,4
-ravage,18,nom masculin,nom,CM1,4
 rechercher,18,verbe 1er groupe,verbe,CM1,4
 redoubler,18,verbe 1er groupe,verbe,CM1,4
 redouter,18,verbe 1er groupe,verbe,CM1,4
 regagner,18,verbe 1er groupe,verbe,CM1,4
-relation,18,nom feminin,nom,CM1,4
-renoncule,18,nom feminin,nom,CM1,4
 rentrée,18,nom feminin,nom,CM1,4
 réparer,18,verbe 1er groupe,verbe,CM1,4
 replier,18,verbe 1er groupe,verbe,CM1,4
@@ -1586,7 +1499,6 @@ rideau,18,nom masculin,nom,CM1,4
 roulotte,18,nom feminin,nom,CM1,4
 royaume,18,nom masculin,nom,CM1,4
 ruiner,18,verbe 1er groupe,verbe,CM1,4
-sacrement,18,nom masculin,nom,CM1,4
 sacrifier,18,verbe 1er groupe,verbe,CM1,4
 salir,18,verbe 2eme groupe,verbe,CM1,4
 saluer,18,verbe 1er groupe,verbe,CM1,4
@@ -1613,19 +1525,14 @@ subitement,18,adverbe,autres,CM1,4
 tas,18,nom masculin,nom,CM1,4
 tempête,18,nom feminin,nom,CM1,4
 temps,18,nom masculin,nom,CM1,4
-tentation,18,nom feminin,nom,CM1,4
-terrain,18,nom masculin,nom,CM1,4
 tirer,18,verbe 1er groupe,verbe,CM1,4
 trente,18,adjectif numeral,determinant,CM1,4
-tricot,18,nom masculin,nom,CM1,4
-tristesse,18,nom feminin,nom,CM1,4
 trop,18,adverbe,autres,CM1,4
 troupeau,18,nom masculin,nom,CM1,4
 urgent,18,adjectif qualificatif,adjectif,CM1,4
-vallée,18,nom feminin,nom,CM1,4
 veau,18,nom masculin,nom,CM1,4
 vider,18,verbe 1er groupe,verbe,CM1,4
-vigoureux,18,adjectif qualificatif,adjectif,CM1,4
+attentive,18,adjectif qualificatif,adjectif,CM1,4
 vol,18,nom masculin,nom,CM1,4
 volet,18,nom masculin,nom,CM1,4
 elles,18,pronom,pronom,CM1,4
@@ -1633,11 +1540,7 @@ zèbre,18,nom masculin,nom,CM1,4
 abriter,19,verbe 1er groupe,verbe,CM1,4
 abuser,19,verbe 1er groupe,verbe,CM1,4
 actuellement,19,adverbe,autres,CM1,4
-admiration,19,nom feminin,nom,CM1,4
-adresse,19,nom feminin,nom,CM1,4
-agitation,19,nom feminin,nom,CM1,4
 amusant,19,adjectif qualificatif,adjectif,CM1,4
-animation,19,nom feminin,nom,CM1,4
 girafe,19,nom feminin,nom,CM1,4
 arrivée,19,nom feminin,nom,CM1,4
 aspirer,19,verbe 1er groupe,verbe,CM1,4
@@ -1645,44 +1548,35 @@ atelier,19,nom masculin,nom,CM1,4
 attendre,19,verbe 3eme groupe,verbe,CM1,4
 attirer,19,verbe 1er groupe,verbe,CM1,4
 attribuer,19,verbe 1er groupe,verbe,CM1,4
-avance,19,nom feminin,nom,CM1,4
-avoine,19,nom masculin,nom,CM1,4
 ballon,19,nom masculin,nom,CM1,4
 banane,19,nom feminin,nom,CM1,4
 bandit,19,nom masculin,nom,CM1,4
 bâton,19,nom masculin,nom,CM1,4
-beauté,19,nom feminin,nom,CM1,4
 bénir,19,verbe 2eme groupe,verbe,CM1,4
 berceau,19,nom masculin,nom,CM1,4
-bleuet,19,nom masculin,nom,CM1,4
-bluet,19,nom masculin,nom,CM1,4
 bonnet,19,nom masculin,nom,CM1,4
 bouder,19,verbe 1er groupe,verbe,CM1,4
 bout,19,nom masculin,nom,CM1,4
 brin,19,nom masculin,nom,CM1,4
 buisson,19,nom masculin,nom,CM1,4
-but,19,nom masculin,nom,CM1,4
 lion,19,nom masculin,nom,CM1,4
 camarade,19,nom commun,nom,CM1,4
 tigre,19,nom masculin,nom,CM1,4
 casquette,19,nom feminin,nom,CM1,4
 causer,19,verbe 1er groupe,verbe,CM1,4
 centaine,19,nom feminin,nom,CM1,4
-centre,19,nom masculin,nom,CM1,4
 cerise,19,nom feminin,nom,CM1,4
 chance,19,nom feminin,nom,CM1,4
 changer,19,verbe 1er groupe,verbe,CM1,4
 charmant,19,adjectif qualificatif,adjectif,CM1,4
 château,19,nom masculin,nom,CM1,4
-chéri,19,adjectif qualificatif,adjectif,CM1,4
+amusante,19,adjectif qualificatif,adjectif,CM1,4
 choc,19,nom masculin,nom,CM1,4
 clair,19,adjectif qualificatif,adjectif,CM1,4
 clé,19,nom feminin,nom,CM1,4
 clef,19,nom feminin,nom,CM1,4
-clément,19,adjectif qualificatif,adjectif,CM1,4
+calme,19,adjectif qualificatif,adjectif,CM1,4
 coiffure,19,nom feminin,nom,CM1,4
-combat,19,nom masculin,nom,CM1,4
-commerce,19,nom masculin,nom,CM1,4
 gazelle,19,nom feminin,nom,CM1,4
 conclure,19,verbe 3eme groupe,verbe,CM1,4
 conformément,19,adverbe,autres,CM1,4
@@ -1696,18 +1590,13 @@ couvert,19,nom masculin,nom,CM1,4
 crayon,19,nom masculin,nom,CM1,4
 culotte,19,nom feminin,nom,CM1,4
 décider,19,verbe 1er groupe,verbe,CM1,4
-défaut,19,nom masculin,nom,CM1,4
 défendre,19,verbe 3eme groupe,verbe,CM1,4
-degré,19,nom masculin,nom,CM1,4
-demeure,19,nom feminin,nom,CM1,4
 démolir,19,verbe 2eme groupe,verbe,CM1,4
 déplacer,19,verbe 1er groupe,verbe,CM1,4
 dérober,19,verbe 1er groupe,verbe,CM1,4
 désobéir,19,verbe 2eme groupe,verbe,CM1,4
-détail,19,nom masculin,nom,CM1,4
 deviner,19,verbe 1er groupe,verbe,CM1,4
 disposer,19,verbe 1er groupe,verbe,CM1,4
-distinction,19,nom feminin,nom,CM1,4
 distraire,19,verbe 3eme groupe,verbe,CM1,4
 distribuer,19,verbe 1er groupe,verbe,CM1,4
 docile,19,adjectif qualificatif,adjectif,CM1,4
@@ -1718,21 +1607,15 @@ doucement,19,adverbe,autres,CM1,4
 dizaine,19,nom feminin,nom,CM1,4
 drôle,19,adjectif qualificatif,adjectif,CM1,4
 durer,19,verbe 1er groupe,verbe,CM1,4
-écrit,19,adjectif qualificatif,adjectif,CM1,4
-éducation,19,nom feminin,nom,CM1,4
-empereur,19,nom masculin,nom,CM1,4
+drôle,19,adjectif qualificatif,adjectif,CM1,4
 emplir,19,verbe 2eme groupe,verbe,CM1,4
 enrichir,19,verbe 2eme groupe,verbe,CM1,4
 enseigner,19,verbe 1er groupe,verbe,CM1,4
 épée,19,nom feminin,nom,CM1,4
-équilibre,19,nom masculin,nom,CM1,4
 équipe,19,nom feminin,nom,CM1,4
 étendre,19,verbe 3eme groupe,verbe,CM1,4
-éternité,19,nom feminin,nom,CM1,4
 expirer,19,verbe 1er groupe,verbe,CM1,4
 facilement,19,adverbe,autres,CM1,4
-façon,19,nom feminin,nom,CM1,4
-farce,19,nom feminin,nom,CM1,4
 fermer,19,verbe 1er groupe,verbe,CM1,4
 feuillage,19,nom masculin,nom,CM1,4
 février,19,nom masculin,nom,CM1,4
@@ -1745,32 +1628,23 @@ fossé,19,nom masculin,nom,CM1,4
 fouet,19,nom masculin,nom,CM1,4
 fragile,19,adjectif qualificatif,adjectif,CM1,4
 franchement,19,adverbe,autres,CM1,4
-franchise,19,nom feminin,nom,CM1,4
-fruitier,19,adjectif qualificatif,adjectif,CM1,4
 gaz,19,nom masculin,nom,CM1,4
 gendarme,19,nom masculin,nom,CM1,4
 gens,19,nom masculin,nom,CM1,4
 glissant,19,adjectif qualificatif,adjectif,CM1,4
 griffer,19,verbe 1er groupe,verbe,CM1,4
 grotte,19,nom feminin,nom,CM1,4
-hâte,19,nom feminin,nom,CM1,4
-humain,19,adjectif qualificatif,adjectif,CM1,4
-humeur,19,nom feminin,nom,CM1,4
 humide,19,adjectif qualificatif,adjectif,CM1,4
 important,19,adjectif qualificatif,adjectif,CM1,4
-instant,19,nom masculin,nom,CM1,4
 instruire,19,verbe 3eme groupe,verbe,CM1,4
 intérieur,19,adjectif qualificatif,adjectif,CM1,4
 introduire,19,verbe 3eme groupe,verbe,CM1,4
-ivresse,19,nom feminin,nom,CM1,4
 jeter,19,verbe 1er groupe,verbe,CM1,4
 juger,19,verbe 1er groupe,verbe,CM1,4
 labourer,19,verbe 1er groupe,verbe,CM1,4
-lamentable,19,adjectif qualificatif,adjectif,CM1,4
 lent,19,adjectif qualificatif,adjectif,CM1,4
 lentement,19,adverbe,autres,CM1,4
 libérer,19,verbe 1er groupe,verbe,CM1,4
-lien,19,nom masculin,nom,CM1,4
 ville,19,nom feminin,nom,CM1,4
 loger,19,verbe 1er groupe,verbe,CM1,4
 loisir,19,nom masculin,nom,CM1,4
@@ -1791,7 +1665,6 @@ mou,19,adjectif qualificatif,adjectif,CM1,4
 mourir,19,verbe 3eme groupe,verbe,CM1,4
 nombreux,19,adjectif qualificatif,adjectif,CM1,4
 nourriture,19,nom feminin,nom,CM1,4
-office,19,nom masculin,nom,CM1,4
 offrir,19,verbe 3eme groupe,verbe,CM1,4
 onduler,19,verbe 1er groupe,verbe,CM1,4
 par,19,preposition,autres,CM1,4
@@ -1814,34 +1687,31 @@ infirmier,19,nom masculin,nom,CM1,4
 principalement,19,adverbe,autres,CM1,4
 printemps,19,nom masculin,nom,CM1,4
 prisonnier,19,nom masculin,nom,CM1,4
-privation,19,nom feminin,nom,CM1,4
-profit,19,nom masculin,nom,CM1,4
-propriétaire,19,nom masculin,nom,CM1,4
 quart,19,nom masculin,nom,CM1,4
 question,19,nom feminin,nom,CM1,4
 raconter,19,verbe 1er groupe,verbe,CM1,4
 ralentir,19,verbe 2eme groupe,verbe,CM1,4
 raser,19,verbe 1er groupe,verbe,CM1,4
 recevoir,19,verbe 3eme groupe,verbe,CM1,4
-reconduire,19,verbe 3eme groupe,verbe,CM1,4
-recouvrir,19,verbe 3eme groupe,verbe,CM1,4
+conduire,19,verbe 3eme groupe,verbe,CM1,4
+couvrir,19,verbe 3eme groupe,verbe,CM1,4
 réellement,19,adverbe,autres,CM1,4
 règle,19,nom feminin,nom,CM1,4
 régulier,19,adjectif qualificatif,adjectif,CM1,4
 rejoindre,19,verbe 3eme groupe,verbe,CM1,4
-religieux,19,adjectif qualificatif,adjectif,CM1,4
+merveilleux,19,adjectif qualificatif,adjectif,CM1,4
 remercier,19,verbe 1er groupe,verbe,CM1,4
-rouge-gorge,19,nom feminin,nom,CM1,4
+rouge-gorge,19,nom masculin,nom,CM1,4
 retourner,19,verbe 1er groupe,verbe,CM1,4
 reverdir,19,verbe 2eme groupe,verbe,CM1,4
 rider,19,verbe 1er groupe,verbe,CM1,4
-rond,19,adjectif qualificatif,adjectif,CM1,4
+rempli,19,adjectif qualificatif,adjectif,CM1,4
 rouleau,19,nom masculin,nom,CM1,4
 royal,19,adjectif qualificatif,adjectif,CM1,4
 ruisseau,19,nom masculin,nom,CM1,4
 salaire,19,nom masculin,nom,CM1,4
 satisfaire,19,verbe 3eme groupe,verbe,CM1,4
-saule,19,nom masculin,nom,CM1,4
+salon,19,nom masculin,nom,CM1,4
 savourer,19,verbe 1er groupe,verbe,CM1,4
 scolaire,19,adjectif qualificatif,adjectif,CM1,4
 sentier,19,nom masculin,nom,CM1,4
@@ -1858,18 +1728,14 @@ température,19,nom feminin,nom,CM1,4
 terminer,19,verbe 1er groupe,verbe,CM1,4
 terrestre,19,adjectif qualificatif,adjectif,CM1,4
 toilette,19,nom feminin,nom,CM1,4
-traitement,19,nom masculin,nom,CM1,4
 tranquille,19,adjectif qualificatif,adjectif,CM1,4
-transport,19,nom masculin,nom,CM1,4
 végétal,19,adjectif qualificatif,adjectif,CM1,4
-vénérer,19,verbe 1er groupe,verbe,CM1,4
+vendre,19,verbe 1er groupe,verbe,CM1,4
 vérifier,19,verbe 1er groupe,verbe,CM1,4
 verre,19,nom masculin,nom,CM1,4
-veuf,19,adjectif qualificatif,adjectif,CM1,4
 vingt,19,adjectif numeral,determinant,CM1,4
-abondance,20,nom feminin,nom,CM2,5
+baignoire,20,nom feminin,nom,CM2,5
 activer,20,verbe 1er groupe,verbe,CM2,5
-activité,20,nom feminin,nom,CM2,5
 couteau,20,nom masculin,nom,CM2,5
 fourchette,20,nom feminin,nom,CM2,5
 afin,20,conjonction,autres,CM2,5
@@ -1896,7 +1762,7 @@ bonhomme,20,nom masculin,nom,CM2,5
 bossu,20,adjectif qualificatif,adjectif,CM2,5
 boucler,20,verbe 1er groupe,verbe,CM2,5
 bourgeon,20,nom masculin,nom,CM2,5
-brumeux,20,adjectif qualificatif,adjectif,CM2,5
+nuageux,20,adjectif qualificatif,adjectif,CM2,5
 cache-cache,20,nom masculin,nom,CM2,5
 chien,20,nom masculin,nom,CM2,5
 calendrier,20,nom masculin,nom,CM2,5
@@ -1915,7 +1781,6 @@ claquer,20,verbe 1er groupe,verbe,CM2,5
 coiffer,20,verbe 1er groupe,verbe,CM2,5
 colère,20,nom feminin,nom,CM2,5
 colline,20,nom feminin,nom,CM2,5
-composition,20,nom feminin,nom,CM2,5
 poule,20,nom feminin,nom,CM2,5
 constituer,20,verbe 1er groupe,verbe,CM2,5
 applaudir,20,verbe 2eme groupe,verbe,CM2,5
@@ -1923,7 +1788,7 @@ courageux,20,adjectif qualificatif,adjectif,CM2,5
 courant,20,adjectif qualificatif,adjectif,CM2,5
 couronne,20,nom feminin,nom,CM2,5
 coussin,20,nom masculin,nom,CM2,5
-couvent,20,nom feminin,nom,CM2,5
+frite,20,nom feminin,nom,CM2,5
 couver,20,verbe 1er groupe,verbe,CM2,5
 craindre,20,verbe 3eme groupe,verbe,CM2,5
 creux,20,adjectif qualificatif,adjectif,CM2,5
@@ -1966,7 +1831,7 @@ baleine,20,nom feminin,nom,CM2,5
 table,20,nom feminin,nom,CM2,5
 faiblesse,20,nom feminin,nom,CM2,5
 faim,20,nom feminin,nom,CM2,5
-fameux,20,adjectif qualificatif,adjectif,CM2,5
+ensoleillé,20,adjectif qualificatif,adjectif,CM2,5
 favoriser,20,verbe 1er groupe,verbe,CM2,5
 récréation,20,nom feminin,nom,CM2,5
 fêter,20,verbe 1er groupe,verbe,CM2,5
@@ -1979,22 +1844,21 @@ foin,20,nom masculin,nom,CM2,5
 fromage,20,nom masculin,nom,CM2,5
 forestier,20,adjectif qualificatif,adjectif,CM2,5
 forêt,20,nom feminin,nom,CM2,5
-fougère,20,nom feminin,nom,CM2,5
+lionne,20,nom feminin,nom,CM2,5
 frais,20,adjectif qualificatif,adjectif,CM2,5
 fraise,20,nom feminin,nom,CM2,5
 franchir,20,verbe 2eme groupe,verbe,CM2,5
-froment,20,nom masculin,nom,CM2,5
 gagner,20,verbe 1er groupe,verbe,CM2,5
 géant,20,adjectif qualificatif,adjectif,CM2,5
 geler,20,verbe 1er groupe,verbe,CM2,5
 général,20,adjectif qualificatif,adjectif,CM2,5
-germer,20,verbe 1er groupe,verbe,CM2,5
+gommer,20,verbe 1er groupe,verbe,CM2,5
 geste,20,nom masculin,nom,CM2,5
 pluie,20,nom feminin,nom,CM2,5
 orage,20,nom masculin,nom,CM2,5
 gouverner,20,verbe 1er groupe,verbe,CM2,5
 graine,20,nom feminin,nom,CM2,5
-grandiose,20,adjectif qualificatif,adjectif,CM2,5
+magique,20,adjectif qualificatif,adjectif,CM2,5
 grand-mère,20,nom feminin,nom,CM2,5
 grappe,20,nom feminin,nom,CM2,5
 vent,20,nom masculin,nom,CM2,5
@@ -2002,12 +1866,11 @@ habit,20,nom masculin,nom,CM2,5
 île,20,nom feminin,nom,CM2,5
 imagination,20,nom feminin,nom,CM2,5
 imiter,20,verbe 1er groupe,verbe,CM2,5
-imperméable,20,adjectif qualificatif,adjectif,CM2,5
 rivière,20,nom feminin,nom,CM2,5
 imprudent,20,adjectif qualificatif,adjectif,CM2,5
 incendie,20,nom masculin,nom,CM2,5
 indispensable,20,adjectif qualificatif,adjectif,CM2,5
-inerte,20,adjectif qualificatif,adjectif,CM2,5
+immobile,20,adjectif qualificatif,adjectif,CM2,5
 infiniment,20,adverbe,autres,CM2,5
 mer,20,nom feminin,nom,CM2,5
 inspirer,20,verbe 1er groupe,verbe,CM2,5
@@ -2025,14 +1888,13 @@ marier,20,verbe 1er groupe,verbe,CM2,5
 marquis,20,nom masculin,nom,CM2,5
 masse,20,nom feminin,nom,CM2,5
 massif,20,adjectif qualificatif,adjectif,CM2,5
-mélodieux,20,adjectif qualificatif,adjectif,CM2,5
+heureux,20,adjectif qualificatif,adjectif,CM2,5
 mensonge,20,nom masculin,nom,CM2,5
 mieux,20,adverbe,autres,CM2,5
-monotone,20,adjectif qualificatif,adjectif,CM2,5
+joyeux,20,adjectif qualificatif,adjectif,CM2,5
 moquer,20,verbe 1er groupe,verbe,CM2,5
-moyenne,20,nom feminin,nom,CM2,5
 ni,20,conjonction,autres,CM2,5
-obscurité,20,nom feminin,nom,CM2,5
+nuit,20,nom feminin,nom,CM2,5
 observation,20,nom feminin,nom,CM2,5
 obtenir,20,verbe 3eme groupe,verbe,CM2,5
 océan,20,nom masculin,nom,CM2,5
@@ -2041,10 +1903,8 @@ outil,20,nom masculin,nom,CM2,5
 brouillard,20,nom masculin,nom,CM2,5
 passer,20,verbe 1er groupe,verbe,CM2,5
 pavé,20,nom masculin,nom,CM2,5
-péché,20,nom masculin,nom,CM2,5
 pêcheur,20,nom masculin,nom,CM2,5
 peindre,20,verbe 3eme groupe,verbe,CM2,5
-pension,20,nom feminin,nom,CM2,5
 période,20,nom feminin,nom,CM2,5
 peser,20,verbe 1er groupe,verbe,CM2,5
 pétale,20,nom masculin,nom,CM2,5
@@ -2063,9 +1923,7 @@ profiter,20,verbe 1er groupe,verbe,CM2,5
 promener,20,verbe 1er groupe,verbe,CM2,5
 proposer,20,verbe 1er groupe,verbe,CM2,5
 protéger,20,verbe 1er groupe,verbe,CM2,5
-provision,20,nom feminin,nom,CM2,5
 prudent,20,adjectif qualificatif,adjectif,CM2,5
-radieux,20,adjectif qualificatif,adjectif,CM2,5
 ranimer,20,verbe 1er groupe,verbe,CM2,5
 récolter,20,verbe 1er groupe,verbe,CM2,5
 refroidir,20,verbe 2eme groupe,verbe,CM2,5
@@ -2093,13 +1951,8 @@ sève,20,nom feminin,nom,CM2,5
 signer,20,verbe 1er groupe,verbe,CM2,5
 sitôt,20,adverbe,autres,CM2,5
 situer,20,verbe 1er groupe,verbe,CM2,5
-solitaire,20,adjectif qualificatif,adjectif,CM2,5
-son,20,nom masculin,nom,CM2,5
-sou,20,nom masculin,nom,CM2,5
-souffrance,20,nom feminin,nom,CM2,5
+rigolote,20,adjectif qualificatif,adjectif,CM2,5
 studieux,20,adjectif qualificatif,adjectif,CM2,5
-stupéfaction,20,nom feminin,nom,CM2,5
-suprême,20,adjectif qualificatif,adjectif,CM2,5
 surprendre,20,verbe 3eme groupe,verbe,CM2,5
 tambour,20,nom masculin,nom,CM2,5
 tard,20,adverbe,autres,CM2,5
@@ -2115,14 +1968,11 @@ troubler,20,verbe 1er groupe,verbe,CM2,5
 tuile,20,nom feminin,nom,CM2,5
 vacances,20,nom feminin,nom,CM2,5
 vélo,20,nom masculin,nom,CM2,5
-velouté,20,adjectif qualificatif,adjectif,CM2,5
 verser,20,verbe 1er groupe,verbe,CM2,5
-vice,20,nom masculin,nom,CM2,5
 vilain,20,adjectif qualificatif,adjectif,CM2,5
 violence,20,nom feminin,nom,CM2,5
 violent,20,adjectif qualificatif,adjectif,CM2,5
 voyager,20,verbe 1er groupe,verbe,CM2,5
-aborder,21,verbe 1er groupe,verbe,CM2,5
 accident,21,nom masculin,nom,CM2,5
 accorder,21,verbe 1er groupe,verbe,CM2,5
 achever,21,verbe 1er groupe,verbe,CM2,5
@@ -2132,17 +1982,15 @@ adoucir,21,verbe 2eme groupe,verbe,CM2,5
 adversaire,21,nom masculin,nom,CM2,5
 affaire,21,nom feminin,nom,CM2,5
 affiche,21,nom feminin,nom,CM2,5
-agrémenter,21,verbe 1er groupe,verbe,CM2,5
 aiguille,21,nom feminin,nom,CM2,5
 allumette,21,nom feminin,nom,CM2,5
 amener,21,verbe 1er groupe,verbe,CM2,5
 amical,21,adjectif qualificatif,adjectif,CM2,5
 anglais,21,adjectif qualificatif,adjectif,CM2,5
 annonce,21,nom feminin,nom,CM2,5
-apostolique,21,adjectif qualificatif,adjectif,CM2,5
-apôtre,21,nom masculin,nom,CM2,5
+nid,21,nom masculin,nom,CM2,5
 application,21,nom feminin,nom,CM2,5
-arrière,21,nom masculin,nom,CM2,5
+sac,21,nom masculin,nom,CM2,5
 stylo,21,nom masculin,nom,CM2,5
 attentif,21,adjectif qualificatif,adjectif,CM2,5
 gomme,21,nom feminin,nom,CM2,5
@@ -2151,7 +1999,7 @@ aujourd'hui,21,adverbe,autres,CM2,5
 autoriser,21,verbe 1er groupe,verbe,CM2,5
 balancer,21,verbe 1er groupe,verbe,CM2,5
 bâtiment,21,nom masculin,nom,CM2,5
-bienheureux,21,adjectif qualificatif,adjectif,CM2,5
+heureuse,21,adjectif qualificatif,adjectif,CM2,5
 bijou,21,nom masculin,nom,CM2,5
 blond,21,adjectif qualificatif,adjectif,CM2,5
 bouger,21,verbe 1er groupe,verbe,CM2,5
@@ -2161,7 +2009,7 @@ broder,21,verbe 1er groupe,verbe,CM2,5
 brouter,21,verbe 1er groupe,verbe,CM2,5
 canne,21,nom feminin,nom,CM2,5
 casier,21,nom masculin,nom,CM2,5
-céleste,21,adjectif qualificatif,adjectif,CM2,5
+célèbre,21,adjectif qualificatif,adjectif,CM2,5
 champ,21,nom masculin,nom,CM2,5
 cartable,21,nom masculin,nom,CM2,5
 chauffage,21,nom masculin,nom,CM2,5
@@ -2180,7 +2028,6 @@ compliquer,21,verbe 1er groupe,verbe,CM2,5
 télévision,21,nom feminin,nom,CM2,5
 confier,21,verbe 1er groupe,verbe,CM2,5
 écran,21,nom masculin,nom,CM2,5
-sac,21,nom masculin,nom,CM2,5
 conserver,21,verbe 1er groupe,verbe,CM2,5
 contenter,21,verbe 1er groupe,verbe,CM2,5
 coquille,21,nom feminin,nom,CM2,5
@@ -2191,7 +2038,7 @@ danser,21,verbe 1er groupe,verbe,CM2,5
 débiter,21,verbe 1er groupe,verbe,CM2,5
 debout,21,adverbe,autres,CM2,5
 déclarer,21,verbe 1er groupe,verbe,CM2,5
-défaire,21,verbe 3eme groupe,verbe,CM2,5
+faire,21,verbe 3eme groupe,verbe,CM2,5
 délicieux,21,adjectif qualificatif,adjectif,CM2,5
 demander,21,verbe 1er groupe,verbe,CM2,5
 déposer,21,verbe 1er groupe,verbe,CM2,5
@@ -2238,10 +2085,9 @@ fabrication,21,nom feminin,nom,CM2,5
 facilité,21,nom feminin,nom,CM2,5
 faciliter,21,verbe 1er groupe,verbe,CM2,5
 fatal,21,adjectif qualificatif,adjectif,CM2,5
-ferrer,21,verbe 1er groupe,verbe,CM2,5
+fermer,21,verbe 1er groupe,verbe,CM2,5
 ficelle,21,nom feminin,nom,CM2,5
 figurer,21,verbe 1er groupe,verbe,CM2,5
-fléau,21,nom masculin,nom,CM2,5
 flocon,21,nom masculin,nom,CM2,5
 fond,21,nom masculin,nom,CM2,5
 fourrure,21,nom feminin,nom,CM2,5
@@ -2251,7 +2097,6 @@ front,21,nom masculin,nom,CM2,5
 furieux,21,adjectif qualificatif,adjectif,CM2,5
 grâce,21,nom feminin,nom,CM2,5
 grille,21,nom feminin,nom,CM2,5
-haine,21,nom feminin,nom,CM2,5
 héroïque,21,adjectif qualificatif,adjectif,CM2,5
 honteux,21,adjectif qualificatif,adjectif,CM2,5
 humble,21,adjectif qualificatif,adjectif,CM2,5
@@ -2260,7 +2105,6 @@ immobile,21,adjectif qualificatif,adjectif,CM2,5
 indiquer,21,verbe 1er groupe,verbe,CM2,5
 informer,21,verbe 1er groupe,verbe,CM2,5
 intelligent,21,adjectif qualificatif,adjectif,CM2,5
-intention,21,nom feminin,nom,CM2,5
 inviter,21,verbe 1er groupe,verbe,CM2,5
 invoquer,21,verbe 1er groupe,verbe,CM2,5
 isoler,21,verbe 1er groupe,verbe,CM2,5
@@ -2268,7 +2112,6 @@ canapé,21,nom masculin,nom,CM2,5
 jadis,21,adverbe,autres,CM2,5
 kilomètre,21,nom masculin,nom,CM2,5
 là,21,adverbe,autres,CM2,5
-las,21,adjectif qualificatif,adjectif,CM2,5
 légèrement,21,adverbe,autres,CM2,5
 lenteur,21,nom feminin,nom,CM2,5
 litière,21,nom feminin,nom,CM2,5
@@ -2291,7 +2134,6 @@ museau,21,nom masculin,nom,CM2,5
 naissance,21,nom feminin,nom,CM2,5
 noix,21,nom feminin,nom,CM2,5
 nommer,21,verbe 1er groupe,verbe,CM2,5
-nu,21,adjectif qualificatif,adjectif,CM2,5
 nullement,21,adverbe,autres,CM2,5
 oranger,21,nom masculin,nom,CM2,5
 organiser,21,verbe 1er groupe,verbe,CM2,5
@@ -2319,7 +2161,6 @@ portière,21,nom feminin,nom,CM2,5
 portrait,21,nom masculin,nom,CM2,5
 poteau,21,nom masculin,nom,CM2,5
 préau,21,nom masculin,nom,CM2,5
-préférence,21,nom feminin,nom,CM2,5
 présence,21,nom feminin,nom,CM2,5
 programme,21,nom masculin,nom,CM2,5
 sifflet,21,nom masculin,nom,CM2,5
@@ -2343,13 +2184,11 @@ renverser,21,verbe 1er groupe,verbe,CM2,5
 reprocher,21,verbe 1er groupe,verbe,CM2,5
 résoudre,21,verbe 3eme groupe,verbe,CM2,5
 retraite,21,nom feminin,nom,CM2,5
-rigoureux,21,adjectif qualificatif,adjectif,CM2,5
 risquer,21,verbe 1er groupe,verbe,CM2,5
 rompre,21,verbe 3eme groupe,verbe,CM2,5
 roseau,21,nom masculin,nom,CM2,5
 sanglot,21,nom masculin,nom,CM2,5
 saut,21,nom masculin,nom,CM2,5
-second,21,adjectif qualificatif,adjectif,CM2,5
 s'écrier,21,verbe 1er groupe,verbe,CM2,5
 séjour,21,nom masculin,nom,CM2,5
 sembler,21,verbe 1er groupe,verbe,CM2,5
@@ -2406,7 +2245,6 @@ aviser,22,verbe 1er groupe,verbe,CM2,5
 baguette,22,nom feminin,nom,CM2,5
 bétail,22,nom masculin,nom,CM2,5
 bienvenue,22,nom feminin,nom,CM2,5
-boiteux,22,adjectif qualificatif,adjectif,CM2,5
 bond,22,nom masculin,nom,CM2,5
 border,22,verbe 1er groupe,verbe,CM2,5
 butiner,22,verbe 1er groupe,verbe,CM2,5
@@ -2417,19 +2255,16 @@ casser,22,verbe 1er groupe,verbe,CM2,5
 cérémonie,22,nom feminin,nom,CM2,5
 chêne,22,nom masculin,nom,CM2,5
 chez,22,preposition,autres,CM2,5
-cité,22,nom feminin,nom,CM2,5
 coffre,22,nom masculin,nom,CM2,5
 coffret,22,nom masculin,nom,CM2,5
 combler,22,verbe 1er groupe,verbe,CM2,5
 commencer,22,verbe 1er groupe,verbe,CM2,5
 consacrer,22,verbe 1er groupe,verbe,CM2,5
 consulter,22,verbe 1er groupe,verbe,CM2,5
-cordonnier,22,nom masculin,nom,CM2,5
 corriger,22,verbe 1er groupe,verbe,CM2,5
 couture,22,nom feminin,nom,CM2,5
 creuser,22,verbe 1er groupe,verbe,CM2,5
 crever,22,verbe 1er groupe,verbe,CM2,5
-curiosité,22,nom feminin,nom,CM2,5
 débarquer,22,verbe 1er groupe,verbe,CM2,5
 déboucher,22,verbe 1er groupe,verbe,CM2,5
 décéder,22,verbe 1er groupe,verbe,CM2,5
@@ -2441,19 +2276,14 @@ dehors,22,adverbe,autres,CM2,5
 déménager,22,verbe 1er groupe,verbe,CM2,5
 demeurer,22,verbe 1er groupe,verbe,CM2,5
 départ,22,nom masculin,nom,CM2,5
-désastre,22,nom masculin,nom,CM2,5
-description,22,nom feminin,nom,CM2,5
 dessus,22,adverbe,autres,CM2,5
 discuter,22,verbe 1er groupe,verbe,CM2,5
-disparition,22,nom feminin,nom,CM2,5
-échantillon,22,nom masculin,nom,CM2,5
 éclatant,22,adjectif qualificatif,adjectif,CM2,5
 économiser,22,verbe 1er groupe,verbe,CM2,5
 effacer,22,verbe 1er groupe,verbe,CM2,5
 élever,22,verbe 1er groupe,verbe,CM2,5
 embellir,22,verbe 2eme groupe,verbe,CM2,5
 embrasser,22,verbe 1er groupe,verbe,CM2,5
-émotion,22,nom feminin,nom,CM2,5
 encadrer,22,verbe 1er groupe,verbe,CM2,5
 enfouir,22,verbe 2eme groupe,verbe,CM2,5
 enterrer,22,verbe 1er groupe,verbe,CM2,5
@@ -2461,7 +2291,6 @@ entièrement,22,adverbe,autres,CM2,5
 entrer,22,verbe 1er groupe,verbe,CM2,5
 épouvantable,22,adjectif qualificatif,adjectif,CM2,5
 erreur,22,nom feminin,nom,CM2,5
-espérance,22,nom feminin,nom,CM2,5
 étang,22,nom masculin,nom,CM2,5
 tapis,22,nom masculin,nom,CM2,5
 éveiller,22,verbe 1er groupe,verbe,CM2,5
@@ -2480,7 +2309,6 @@ abricot,22,nom masculin,nom,CM2,5
 gentil,22,adjectif qualificatif,adjectif,CM2,5
 pomme,22,nom feminin,nom,CM2,5
 glisser,22,verbe 1er groupe,verbe,CM2,5
-gracieux,22,adjectif qualificatif,adjectif,CM2,5
 grippe,22,nom feminin,nom,CM2,5
 barrette,22,nom feminin,nom,CM2,5
 hélas,22,interjection,autres,CM2,5
@@ -2494,7 +2322,6 @@ ignorer,22,verbe 1er groupe,verbe,CM2,5
 implorer,22,verbe 1er groupe,verbe,CM2,5
 imprimer,22,verbe 1er groupe,verbe,CM2,5
 incliner,22,verbe 1er groupe,verbe,CM2,5
-industriel,22,adjectif qualificatif,adjectif,CM2,5
 inquiet,22,adjectif qualificatif,adjectif,CM2,5
 interdire,22,verbe 3eme groupe,verbe,CM2,5
 invention,22,nom feminin,nom,CM2,5
@@ -2510,24 +2337,18 @@ chaleur,22,nom feminin,nom,CM2,5
 mériter,22,verbe 1er groupe,verbe,CM2,5
 thermomètre,22,nom masculin,nom,CM2,5
 monsieur,22,nom masculin,nom,CM2,5
-musicien,22,adjectif qualificatif,adjectif,CM2,5
 niveau,22,nom masculin,nom,CM2,5
 non,22,adverbe,autres,CM2,5
 obéissant,22,adjectif qualificatif,adjectif,CM2,5
 obstacle,22,nom masculin,nom,CM2,5
-odorant,22,adjectif qualificatif,adjectif,CM2,5
 opérer,22,verbe 1er groupe,verbe,CM2,5
 ordinairement,22,adverbe,autres,CM2,5
 orner,22,verbe 1er groupe,verbe,CM2,5
 coton,22,nom feminin,nom,CM2,5
-paradis,22,nom masculin,nom,CM2,5
 parce que,22,conjonction,autres,CM2,5
-paresse,22,nom feminin,nom,CM2,5
 pilote,22,nom masculin,nom,CM2,5
-passion,22,nom feminin,nom,CM2,5
 plaindre,22,verbe 3eme groupe,verbe,CM2,5
 plainte,22,nom feminin,nom,CM2,5
-plaintif,22,adjectif qualificatif,adjectif,CM2,5
 plan,22,nom masculin,nom,CM2,5
 planer,22,verbe 1er groupe,verbe,CM2,5
 plein,22,adjectif qualificatif,adjectif,CM2,5
@@ -2612,11 +2433,9 @@ apporter,23,verbe 1er groupe,verbe,CM2,5
 après-midi,23,nom masculin,nom,CM2,5
 arrêt,23,nom masculin,nom,CM2,5
 quartier,23,nom masculin,nom,CM2,5
-assidu,23,adjectif qualificatif,adjectif,CM2,5
 assister,23,verbe 1er groupe,verbe,CM2,5
 pièce,23,nom feminin,nom,CM2,5
 automne,23,nom masculin,nom,CM2,5
-azuré,23,adjectif qualificatif,adjectif,CM2,5
 baisser,23,verbe 1er groupe,verbe,CM2,5
 barrière,23,nom feminin,nom,CM2,5
 betterave,23,nom feminin,nom,CM2,5
@@ -2631,12 +2450,9 @@ cerf,23,nom masculin,nom,CM2,5
 certain,23,adjectif qualificatif,adjectif,CM2,5
 cesser,23,verbe 1er groupe,verbe,CM2,5
 circuler,23,verbe 1er groupe,verbe,CM2,5
-colonial,23,adjectif qualificatif,adjectif,CM2,5
 comparaison,23,nom feminin,nom,CM2,5
 complètement,23,adverbe,autres,CM2,5
 composer,23,verbe 1er groupe,verbe,CM2,5
-constant,23,adjectif qualificatif,adjectif,CM2,5
-continuel,23,adjectif qualificatif,adjectif,CM2,5
 couloir,23,nom masculin,nom,CM2,5
 corps,23,nom masculin,nom,CM2,5
 saucisson,23,nom masculin,nom,CM2,5
@@ -2646,7 +2462,6 @@ déjà,23,adverbe,autres,CM2,5
 désirer,23,verbe 1er groupe,verbe,CM2,5
 destiner,23,verbe 1er groupe,verbe,CM2,5
 dictionnaire,23,nom masculin,nom,CM2,5
-divers,23,adjectif qualificatif,adjectif,CM2,5
 dompteur,23,nom masculin,nom,CM2,5
 écarter,23,verbe 1er groupe,verbe,CM2,5
 éclaircir,23,verbe 2eme groupe,verbe,CM2,5
@@ -2673,11 +2488,9 @@ fauteuil,23,nom masculin,nom,CM2,5
 féroce,23,adjectif qualificatif,adjectif,CM2,5
 fièrement,23,adverbe,autres,CM2,5
 fixer,23,verbe 1er groupe,verbe,CM2,5
-flamand,23,adjectif qualificatif,adjectif,CM2,5
 flèche,23,nom feminin,nom,CM2,5
 fourmi,23,nom feminin,nom,CM2,5
 fraîcheur,23,nom feminin,nom,CM2,5
-frayeur,23,nom feminin,nom,CM2,5
 froisser,23,verbe 1er groupe,verbe,CM2,5
 frotter,23,verbe 1er groupe,verbe,CM2,5
 gâteau,23,nom masculin,nom,CM2,5
@@ -2687,29 +2500,20 @@ gourmand,23,adjectif qualificatif,adjectif,CM2,5
 goût,23,nom masculin,nom,CM2,5
 graisse,23,nom feminin,nom,CM2,5
 grimper,23,verbe 1er groupe,verbe,CM2,5
-grossier,23,adjectif qualificatif,adjectif,CM2,5
 guérir,23,verbe 2eme groupe,verbe,CM2,5
 habiter,23,verbe 1er groupe,verbe,CM2,5
 habitude,23,nom feminin,nom,CM2,5
 village,23,nom masculin,nom,CM2,5
-honorable,23,adjectif qualificatif,adjectif,CM2,5
-ignorant,23,adjectif qualificatif,adjectif,CM2,5
 illustrer,23,verbe 1er groupe,verbe,CM2,5
 imaginer,23,verbe 1er groupe,verbe,CM2,5
 immédiatement,23,adverbe,autres,CM2,5
 règle,23,nom feminin,nom,CM2,5
-imposant,23,adjectif qualificatif,adjectif,CM2,5
-imprévu,23,adjectif qualificatif,adjectif,CM2,5
 leçon,23,nom feminin,nom,CM2,5
-ingrat,23,adjectif qualificatif,adjectif,CM2,5
 interroger,23,verbe 1er groupe,verbe,CM2,5
-laborieux,23,adjectif qualificatif,adjectif,CM2,5
 laid,23,adjectif qualificatif,adjectif,CM2,5
 carrelage,23,nom masculin,nom,CM2,5
 langage,23,nom masculin,nom,CM2,5
-limpide,23,adjectif qualificatif,adjectif,CM2,5
 lors,23,adverbe,autres,CM2,5
-loyal,23,adjectif qualificatif,adjectif,CM2,5
 lumineux,23,adjectif qualificatif,adjectif,CM2,5
 bague,23,nom feminin,nom,CM2,5
 manoeuvrer,23,verbe 1er groupe,verbe,CM2,5
@@ -2737,10 +2541,9 @@ ferme,23,nom feminin,nom,CM2,5
 paysan,23,nom masculin,nom,CM2,5
 pénétrer,23,verbe 1er groupe,verbe,CM2,5
 donjon,23,nom masculin,nom,CM2,5
-permission,23,nom feminin,nom,CM2,5
 persuader,23,verbe 1er groupe,verbe,CM2,5
 peu,23,adverbe,autres,CM2,5
-pin,23,nom masculin,nom,CM2,5
+pain,23,nom masculin,nom,CM2,5
 ses,23,adjectif indefini,determinant,CM2,5
 prêcher,23,verbe 1er groupe,verbe,CM2,5
 près,23,adverbe,autres,CM2,5
@@ -2750,14 +2553,11 @@ quoique,23,conjonction,autres,CM2,5
 ravissant,23,adjectif qualificatif,adjectif,CM2,5
 rejeter,23,verbe 1er groupe,verbe,CM2,5
 relever,23,verbe 1er groupe,verbe,CM2,5
-remerciement,23,nom masculin,nom,CM2,5
 remporter,23,verbe 1er groupe,verbe,CM2,5
 renouveler,23,verbe 1er groupe,verbe,CM2,5
 repasser,23,verbe 1er groupe,verbe,CM2,5
 reposer,23,verbe 1er groupe,verbe,CM2,5
 réserver,23,verbe 1er groupe,verbe,CM2,5
-force,23,nom feminin,nom,CM2,5
-résultat,23,nom masculin,nom,CM2,5
 réveil,23,nom masculin,nom,CM2,5
 rhume,23,nom masculin,nom,CM2,5
 ronce,23,nom feminin,nom,CM2,5
@@ -2784,6 +2584,8 @@ tiroir,23,nom masculin,nom,CM2,5
 placard,23,nom masculin,nom,CM2,5
 renard,23,nom masculin,nom,CM2,5
 treize,23,adjectif numeral,determinant,CM2,5
+tes,23,adjectif indefini,determinant,CM2,5
+mes,23,adjectif indefini,determinant,CM2,5
 boeuf,23,nom masculin,nom,CM2,5
 tronc,23,nom masculin,nom,CM2,5
 véhicule,23,nom masculin,nom,CM2,5
@@ -2803,7 +2605,6 @@ aisément,24,adverbe,autres,College,6
 alcool,24,nom masculin,nom,College,6
 drap,24,nom masculin,nom,College,6
 amende,24,nom feminin,nom,College,6
-amer,24,adjectif qualificatif,adjectif,College,6
 anneau,24,nom masculin,nom,College,6
 appétit,24,nom masculin,nom,College,6
 assiette,24,nom feminin,nom,College,6
@@ -2829,10 +2630,8 @@ baguette,24,nom feminin,nom,College,6
 chariot,24,nom masculin,nom,College,6
 charrue,24,nom feminin,nom,College,6
 chaussure,24,nom feminin,nom,College,6
-chrétien,24,adjectif qualificatif,adjectif,College,6
 chaussette,24,nom feminin,nom,College,6
 cirer,24,verbe 1er groupe,verbe,College,6
-communal,24,adjectif qualificatif,adjectif,College,6
 collier,24,nom masculin,nom,College,6
 écharpe,24,nom feminin,nom,College,6
 tomate,24,nom feminin,nom,College,6
@@ -2849,7 +2648,6 @@ défiler,24,verbe 1er groupe,verbe,College,6
 dépasser,24,verbe 1er groupe,verbe,College,6
 déployer,24,verbe 1er groupe,verbe,College,6
 dérouler,24,verbe 1er groupe,verbe,College,6
-désert,24,adjectif qualificatif,adjectif,College,6
 soleil,24,nom masculin,nom,College,6
 dicter,24,verbe 1er groupe,verbe,College,6
 distinguer,24,verbe 1er groupe,verbe,College,6
@@ -2864,7 +2662,6 @@ entasser,24,verbe 1er groupe,verbe,College,6
 hibou,24,nom masculin,nom,College,6
 entourer,24,verbe 1er groupe,verbe,College,6
 ériger,24,verbe 1er groupe,verbe,College,6
-espiègle,24,adjectif qualificatif,adjectif,College,6
 gymnase,24,nom masculin,nom,College,6
 dentiste,24,nom masculin,nom,College,6
 examiner,24,verbe 1er groupe,verbe,College,6
@@ -2877,36 +2674,25 @@ filer,24,verbe 1er groupe,verbe,College,6
 flamber,24,verbe 1er groupe,verbe,College,6
 fleurir,24,verbe 2eme groupe,verbe,College,6
 français,24,adjectif qualificatif,adjectif,College,6
-frêle,24,adjectif qualificatif,adjectif,College,6
-fréquent,24,adjectif qualificatif,adjectif,College,6
 pastèque,24,nom feminin,nom,College,6
 gonfler,24,verbe 1er groupe,verbe,College,6
 grand-père,24,nom masculin,nom,College,6
 guêpe,24,nom feminin,nom,College,6
-habituel,24,adjectif qualificatif,adjectif,College,6
 melon,24,nom masculin,nom,College,6
 boisson,24,nom feminin,nom,College,6
 directrice,24,nom feminin,nom,College,6
-immaculé,24,adjectif qualificatif,adjectif,College,6
 importer,24,verbe 1er groupe,verbe,College,6
 fenêtre,24,nom feminin,nom,College,6
 mur,24,nom masculin,nom,College,6
-innocent,24,adjectif qualificatif,adjectif,College,6
 insister,24,verbe 1er groupe,verbe,College,6
-intellectuel,24,adjectif qualificatif,adjectif,College,6
-intrigué,24,adjectif qualificatif,adjectif,College,6
 kilogramme,24,nom masculin,nom,College,6
 lancer,24,verbe 1er groupe,verbe,College,6
-majestueux,24,adjectif qualificatif,adjectif,College,6
 toit,24,nom masculin,nom,College,6
 meuble,24,nom masculin,nom,College,6
 mouiller,24,verbe 1er groupe,verbe,College,6
-mûr,24,adjectif qualificatif,adjectif,College,6
 mûrir,24,verbe 2eme groupe,verbe,College,6
 naufrage,24,nom masculin,nom,College,6
-nègre,24,adjectif qualificatif,adjectif,College,6
 neveu,24,nom masculin,nom,College,6
-obscur,24,adjectif qualificatif,adjectif,College,6
 couverture,24,nom feminin,nom,College,6
 oeil,24,nom masculin,nom,College,6
 oh,24,interjection,autres,College,6
@@ -2920,7 +2706,6 @@ passager,24,nom masculin,nom,College,6
 pile,24,nom feminin,nom,College,6
 penser,24,verbe 1er groupe,verbe,College,6
 ampoule,24,nom feminin,nom,College,6
-perpétuel,24,adjectif qualificatif,adjectif,College,6
 perroquet,24,nom masculin,nom,College,6
 peut-être,24,adverbe,autres,College,6
 photographie,24,nom feminin,nom,College,6
@@ -2934,9 +2719,7 @@ préférer,24,verbe 1er groupe,verbe,College,6
 profession,24,nom feminin,nom,College,6
 progrès,24,nom masculin,nom,College,6
 promettre,24,verbe 3eme groupe,verbe,College,6
-propice,24,adjectif qualificatif,adjectif,College,6
 patte,24,nom feminin,nom,College,6
-public,24,adjectif qualificatif,adjectif,College,6
 queue,24,nom feminin,nom,College,6
 rapprocher,24,verbe 1er groupe,verbe,College,6
 rassembler,24,verbe 1er groupe,verbe,College,6
@@ -2978,14 +2761,12 @@ torrent,24,nom masculin,nom,College,6
 traîneau,24,nom masculin,nom,College,6
 transmettre,24,verbe 3eme groupe,verbe,College,6
 cadeau,24,nom masculin,nom,College,6
-vagabond,24,adjectif qualificatif,adjectif,College,6
 vainqueur,24,nom masculin,nom,College,6
 vêtir,24,verbe 3eme groupe,verbe,College,6
 vieillard,24,nom masculin,nom,College,6
 villageois,24,nom masculin,nom,College,6
 voilà,24,preposition,autres,College,6
 volaille,24,nom feminin,nom,College,6
-TRUE,24,adjectif qualificatif,adjectif,College,6
 abandonner,25,verbe 1er groupe,verbe,College,6
 aboyer,25,verbe 1er groupe,verbe,College,6
 marteau,25,nom masculin,nom,College,6
@@ -2993,9 +2774,7 @@ admettre,25,verbe 3eme groupe,verbe,College,6
 affectueusement,25,adverbe,autres,College,6
 affliger,25,verbe 1er groupe,verbe,College,6
 ah,25,interjection,autres,College,6
-allemand,25,adjectif qualificatif,adjectif,College,6
 anniversaire,25,nom masculin,nom,College,6
-annuel,25,adjectif qualificatif,adjectif,College,6
 appliquer,25,verbe 1er groupe,verbe,College,6
 approuver,25,verbe 1er groupe,verbe,College,6
 argenter,25,verbe 1er groupe,verbe,College,6
@@ -3004,7 +2783,6 @@ attacher,25,verbe 1er groupe,verbe,College,6
 attraper,25,verbe 1er groupe,verbe,College,6
 bisou,25,nom masculin,nom,College,6
 bicyclette,25,nom feminin,nom,College,6
-bienfaisant,25,adjectif qualificatif,adjectif,College,6
 bourdonner,25,verbe 1er groupe,verbe,College,6
 bourgeonner,25,verbe 1er groupe,verbe,College,6
 campagnard,25,nom masculin,nom,College,6
@@ -3014,12 +2792,10 @@ céder,25,verbe 1er groupe,verbe,College,6
 ceinture,25,nom feminin,nom,College,6
 charrette,25,nom feminin,nom,College,6
 chevet,25,nom masculin,nom,College,6
-clos,25,adjectif qualificatif,adjectif,College,6
 coller,25,verbe 1er groupe,verbe,College,6
 combattre,25,verbe 3eme groupe,verbe,College,6
 commandant,25,nom masculin,nom,College,6
 commerçant,25,nom masculin,nom,College,6
-commercial,25,adjectif qualificatif,adjectif,College,6
 compléter,25,verbe 1er groupe,verbe,College,6
 concert,25,nom masculin,nom,College,6
 conquérir,25,verbe 3eme groupe,verbe,College,6
@@ -3062,12 +2838,11 @@ cheveux,25,nom masculin,nom,College,6
 tête,25,nom feminin,nom,College,6
 ceinture,25,nom feminin,nom,College,6
 culotte,25,nom feminin,nom,College,6
-fervent,25,adjectif qualificatif,adjectif,College,6
+facile,25,adjectif qualificatif,adjectif,College,6
 magasin,25,nom masculin,nom,College,6
 clou,25,nom masculin,nom,College,6
 flatter,25,verbe 1er groupe,verbe,College,6
 frissonner,25,verbe 1er groupe,verbe,College,6
-gai,25,adjectif qualificatif,adjectif,College,6
 gâter,25,verbe 1er groupe,verbe,College,6
 salade,25,nom feminin,nom,College,6
 gentiment,25,adverbe,autres,College,6
@@ -3076,7 +2851,6 @@ grouper,25,verbe 1er groupe,verbe,College,6
 nuage,25,nom masculin,nom,College,6
 guider,25,verbe 1er groupe,verbe,College,6
 habitant,25,nom masculin,nom,College,6
-hardi,25,adjectif qualificatif,adjectif,College,6
 hasard,25,nom masculin,nom,College,6
 hâter,25,verbe 1er groupe,verbe,College,6
 honnête,25,adjectif qualificatif,adjectif,College,6
@@ -3102,14 +2876,11 @@ cousin,25,nom masculin,nom,College,6
 moins,25,adverbe,autres,College,6
 voisin,25,nom masculin,nom,College,6
 père,25,nom masculin,nom,College,6
-national,25,adjectif qualificatif,adjectif,College,6
 nerveux,25,adjectif qualificatif,adjectif,College,6
 nettoyer,25,verbe 1er groupe,verbe,College,6
 nourrir,25,verbe 2eme groupe,verbe,College,6
 mère,25,nom feminin,nom,College,6
-pareil,25,adjectif qualificatif,adjectif,College,6
 parrain,25,nom masculin,nom,College,6
-paternel,25,adjectif qualificatif,adjectif,College,6
 pâtisserie,25,nom feminin,nom,College,6
 pécher,25,verbe 1er groupe,verbe,College,6
 grand-père,25,nom masculin,nom,College,6
@@ -3140,33 +2911,26 @@ scier,25,verbe 1er groupe,verbe,College,6
 s'emparer,25,verbe 1er groupe,verbe,College,6
 but,25,nom masculin,nom,College,6
 souffler,25,verbe 1er groupe,verbe,College,6
-splendide,25,adjectif qualificatif,adjectif,College,6
 poisson,25,nom masculin,nom,College,6
 supporter,25,verbe 1er groupe,verbe,College,6
 tellement,25,adverbe,autres,College,6
 méduse,25,nom feminin,nom,College,6
 tenter,25,verbe 1er groupe,verbe,College,6
 tissu,25,nom masculin,nom,College,6
-touffu,25,adjectif qualificatif,adjectif,College,6
 tourmenter,25,verbe 1er groupe,verbe,College,6
 tournoyer,25,verbe 1er groupe,verbe,College,6
 trait,25,nom masculin,nom,College,6
-transparent,25,adjectif qualificatif,adjectif,College,6
 trotter,25,verbe 1er groupe,verbe,College,6
 tuyau,25,nom masculin,nom,College,6
 user,25,verbe 1er groupe,verbe,College,6
-vain,25,adjectif qualificatif,adjectif,College,6
 ver,25,nom masculin,nom,College,6
-verdoyant,25,adjectif qualificatif,adjectif,College,6
 vers,25,preposition,autres,College,6
 voix,25,nom feminin,nom,College,6
-vulgaire,25,adjectif qualificatif,adjectif,College,6
 poison,26,nom masculin,nom,College,6
 acheminer,26,verbe 1er groupe,verbe,College,6
 administrer,26,verbe 1er groupe,verbe,College,6
 affectionner,26,verbe 1er groupe,verbe,College,6
 balançoire,26,nom feminin,nom,College,6
-aisé,26,adjectif qualificatif,adjectif,College,6
 manette,26,nom feminin,nom,College,6
 tablette,26,nom feminin,nom,College,6
 annoncer,26,verbe 1er groupe,verbe,College,6
@@ -3176,12 +2940,10 @@ arranger,26,verbe 1er groupe,verbe,College,6
 arrêter,26,verbe 1er groupe,verbe,College,6
 atteler,26,verbe 1er groupe,verbe,College,6
 au-dessus,26,preposition,autres,College,6
-avantageux,26,adjectif qualificatif,adjectif,College,6
 bouchon,26,nom masculin,nom,College,6
 bambin,26,nom masculin,nom,College,6
 béret,26,nom masculin,nom,College,6
 bracelet,26,nom masculin,nom,College,6
-bien-aimé,26,adjectif qualificatif,adjectif,College,6
 blesser,26,verbe 1er groupe,verbe,College,6
 bouleverser,26,verbe 1er groupe,verbe,College,6
 bûcheron,26,nom masculin,nom,College,6
@@ -3207,7 +2969,6 @@ difficilement,26,adverbe,autres,College,6
 dissiper,26,verbe 1er groupe,verbe,College,6
 anorak,26,nom masculin,nom,College,6
 écorce,26,nom feminin,nom,College,6
-effroyable,26,adjectif qualificatif,adjectif,College,6
 embaumer,26,verbe 1er groupe,verbe,College,6
 ennui,26,nom masculin,nom,College,6
 enquête,26,nom feminin,nom,College,6
@@ -3243,9 +3004,7 @@ mêler,26,verbe 1er groupe,verbe,College,6
 modérer,26,verbe 1er groupe,verbe,College,6
 sapin,26,nom masculin,nom,College,6
 naître,26,verbe 3eme groupe,verbe,College,6
-nécessaire,26,adjectif qualificatif,adjectif,College,6
 boule,26,nom feminin,nom,College,6
-négligent,26,adjectif qualificatif,adjectif,College,6
 oser,26,verbe 1er groupe,verbe,College,6
 pansement,26,nom masculin,nom,College,6
 paraître,26,verbe 3eme groupe,verbe,College,6
@@ -3256,13 +3015,10 @@ poing,26,nom masculin,nom,College,6
 pré,26,nom masculin,nom,College,6
 précisément,26,adverbe,autres,College,6
 projet,26,nom masculin,nom,College,6
-prompt,26,adjectif qualificatif,adjectif,College,6
-quelconque,26,adjectif qualificatif,adjectif,College,6
 quinzaine,26,nom feminin,nom,College,6
 rafraîchir,26,verbe 2eme groupe,verbe,College,6
 rappeler,26,verbe 1er groupe,verbe,College,6
 rapporter,26,verbe 1er groupe,verbe,College,6
-reconnaissant,26,adjectif qualificatif,adjectif,College,6
 redresser,26,verbe 1er groupe,verbe,College,6
 régner,26,verbe 1er groupe,verbe,College,6
 renaître,26,verbe 3eme groupe,verbe,College,6
@@ -3277,16 +3033,11 @@ taper,26,verbe 1er groupe,verbe,College,6
 tapisser,26,verbe 1er groupe,verbe,College,6
 gorge,26,nom feminin,nom,College,6
 tracer,26,verbe 1er groupe,verbe,College,6
-universel,26,adjectif qualificatif,adjectif,College,6
 histoire,26,nom feminin,nom,College,6
 savon,26,nom masculin,nom,College,6
-FALSE,26,adjectif qualificatif,adjectif,College,6
 nappe,27,nom feminin,nom,College,6
 âgé,27,adjectif qualificatif,adjectif,College,6
-aigu,27,adjectif qualificatif,adjectif,College,6
 serviette,27,nom feminin,nom,College,6
-alcoolique,27,adjectif qualificatif,adjectif,College,6
-américain,27,adjectif qualificatif,adjectif,College,6
 août,27,nom masculin,nom,College,6
 appétissant,27,adjectif qualificatif,adjectif,College,6
 apprécier,27,verbe 1er groupe,verbe,College,6
@@ -3301,7 +3052,6 @@ chef-d'oeuvre,27,nom masculin,nom,College,6
 ciseaux,27,nom masculin,nom,College,6
 citer,27,verbe 1er groupe,verbe,College,6
 citoyen,27,nom masculin,nom,College,6
-civil,27,adjectif qualificatif,adjectif,College,6
 colis,27,nom masculin,nom,College,6
 collège,27,nom masculin,nom,College,6
 colonne,27,nom feminin,nom,College,6
@@ -3332,7 +3082,6 @@ envelopper,27,verbe 1er groupe,verbe,College,6
 épi,27,nom masculin,nom,College,6
 essuyer,27,verbe 1er groupe,verbe,College,6
 extraordinaire,27,adjectif qualificatif,adjectif,College,6
-extrême,27,adjectif qualificatif,adjectif,College,6
 flûte,27,nom feminin,nom,College,6
 foncer,27,verbe 1er groupe,verbe,College,6
 gaiement,27,adverbe,autres,College,6
@@ -3357,7 +3106,6 @@ pinceau,27,nom masculin,nom,College,6
 pli,27,nom masculin,nom,College,6
 poète,27,nom masculin,nom,College,6
 pois,27,nom masculin,nom,College,6
-quotidien,27,adjectif qualificatif,adjectif,College,6
 peluche,27,nom feminin,nom,College,6
 reparaître,27,verbe 3eme groupe,verbe,College,6
 resplendir,27,verbe 2eme groupe,verbe,College,6
@@ -3365,9 +3113,7 @@ doudou,27,nom masculin,nom,College,6
 renardeau,27,nom masculin,nom,College,6
 saigner,27,verbe 1er groupe,verbe,College,6
 s'empresser,27,verbe 1er groupe,verbe,College,6
-soyeux,27,adjectif qualificatif,adjectif,College,6
 pistolet,27,nom masculin,nom,College,6
-suffisant,27,adjectif qualificatif,adjectif,College,6
 symbole,27,nom masculin,nom,College,6
 tonnerre,27,nom masculin,nom,College,6
 tort,27,nom masculin,nom,College,6
@@ -3390,12 +3136,8 @@ attarder,28,verbe 1er groupe,verbe,College,6
 baigner,28,verbe 1er groupe,verbe,College,6
 balayer,28,verbe 1er groupe,verbe,College,6
 barrage,28,nom masculin,nom,College,6
-bosselé,28,adjectif qualificatif,adjectif,College,6
-brûlant,28,adjectif qualificatif,adjectif,College,6
 brûler,28,verbe 1er groupe,verbe,College,6
 caillou,28,nom masculin,nom,College,6
-catholique,28,adjectif qualificatif,adjectif,College,6
-central,28,adjectif qualificatif,adjectif,College,6
 chaîne,28,nom feminin,nom,College,6
 cheveu,28,nom masculin,nom,College,6
 mécanicien,28,nom masculin,nom,College,6
@@ -3425,15 +3167,14 @@ flan,28,nom masculin,nom,College,6
 fouiller,28,verbe 1er groupe,verbe,College,6
 poussière,28,nom feminin,nom,College,6
 gratter,28,verbe 1er groupe,verbe,College,6
-habile,28,adjectif qualificatif,adjectif,College,6
 poussette,28,nom feminin,nom,College,6
 habiller,28,verbe 1er groupe,verbe,College,6
 hausser,28,verbe 1er groupe,verbe,College,6
 cheminée,28,nom feminin,nom,College,6
 flamme,28,nom feminin,nom,College,6
-indifférent,28,adjectif qualificatif,adjectif,College,6
 mémoire,28,nom feminin,nom,College,6
 longtemps,28,adverbe,autres,College,6
+vos,23,adjectif indefini,determinant,CM2,5
 nos,28,adjectif indefini,determinant,College,6
 match,28,nom masculin,nom,College,6
 méthode,28,nom feminin,nom,College,6
@@ -3449,9 +3190,7 @@ chocolat,28,nom masculin,nom,College,6
 peiner,28,verbe 1er groupe,verbe,College,6
 persévérer,28,verbe 1er groupe,verbe,College,6
 caramel,28,nom masculin,nom,College,6
-précédent,28,adjectif qualificatif,adjectif,College,6
 prise,28,nom feminin,nom,College,6
-principal,28,adjectif qualificatif,adjectif,College,6
 procéder,28,verbe 1er groupe,verbe,College,6
 récompenser,28,verbe 1er groupe,verbe,College,6
 dauphin,28,nom masculin,nom,College,6
@@ -3465,17 +3204,14 @@ tandis que,28,conjonction,autres,College,6
 moucheron,28,nom masculin,nom,College,6
 vanter,28,verbe 1er groupe,verbe,College,6
 végétation,28,nom feminin,nom,College,6
-verdâtre,28,adjectif qualificatif,adjectif,College,6
 vieillesse,28,nom feminin,nom,College,6
 accepter,29,verbe 1er groupe,verbe,College,6
 accrocher,29,verbe 1er groupe,verbe,College,6
 aligner,29,verbe 1er groupe,verbe,College,6
-ample,29,adjectif qualificatif,adjectif,College,6
 apparaître,29,verbe 3eme groupe,verbe,College,6
 applaudir,29,verbe 2eme groupe,verbe,College,6
 assez,29,adverbe,autres,College,6
 attrister,29,verbe 1er groupe,verbe,College,6
-bienveillant,29,adjectif qualificatif,adjectif,College,6
 castor,29,nom masculin,nom,College,6
 pêche,29,nom feminin,nom,College,6
 bus,29,nom masculin,nom,College,6
@@ -3485,7 +3221,6 @@ concombre,29,nom masculin,nom,College,6
 contempler,29,verbe 1er groupe,verbe,College,6
 courgette,29,nom feminin,nom,College,6
 cygne,29,nom masculin,nom,College,6
-dédaigner,29,verbe 1er groupe,verbe,College,6
 ensoleillé,29,adjectif qualificatif,adjectif,College,6
 errer,29,verbe 1er groupe,verbe,College,6
 citron,29,nom masculin,nom,College,6
@@ -3502,14 +3237,11 @@ guetter,29,verbe 1er groupe,verbe,College,6
 habituer,29,verbe 1er groupe,verbe,College,6
 calendrier,29,nom masculin,nom,College,6
 immeuble,29,nom masculin,nom,College,6
-hérissé,29,adjectif qualificatif,adjectif,College,6
 place,29,nom feminin,nom,College,6
 lampe,29,nom feminin,nom,College,6
 feutre,29,nom masculin,nom,College,6
-maussade,29,adjectif qualificatif,adjectif,College,6
 néanmoins,29,adverbe,autres,College,6
 encrier,29,nom masculin,nom,College,6
-périlleux,29,adjectif qualificatif,adjectif,College,6
 photographier,29,verbe 1er groupe,verbe,College,6
 sabot,29,nom masculin,nom,College,6
 précéder,29,verbe 1er groupe,verbe,College,6
@@ -3524,17 +3256,13 @@ blouse,29,nom feminin,nom,College,6
 image,29,nom feminin,nom,College,6
 s'efforcer,29,verbe 1er groupe,verbe,College,6
 sincèrement,29,adverbe,autres,College,6
-souterrain,29,adjectif qualificatif,adjectif,College,6
 supposer,29,verbe 1er groupe,verbe,College,6
-sûr,29,adjectif qualificatif,adjectif,College,6
 tressaillir,29,verbe 3eme groupe,verbe,College,6
-vieil,29,adjectif qualificatif,adjectif,College,6
 mariée,29,nom feminin,nom,College,6
 abîmer,30,verbe 1er groupe,verbe,College,6
 accabler,30,verbe 1er groupe,verbe,College,6
 apaiser,30,verbe 1er groupe,verbe,College,6
 balançoire,30,nom feminin,nom,College,6
-baptiser,30,verbe 1er groupe,verbe,College,6
 bourrasque,30,nom feminin,nom,College,6
 carrefour,30,nom masculin,nom,College,6
 plage,30,nom feminin,nom,College,6
@@ -3545,8 +3273,6 @@ rocher,30,nom masculin,nom,College,6
 emballer,30,verbe 1er groupe,verbe,College,6
 empêcher,30,verbe 1er groupe,verbe,College,6
 étouffer,30,verbe 1er groupe,verbe,College,6
-exact,30,adjectif qualificatif,adjectif,College,6
-fâcheux,30,adjectif qualificatif,adjectif,College,6
 sardine,30,nom feminin,nom,College,6
 gambader,30,verbe 1er groupe,verbe,College,6
 gêner,30,verbe 1er groupe,verbe,College,6
@@ -3554,17 +3280,14 @@ glace,30,nom feminin,nom,College,6
 hésiter,30,verbe 1er groupe,verbe,College,6
 inondation,30,nom feminin,nom,College,6
 inonder,30,verbe 1er groupe,verbe,College,6
-intense,30,adjectif qualificatif,adjectif,College,6
 intéressant,30,adjectif qualificatif,adjectif,College,6
 glaçon,30,nom masculin,nom,College,6
 interpeller,30,verbe 1er groupe,verbe,College,6
 interrompre,30,verbe 3eme groupe,verbe,College,6
 noeud,30,nom masculin,nom,College,6
 blessure,30,nom feminin,nom,College,6
-orgueilleux,30,adjectif qualificatif,adjectif,College,6
 ôter,30,verbe 1er groupe,verbe,College,6
 sirop,30,nom masculin,nom,College,6
-physique,30,adjectif qualificatif,adjectif,College,6
 tasse,30,nom feminin,nom,College,6
 pourrir,30,verbe 2eme groupe,verbe,College,6
 gourde,30,nom feminin,nom,College,6
@@ -3590,7 +3313,6 @@ pédale,31,nom feminin,nom,College,6
 exciter,31,verbe 1er groupe,verbe,College,6
 selle,31,nom feminin,nom,College,6
 trottinette,31,nom feminin,nom,College,6
-harmonieux,31,adjectif qualificatif,adjectif,College,6
 grenouille,31,nom feminin,nom,College,6
 inquiéter,31,verbe 1er groupe,verbe,College,6
 intéresser,31,verbe 1er groupe,verbe,College,6
@@ -3605,32 +3327,25 @@ tunnel,31,nom masculin,nom,College,6
 voeu,31,nom masculin,nom,College,6
 agacer,32,verbe 1er groupe,verbe,College,6
 aiguiser,32,verbe 1er groupe,verbe,College,6
-aîné,32,adjectif qualificatif,adjectif,College,6
-apprêter,32,verbe 1er groupe,verbe,College,6
 attester,32,verbe 1er groupe,verbe,College,6
 couteau,32,nom masculin,nom,College,6
 bibliothèque,32,nom feminin,nom,College,6
 soldat,32,nom masculin,nom,College,6
 bourgeon,32,nom masculin,nom,College,6
 salade,32,nom feminin,nom,College,6
-confus,32,adjectif qualificatif,adjectif,College,6
 désespérer,32,verbe 1er groupe,verbe,College,6
 embarrasser,32,verbe 1er groupe,verbe,College,6
-familier,32,adjectif qualificatif,adjectif,College,6
 hamster,32,nom masculin,nom,College,6
 monnaie,32,nom feminin,nom,College,6
 yaourt,32,nom masculin,nom,College,6
 offenser,32,verbe 1er groupe,verbe,College,6
 rapiécer,32,verbe 1er groupe,verbe,College,6
-serein,32,adjectif qualificatif,adjectif,College,6
-succulent,32,adjectif qualificatif,adjectif,College,6
 supplier,32,verbe 1er groupe,verbe,College,6
 volontiers,32,adverbe,autres,College,6
 abondamment,33,adverbe,autres,College,6
 accueillir,33,verbe 3eme groupe,verbe,College,6
 acquitter,33,verbe 1er groupe,verbe,College,6
 banane,33,nom feminin,nom,College,6
-anxieux,33,adjectif qualificatif,adjectif,College,6
 appuyer,33,verbe 1er groupe,verbe,College,6
 asseoir,33,verbe 3eme groupe,verbe,College,6
 train,33,nom masculin,nom,College,6
@@ -3646,20 +3361,14 @@ excellent,33,adjectif qualificatif,adjectif,College,6
 gaufre,33,nom feminin,nom,College,6
 biscuit,33,nom masculin,nom,College,6
 beurre,33,nom masculin,nom,College,6
-hypocrite,33,adjectif qualificatif,adjectif,College,6
 farine,33,nom feminin,nom,College,6
 bocal,33,nom masculin,nom,College,6
 lavabo,33,nom masculin,nom,College,6
-moelleux,33,adjectif qualificatif,adjectif,College,6
-pittoresque,33,adjectif qualificatif,adjectif,College,6
-raisonnable,33,adjectif qualificatif,adjectif,College,6
 torchon,33,nom masculin,nom,College,6
-solennel,33,adjectif qualificatif,adjectif,College,6
 successivement,33,adverbe,autres,College,6
 suffire,33,verbe 3eme groupe,verbe,College,6
 traîner,33,verbe 1er groupe,verbe,College,6
 velours,33,nom masculin,nom,College,6
-affairé,34,adjectif qualificatif,adjectif,College,6
 clown,34,nom masculin,nom,College,6
 concerner,34,verbe 1er groupe,verbe,College,6
 constamment,34,adverbe,autres,College,6
@@ -3672,14 +3381,12 @@ préoccuper,34,verbe 1er groupe,verbe,College,6
 semaine,34,nom feminin,nom,College,6
 scintiller,34,verbe 1er groupe,verbe,College,6
 sûrement,34,adverbe,autres,College,6
-ci-joint,35,adjectif qualificatif,adjectif,College,6
 croûte,35,nom feminin,nom,College,6
 cuisine,35,nom feminin,nom,College,6
 saladier,35,nom masculin,nom,College,6
 tableau,35,nom masculin,nom,College,6
 neige,35,nom feminin,nom,College,6
 foin,35,nom masculin,nom,College,6
-solliciter,35,verbe 1er groupe,verbe,College,6
 anticiper,36,verbe 1er groupe,verbe,College,6
 bruyamment,36,adverbe,autres,College,6
 clin d'oeil,36,nom masculin,nom,College,6
