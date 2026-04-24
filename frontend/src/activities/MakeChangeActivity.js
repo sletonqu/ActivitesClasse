@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityIconButton from "../components/ActivityIconButton";
-import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import {
   getSafeDisplayText,
@@ -55,10 +54,6 @@ function normalizeLevelRule(rule, fallbackRule) {
     useCents: source.useCents !== undefined ? Boolean(source.useCents) : fallbackRule.useCents,
     centsStep: parseIntWithFallback(source.centsStep, fallbackRule.centsStep || 1),
   };
-}
-
-function getRandomTarget(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 const MoneyCoin = ({ value, label, isCent, onClick, className = "" }) => {
@@ -261,9 +256,9 @@ const MakeChangeActivity = ({
         disableAllLevels={finished}
       />
 
-      <div className="flex flex-col gap-4">
+      <div id="make-change-content" className="flex flex-col gap-4">
         {/* En-tête : Montant à payer */}
-        <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
+        <div id="make-change-target-amount" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
           <span className="text-slate-500 text-sm sm:text-base font-medium mb-1">Montant à préparer :</span>
           <span className="text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
             {formatCurrency(targetAmountCents)}
@@ -271,17 +266,17 @@ const MakeChangeActivity = ({
         </div>
 
         {/* Zone de Dépôt */}
-        <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl sm:rounded-3xl min-h-[140px] sm:min-h-[160px] p-3 sm:p-4 relative">
-          <div className="absolute top-2 left-4 text-slate-400 font-semibold tracking-wider uppercase text-xs sm:text-sm">
+        <div id="make-change-deposit-zone" className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl sm:rounded-3xl min-h-[140px] sm:min-h-[160px] p-3 sm:p-4 relative">
+          <div id="make-change-deposit-label" className="absolute top-2 left-4 text-slate-400 font-semibold tracking-wider uppercase text-xs sm:text-sm">
             Mon Dépôt
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-4 sm:pt-6 w-full h-full min-h-[100px] sm:min-h-[120px]">
+          <div id="make-change-deposit-items" className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-4 sm:pt-6 w-full h-full min-h-[100px] sm:min-h-[120px]">
             {sortedDeposited.length === 0 ? (
-              <span className="text-slate-400 italic">Vide. Ajoute des pièces ou des billets...</span>
+              <span id="make-change-deposit-empty" className="text-slate-400 italic">Vide. Ajoute des pièces ou des billets...</span>
             ) : (
               sortedDeposited.map((item, index) => (
-                <div key={item.id} className="animate-in fade-in zoom-in duration-300">
+                <div id={`make-change-deposit-item-${index}`} key={item.id} className="animate-in fade-in zoom-in duration-300">
                   <MoneyElement
                     money={item}
                     onClick={() => handleRemoveMoney(item.id)}
@@ -295,11 +290,11 @@ const MakeChangeActivity = ({
 
         {/* Réserve d'Argent */}
         {!finished && (
-          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col gap-2 sm:gap-3">
-            <div className="text-slate-600 font-semibold text-center uppercase tracking-wide text-xs sm:text-sm">
+          <div id="make-change-reserve-zone" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col gap-2 sm:gap-3">
+            <div id="make-change-reserve-label" className="text-slate-600 font-semibold text-center uppercase tracking-wide text-xs sm:text-sm">
               Réserve (Clique pour ajouter)
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
+            <div id="make-change-reserve-items" className="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
               {AVAILABLE_MONEY.filter(m => {
                 if (m.isCent && !useCents) return false;
                 // On limite la réserve à ce qui est utile (optionnel, mais garde l'UI propre)
@@ -316,8 +311,24 @@ const MakeChangeActivity = ({
         )}
       </div>
 
+      {/* Résumé */}
+      {finished && (
+        <ActivitySummaryCard
+          id="make-change-summary"
+          className="animate-in slide-in-from-bottom-4 duration-500"
+          title={isSuccess ? "Félicitations !" : "Ce n'est pas tout à fait ça..."}
+          message={
+            isSuccess 
+              ? `Tu as parfaitement préparé les ${formatCurrency(targetAmountCents)} !`
+              : `Tu as déposé ${formatCurrency(currentTotalCents)} au lieu de ${formatCurrency(targetAmountCents)}.`
+          }
+          score={score}
+          stats={[]}
+        />
+      )}
+
       {/* Actions */}
-      <div className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2">
+      <div id="make-change-actions" className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2">
         <ActivityIconButton
           id="make-change-validate"
           onClick={handleValidate}
@@ -339,23 +350,6 @@ const MakeChangeActivity = ({
           variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
-
-      {/* Résumé */}
-      {finished && (
-        <div className="animate-in slide-in-from-bottom-4 duration-500">
-          <ActivitySummaryCard
-            id="make-change-summary"
-            title={isSuccess ? "Félicitations !" : "Ce n'est pas tout à fait ça..."}
-            message={
-              isSuccess 
-                ? `Tu as parfaitement préparé les ${formatCurrency(targetAmountCents)} !`
-                : `Tu as déposé ${formatCurrency(currentTotalCents)} au lieu de ${formatCurrency(targetAmountCents)}.`
-            }
-            score={score}
-            stats={[]}
-          />
-        </div>
-      )}
     </div>
   );
 };

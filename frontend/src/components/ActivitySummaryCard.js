@@ -25,11 +25,12 @@ const ActivitySummaryCard = ({
   tone = "success",
   stats = [],
   footer,
+  className = "",
 }) => {
   const palette = SUMMARY_TONE_CLASSNAMES[tone] || SUMMARY_TONE_CLASSNAMES.success;
 
   return (
-    <section id={id} className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${palette.wrapper}`}>
+    <section id={id} className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${palette.wrapper} ${className}`}>
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-lg font-bold sm:text-xl">{title}</p>

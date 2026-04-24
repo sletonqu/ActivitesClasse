@@ -3,8 +3,7 @@ import React from 'react';
 const LeaderboardPanel = ({ 
   leaderboard, 
   selectedClassId, 
-  selectedActivityId, 
-  onExport 
+  selectedActivityId 
 }) => {
   if (!selectedClassId || !selectedActivityId) {
     return (

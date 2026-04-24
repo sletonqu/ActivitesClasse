@@ -653,19 +653,6 @@ const WordClassificationActivity = ({
         </>
       )}
 
-      <div id="word-classification-actions" className="flex justify-center gap-3 flex-wrap">
-        <ActivityIconButton
-          id="word-classification-restart-button"
-          onClick={handleRestart}
-          disabled={loadingWords || restartLocked}
-          ariaLabel="Recommencer avec de nouveaux mots"
-          title="Recommencer avec de nouveaux mots"
-          icon="↻"
-          srText="Recommencer avec de nouveaux mots"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
-
       {finished && (
         <ActivitySummaryCard
           id="word-classification-summary"
@@ -678,6 +665,19 @@ const WordClassificationActivity = ({
           ]}
         />
       )}
+
+      <div id="word-classification-actions" className="flex justify-center gap-3 flex-wrap">
+        <ActivityIconButton
+          id="word-classification-restart-button"
+          onClick={handleRestart}
+          disabled={loadingWords || restartLocked}
+          ariaLabel="Recommencer avec de nouveaux mots"
+          title="Recommencer avec de nouveaux mots"
+          icon="↻"
+          srText="Recommencer avec de nouveaux mots"
+          variant={allStudentsCompleted ? "warning" : "restart"}
+        />
+      </div>
     </div>
   );
 };

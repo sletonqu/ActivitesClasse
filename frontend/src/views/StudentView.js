@@ -30,8 +30,6 @@ const StudentView = () => {
 
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
-  const activityName = selectedActivity?.title || "Activite";
-
   const availableDisciplines = Array.from(new Set(activities.map(a => a.discipline).filter(Boolean))).sort((a, b) => a.localeCompare(b));
   const activeActivities = activities.filter((a) => !a.status || a.status === "Active");
   const filteredActivities = activeActivities.filter((activity) => {
@@ -187,39 +185,6 @@ const StudentView = () => {
     } catch (err) {
       console.error("Erreur lors de l'enregistrement du résultat:", err);
     }
-  };
-
-  const handleExportLeaderboard = () => {
-    if (leaderboard.length === 0) return;
-
-    const headers = ["rank", "firstname", "name", "score"];
-    const rows = leaderboard.map((student, index) => [
-      String(index + 1),
-      String(student.firstname || ""),
-      String(student.name || ""),
-      String(student.score),
-    ]);
-
-    const escapeCsv = (value) => {
-      if (value.includes(",") || value.includes("\"") || value.includes("\n")) {
-        return `"${value.replace(/\"/g, '""')}"`;
-      }
-      return value;
-    };
-
-    const csvLines = [headers, ...rows].map((line) => line.map((col) => escapeCsv(col)).join(","));
-    const csvContent = `${csvLines.join("\n")}\n`;
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const date = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `${activityName}_${date}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
   };
 
   const StudentIcon = () => (
@@ -424,7 +389,6 @@ const StudentView = () => {
                 leaderboard={leaderboard}
                 selectedClassId={selectedClassId}
                 selectedActivityId={selectedActivityId}
-                onExport={handleExportLeaderboard}
               />
             </div>
           )}

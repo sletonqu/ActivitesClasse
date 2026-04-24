@@ -648,29 +648,6 @@ const CountPencilsByTensActivity = ({
         </div>
       </section>
 
-      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 flex-wrap">
-        <ActivityIconButton
-          id="count-pencils-by-tens-validate-button"
-          onClick={handleValidate}
-          disabled={finished || !allAnswered}
-          ariaLabel="Valider"
-          title="Valider"
-          icon="✓"
-          srText="Valider"
-          variant="validate"
-        />
-        <ActivityIconButton
-          id="count-pencils-by-tens-restart-button"
-          onClick={handleRestart}
-          disabled={restartLocked}
-          ariaLabel="Recommencer"
-          title="Recommencer"
-          icon="↻"
-          srText="Recommencer"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
-
       <FloatingNumberPad
         isOpen={Boolean(activeInput) && !finished}
         activeFieldLabel={
@@ -697,6 +674,29 @@ const CountPencilsByTensActivity = ({
           ]}
         />
       )}
+
+      <div id="count-pencils-by-tens-actions" className="flex justify-center gap-3 flex-wrap">
+        <ActivityIconButton
+          id="count-pencils-by-tens-validate-button"
+          onClick={handleValidate}
+          disabled={finished || !allAnswered}
+          ariaLabel="Valider"
+          title="Valider"
+          icon="✓"
+          srText="Valider"
+          variant="validate"
+        />
+        <ActivityIconButton
+          id="count-pencils-by-tens-restart-button"
+          onClick={handleRestart}
+          disabled={restartLocked}
+          ariaLabel="Recommencer"
+          title="Recommencer"
+          icon="↻"
+          srText="Recommencer"
+          variant={allStudentsCompleted ? "warning" : "restart"}
+        />
+      </div>
     </div>
   );
 };

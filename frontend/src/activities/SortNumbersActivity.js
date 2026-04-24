@@ -468,6 +468,24 @@ const SortNumbersActivity = ({
         </div>
       </section>
 
+      {finished && (
+        <ActivitySummaryCard
+          id="sort-numbers-summary"
+          title="Activité terminée"
+          message={
+            correctCount === totalSlots
+              ? "Bravo, tous les nombres sont dans le bon ordre !"
+              : "Observe les cases colorées pour repérer les positions correctes et celles à corriger."
+          }
+          score={score}
+          stats={[
+            { key: "correct", label: "Bonnes positions", value: correctCount },
+            { key: "total", label: "Total traité", value: totalSlots },
+            { key: "errors", label: "Erreurs", value: Math.max(0, totalSlots - correctCount) },
+          ]}
+        />
+      )}
+
       <div id="sort-numbers-actions" className="flex flex-wrap justify-center gap-2">
         <ActivityIconButton
           id="sort-numbers-validate-button"
@@ -490,24 +508,6 @@ const SortNumbersActivity = ({
           variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
-
-      {finished && (
-        <ActivitySummaryCard
-          id="sort-numbers-summary"
-          title="Activité terminée"
-          message={
-            correctCount === totalSlots
-              ? "Bravo, tous les nombres sont dans le bon ordre !"
-              : "Observe les cases colorées pour repérer les positions correctes et celles à corriger."
-          }
-          score={score}
-          stats={[
-            { key: "correct", label: "Bonnes positions", value: correctCount },
-            { key: "total", label: "Total traité", value: totalSlots },
-            { key: "errors", label: "Erreurs", value: Math.max(0, totalSlots - correctCount) },
-          ]}
-        />
-      )}
     </div>
   );
 };

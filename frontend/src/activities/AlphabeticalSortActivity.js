@@ -698,6 +698,29 @@ const AlphabeticalSortActivity = ({
         </>
       )}
 
+      {/* Résumé final */}
+      {finished && (
+        <ActivitySummaryCard
+          id="alphabetical-sort-summary"
+          title="Activité terminée"
+          message={
+            correctCount === totalSlots
+              ? "Bravo, tous les mots sont dans le bon ordre alphabétique !"
+              : "Regarde les cases colorées pour voir où ça pêche. Recommence pour t'améliorer !"
+          }
+          score={score}
+          stats={[
+            { key: "correct", label: "Bonnes positions", value: correctCount },
+            { key: "total", label: "Total traité", value: totalSlots },
+            {
+              key: "errors",
+              label: "Erreurs",
+              value: Math.max(0, totalSlots - correctCount),
+            },
+          ]}
+        />
+      )}
+
       {/* Boutons d'action */}
       <div id="alphabetical-sort-actions" className="flex flex-wrap justify-center gap-2">
         <ActivityIconButton
@@ -721,29 +744,6 @@ const AlphabeticalSortActivity = ({
           variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
-
-      {/* Résumé final */}
-      {finished && (
-        <ActivitySummaryCard
-          id="alphabetical-sort-summary"
-          title="Activité terminée"
-          message={
-            correctCount === totalSlots
-              ? "Bravo, tous les mots sont dans le bon ordre alphabétique !"
-              : "Regarde les cases colorées pour voir où ça pêche. Recommence pour t'améliorer !"
-          }
-          score={score}
-          stats={[
-            { key: "correct", label: "Bonnes positions", value: correctCount },
-            { key: "total", label: "Total traité", value: totalSlots },
-            {
-              key: "errors",
-              label: "Erreurs",
-              value: Math.max(0, totalSlots - correctCount),
-            },
-          ]}
-        />
-      )}
     </div>
   );
 };

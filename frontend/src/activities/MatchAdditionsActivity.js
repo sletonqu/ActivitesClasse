@@ -458,6 +458,24 @@ const MatchAdditionsActivity = ({
         )}
       </div>
 
+      {finished && (
+        <ActivitySummaryCard
+          id="match-additions-summary"
+          title="Activité terminée"
+          message={
+            correctCount === totalChallenges
+              ? "Bravo, toutes les additions sont bien associées !"
+              : "Observe les cases colorées pour repérer les bonnes réponses et celles à corriger."
+          }
+          score={score}
+          stats={[
+            { key: "correct", label: "Bonnes réponses", value: correctCount },
+            { key: "total", label: "Total traité", value: totalChallenges },
+            { key: "errors", label: "Erreurs", value: Math.max(0, totalChallenges - correctCount) },
+          ]}
+        />
+      )}
+
       <div id="match-additions-actions" className="flex flex-wrap justify-center gap-2">
         <ActivityIconButton
           id="match-additions-validate-button"
@@ -480,24 +498,6 @@ const MatchAdditionsActivity = ({
           variant={allStudentsCompleted ? "warning" : "restart"}
         />
       </div>
-
-      {finished && (
-        <ActivitySummaryCard
-          id="match-additions-summary"
-          title="Activité terminée"
-          message={
-            correctCount === totalChallenges
-              ? "Bravo, toutes les additions sont bien associées !"
-              : "Observe les cases colorées pour repérer les bonnes réponses et celles à corriger."
-          }
-          score={score}
-          stats={[
-            { key: "correct", label: "Bonnes réponses", value: correctCount },
-            { key: "total", label: "Total traité", value: totalChallenges },
-            { key: "errors", label: "Erreurs", value: Math.max(0, totalChallenges - correctCount) },
-          ]}
-        />
-      )}
     </div>
   );
 };

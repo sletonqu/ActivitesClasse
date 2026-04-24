@@ -805,19 +805,6 @@ const SentenceWordClassificationActivity = ({
         </>
       )}
 
-      <div id="sentence-word-classification-actions" className="flex flex-wrap justify-center gap-3">
-        <ActivityIconButton
-          id="sentence-word-classification-restart-button"
-          onClick={handleRestart}
-          disabled={loadingSentences || restartLocked}
-          ariaLabel="Recommencer avec d'autres phrases"
-          title="Recommencer avec d'autres phrases"
-          icon="↻"
-          srText="Recommencer avec d'autres phrases"
-          variant={allStudentsCompleted ? "warning" : "restart"}
-        />
-      </div>
-
       {finished && (
         <ActivitySummaryCard
           id="sentence-word-classification-summary"
@@ -831,6 +818,19 @@ const SentenceWordClassificationActivity = ({
           ]}
         />
       )}
+
+      <div id="sentence-word-classification-actions" className="flex flex-wrap justify-center gap-3">
+        <ActivityIconButton
+          id="sentence-word-classification-restart-button"
+          onClick={handleRestart}
+          disabled={loadingSentences || restartLocked}
+          ariaLabel="Recommencer avec d'autres phrases"
+          title="Recommencer avec d'autres phrases"
+          icon="↻"
+          srText="Recommencer avec d'autres phrases"
+          variant={allStudentsCompleted ? "warning" : "restart"}
+        />
+      </div>
     </div>
   );
 };
