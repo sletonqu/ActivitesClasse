@@ -34,7 +34,7 @@ const StudentPanel = ({
       </div>
 
       {students.length > 0 ? (
-        <ul id="student-panel-list" className="space-y-2 overflow-y-auto overflow-x-hidden pr-2 pb-4 custom-scrollbar flex-1">
+        <ul id="student-panel-list" className="mt-auto flex flex-1 flex-col justify-end gap-2 overflow-y-auto overflow-x-hidden pr-2 pb-4 custom-scrollbar">
           {students.map((student, index) => {
             const isCompleted = scoresByStudentId[student.id] !== undefined;
             const isSelected = selectedStudent?.id === student.id;

@@ -21,7 +21,7 @@ const LeaderboardPanel = ({
       </div>
 
       {leaderboard.length > 0 ? (
-        <ol id="leaderboard-panel-list" className="space-y-2 overflow-y-auto overflow-x-hidden pr-2 pb-4 custom-scrollbar">
+        <ol id="leaderboard-panel-list" className="mt-auto flex flex-1 flex-col justify-end gap-2 overflow-y-auto overflow-x-hidden pr-2 pb-4 custom-scrollbar">
           {leaderboard.map((student, index) => (
             <li
               id={`leaderboard-item-${student.id}`}
