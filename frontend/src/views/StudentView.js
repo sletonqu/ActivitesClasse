@@ -26,6 +26,7 @@ const StudentView = () => {
   const [scoresByStudentId, setScoresByStudentId] = useState({});
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
 
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
@@ -221,16 +222,40 @@ const StudentView = () => {
     URL.revokeObjectURL(url);
   };
 
+  const StudentIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+      <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+      <path d="M2 21a10 10 0 0 1 20 0H2Z" />
+    </svg>
+  );
+
   return (
     <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex w-full flex-1 flex-col items-center">
         
         {/* Header Glassy Unifié - Version Compacte */}
+        {headerCollapsed ? (
+          <button
+            id="student-logo-collapsed"
+            type="button"
+            onClick={() => setHeaderCollapsed(false)}
+            title="Afficher les contrôles"
+            className="fixed top-3 left-3 z-50 h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+          >
+            <StudentIcon />
+          </button>
+        ) : (
         <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
           <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
-            <div id="student-logo" className="h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
-              <span className="text-lg font-bold">E</span>
-            </div>
+            <button
+              id="student-logo"
+              type="button"
+              onClick={() => setHeaderCollapsed(true)}
+              title="Masquer les contrôles"
+              className="h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 hover:bg-indigo-700 transition-colors cursor-pointer"
+            >
+              <StudentIcon />
+            </button>
             <div id="student-title-block" className="flex flex-col min-w-0 items-start">
               <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
               <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
@@ -325,6 +350,7 @@ const StudentView = () => {
             </button>
           </div>
         </header>
+        )}
 
         <div
           id="student-view-main-layout"
