@@ -78,13 +78,11 @@ const WHITEBOARD_COLOR_OPTIONS = [
   { value: "red", label: "🔴" },
   { value: "green", label: "🟢" },
 ];
-const WHITEBOARD_BRUSH_SIZE_OPTIONS = [
-  { value: "1", label: "XS" },
-  { value: "5", label: "S" },
-  { value: "15", label: "M" },
-  { value: "30", label: "L" },
-  { value: "50", label: "XL" },
-];
+const FIBONACCI_BRUSH_SIZES = [1, 2, 3, 5, 8, 13, 21, 34, 55];
+const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
+  value: String(size),
+  label: `${size}px`,
+}));
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
 
@@ -300,7 +298,17 @@ function logWhiteboardFabricDiagnostics(fabric) {
   }
 }
 
-const DropupSelect = ({ id, value, onChange, options, title, triggerClassName = "" }) => {
+const DropupSelect = ({
+  id,
+  value,
+  onChange,
+  options,
+  title,
+  triggerClassName = "",
+  renderOption,
+  renderSelectedOption,
+  getOptionStyle,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -350,11 +358,13 @@ const DropupSelect = ({ id, value, onChange, options, title, triggerClassName = 
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`flex h-8 w-full items-center justify-center rounded-md px-2 text-sm font-semibold transition ${
+                aria-label={option.label}
+                className={`flex w-full items-center justify-center rounded-md px-2 py-1 text-sm font-semibold transition ${
                   isSelected ? "bg-sky-100 text-sky-700" : "text-slate-700 hover:bg-slate-100"
                 }`}
+                style={{ minHeight: "2rem", ...(getOptionStyle ? getOptionStyle(option, isSelected) : null) }}
               >
-                {option.label}
+                {renderOption ? renderOption(option, isSelected) : option.label}
               </button>
             );
           })}
@@ -367,9 +377,10 @@ const DropupSelect = ({ id, value, onChange, options, title, triggerClassName = 
         aria-expanded={isOpen}
         title={title}
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={selectedOption?.label || title}
         className={`inline-flex h-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-none ${triggerClassName}`}
       >
-        <span>{selectedOption?.label}</span>
+        <span>{renderSelectedOption ? renderSelectedOption(selectedOption) : selectedOption?.label}</span>
         <span className="ml-1 text-[10px]">▲</span>
       </button>
     </div>
@@ -394,7 +405,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const eraserFallbackLoggedRef = useRef(false);
   const modeRef = useRef("draw");
   const colorRef = useRef("black");
-  const brushSizeRef = useRef("5");
+  const brushSizeRef = useRef("1");
   const paperStyleRef = useRef(configuredPaperStyle);
   const fontFamilyRef = useRef(configuredFontFamily);
   const isPanningRef = useRef(false);
@@ -404,14 +415,96 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [loadError, setLoadError] = useState("");
   const [mode, setMode] = useState("draw");
   const [color, setColor] = useState("black");
-  const [brushSize, setBrushSize] = useState("5");
+  const [brushSize, setBrushSize] = useState("1");
   const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
   const [fontFamily, setFontFamily] = useState(configuredFontFamily);
-  const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 0.7);
+  const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 1.0);
   const [title, setTitle] = useState(content?.defaultTitle || "Tableau");
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+
+  const getExplicitBrushSize = (rawSize) => {
+    const numericSize = Math.max(1, parseInt(rawSize, 10) || 1);
+    return FIBONACCI_BRUSH_SIZES.includes(numericSize) ? numericSize : 1;
+  };
+
+  const getBrushSizePreviewMetrics = (rawSize, compact = false) => {
+    const numericSize = getExplicitBrushSize(rawSize);
+    const isEraseMode = mode === "erase";
+
+    if (isEraseMode) {
+      const diameter = compact
+        ? Math.max(6, Math.round(Math.pow(numericSize, 0.72) * 3))
+        : numericSize;
+      const optionHeight = compact ? 32 : Math.max(36, diameter + 18);
+      return {
+        isEraseMode,
+        shapeSize: diameter,
+        optionHeight,
+      };
+    }
+
+    const lineThickness = compact
+      ? Math.max(2, Math.round(Math.pow(numericSize, 0.68) * 2.2))
+      : numericSize;
+    const optionHeight = compact ? 32 : Math.max(36, lineThickness + 18);
+    const lineWidth = compact ? 34 : 56;
+
+    return {
+      isEraseMode,
+      shapeSize: lineThickness,
+      optionHeight,
+      lineWidth,
+    };
+  };
+
+  const renderBrushSizePreview = (option, compact = false) => {
+    const metrics = getBrushSizePreviewMetrics(option?.value, compact);
+    const isEraseMode = mode === "erase";
+
+    if (isEraseMode) {
+      const displayDiameter = metrics.shapeSize;
+
+      return (
+        <span className="flex w-full items-center justify-center" title={option.label}>
+          <span
+            aria-hidden="true"
+            className="rounded-full border-2"
+            style={{
+              width: `${displayDiameter}px`,
+              height: `${displayDiameter}px`,
+              borderColor: "rgba(2, 132, 199, 0.8)",
+              backgroundColor: "rgba(125, 211, 252, 0.2)",
+            }}
+          />
+        </span>
+      );
+    }
+
+    const lineThickness = metrics.shapeSize;
+
+    return (
+      <span className="flex w-full items-center justify-center" title={option.label}>
+        <span
+          aria-hidden="true"
+          className="block rounded-full"
+          style={{
+            width: `${metrics.lineWidth}px`,
+            height: `${lineThickness}px`,
+            backgroundColor: color,
+          }}
+        />
+      </span>
+    );
+  };
+
+  const getBrushSizeOptionStyle = (option) => {
+    const metrics = getBrushSizePreviewMetrics(option?.value, false);
+    return {
+      minHeight: `${metrics.optionHeight}px`,
+    };
+  };
 
   const hideBrushPreview = () => {
     if (!brushPreviewRef.current) return;
@@ -1322,6 +1415,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   options={WHITEBOARD_BRUSH_SIZE_OPTIONS}
                   title="Taille du trait"
                   triggerClassName="min-w-14"
+                  renderOption={(option) => renderBrushSizePreview(option)}
+                  renderSelectedOption={(option) => renderBrushSizePreview(option, true)}
+                  getOptionStyle={getBrushSizeOptionStyle}
                 />
               </div>
             )}
