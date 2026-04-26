@@ -10,6 +10,7 @@ import SentenceWordClassificationActivity from "./SentenceWordClassificationActi
 import ReadNumbersActivity from "./ReadNumbersActivity";
 import MakeChangeActivity from "./MakeChangeActivity";
 import AlphabeticalSortActivity from "./AlphabeticalSortActivity";
+import ClassSoundMeterActivity from "./ClassSoundMeterActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -45,6 +46,9 @@ const componentRegistry = {
   "src/activities/AlphabeticalSortActivity.js": AlphabeticalSortActivity,
   "AlphabeticalSortActivity": AlphabeticalSortActivity,
   "AlphabeticalSortActivity.js": AlphabeticalSortActivity,
+  "src/activities/ClassSoundMeterActivity.js": ClassSoundMeterActivity,
+  "ClassSoundMeterActivity": ClassSoundMeterActivity,
+  "ClassSoundMeterActivity.js": ClassSoundMeterActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

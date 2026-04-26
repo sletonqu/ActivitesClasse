@@ -319,6 +319,7 @@ Notes :
 - `storageKey` sert à la sauvegarde `localStorage` ;
 - le `student` prop permet de personnaliser les exports ;
 - cette activité peut être utilisée avec ou sans élève sélectionné selon le contexte.
+- Utilise un build custom de fabric.js (https://fabric5.fabricjs.com/build/)
 
 ---
 
