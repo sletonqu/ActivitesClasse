@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 export const defaultClassSoundMeterActivityContent = {
   title: "Sonomètre de Classe",
   subtitle: "Outil visuel pour garder une ambiance de travail calme.",
-  timerMinutes: 1,
-  paletteName: "Classique",
+  timerMinutes: 3,
+  paletteName: "Ocean",
 };
 
 const PALETTES = {
@@ -170,7 +170,7 @@ const ClassSoundMeterActivity = ({ content }) => {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [audioState, setAudioState] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [levelTrace, setLevelTrace] = useState([]);
+  const [sessionDurationSeconds, setSessionDurationSeconds] = useState(Math.round(resolvedContent.timerMinutes * 60));
   const [sessionStats, setSessionStats] = useState({ sum: 0, count: 0, max: 0 });
 
   const timerEndTsRef = useRef(null);
@@ -182,9 +182,14 @@ const ClassSoundMeterActivity = ({ content }) => {
   const sourceNodeRef = useRef(null);
   const analyserRef = useRef(null);
   const sampleBufferRef = useRef(null);
+  const progressCanvasRef = useRef(null);
+  const rawMeasurementsRef = useRef([]);
+  const lastMeasurementElapsedMsRef = useRef(0);
+  const lastWrittenCellIndexRef = useRef(-1);
+  const lastWrittenLevelRef = useRef(null);
 
-  const totalDurationSeconds = Math.round(timerMinutes * 60);
-  const totalProgressCells = totalDurationSeconds * PROGRESS_SUBDIVISIONS_PER_SECOND;
+  const configuredDurationSeconds = Math.round(timerMinutes * 60);
+  const totalProgressCells = sessionDurationSeconds * PROGRESS_SUBDIVISIONS_PER_SECOND;
   const sampleIntervalMs = 100;
   const transitionMs = 220;
   const gaugeRingRadius = 74;
@@ -200,7 +205,7 @@ const ClassSoundMeterActivity = ({ content }) => {
   const gaugeTrackStyle = buildGaugeTrackStyle(gaugeCircumference);
   const gaugeLiveStyle = buildGaugeArcStyle(displayCurrentLevel, gaugeCircumference);
   const gaugeWarningStyle = buildGaugeSegmentStyle(0.55, 0.18, gaugeCircumference);
-  const gaugeDangerStyle = buildGaugeSegmentStyle(0.82, 0.12, gaugeCircumference);
+  const gaugeDangerStyle = buildGaugeSegmentStyle(0.85, 0.25, gaugeCircumference);
   const liveColor = resolveColorAtLevel(displayCurrentLevel, paletteName);
   const averageBubblePosition = scaleGaugePoint(levelToGaugeBubblePosition(displayAverageLevel, 126));
   const maxBubblePosition = scaleGaugePoint(levelToGaugeBubblePosition(displayMaxLevel, 122));
@@ -217,31 +222,33 @@ const ClassSoundMeterActivity = ({ content }) => {
     "rgba(49, 46, 129, 0.95)"
   );
 
-  const progressCells = useMemo(
-    () =>
-      levelTrace.map((level, cellIndex) => ({
-        key: `trace-cell-${cellIndex}`,
-        backgroundColor: level == null ? "#020617" : resolveColorAtLevel(level, paletteName),
-        isFilled: level != null,
-      })),
-    [levelTrace, paletteName]
-  );
-
-  const initializeLevelTrace = () => {
-    return Array.from({ length: totalProgressCells }, () => null);
+  const resetProgressTrace = () => {
+    rawMeasurementsRef.current = [];
+    lastMeasurementElapsedMsRef.current = 0;
+    lastWrittenCellIndexRef.current = -1;
+    lastWrittenLevelRef.current = null;
   };
 
-  const updateTraceCell = (cellIndex, level) => {
-    if (cellIndex < 0 || cellIndex >= totalProgressCells) {
-      return;
+  const appendRawMeasurement = (cellIndex, elapsedMs, level) => {
+    const safeCellDurationMs = totalProgressCells > 0
+      ? (sessionDurationSeconds * 1000) / totalProgressCells
+      : 0;
+    const lastCellIndex = lastWrittenCellIndexRef.current;
+    const lastLevel = lastWrittenLevelRef.current;
+
+    if (lastCellIndex >= 0 && cellIndex > lastCellIndex + 1 && lastLevel != null && safeCellDurationMs > 0) {
+      for (let missingIndex = lastCellIndex + 1; missingIndex < cellIndex; missingIndex += 1) {
+        rawMeasurementsRef.current.push({
+          elapsedMs: missingIndex * safeCellDurationMs,
+          level: lastLevel,
+        });
+      }
     }
 
-    setLevelTrace((previous) => {
-      const baseTrace = previous.length === totalProgressCells ? [...previous] : initializeLevelTrace();
-      const previousLevel = baseTrace[cellIndex];
-      baseTrace[cellIndex] = previousLevel == null ? level : Math.max(previousLevel, level);
-      return baseTrace;
-    });
+    rawMeasurementsRef.current.push({ elapsedMs, level });
+    lastMeasurementElapsedMsRef.current = Math.max(lastMeasurementElapsedMsRef.current, elapsedMs);
+    lastWrittenCellIndexRef.current = Math.max(lastCellIndex, cellIndex);
+    lastWrittenLevelRef.current = level;
   };
 
   const stopAudioCapture = () => {
@@ -317,11 +324,15 @@ const ClassSoundMeterActivity = ({ content }) => {
     const preciseRemainingSeconds = timerEndTsRef.current
       ? Math.max((timerEndTsRef.current - now) / 1000, 0)
       : remainingSeconds;
-    const captureProgress = totalDurationSeconds > 0
-      ? clamp((totalDurationSeconds - preciseRemainingSeconds) / totalDurationSeconds, 0, 1)
+    const captureProgress = sessionDurationSeconds > 0
+      ? clamp((sessionDurationSeconds - preciseRemainingSeconds) / sessionDurationSeconds, 0, 1)
       : 0;
     const currentCellIndex = totalProgressCells > 0
       ? clamp(Math.floor(captureProgress * totalProgressCells), 0, totalProgressCells - 1)
+      : 0;
+    const stableCellIndex = Math.max(lastWrittenCellIndexRef.current, currentCellIndex);
+    const elapsedMs = totalProgressCells > 0
+      ? (stableCellIndex / totalProgressCells) * (sessionDurationSeconds * 1000)
       : 0;
 
     setCurrentLevel(instantaneousLevel);
@@ -331,7 +342,7 @@ const ClassSoundMeterActivity = ({ content }) => {
       max: instantaneousLevel > previous.max ? instantaneousLevel : previous.max,
     }));
 
-    updateTraceCell(currentCellIndex, instantaneousDisplayLevel);
+    appendRawMeasurement(stableCellIndex, elapsedMs, instantaneousDisplayLevel);
   };
 
   const initializeAudioCapture = async () => {
@@ -385,12 +396,12 @@ const ClassSoundMeterActivity = ({ content }) => {
       return;
     }
 
-    const isFreshStart = remainingSeconds === totalDurationSeconds && sessionStats.count === 0;
+    const isFreshStart = sessionStats.count === 0;
 
     if (isRunning) {
       const now = Date.now();
       if (timerEndTsRef.current) {
-        const nextRemainingSeconds = clamp(Math.ceil((timerEndTsRef.current - now) / 1000), 0, totalDurationSeconds);
+        const nextRemainingSeconds = clamp(Math.ceil((timerEndTsRef.current - now) / 1000), 0, sessionDurationSeconds);
         setRemainingSeconds(nextRemainingSeconds);
       }
       setIsRunning(false);
@@ -404,8 +415,10 @@ const ClassSoundMeterActivity = ({ content }) => {
     }
 
     if (isFreshStart) {
+      setSessionDurationSeconds(configuredDurationSeconds);
+      setRemainingSeconds(configuredDurationSeconds);
       setCurrentLevel(0);
-      setLevelTrace(initializeLevelTrace());
+      resetProgressTrace();
       setSessionStats({ sum: 0, count: 0, max: 0 });
     }
     setErrorMessage("");
@@ -417,9 +430,10 @@ const ClassSoundMeterActivity = ({ content }) => {
     stopEverything();
     setIsRunning(false);
     setIsFinished(false);
-    setRemainingSeconds(totalDurationSeconds);
+    setSessionDurationSeconds(configuredDurationSeconds);
+    setRemainingSeconds(configuredDurationSeconds);
     setCurrentLevel(0);
-    setLevelTrace(initializeLevelTrace());
+    resetProgressTrace();
     setSessionStats({ sum: 0, count: 0, max: 0 });
     setErrorMessage("");
     setAudioState("idle");
@@ -430,9 +444,10 @@ const ClassSoundMeterActivity = ({ content }) => {
       return;
     }
 
-    setRemainingSeconds(totalDurationSeconds);
-    setLevelTrace(initializeLevelTrace());
-  }, [isRunning, totalDurationSeconds, totalProgressCells, sessionStats.count]);
+    setRemainingSeconds(configuredDurationSeconds);
+    setSessionDurationSeconds(configuredDurationSeconds);
+    resetProgressTrace();
+  }, [isRunning, configuredDurationSeconds, sessionStats.count]);
 
   useEffect(() => {
     if (!isRunning || isFinished) {
@@ -446,7 +461,7 @@ const ClassSoundMeterActivity = ({ content }) => {
         return;
       }
 
-      const nextRemainingSeconds = clamp(Math.ceil((timerEndTsRef.current - Date.now()) / 1000), 0, totalDurationSeconds);
+      const nextRemainingSeconds = clamp(Math.ceil((timerEndTsRef.current - Date.now()) / 1000), 0, sessionDurationSeconds);
       setRemainingSeconds(nextRemainingSeconds);
 
       if (nextRemainingSeconds <= 0) {
@@ -459,7 +474,7 @@ const ClassSoundMeterActivity = ({ content }) => {
     return () => {
       stopTimerLoop();
     };
-  }, [isRunning, isFinished, remainingSeconds, totalDurationSeconds]);
+  }, [isRunning, isFinished, remainingSeconds, sessionDurationSeconds]);
 
   useEffect(() => {
     if (!isRunning || isFinished) {
@@ -483,6 +498,85 @@ const ClassSoundMeterActivity = ({ content }) => {
       stopEverything();
     };
   }, []);
+
+  useEffect(() => {
+    const canvas = progressCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const parent = canvas.parentElement;
+    if (!parent) {
+      return;
+    }
+
+    const cssWidth = Math.max(1, Math.floor(parent.clientWidth));
+    const cssHeight = 20;
+    const dpr = window.devicePixelRatio || 1;
+    const pixelWidth = Math.max(1, Math.floor(cssWidth * dpr));
+    const pixelHeight = Math.max(1, Math.floor(cssHeight * dpr));
+
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return;
+    }
+
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "#020617";
+    context.fillRect(0, 0, pixelWidth, pixelHeight);
+
+    const sessionDurationMs = sessionDurationSeconds * 1000;
+    if (sessionDurationMs <= 0 || totalProgressCells <= 0) {
+      return;
+    }
+
+    const elapsedByTimerMs = clamp((sessionDurationSeconds - remainingSeconds) * 1000, 0, sessionDurationMs);
+    const elapsedMs = clamp(Math.max(elapsedByTimerMs, lastMeasurementElapsedMsRef.current), 0, sessionDurationMs);
+
+    const renderedCells = Math.max(1, Math.min(totalProgressCells, pixelWidth));
+    const cellDurationMs = sessionDurationMs / renderedCells;
+    const cellLevels = new Array(renderedCells).fill(null);
+
+    for (const sample of rawMeasurementsRef.current) {
+      if (sample.elapsedMs < 0 || sample.elapsedMs > elapsedMs) {
+        continue;
+      }
+
+      const renderedIndex = clamp(Math.floor(sample.elapsedMs / cellDurationMs), 0, renderedCells - 1);
+      const previousLevel = cellLevels[renderedIndex];
+      cellLevels[renderedIndex] = previousLevel == null ? sample.level : Math.max(previousLevel, sample.level);
+    }
+
+    const revealedCells = clamp(Math.floor((elapsedMs / sessionDurationMs) * renderedCells), 0, renderedCells);
+    let lastKnownLevel = null;
+
+    for (let index = 0; index < revealedCells; index += 1) {
+      const level = cellLevels[index] == null ? lastKnownLevel : cellLevels[index];
+      if (cellLevels[index] != null) {
+        lastKnownLevel = cellLevels[index];
+      }
+
+      const xStart = Math.floor((index * pixelWidth) / renderedCells);
+      const xEnd = Math.floor(((index + 1) * pixelWidth) / renderedCells);
+      const width = Math.max(1, xEnd - xStart);
+
+      context.fillStyle = level == null ? "#020617" : resolveColorAtLevel(level, paletteName);
+      context.fillRect(xStart, 0, width, pixelHeight);
+    }
+  }, [
+    currentLevel,
+    paletteName,
+    remainingSeconds,
+    sessionDurationSeconds,
+    totalProgressCells,
+  ]);
 
   const centerColor = resolveColorAtLevel(clamp(displayCurrentLevel + 0.18, 0, 1), paletteName);
   const midColor = resolveColorAtLevel(clamp(displayCurrentLevel * 0.75, 0, 1), paletteName);
@@ -539,6 +633,12 @@ const ClassSoundMeterActivity = ({ content }) => {
 
         <main id="class-sound-meter-center" className="mx-auto mt-8 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
 
+          {isFinished && sessionStats.count > 0 && (
+            <div id="class-sound-meter-average" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-lg font-semibold text-white backdrop-blur">
+              Niveau moyen&nbsp;: {Math.round(displayAverageLevel * 100)}&nbsp;%
+            </div>
+          )}
+
           <div id="class-sound-meter-timer" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-3 text-3xl font-black tracking-wider backdrop-blur">
             {formatSeconds(remainingSeconds)}
           </div>
@@ -573,25 +673,8 @@ const ClassSoundMeterActivity = ({ content }) => {
         </main>
 
         <footer id="class-sound-meter-progress-footer" className="mx-auto mt-8 w-full max-w-4xl">
-          <div
-            id="class-sound-meter-progress-fill"
-            className="grid h-5 overflow-hidden rounded-full border border-white/30 bg-slate-900/70"
-            style={{
-              gridTemplateColumns: `repeat(${Math.max(totalProgressCells, 1)}, minmax(0, 1fr))`,
-            }}
-          >
-            {progressCells.map((cell) => (
-              <div
-                key={cell.key}
-                className="h-full transition-all duration-500 ease-out"
-                style={{
-                  backgroundColor: cell.backgroundColor,
-                  opacity: cell.isFilled ? 1 : 0.45,
-                  transform: cell.isFilled ? "scaleY(1)" : "scaleY(0.88)",
-                  transformOrigin: "center",
-                }}
-              />
-            ))}
+          <div className="h-5 overflow-hidden rounded-full border border-white/30 bg-slate-900/70">
+            <canvas id="class-sound-meter-progress-fill" ref={progressCanvasRef} className="block h-full w-full" />
           </div>
         </footer>
       </section>
