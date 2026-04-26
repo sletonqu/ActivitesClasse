@@ -77,6 +77,9 @@ const WHITEBOARD_COLOR_OPTIONS = [
   { value: "blue", label: "🔵" },
   { value: "red", label: "🔴" },
   { value: "green", label: "🟢" },
+  { value: "rgba(250, 204, 21, 0.35)", label: "🟨" },
+  { value: "rgba(74, 222, 128, 0.35)", label: "🟩" },
+  { value: "rgba(244, 114, 182, 0.35)", label: "🟪" },
 ];
 const FIBONACCI_BRUSH_SIZES = [1, 2, 3, 5, 8, 13, 21, 34, 55];
 const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
@@ -529,13 +532,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     const zoom = Math.max(0.01, Number(currentZoom) || 1);
     const diameter = Math.max(6, parseInt(brushSizeRef.current, 10) || 1);
     const strokeColor = colorRef.current || "black";
+    const previewFillColor =
+      typeof strokeColor === "string" && strokeColor.startsWith("rgba(") ? strokeColor : `${strokeColor}33`;
 
     preview.style.width = `${diameter}px`;
     preview.style.height = `${diameter}px`;
     preview.style.left = `${(clientX - rect.left) / zoom}px`;
     preview.style.top = `${(clientY - rect.top) / zoom}px`;
     preview.style.borderColor = isEraseMode ? "rgba(2, 132, 199, 0.8)" : strokeColor;
-    preview.style.backgroundColor = isEraseMode ? "rgba(125, 211, 252, 0.2)" : `${strokeColor}33`;
+    preview.style.backgroundColor = isEraseMode ? "rgba(125, 211, 252, 0.2)" : previewFillColor;
     preview.style.opacity = "1";
   };
 
