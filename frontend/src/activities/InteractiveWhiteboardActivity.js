@@ -72,6 +72,19 @@ const CUSTOM_WHITEBOARD_FONTS = [
   { family: "Cursifl", url: "/polices/Cursifl.TTF" },
   { family: "Cursive Standard", url: "/polices/Cursive%20standard.ttf" },
 ];
+const WHITEBOARD_COLOR_OPTIONS = [
+  { value: "black", label: "⚫" },
+  { value: "blue", label: "🔵" },
+  { value: "red", label: "🔴" },
+  { value: "green", label: "🟢" },
+];
+const WHITEBOARD_BRUSH_SIZE_OPTIONS = [
+  { value: "1", label: "XS" },
+  { value: "5", label: "S" },
+  { value: "15", label: "M" },
+  { value: "30", label: "L" },
+  { value: "50", label: "XL" },
+];
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
 
@@ -287,11 +300,89 @@ function logWhiteboardFabricDiagnostics(fabric) {
   }
 }
 
+const DropupSelect = ({ id, value, onChange, options, title, triggerClassName = "" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const selectedOption = options.find((option) => option.value === value) || options[0];
+
+  return (
+    <div id={`${id}-container`} ref={containerRef} className="relative">
+      {isOpen && (
+        <div
+          id={`${id}-menu`}
+          role="listbox"
+          aria-label={title}
+          className="absolute bottom-full left-0 z-40 mb-2 min-w-full rounded-lg border border-sky-200 bg-white p-1 shadow-lg"
+        >
+          {options.map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                id={`${id}-option-${option.value}`}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`flex h-8 w-full items-center justify-center rounded-md px-2 text-sm font-semibold transition ${
+                  isSelected ? "bg-sky-100 text-sky-700" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <button
+        id={`${id}-trigger`}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        title={title}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`inline-flex h-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-none ${triggerClassName}`}
+      >
+        <span>{selectedOption?.label}</span>
+        <span className="ml-1 text-[10px]">▲</span>
+      </button>
+    </div>
+  );
+};
+
 const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
   const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
 
   const canvasRef = useRef(null);
+  const canvasFrameRef = useRef(null);
+  const brushPreviewRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const clipboardRef = useRef(null);
   const historyRef = useRef([]);
@@ -321,6 +412,47 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+
+  const hideBrushPreview = () => {
+    if (!brushPreviewRef.current) return;
+    brushPreviewRef.current.style.opacity = "0";
+  };
+
+  const showBrushPreviewAt = (clientX, clientY) => {
+    const preview = brushPreviewRef.current;
+    const frame = canvasFrameRef.current;
+
+    if (!preview || !frame) return;
+
+    const isEraseMode = modeRef.current === "erase";
+    const isDrawMode = modeRef.current === "draw";
+
+    if (!isEraseMode && !isDrawMode) {
+      hideBrushPreview();
+      return;
+    }
+
+    const rect = frame.getBoundingClientRect();
+    const zoom = Math.max(0.01, Number(currentZoom) || 1);
+    const diameter = Math.max(6, parseInt(brushSizeRef.current, 10) || 1);
+    const strokeColor = colorRef.current || "black";
+
+    preview.style.width = `${diameter}px`;
+    preview.style.height = `${diameter}px`;
+    preview.style.left = `${(clientX - rect.left) / zoom}px`;
+    preview.style.top = `${(clientY - rect.top) / zoom}px`;
+    preview.style.borderColor = isEraseMode ? "rgba(2, 132, 199, 0.8)" : strokeColor;
+    preview.style.backgroundColor = isEraseMode ? "rgba(125, 211, 252, 0.2)" : `${strokeColor}33`;
+    preview.style.opacity = "1";
+  };
+
+  const handleCanvasFramePointerMove = (event) => {
+    showBrushPreviewAt(event.clientX, event.clientY);
+  };
+
+  const handleCanvasFramePointerLeave = () => {
+    hideBrushPreview();
+  };
 
   const canvasWidth = Number(content?.width) || defaultInteractiveWhiteboardActivityContent.width;
   const canvasHeight = Number(content?.height) || defaultInteractiveWhiteboardActivityContent.height;
@@ -733,6 +865,12 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   }, [isReady, mode, color, brushSize]);
 
   useEffect(() => {
+    if (mode !== "erase" && mode !== "draw") {
+      hideBrushPreview();
+    }
+  }, [mode]);
+
+  useEffect(() => {
     if (!isReady) return;
     persistBoardState();
   }, [isReady, title, paperStyle, fontFamily]);
@@ -1084,13 +1222,21 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       >
         <div
           id="interactive-whiteboard-canvas-frame"
-          className="mx-auto rounded-lg bg-white shadow-2xl"
+          ref={canvasFrameRef}
+          onPointerMove={handleCanvasFramePointerMove}
+          onPointerLeave={handleCanvasFramePointerLeave}
+          className="relative mx-auto overflow-hidden rounded-lg bg-white shadow-2xl"
           style={{
             width: `${canvasWidth}px`,
             transform: `scale(${currentZoom})`,
             transformOrigin: "top center",
           }}
         >
+          <div
+            id="interactive-whiteboard-brush-preview"
+            ref={brushPreviewRef}
+            className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-600/80 bg-sky-300/20 opacity-0 transition-opacity duration-100"
+          />
           <canvas id="interactive-whiteboard-canvas" ref={canvasRef} />
         </div>
       </div>
@@ -1160,28 +1306,23 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               {(mode === "draw" || mode === "text" || mode === "erase") && (
               <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
                 {mode !== "erase" && (
-                  <select
+                  <DropupSelect
+                    id="interactive-whiteboard-color-select"
                     value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="h-9 rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-none"
-                  >
-                    <option value="black">⚫</option>
-                    <option value="blue">🔵</option>
-                    <option value="red">🔴</option>
-                    <option value="green">🟢</option>
-                  </select>
+                    onChange={setColor}
+                    options={WHITEBOARD_COLOR_OPTIONS}
+                    title="Couleur"
+                    triggerClassName="min-w-14"
+                  />
                 )}
-                <select
+                <DropupSelect
+                  id="interactive-whiteboard-size-select"
                   value={brushSize}
-                  onChange={(e) => setBrushSize(e.target.value)}
-                  className="h-9 rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-none"
-                >
-                  <option value="1">XS</option>
-                  <option value="5">S</option>
-                  <option value="15">M</option>
-                  <option value="30">L</option>
-                  <option value="50">XL</option>
-                </select>
+                  onChange={setBrushSize}
+                  options={WHITEBOARD_BRUSH_SIZE_OPTIONS}
+                  title="Taille du trait"
+                  triggerClassName="min-w-14"
+                />
               </div>
             )}
 
