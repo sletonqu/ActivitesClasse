@@ -634,8 +634,13 @@ const ClassSoundMeterActivity = ({ content }) => {
         <main id="class-sound-meter-center" className="mx-auto mt-8 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
 
           {isFinished && sessionStats.count > 0 && (
-            <div id="class-sound-meter-average" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-lg font-semibold text-white backdrop-blur">
-              Niveau moyen&nbsp;: {Math.round(displayAverageLevel * 100)}&nbsp;%
+            <div id="class-sound-meter-session-summary" className="flex flex-col items-center gap-2">
+              <div id="class-sound-meter-average" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-lg font-semibold text-white backdrop-blur">
+                Niveau moyen&nbsp;: {Math.round(displayAverageLevel * 100)}&nbsp;%
+              </div>
+              <div id="class-sound-meter-maximum" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-base font-semibold text-white backdrop-blur">
+                Niveau maximum&nbsp;: {Math.round(displayMaxLevel * 100)}&nbsp;%
+              </div>
             </div>
           )}
 
