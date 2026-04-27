@@ -172,6 +172,7 @@ const ClassSoundMeterActivity = ({ content }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [sessionDurationSeconds, setSessionDurationSeconds] = useState(Math.round(resolvedContent.timerMinutes * 60));
   const [sessionStats, setSessionStats] = useState({ sum: 0, count: 0, max: 0 });
+  const [progressAnimationTick, setProgressAnimationTick] = useState(0);
 
   const timerEndTsRef = useRef(null);
   const sampleIntervalRef = useRef(null);
@@ -187,11 +188,14 @@ const ClassSoundMeterActivity = ({ content }) => {
   const lastMeasurementElapsedMsRef = useRef(0);
   const lastWrittenCellIndexRef = useRef(-1);
   const lastWrittenLevelRef = useRef(null);
+  const animatedElapsedMsRef = useRef(0);
+  const lastProgressAnimationTsRef = useRef(null);
 
   const configuredDurationSeconds = Math.round(timerMinutes * 60);
   const totalProgressCells = sessionDurationSeconds * PROGRESS_SUBDIVISIONS_PER_SECOND;
   const sampleIntervalMs = 100;
-  const transitionMs = 220;
+  const transitionMs = 720;
+  const progressAnimationMs = Math.max(transitionMs, 900);
   const gaugeRingRadius = 74;
   const gaugeRingStroke = 20;
   const gaugeCircumference = 2 * Math.PI * gaugeRingRadius;
@@ -227,6 +231,8 @@ const ClassSoundMeterActivity = ({ content }) => {
     lastMeasurementElapsedMsRef.current = 0;
     lastWrittenCellIndexRef.current = -1;
     lastWrittenLevelRef.current = null;
+    animatedElapsedMsRef.current = 0;
+    lastProgressAnimationTsRef.current = null;
   };
 
   const appendRawMeasurement = (cellIndex, elapsedMs, level) => {
@@ -500,6 +506,27 @@ const ClassSoundMeterActivity = ({ content }) => {
   }, []);
 
   useEffect(() => {
+    if (!isRunning) {
+      return undefined;
+    }
+
+    let rafId = null;
+
+    const animateProgress = () => {
+      setProgressAnimationTick((previous) => (previous + 1) % 1000000);
+      rafId = window.requestAnimationFrame(animateProgress);
+    };
+
+    rafId = window.requestAnimationFrame(animateProgress);
+
+    return () => {
+      if (rafId != null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [isRunning]);
+
+  useEffect(() => {
     const canvas = progressCanvasRef.current;
     if (!canvas) {
       return;
@@ -538,7 +565,31 @@ const ClassSoundMeterActivity = ({ content }) => {
     }
 
     const elapsedByTimerMs = clamp((sessionDurationSeconds - remainingSeconds) * 1000, 0, sessionDurationMs);
-    const elapsedMs = clamp(Math.max(elapsedByTimerMs, lastMeasurementElapsedMsRef.current), 0, sessionDurationMs);
+    const targetElapsedMs = clamp(Math.max(elapsedByTimerMs, lastMeasurementElapsedMsRef.current), 0, sessionDurationMs);
+
+    let elapsedMs = targetElapsedMs;
+
+    if (isRunning) {
+      const now = window.performance.now();
+      const previousTs = lastProgressAnimationTsRef.current ?? now;
+      const deltaMs = now - previousTs;
+      lastProgressAnimationTsRef.current = now;
+
+      const previousElapsedMs = animatedElapsedMsRef.current;
+
+      if (targetElapsedMs <= previousElapsedMs) {
+        animatedElapsedMsRef.current = targetElapsedMs;
+      } else {
+        const alpha = 1 - Math.exp(-deltaMs / progressAnimationMs);
+        const interpolatedElapsedMs = previousElapsedMs + (targetElapsedMs - previousElapsedMs) * alpha;
+        animatedElapsedMsRef.current = clamp(interpolatedElapsedMs, 0, targetElapsedMs);
+      }
+
+      elapsedMs = animatedElapsedMsRef.current;
+    } else {
+      animatedElapsedMsRef.current = targetElapsedMs;
+      lastProgressAnimationTsRef.current = null;
+    }
 
     const renderedCells = Math.max(1, Math.min(totalProgressCells, pixelWidth));
     const cellDurationMs = sessionDurationMs / renderedCells;
@@ -572,7 +623,10 @@ const ClassSoundMeterActivity = ({ content }) => {
     }
   }, [
     currentLevel,
+    isRunning,
     paletteName,
+    progressAnimationMs,
+    progressAnimationTick,
     remainingSeconds,
     sessionDurationSeconds,
     totalProgressCells,
