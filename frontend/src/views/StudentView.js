@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ActivityContainer from "../activities/ActivityContainer";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
@@ -23,6 +23,7 @@ const StudentView = () => {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activityContent, setActivityContent] = useState(DEFAULT_ACTIVITY_CONTENT);
+  const [preferredLevelByActivityId, setPreferredLevelByActivityId] = useState({});
   const [scoresByStudentId, setScoresByStudentId] = useState({});
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -164,6 +165,13 @@ const StudentView = () => {
     const activityLevel = String(payload.levelKey || "").trim() || null;
     const activityLevelLabel = String(payload.levelLabel || "").trim() || null;
 
+    if (activityLevel) {
+      setPreferredLevelByActivityId((prev) => ({
+        ...prev,
+        [selectedActivityId]: activityLevel,
+      }));
+    }
+
     setScoresByStudentId((prev) => ({
       ...prev,
       [studentId]: numericScore,
@@ -186,6 +194,23 @@ const StudentView = () => {
       console.error("Erreur lors de l'enregistrement du résultat:", err);
     }
   };
+
+  const effectiveActivityContent = useMemo(() => {
+    const preferredLevel = String(preferredLevelByActivityId[selectedActivityId] || "").trim();
+    if (!preferredLevel) {
+      return activityContent;
+    }
+
+    const baseContent =
+      activityContent && typeof activityContent === "object" && !Array.isArray(activityContent)
+        ? activityContent
+        : DEFAULT_ACTIVITY_CONTENT;
+
+    return {
+      ...baseContent,
+      defaultLevel: preferredLevel,
+    };
+  }, [activityContent, preferredLevelByActivityId, selectedActivityId]);
 
   const StudentIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -357,7 +382,7 @@ const StudentView = () => {
                 <ActivityContainer
                   key={`demo-${selectedActivityId}`}
                   student={null}
-                  content={activityContent}
+                  content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
                   onComplete={() => {}}
                 />
@@ -367,7 +392,7 @@ const StudentView = () => {
                 <ActivityContainer
                   key={`${selectedStudent.id}-${selectedActivityId}`}
                   student={selectedStudent}
-                  content={activityContent}
+                  content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
                   onComplete={handleActivityComplete}
                   activityProps={{
