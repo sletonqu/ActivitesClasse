@@ -836,7 +836,7 @@ const TeacherView = () => {
             <option value="">Sélectionner une classe</option>
             {classes.map((cls) => (
               <option key={cls.id} value={cls.id}>
-                {cls.name} (ID: {cls.id})
+                {cls.name}
               </option>
             ))}
           </select>
