@@ -60,7 +60,7 @@ function formatTimestampForFile() {
   return `${date}_${time}`;
 }
 
-const PAPER_STYLE_VALUES = ["blank", "seyes", "grid"];
+const PAPER_STYLE_VALUES = ["blank", "seyes", "grid", "millimeter"];
 const WHITEBOARD_FONT_OPTIONS = [
   { label: "Cursif", value: "Cursif" },
   { label: "Cursif ligné", value: "Cursifl" },
@@ -230,6 +230,37 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
       context.lineTo(pos + 0.5, safeHeight);
       context.moveTo(0, pos + 0.5);
       context.lineTo(safeWidth, pos + 0.5);
+      context.stroke();
+    }
+  } else if (paperStyle === "millimeter") {
+    const mmSize = 5;
+    const halfCmSize = mmSize * 5;
+    const cmSize = mmSize * 10;
+
+    for (let pos = 0; pos <= Math.max(safeWidth, safeHeight); pos += mmSize) {
+      const isCmLine = pos % cmSize === 0;
+      const isHalfCmLine = pos % halfCmSize === 0;
+
+      context.beginPath();
+      if (isCmLine) {
+        context.strokeStyle = "#f87171";
+        context.lineWidth = 1.0;
+      } else if (isHalfCmLine) {
+        context.strokeStyle = "#fca5a5";
+        context.lineWidth = 0.8;
+      } else {
+        context.strokeStyle = "#fee2e2";
+        context.lineWidth = 0.5;
+      }
+
+      if (pos <= safeWidth) {
+        context.moveTo(pos + 0.5, 0);
+        context.lineTo(pos + 0.5, safeHeight);
+      }
+      if (pos <= safeHeight) {
+        context.moveTo(0, pos + 0.5);
+        context.lineTo(safeWidth, pos + 0.5);
+      }
       context.stroke();
     }
   }
@@ -1471,6 +1502,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 <option value="blank">Blanc</option>
                 <option value="seyes">Lignage Seyès</option>
                 <option value="grid">Carreaux géométrie</option>
+                <option value="millimeter">Papier millimétré</option>
               </select>
               <span className="text-xs font-medium text-slate-500">Police</span>
               <select
