@@ -429,6 +429,20 @@ const DropupSelect = ({
   );
 };
 
+const getGridSnapSize = (style) => {
+  switch (style) {
+    case "grid": return 24;
+    case "seyes": return 8;
+    case "millimeter": return 5;
+    default: return null;
+  }
+};
+
+const snapCoordinate = (val, gridSize) => {
+  if (!gridSize) return val;
+  return Math.round(val / gridSize) * gridSize;
+};
+
 const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
   const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
@@ -827,9 +841,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         setIsReady(true);
 
         const addTextAtPointer = (pointer) => {
+          const gridSize = getGridSnapSize(paperStyleRef.current);
           const text = new fabric.IText("Texte...", {
-            left: pointer.x,
-            top: pointer.y,
+            left: snapCoordinate(pointer.x, gridSize),
+            top: snapCoordinate(pointer.y, gridSize),
             fontFamily: fontFamilyRef.current || DEFAULT_TEXT_FONT_FAMILY,
             fontSize: (parseInt(brushSizeRef.current, 10) || 5) * 2 + 10,
             fill: colorRef.current,
@@ -871,11 +886,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           if (modeRef.current === "shape") {
             isDrawingShapeRef.current = true;
             const pointer = opt.pointer;
-            shapeOriginRef.current = { x: pointer.x, y: pointer.y };
+            const gridSize = getGridSnapSize(paperStyleRef.current);
+            const startX = snapCoordinate(pointer.x, gridSize);
+            const startY = snapCoordinate(pointer.y, gridSize);
+            shapeOriginRef.current = { x: startX, y: startY };
             
             const shapeProps = {
-              left: pointer.x,
-              top: pointer.y,
+              left: startX,
+              top: startY,
               fill: "transparent",
               stroke: colorRef.current,
               strokeWidth: parseInt(brushSizeRef.current, 10) || 1,
@@ -887,7 +905,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             let newShape;
             switch(shapeTypeRef.current) {
               case "line":
-                newShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], { ...shapeProps });
+                newShape = new fabric.Line([startX, startY, startX, startY], { ...shapeProps });
                 break;
               case "rectangle":
               case "square":
@@ -924,15 +942,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         canvas.on("mouse:move", (opt) => {
           if (modeRef.current === "shape" && isDrawingShapeRef.current && activeShapeRef.current) {
             const origin = shapeOriginRef.current;
-            const pointer = opt.pointer;
+            const gridSize = getGridSnapSize(paperStyleRef.current);
+            const pointerX = snapCoordinate(opt.pointer.x, gridSize);
+            const pointerY = snapCoordinate(opt.pointer.y, gridSize);
             const shape = activeShapeRef.current;
             const type = shapeTypeRef.current;
 
             if (type === "line") {
-              shape.set({ x2: pointer.x, y2: pointer.y });
+              shape.set({ x2: pointerX, y2: pointerY });
             } else {
-              let w = Math.abs(pointer.x - origin.x);
-              let h = Math.abs(pointer.y - origin.y);
+              let w = Math.abs(pointerX - origin.x);
+              let h = Math.abs(pointerY - origin.y);
               
               if (type === "square") {
                 const size = Math.max(w, h);
@@ -940,8 +960,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 h = size;
               }
 
-              const newLeft = pointer.x < origin.x ? origin.x - w : origin.x;
-              const newTop = pointer.y < origin.y ? origin.y - h : origin.y;
+              const newLeft = pointerX < origin.x ? origin.x - w : origin.x;
+              const newTop = pointerY < origin.y ? origin.y - h : origin.y;
 
               shape.set({ left: newLeft, top: newTop });
 
@@ -955,8 +975,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 shape.set({ 
                   scaleX: Math.max(w, 0.01), 
                   scaleY: Math.max(h, 0.01),
-                  flipX: pointer.x < origin.x,
-                  flipY: pointer.y < origin.y
+                  flipX: pointerX < origin.x,
+                  flipY: pointerY < origin.y
                 });
               }
             }
@@ -985,6 +1005,19 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           if (isPanningRef.current) {
             isPanningRef.current = false;
             if (modeRef.current === "pan") canvas.setCursor("grab");
+          }
+        });
+
+        canvas.on("object:moving", (opt) => {
+          const gridSize = getGridSnapSize(paperStyleRef.current);
+          if (!gridSize) return;
+          const obj = opt.target;
+          const isAlignable = ["i-text", "text", "textbox", "rect", "ellipse", "triangle", "polygon", "line", "activeSelection"].includes(obj.type);
+          if (isAlignable) {
+            obj.set({
+              left: snapCoordinate(obj.left, gridSize),
+              top: snapCoordinate(obj.top, gridSize)
+            });
           }
         });
 
