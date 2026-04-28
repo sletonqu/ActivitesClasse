@@ -81,6 +81,14 @@ const WHITEBOARD_COLOR_OPTIONS = [
   { value: "rgba(74, 222, 128, 0.35)", label: "🟩" },
   { value: "rgba(244, 114, 182, 0.35)", label: "🟪" },
 ];
+const WHITEBOARD_SHAPE_OPTIONS = [
+  { value: "line", label: "━ Ligne" },
+  { value: "rectangle", label: "▭ Rectangle" },
+  { value: "square", label: "◻ Carré" },
+  { value: "circle", label: "◯ Cercle" },
+  { value: "triangle-iso", label: "△ Triangle" },
+  { value: "triangle-right", label: "⊿ Triangle rect." },
+];
 const FIBONACCI_BRUSH_SIZES = [1, 2, 3, 5, 8, 13, 21, 34, 55];
 const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
   value: String(size),
@@ -413,6 +421,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const fontFamilyRef = useRef(configuredFontFamily);
   const isPanningRef = useRef(false);
   const lastPanPointRef = useRef({ x: 0, y: 0 });
+  const shapeTypeRef = useRef("rectangle");
+  const isDrawingShapeRef = useRef(false);
+  const shapeOriginRef = useRef({ x: 0, y: 0 });
+  const activeShapeRef = useRef(null);
 
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -421,6 +433,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [brushSize, setBrushSize] = useState("1");
   const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
   const [fontFamily, setFontFamily] = useState(configuredFontFamily);
+  const [shapeType, setShapeType] = useState("rectangle");
   const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 1.0);
   const [title, setTitle] = useState(content?.defaultTitle || "Tableau");
   const [showImageHint, setShowImageHint] = useState(false);
@@ -576,6 +589,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   }, [fontFamily]);
 
   useEffect(() => {
+    shapeTypeRef.current = shapeType;
+  }, [shapeType]);
+
+  useEffect(() => {
     paperStyleRef.current = paperStyle;
     if (!fabricCanvasRef.current) return;
     applyPaperStyleToCanvas(fabricCanvasRef.current, paperStyle, backgroundColor);
@@ -711,6 +728,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     if (mode === "pan") {
       canvas.defaultCursor = "grab";
       canvas.hoverCursor = "grab";
+    } else if (mode === "shape") {
+      canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
       canvas.hoverCursor = "move";
@@ -817,6 +837,52 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             addTextAtPointer(opt.pointer);
           }
 
+          if (modeRef.current === "shape") {
+            isDrawingShapeRef.current = true;
+            const pointer = opt.pointer;
+            shapeOriginRef.current = { x: pointer.x, y: pointer.y };
+            
+            const shapeProps = {
+              left: pointer.x,
+              top: pointer.y,
+              fill: "transparent",
+              stroke: colorRef.current,
+              strokeWidth: parseInt(brushSizeRef.current, 10) || 1,
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            };
+
+            let newShape;
+            switch(shapeTypeRef.current) {
+              case "line":
+                newShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], { ...shapeProps });
+                break;
+              case "rectangle":
+              case "square":
+                newShape = new fabric.Rect({ ...shapeProps, width: 0, height: 0 });
+                break;
+              case "circle":
+                newShape = new fabric.Ellipse({ ...shapeProps, rx: 0, ry: 0 });
+                break;
+              case "triangle-iso":
+                newShape = new fabric.Triangle({ ...shapeProps, width: 0, height: 0 });
+                break;
+              case "triangle-right":
+                newShape = new fabric.Polygon([
+                  { x: 0, y: 0 },
+                  { x: 0, y: 1 },
+                  { x: 1, y: 1 }
+                ], { ...shapeProps, width: 1, height: 1, scaleX: 0.01, scaleY: 0.01 });
+                break;
+            }
+
+            if (newShape) {
+              canvas.add(newShape);
+              activeShapeRef.current = newShape;
+            }
+          }
+
           if (modeRef.current === "pan") {
             isPanningRef.current = true;
             lastPanPointRef.current = { x: opt.e.clientX, y: opt.e.clientY };
@@ -825,6 +891,49 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         });
 
         canvas.on("mouse:move", (opt) => {
+          if (modeRef.current === "shape" && isDrawingShapeRef.current && activeShapeRef.current) {
+            const origin = shapeOriginRef.current;
+            const pointer = opt.pointer;
+            const shape = activeShapeRef.current;
+            const type = shapeTypeRef.current;
+
+            if (type === "line") {
+              shape.set({ x2: pointer.x, y2: pointer.y });
+            } else {
+              let w = Math.abs(pointer.x - origin.x);
+              let h = Math.abs(pointer.y - origin.y);
+              
+              if (type === "square") {
+                const size = Math.max(w, h);
+                w = size;
+                h = size;
+              }
+
+              const newLeft = pointer.x < origin.x ? origin.x - w : origin.x;
+              const newTop = pointer.y < origin.y ? origin.y - h : origin.y;
+
+              shape.set({ left: newLeft, top: newTop });
+
+              if (type === "rectangle" || type === "square") {
+                shape.set({ width: w, height: h });
+              } else if (type === "circle") {
+                shape.set({ rx: w / 2, ry: h / 2 });
+              } else if (type === "triangle-iso") {
+                shape.set({ width: w, height: h });
+              } else if (type === "triangle-right") {
+                shape.set({ 
+                  scaleX: Math.max(w, 0.01), 
+                  scaleY: Math.max(h, 0.01),
+                  flipX: pointer.x < origin.x,
+                  flipY: pointer.y < origin.y
+                });
+              }
+            }
+            
+            canvas.requestRenderAll();
+            return;
+          }
+
           if (!isPanningRef.current || modeRef.current !== "pan") return;
           const deltaX = opt.e.clientX - lastPanPointRef.current.x;
           const deltaY = opt.e.clientY - lastPanPointRef.current.y;
@@ -833,6 +942,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         });
 
         canvas.on("mouse:up", () => {
+          if (modeRef.current === "shape" && isDrawingShapeRef.current) {
+            isDrawingShapeRef.current = false;
+            if (activeShapeRef.current) {
+               activeShapeRef.current.setCoords();
+               saveHistory();
+               activeShapeRef.current = null;
+            }
+          }
+
           if (isPanningRef.current) {
             isPanningRef.current = false;
             if (modeRef.current === "pan") canvas.setCursor("grab");
@@ -1369,39 +1487,40 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   </option>
                 ))}
               </select>
-              <button type="button" onClick={handleExportJson} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">💾</button>
-              <button type="button" onClick={() => inputJsonRef.current?.click()} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">📂</button>
+                              <button type="button" onClick={handleExportJson} title="Exporter le tableau au format JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >💾</button>
+                              <button type="button" onClick={() => inputJsonRef.current?.click()} title="Importer un fichier JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📂</button>
               <input ref={inputJsonRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
-              <button type="button" onClick={handleExportPng} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">📷</button>
+                              <button type="button" onClick={handleExportPng} title="Exporter le tableau au format PNG" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📷</button>
             </div>
 
             <div id="interactive-whiteboard-view-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <button type="button" onClick={handleToggleOrientation} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">🔃</button>
-              <button type="button" onClick={() => setCurrentZoom((prev) => Math.max(0.2, prev - 0.1))} className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50">−</button>
+                              <button type="button" onClick={handleToggleOrientation} title="Basculer l'orientation" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔃</button>
+                              <button type="button" onClick={() => setCurrentZoom((prev) => Math.max(0.2, prev - 0.1))} title="Zoom arrière" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >−</button>
               <span className="min-w-12 text-center text-sm font-semibold text-slate-500">{Math.round(currentZoom * 100)}%</span>
-              <button type="button" onClick={() => setCurrentZoom((prev) => prev + 0.1)} className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50">+</button>
+                              <button type="button" onClick={() => setCurrentZoom((prev) => prev + 0.1)} title="Zoom avant" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >+</button>
             </div>
 
             <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <button type="button" onClick={handlePanButtonClick} className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>✋</button>
-              <button type="button" onClick={() => setMode("draw")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>✏️</button>
-              <button type="button" onClick={() => setMode("text")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>T</button>
-              <button type="button" onClick={() => setMode("erase")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>🧽</button>
-              <button type="button" onClick={() => inputImageRef.current?.click()} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">🖼️</button>
+                              <button type="button" onClick={handlePanButtonClick} title="Déplacer la vue" className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✋</button>
+                              <button type="button" onClick={() => setMode("draw")} title="Dessiner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✏️</button>
+              <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
+                              <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
+                              <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
+                              <button type="button" onClick={() => inputImageRef.current?.click()} title="Insérer une image" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🖼️</button>
               <input ref={inputImageRef} type="file" accept="image/*" onChange={handlePrepareImage} className="hidden" />
-              <button type="button" onClick={() => setMode("select")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}>👇</button>
+                              <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
             </div>
 
             <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={undo} disabled={!canUndo} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50">↩️</button>
-              <button type="button" onClick={redo} disabled={!canRedo} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50">↪️</button>
-              <button type="button" onClick={handleClear} className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50">🧹</button>
+                              <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↩️</button>
+                              <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
+                              <button type="button" onClick={handleClear} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
             </div>
           </section>
 
-          {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select") && (
+          {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
             <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
-              {(mode === "draw" || mode === "text" || mode === "erase") && (
+              {(mode === "draw" || mode === "text" || mode === "erase" || mode === "shape") && (
               <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
                 {mode !== "erase" && (
                   <DropupSelect
@@ -1424,18 +1543,28 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   renderSelectedOption={(option) => renderBrushSizePreview(option, true)}
                   getOptionStyle={getBrushSizeOptionStyle}
                 />
+                {mode === "shape" && (
+                  <DropupSelect
+                    id="interactive-whiteboard-shape-type-select"
+                    value={shapeType}
+                    onChange={setShapeType}
+                    options={WHITEBOARD_SHAPE_OPTIONS}
+                    title="Forme géométrique"
+                    triggerClassName="min-w-14"
+                  />
+                )}
               </div>
             )}
 
               {mode === "select" && (
               <div id="interactive-whiteboard-selection-group" className="flex flex-wrap items-center gap-2">
-                <button type="button" onClick={handleCut} className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50">✂️</button>
-                <button type="button" onClick={handleCopy} className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50">📋</button>
-                <button type="button" onClick={handlePaste} className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50">🗐</button>
-                <button type="button" onClick={handleDeleteSelection} className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50">❌</button>
-                <button type="button" onClick={handleBringForward} className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50">🔺</button>
-                <button type="button" onClick={handleSendBackward} className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50">🔻</button>
-                <button type="button" onClick={handleToggleLock} className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50">🔒</button>
+                                <button type="button" onClick={handleCut} title="Couper la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >✂️</button>
+                                <button type="button" onClick={handleCopy} title="Copier la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >📋</button>
+                                <button type="button" onClick={handlePaste} title="Coller" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >🗐</button>
+                                <button type="button" onClick={handleDeleteSelection} title="Supprimer la sélection" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >❌</button>
+                                <button type="button" onClick={handleBringForward} title="Avancer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔺</button>
+                                <button type="button" onClick={handleSendBackward} title="Reculer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔻</button>
+                                <button type="button" onClick={handleToggleLock} title="Verrouiller / Déverrouiller" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔒</button>
               </div>
               )}
             </section>
