@@ -1327,7 +1327,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           style={{
             width: `${canvasWidth}px`,
             transform: `scale(${currentZoom})`,
-            transformOrigin: "top center",
+            transformOrigin: "top left",
           }}
         >
           <div
