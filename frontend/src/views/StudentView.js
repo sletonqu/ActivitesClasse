@@ -130,6 +130,15 @@ const StudentView = () => {
     setScoresByStudentId({});
   }, [selectedActivityId, selectedActivity]);
 
+  useEffect(() => {
+    if (selectedActivityId || isDemoMode) {
+      const timer = setTimeout(() => {
+        setHeaderCollapsed(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedActivityId, isDemoMode]);
+
 
   const leaderboard = filteredStudents
     .filter((student) => scoresByStudentId[student.id] !== undefined)
@@ -225,8 +234,8 @@ const StudentView = () => {
             onClick={() => setHeaderCollapsed(false)}
             title="Afficher les contrôles"
             className={`fixed top-3 left-3 z-50 h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md transition-colors ${isDemoMode
-                ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
-                : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+              ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+              : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
               }`}
           >
             <StudentIcon />
@@ -240,8 +249,8 @@ const StudentView = () => {
                 onClick={() => setHeaderCollapsed(true)}
                 title="Masquer les contrôles"
                 className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
-                    ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
-                    : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+                  ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+                  : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
                   }`}
               >
                 <StudentIcon />
