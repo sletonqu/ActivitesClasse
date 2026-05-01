@@ -39,12 +39,6 @@ const StudentView = () => {
     return activity.discipline === selectedDiscipline;
   }).sort((a, b) => a.title.localeCompare(b.title));
 
-  const demoBannerMessage = isDemoMode && selectedActivityId ? "Mode démo actif" : "";
-  const { show: showDemoBanner, fade: fadeDemoBanner } = useAutoDismissMessage(
-    demoBannerMessage,
-    null
-  );
-
   useEffect(() => {
     loadClassesIntoState(setClasses);
     loadStudentsIntoState(setStudents);
@@ -222,7 +216,7 @@ const StudentView = () => {
   return (
     <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex w-full flex-1 flex-col items-center">
-        
+
         {/* Header Glassy Unifié - Version Compacte */}
         {headerCollapsed ? (
           <button
@@ -230,127 +224,131 @@ const StudentView = () => {
             type="button"
             onClick={() => setHeaderCollapsed(false)}
             title="Afficher les contrôles"
-            className="fixed top-3 left-3 z-50 h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+            className={`fixed top-3 left-3 z-50 h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md transition-colors ${isDemoMode
+                ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+                : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+              }`}
           >
             <StudentIcon />
           </button>
         ) : (
-        <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
-          <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
-            <button
-              id="student-logo"
-              type="button"
-              onClick={() => setHeaderCollapsed(true)}
-              title="Masquer les contrôles"
-              className="h-8 w-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 hover:bg-indigo-700 transition-colors cursor-pointer"
-            >
-              <StudentIcon />
-            </button>
-            <div id="student-title-block" className="flex flex-col min-w-0 items-start">
-              <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
-              <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
-                {selectedActivity?.title || "Choisir une activité"}
-              </span>
-            </div>
-          </div>
-
-          <div id="student-controls" className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
-            {/* Groupe Classe/Groupe */}
-            <div id="student-grouping-controls" className="flex gap-2 flex-1 sm:flex-initial">
-              <div className="relative group flex-1 sm:w-32">
-                <select
-                  id="student-class-selector"
-                  value={selectedClassId}
-                  onChange={(e) => {
-                    setSelectedClassId(e.target.value);
-                    setSelectedGroupId("");
-                  }}
-                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                >
-                  <option value="">Classe</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="relative group flex-1 sm:w-28">
-                <select
-                  id="student-group-selector"
-                  value={selectedGroupId}
-                  onChange={(e) => setSelectedGroupId(e.target.value)}
-                  disabled={!selectedClassId || loadingGroups}
-                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
-                >
-                  <option value="">Groupes</option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>{group.name}</option>
-                  ))}
-                </select>
+          <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
+            <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
+              <button
+                id="student-logo"
+                type="button"
+                onClick={() => setHeaderCollapsed(true)}
+                title="Masquer les contrôles"
+                className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
+                    ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+                    : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+                  }`}
+              >
+                <StudentIcon />
+              </button>
+              <div id="student-title-block" className="flex flex-col min-w-0 items-start">
+                <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
+                <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
+                  {selectedActivity?.title || "Choisir une activité"}
+                </span>
               </div>
             </div>
 
-            {/* Groupe Discipline/Activité */}
-            <div id="student-activity-controls" className="flex gap-2 flex-1 sm:flex-initial">
-              <div id="student-view-discipline-container" className="relative group flex-1 sm:w-32">
-                <select
-                  id="student-discipline-selector"
-                  value={selectedDiscipline}
-                  onChange={(e) => {
-                    setSelectedDiscipline(e.target.value);
-                    setSelectedActivityId("");
-                  }}
-                  className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                >
-                  <option value="">Discipline</option>
-                  {availableDisciplines.map((disc) => (
-                    <option key={disc} value={disc}>{disc}</option>
-                  ))}
-                </select>
+            <div id="student-controls" className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
+              {/* Groupe Classe/Groupe */}
+              <div id="student-grouping-controls" className="flex gap-2 flex-1 sm:flex-initial">
+                <div className="relative group flex-1 sm:w-32">
+                  <select
+                    id="student-class-selector"
+                    value={selectedClassId}
+                    onChange={(e) => {
+                      setSelectedClassId(e.target.value);
+                      setSelectedGroupId("");
+                    }}
+                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                  >
+                    <option value="">Classe</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="relative group flex-1 sm:w-28">
+                  <select
+                    id="student-group-selector"
+                    value={selectedGroupId}
+                    onChange={(e) => setSelectedGroupId(e.target.value)}
+                    disabled={!selectedClassId || loadingGroups}
+                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="">Groupes</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div id="student-view-activity-container" className="relative group flex-1 sm:w-40">
-                <select
-                  id="student-activity-selector"
-                  value={selectedActivityId}
-                  onChange={(e) => setSelectedActivityId(e.target.value)}
-                  className="w-full border border-slate-200 bg-indigo-50/50 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                >
-                  <option value="">Activité</option>
-                  {filteredActivities.map((activity) => (
-                    <option key={activity.id} value={activity.id}>{activity.title}</option>
-                  ))}
-                </select>
+              {/* Groupe Discipline/Activité */}
+              <div id="student-activity-controls" className="flex gap-2 flex-1 sm:flex-initial">
+                <div id="student-view-discipline-container" className="relative group flex-1 sm:w-32">
+                  <select
+                    id="student-discipline-selector"
+                    value={selectedDiscipline}
+                    onChange={(e) => {
+                      setSelectedDiscipline(e.target.value);
+                      setSelectedActivityId("");
+                    }}
+                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                  >
+                    <option value="">Discipline</option>
+                    {availableDisciplines.map((disc) => (
+                      <option key={disc} value={disc}>{disc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div id="student-view-activity-container" className="relative group flex-1 sm:w-40">
+                  <select
+                    id="student-activity-selector"
+                    value={selectedActivityId}
+                    onChange={(e) => setSelectedActivityId(e.target.value)}
+                    className="w-full border border-slate-200 bg-indigo-50/50 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                  >
+                    <option value="">Activité</option>
+                    {filteredActivities.map((activity) => (
+                      <option key={activity.id} value={activity.id}>{activity.title}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
+              {/* Mode Démo Toggle */}
+              <button
+                id="student-demo-mode-toggle"
+                type="button"
+                onClick={() => setIsDemoMode(!isDemoMode)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${isDemoMode
+                  ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-sm"
+                  : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
+                  }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
+                Mode Démo
+              </button>
             </div>
-
-            {/* Mode Démo Toggle */}
-            <button
-              id="student-demo-mode-toggle"
-              type="button"
-              onClick={() => setIsDemoMode(!isDemoMode)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                isDemoMode 
-                ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-sm" 
-                : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
-              }`}
-            >
-              <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
-              Mode Démo
-            </button>
-          </div>
-        </header>
+          </header>
         )}
 
         <div
           id="student-view-main-layout"
-          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-stretch gap-1 ${
-            isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[130px_minmax(0,1fr)_140px]"
-          }`}
+          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-stretch gap-1 ${isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[130px_minmax(0,1fr)_140px]"
+            }`}
         >
           {!isDemoMode && (
             <div id="student-view-students-panel" className="w-full min-w-0 self-stretch">
-              <StudentPanel 
+              <StudentPanel
                 students={filteredStudents}
                 selectedStudent={selectedStudent}
                 scoresByStudentId={scoresByStudentId}
@@ -369,22 +367,12 @@ const StudentView = () => {
               </div>
             ) : isDemoMode ? (
               <div className="space-y-3">
-                {showDemoBanner && (
-                  <div
-                    id="student-view-demo-banner"
-                    className={`rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800 transition-opacity duration-500 ${
-                      fadeDemoBanner ? "opacity-0" : "opacity-100"
-                    }`}
-                  >
-                    Mode démo activé : l'activité s'exécute sans élève sélectionné et aucun résultat ne sera enregistré.
-                  </div>
-                )}
                 <ActivityContainer
                   key={`demo-${selectedActivityId}`}
                   student={null}
                   content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
-                  onComplete={() => {}}
+                  onComplete={() => { }}
                 />
               </div>
             ) : selectedStudent ? (
@@ -410,7 +398,7 @@ const StudentView = () => {
 
           {!isDemoMode && (
             <div id="student-view-leaderboard-panel" className="w-full min-w-0 self-stretch">
-              <LeaderboardPanel 
+              <LeaderboardPanel
                 leaderboard={leaderboard}
                 selectedClassId={selectedClassId}
                 selectedActivityId={selectedActivityId}
