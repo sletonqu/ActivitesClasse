@@ -610,7 +610,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const canvasWidth = Number(content?.width) || defaultInteractiveWhiteboardActivityContent.width;
   const canvasHeight = Number(content?.height) || defaultInteractiveWhiteboardActivityContent.height;
   const backgroundColor = content?.backgroundColor || defaultInteractiveWhiteboardActivityContent.backgroundColor;
-  const studentFullName = `${student?.firstname || ""} ${student?.name || ""}`.trim() || "Élève";
+  const studentFullName = `${student?.firstname || ""} ${student?.name || ""}`.trim() || "Démo";
   const storageKeyBase = content?.storageKey || defaultInteractiveWhiteboardActivityContent.storageKey;
   const storageKey = `${storageKeyBase}_${student?.id || sanitizeFileNamePart(studentFullName)}`;
 
@@ -1140,8 +1140,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       disposed = true;
       if (fabricCanvasRef.current) {
         // Prévenir les appels de rendu asynchrones post-dispose (ex: fin de loadFromJSON en StrictMode)
-        fabricCanvasRef.current.renderAll = () => {};
-        fabricCanvasRef.current.requestRenderAll = () => {};
+        fabricCanvasRef.current.renderAll = () => { };
+        fabricCanvasRef.current.requestRenderAll = () => { };
         try {
           fabricCanvasRef.current.dispose();
         } catch (e) {
