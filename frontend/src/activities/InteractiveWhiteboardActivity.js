@@ -1531,11 +1531,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         </div>
       </div>
 
-      <div id="interactive-whiteboard-toolbar-dock" className="fixed bottom-4 left-1/2 z-50 w-[min(1100px,calc(100vw-1rem))] -translate-x-1/2 px-2 print:hidden">
+      <div id="interactive-whiteboard-toolbar-dock" className="fixed bottom-4 left-1/2 z-50 w-[min(780px,calc(100vw-1rem))] -translate-x-1/2 px-2 print:hidden">
         <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
           <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/90 px-3 py-2 shadow-xl backdrop-blur">
             <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <span className="text-xs font-medium text-slate-500">Fond</span>
               <select
                 id="interactive-whiteboard-paper-style"
                 value={paperStyle}
@@ -1547,7 +1546,6 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 <option value="grid">Carreaux géométrie</option>
                 <option value="millimeter">Papier millimétré</option>
               </select>
-              <span className="text-xs font-medium text-slate-500">Police</span>
               <select
                 id="interactive-whiteboard-font-family"
                 value={fontFamily}
