@@ -835,7 +835,6 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         alignFabricLayersTopLeft(canvas);
 
         fabricCanvasRef.current = canvas;
-        setIsReady(true);
 
         const addTextAtPointer = (pointer) => {
           const defaulttext = "Bonjour...";
@@ -1106,6 +1105,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
           if (savedCanvas) {
             canvas.loadFromJSON(savedCanvas, () => {
+              if (disposed) return;
               if (savedCanvas.width && savedCanvas.height) {
                 canvas.setDimensions({ width: savedCanvas.width, height: savedCanvas.height });
               }
@@ -1115,25 +1115,38 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               historyRef.current = [JSON.stringify(savedCanvas)];
               historyStepRef.current = 0;
               updateHistoryButtons();
+              setIsReady(true);
             });
           } else {
+            if (disposed) return;
             applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
             historyLockedRef.current = false;
             saveHistory();
+            setIsReady(true);
           }
         } else {
+          if (disposed) return;
           applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
           saveHistory();
+          setIsReady(true);
         }
       })
       .catch((error) => {
+        if (disposed) return;
         setLoadError(error.message || "Chargement du tableau impossible");
       });
 
     return () => {
       disposed = true;
       if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.dispose();
+        // Prévenir les appels de rendu asynchrones post-dispose (ex: fin de loadFromJSON en StrictMode)
+        fabricCanvasRef.current.renderAll = () => {};
+        fabricCanvasRef.current.requestRenderAll = () => {};
+        try {
+          fabricCanvasRef.current.dispose();
+        } catch (e) {
+          // Ignorer les erreurs internes de destruction Fabric
+        }
         fabricCanvasRef.current = null;
       }
     };
