@@ -134,7 +134,7 @@ const StudentView = () => {
     if (selectedActivityId || isDemoMode) {
       const timer = setTimeout(() => {
         setHeaderCollapsed(true);
-      }, 500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [selectedActivityId, isDemoMode]);
