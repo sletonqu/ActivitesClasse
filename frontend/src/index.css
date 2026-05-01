@@ -17,6 +17,8 @@ body {
   font-family: 'Outfit', sans-serif;
   background: radial-gradient(circle at top left, #f8fafc, #f1f5f9);
   color: #334155;
+  touch-action: pan-x pan-y; /* Bloque le pinch-to-zoom */
+  overscroll-behavior: none; /* Empêche le rebond et le pull-to-refresh */
 }
 
 .glass-panel {
