@@ -7,7 +7,7 @@ export const defaultInteractiveWhiteboardActivityContent = {
   backgroundColor: "#ffffff",
   paperStyle: "seyes",
   fontFamily: "Cursif",
-  defaultZoom: 1.8,
+  defaultZoom: 2.0,
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
 
@@ -907,6 +907,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               stroke: colorRef.current,
               strokeWidth: parseInt(brushSizeRef.current, 10) || 1,
               strokeUniform: true,
+              strokeLineCap: 'round',
               selectable: false,
               evented: false,
             };
@@ -914,7 +915,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             let newShape;
             switch (shapeTypeRef.current) {
               case "line":
-                newShape = new fabric.Line([startX, startY, startX, startY], { ...shapeProps });
+                newShape = new fabric.Line([startX, startY, startX, startY], { ...shapeProps, originY: 'center', originX: 'center' });
                 break;
               case "rectangle":
               case "square":
