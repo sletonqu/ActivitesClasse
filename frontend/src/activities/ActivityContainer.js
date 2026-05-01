@@ -11,6 +11,7 @@ import ReadNumbersActivity from "./ReadNumbersActivity";
 import MakeChangeActivity from "./MakeChangeActivity";
 import AlphabeticalSortActivity from "./AlphabeticalSortActivity";
 import ClassSoundMeterActivity from "./ClassSoundMeterActivity";
+import CodeJuniorActivity from "./CodeJuniorActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -49,6 +50,9 @@ const componentRegistry = {
   "src/activities/ClassSoundMeterActivity.js": ClassSoundMeterActivity,
   "ClassSoundMeterActivity": ClassSoundMeterActivity,
   "ClassSoundMeterActivity.js": ClassSoundMeterActivity,
+  "src/activities/CodeJuniorActivity.js": CodeJuniorActivity,
+  "CodeJuniorActivity": CodeJuniorActivity,
+  "CodeJuniorActivity.js": CodeJuniorActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {
