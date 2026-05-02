@@ -59,6 +59,8 @@ const TeacherView = () => {
   const [calculatingAverageResultId, setCalculatingAverageResultId] = useState("");
   const [showActivitiesList, setShowActivitiesList] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
+  const [selectedResultGroupId, setSelectedResultGroupId] = useState("");
+  const [selectedResultActivityId, setSelectedResultActivityId] = useState("");
   const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
   const [editActivityTitle, setEditActivityTitle] = useState("");
   const [editActivityDescription, setEditActivityDescription] = useState("");
@@ -532,7 +534,8 @@ const TeacherView = () => {
     setStudentResults([]);
     setSelectedResultId("");
     setResultsError("");
-    setSelectedGroupId("");
+    setSelectedResultGroupId("");
+    setSelectedResultActivityId("");
     setSelectedAvailableStudentId("");
     setGroupError("");
     setGroupMessage("");
@@ -924,8 +927,12 @@ const TeacherView = () => {
           <ResultsManagementPanel
             selectedClassId={selectedClassId}
             selectedResultStudentId={selectedResultStudentId}
+            selectedResultGroupId={selectedResultGroupId}
+            selectedResultActivityId={selectedResultActivityId}
             selectedResultId={selectedResultId}
             students={students}
+            groups={groups}
+            activities={activities}
             studentResults={studentResults}
             selectedResultStudent={selectedResultStudent}
             loadingResults={loadingResults}
@@ -934,6 +941,8 @@ const TeacherView = () => {
             deletingResultId={deletingResultId}
             calculatingAverageResultId={calculatingAverageResultId}
             onSelectResultStudent={setSelectedResultStudentId}
+            onSelectResultGroupId={setSelectedResultGroupId}
+            onSelectResultActivityId={setSelectedResultActivityId}
             onSelectResult={setSelectedResultId}
             onCalculateAverage={handleCalculateAverage}
             onDeleteResult={handleDeleteResult}
