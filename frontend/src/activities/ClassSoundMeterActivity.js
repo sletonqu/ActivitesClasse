@@ -5,6 +5,9 @@ export const defaultClassSoundMeterActivityContent = {
   subtitle: "Outil visuel pour garder une ambiance de travail calme.",
   timerMinutes: 3,
   paletteName: "Ocean",
+  sensitivityMultiplier: 1,
+  sensitivityMin: 0.5,
+  sensitivityMax: 5,
 };
 
 const PALETTES = {
@@ -19,6 +22,8 @@ const GAUGE_SCALE_RATIO = GAUGE_RENDER_SIZE / GAUGE_VIEWBOX_SIZE;
 const GAUGE_START_ANGLE = -135;
 const GAUGE_SWEEP_ANGLE = 270;
 const PROGRESS_SUBDIVISIONS_PER_SECOND = 10;
+const PROGRESS_HEIGHT_BASE = 20;
+const PROGRESS_HEIGHT_FINISH = 60;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -152,17 +157,42 @@ const ClassSoundMeterActivity = ({ content }) => {
     const paletteName = Object.prototype.hasOwnProperty.call(PALETTES, source.paletteName)
       ? source.paletteName
       : defaultClassSoundMeterActivityContent.paletteName;
+    const configuredSensitivityMin = Number(source.sensitivityMin);
+    const configuredSensitivityMax = Number(source.sensitivityMax);
+    const fallbackSensitivityMin = defaultClassSoundMeterActivityContent.sensitivityMin;
+    const fallbackSensitivityMax = defaultClassSoundMeterActivityContent.sensitivityMax;
+
+    const rawSensitivityMin = Number.isFinite(configuredSensitivityMin)
+      ? configuredSensitivityMin
+      : fallbackSensitivityMin;
+    const rawSensitivityMax = Number.isFinite(configuredSensitivityMax)
+      ? configuredSensitivityMax
+      : fallbackSensitivityMax;
+
+    const sensitivityMin = Math.max(0.1, Math.min(rawSensitivityMin, rawSensitivityMax));
+    const sensitivityMax = Math.max(sensitivityMin + 0.1, Math.max(rawSensitivityMin, rawSensitivityMax));
+    const configuredSensitivityMultiplier = Number(source.sensitivityMultiplier);
 
     return {
       title: source.title || defaultClassSoundMeterActivityContent.title,
       subtitle: source.subtitle || defaultClassSoundMeterActivityContent.subtitle,
       timerMinutes: clamp(Number(source.timerMinutes) || defaultClassSoundMeterActivityContent.timerMinutes, 1, 60),
       paletteName,
+      sensitivityMin,
+      sensitivityMax,
+      sensitivityMultiplier: clamp(
+        Number.isFinite(configuredSensitivityMultiplier)
+          ? configuredSensitivityMultiplier
+          : defaultClassSoundMeterActivityContent.sensitivityMultiplier,
+        sensitivityMin,
+        sensitivityMax
+      ),
     };
   }, [content]);
 
   const [timerMinutes, setTimerMinutes] = useState(resolvedContent.timerMinutes);
   const [paletteName, setPaletteName] = useState(resolvedContent.paletteName);
+  const [sensitivityMultiplier, setSensitivityMultiplier] = useState(resolvedContent.sensitivityMultiplier);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -183,6 +213,7 @@ const ClassSoundMeterActivity = ({ content }) => {
   const sourceNodeRef = useRef(null);
   const analyserRef = useRef(null);
   const sampleBufferRef = useRef(null);
+  const sensitivityMultiplierRef = useRef(resolvedContent.sensitivityMultiplier);
   const progressCanvasRef = useRef(null);
   const rawMeasurementsRef = useRef([]);
   const lastMeasurementElapsedMsRef = useRef(0);
@@ -193,6 +224,7 @@ const ClassSoundMeterActivity = ({ content }) => {
 
   const configuredDurationSeconds = Math.round(timerMinutes * 60);
   const totalProgressCells = sessionDurationSeconds * PROGRESS_SUBDIVISIONS_PER_SECOND;
+  const progressBarHeight = isFinished ? PROGRESS_HEIGHT_FINISH : PROGRESS_HEIGHT_BASE;
   const sampleIntervalMs = 100;
   const transitionMs = 720;
   const progressAnimationMs = Math.max(transitionMs, 900);
@@ -225,6 +257,10 @@ const ClassSoundMeterActivity = ({ content }) => {
     maxBubblePosition,
     "rgba(49, 46, 129, 0.95)"
   );
+
+  useEffect(() => {
+    sensitivityMultiplierRef.current = sensitivityMultiplier;
+  }, [sensitivityMultiplier]);
 
   const resetProgressTrace = () => {
     rawMeasurementsRef.current = [];
@@ -324,7 +360,7 @@ const ClassSoundMeterActivity = ({ content }) => {
       }
     }
 
-    const instantaneousLevel = clamp(peakLevel, 0, 1);
+    const instantaneousLevel = clamp(peakLevel * sensitivityMultiplierRef.current, 0, 1);
     const instantaneousDisplayLevel = levelToDisplayLevel(instantaneousLevel) / 100;
     const now = Date.now();
     const preciseRemainingSeconds = timerEndTsRef.current
@@ -538,7 +574,7 @@ const ClassSoundMeterActivity = ({ content }) => {
     }
 
     const cssWidth = Math.max(1, Math.floor(parent.clientWidth));
-    const cssHeight = 20;
+    const cssHeight = progressBarHeight;
     const dpr = window.devicePixelRatio || 1;
     const pixelWidth = Math.max(1, Math.floor(cssWidth * dpr));
     const pixelHeight = Math.max(1, Math.floor(cssHeight * dpr));
@@ -623,8 +659,10 @@ const ClassSoundMeterActivity = ({ content }) => {
     }
   }, [
     currentLevel,
+    isFinished,
     isRunning,
     paletteName,
+    progressBarHeight,
     progressAnimationMs,
     progressAnimationTick,
     remainingSeconds,
@@ -732,7 +770,10 @@ const ClassSoundMeterActivity = ({ content }) => {
         </main>
 
         <footer id="class-sound-meter-progress-footer" className="mx-auto mt-8 w-full max-w-4xl">
-          <div className="h-5 overflow-hidden rounded-full border border-white/30 bg-slate-900/70">
+          <div
+            className="overflow-hidden rounded-full border border-white/30 bg-slate-900/70"
+            style={{ height: `${progressBarHeight}px` }}
+          >
             <canvas id="class-sound-meter-progress-fill" ref={progressCanvasRef} className="block h-full w-full" />
           </div>
         </footer>
@@ -761,11 +802,12 @@ const ClassSoundMeterActivity = ({ content }) => {
               >
                 <p className="text-xs uppercase tracking-[0.16em] text-slate-100/80">Niveau sonore instantané</p>
 
-                <div className="relative mx-auto h-[130px] w-[220px] sm:w-[240px]">
-                  <div
-                    className="absolute left-1/2 top-0 -translate-x-1/2"
-                    style={{ height: `${GAUGE_RENDER_SIZE}px`, width: `${GAUGE_RENDER_SIZE}px` }}
-                  >
+                <div className="mx-auto flex items-center justify-center gap-3">
+                  <div className="relative h-[130px] w-[220px] sm:w-[240px]">
+                    <div
+                      className="absolute left-1/2 top-0 -translate-x-1/2"
+                      style={{ height: `${GAUGE_RENDER_SIZE}px`, width: `${GAUGE_RENDER_SIZE}px` }}
+                    >
                     <svg
                       viewBox={`0 0 ${GAUGE_VIEWBOX_SIZE} ${GAUGE_VIEWBOX_SIZE}`}
                       style={{ height: `${GAUGE_RENDER_SIZE}px`, width: `${GAUGE_RENDER_SIZE}px` }}
@@ -868,6 +910,40 @@ const ClassSoundMeterActivity = ({ content }) => {
                     >
                       Max {Math.round(displayMaxLevel * 100)}
                     </div>
+                    </div>
+                  </div>
+
+                  <div
+                    id="class-sound-meter-sensitivity-control"
+                    className="flex h-[130px] w-[52px] flex-col items-center justify-between rounded-lg border border-emerald-200/25 bg-emerald-950/35 px-2 py-2"
+                  >
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-100/90">Micro</span>
+                    <input
+                      id="class-sound-meter-sensitivity-slider"
+                      type="range"
+                      min={resolvedContent.sensitivityMin}
+                      max={resolvedContent.sensitivityMax}
+                      step="0.05"
+                      value={sensitivityMultiplier}
+                      onChange={(event) => {
+                        const nextValue = Number(event.target.value);
+                        setSensitivityMultiplier(
+                          clamp(
+                            Number.isFinite(nextValue)
+                              ? nextValue
+                              : defaultClassSoundMeterActivityContent.sensitivityMultiplier,
+                            resolvedContent.sensitivityMin,
+                            resolvedContent.sensitivityMax
+                          )
+                        );
+                      }}
+                      className="h-[84px] w-4 cursor-pointer accent-emerald-400"
+                      style={{ writingMode: "vertical-lr", direction: "rtl" }}
+                      aria-label="Sensibilité du micro"
+                    />
+                    <span id="class-sound-meter-sensitivity-value" className="text-[11px] font-black text-emerald-100">
+                      x{sensitivityMultiplier.toFixed(2).replace(".", ",")}
+                    </span>
                   </div>
                 </div>
 
