@@ -645,6 +645,13 @@ const ClassSoundMeterActivity = ({ content }) => {
     let lastKnownLevel = null;
 
     for (let index = 0; index < revealedCells; index += 1) {
+      if (cellLevels[index] != null) {
+        lastKnownLevel = cellLevels[index];
+        break;
+      }
+    }
+
+    for (let index = 0; index < revealedCells; index += 1) {
       const level = cellLevels[index] == null ? lastKnownLevel : cellLevels[index];
       if (cellLevels[index] != null) {
         lastKnownLevel = cellLevels[index];
