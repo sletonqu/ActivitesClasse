@@ -75,6 +75,8 @@ const WHITEBOARD_COLOR_OPTIONS = [
   { value: "blue", label: "🔵" },
   { value: "red", label: "🔴" },
   { value: "green", label: "🟢" },
+  { value: "orange", label: "🟠" },
+  { value: "purple", label: "🟣" },
   { value: "rgba(250, 204, 21, 0.35)", label: "🟨" },
   { value: "rgba(74, 222, 128, 0.35)", label: "🟩" },
   { value: "rgba(244, 114, 182, 0.35)", label: "🟪" },
