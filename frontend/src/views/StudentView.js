@@ -233,7 +233,7 @@ const StudentView = () => {
             type="button"
             onClick={() => setHeaderCollapsed(false)}
             title="Afficher les contrôles"
-            className={`fixed top-3 left-3 z-50 h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md transition-colors ${isDemoMode
+            className={`fixed top-3 right-3 z-50 h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md transition-colors ${isDemoMode
               ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
               : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
               }`}
@@ -242,19 +242,9 @@ const StudentView = () => {
           </button>
         ) : (
           <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
+            
+            {/* Title Block */}
             <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
-              <button
-                id="student-logo"
-                type="button"
-                onClick={() => setHeaderCollapsed(true)}
-                title="Masquer les contrôles"
-                className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
-                  ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
-                  : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
-                  }`}
-              >
-                <StudentIcon />
-              </button>
               <div id="student-title-block" className="flex flex-col min-w-0 items-start">
                 <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
                 <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
@@ -345,6 +335,20 @@ const StudentView = () => {
               >
                 <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
                 Mode Démo
+              </button>
+              
+              {/* Logo Button */}
+              <button
+                id="student-logo"
+                type="button"
+                onClick={() => setHeaderCollapsed(true)}
+                title="Masquer les contrôles"
+                className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
+                  ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+                  : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+                  }`}
+              >
+                <StudentIcon />
               </button>
             </div>
           </header>
