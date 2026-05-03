@@ -19,7 +19,7 @@ export const defaultCountPencilsByTensActivityContent = {
   "title": "Compte les crayons par dizaines et centaines",
   "instruction": "Observe les crayons, regroupe-les si besoin, puis écris le nombre de centaines, dizaines, unités et le total.",
   "defaultLevel": "level1",
-  "inputType": "NumberPad", // "NumberPad" or "OCR"
+  "inputType": "NumberPad", // "NumberPad" or "OCR" or "MyScript"
   "levels": {
     "level1": {
       "label": "Niveau 1",
@@ -521,10 +521,10 @@ const CountPencilsByTensActivity = ({
                   key={exercise.id}
                   id={`count-pencils-by-tens-case-${exercise.id}`}
                   className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${!finished
-                      ? "border-slate-200 bg-white"
-                      : correct
-                        ? "border-emerald-300 bg-emerald-50"
-                        : "border-rose-300 bg-rose-50"
+                    ? "border-slate-200 bg-white"
+                    : correct
+                      ? "border-emerald-300 bg-emerald-50"
+                      : "border-rose-300 bg-rose-50"
                     }`}
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
@@ -537,8 +537,8 @@ const CountPencilsByTensActivity = ({
                     {finished ? (
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${correct
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-rose-100 text-rose-800"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-rose-100 text-rose-800"
                           }`}
                       >
                         {correct ? "Correct" : "À corriger"}
@@ -586,8 +586,8 @@ const CountPencilsByTensActivity = ({
                           placeholder="Touchez ici"
                           aria-label={`Centaines de l'exercice ${exercise.id}`}
                           className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
-                              ? "border-indigo-500 ring-2 ring-indigo-200"
-                              : "border-slate-300"
+                            ? "border-indigo-500 ring-2 ring-indigo-200"
+                            : "border-slate-300"
                             }`}
                         />
                       </label>
@@ -609,8 +609,8 @@ const CountPencilsByTensActivity = ({
                         placeholder="Touchez ici"
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
                         className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
-                            ? "border-indigo-500 ring-2 ring-indigo-200"
-                            : "border-slate-300"
+                          ? "border-indigo-500 ring-2 ring-indigo-200"
+                          : "border-slate-300"
                           }`}
                       />
                     </label>
@@ -631,8 +631,8 @@ const CountPencilsByTensActivity = ({
                         placeholder="Touchez ici"
                         aria-label={`Unités de l'exercice ${exercise.id}`}
                         className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
-                            ? "border-indigo-500 ring-2 ring-indigo-200"
-                            : "border-slate-300"
+                          ? "border-indigo-500 ring-2 ring-indigo-200"
+                          : "border-slate-300"
                           }`}
                       />
                     </label>
@@ -653,8 +653,8 @@ const CountPencilsByTensActivity = ({
                         placeholder="Touchez ici"
                         aria-label={`Total de l'exercice ${exercise.id}`}
                         className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
-                            ? "border-indigo-500 ring-2 ring-indigo-200"
-                            : "border-slate-300"
+                          ? "border-indigo-500 ring-2 ring-indigo-200"
+                          : "border-slate-300"
                           }`}
                       />
                     </label>
@@ -716,6 +716,9 @@ const CountPencilsByTensActivity = ({
               ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
               : ""
           }
+          mode="minimal"
+          maxWidth="max-w-[340px]"
+          overlayType="Normal"
           position={ocrPosition}
           onRecognized={handleOCRRecognized}
           onClose={closeNumberPad}
