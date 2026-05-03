@@ -5,6 +5,8 @@ import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import FloatingNumberPad from "../components/FloatingNumberPad";
+import HandwritingOCRModal from "../components/HandwritingOCRModal";
+import MyScriptHandwritingModal from "../components/MyScriptHandwritingModal";
 import {
   getSafeDisplayText,
   handleRoundRestart,
@@ -17,6 +19,7 @@ export const defaultCountPencilsByTensActivityContent = {
   "title": "Compte les crayons par dizaines et centaines",
   "instruction": "Observe les crayons, regroupe-les si besoin, puis écris le nombre de centaines, dizaines, unités et le total.",
   "defaultLevel": "level1",
+  "inputType": "NumberPad", // "NumberPad" or "OCR"
   "levels": {
     "level1": {
       "label": "Niveau 1",
@@ -144,6 +147,8 @@ const CountPencilsByTensActivity = ({
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
   const [activeInput, setActiveInput] = useState(null);
+  const [ocrPosition, setOcrPosition] = useState(null);
+  const inputType = parsedContent?.inputType || defaultCountPencilsByTensActivityContent.inputType;
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const clickTimeoutRef = useRef(null);
 
@@ -199,12 +204,41 @@ const CountPencilsByTensActivity = ({
     updateAnswer(activeInput.exerciseId, activeInput.field, `${currentValue}${keyValue}`);
   };
 
+  const handleOCRRecognized = (recognizedText) => {
+    if (!activeInput || finished) return;
+    updateAnswer(activeInput.exerciseId, activeInput.field, recognizedText);
+    closeNumberPad();
+  };
+
   const handleNumberPadBackspace = () => {
     if (!activeInput || finished) return;
 
     const currentValue = answers[activeInput.exerciseId]?.[activeInput.field] || "";
     updateAnswer(activeInput.exerciseId, activeInput.field, currentValue.slice(0, -1));
   };
+
+  useEffect(() => {
+    if (activeInput && inputType === "OCR") {
+      const inputId = `count-pencils-by-tens-${activeInput.field}-${activeInput.exerciseId}`;
+      const inputEl = document.getElementById(inputId);
+      if (inputEl) {
+        const rect = inputEl.getBoundingClientRect();
+        // Calculate position to avoid covering the input
+        // We place it above if possible, otherwise below
+        const modalHeight = 350;
+        const top = rect.top > modalHeight + 20
+          ? rect.top - modalHeight - 10
+          : rect.bottom + 10;
+
+        setOcrPosition({
+          top: Math.max(10, Math.min(window.innerHeight - modalHeight, top)),
+          left: Math.max(10, Math.min(window.innerWidth - 350, rect.left)),
+        });
+      }
+    } else {
+      setOcrPosition(null);
+    }
+  }, [activeInput, inputType]);
 
   useEffect(() => {
     return () => {
@@ -428,10 +462,10 @@ const CountPencilsByTensActivity = ({
           },
           ...(currentLevelRule.minCartons > 0 || currentLevelRule.maxCartons > 0
             ? [{
-                key: "hundreds",
-                label: `${currentLevelRule.minCartons} à ${currentLevelRule.maxCartons} centaine${currentLevelRule.maxCartons > 1 ? "s" : ""}`,
-                className: "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800",
-              }]
+              key: "hundreds",
+              label: `${currentLevelRule.minCartons} à ${currentLevelRule.maxCartons} centaine${currentLevelRule.maxCartons > 1 ? "s" : ""}`,
+              className: "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800",
+            }]
             : []),
         ]}
         levels={allowedLevelKeys.map((levelKey) => ({
@@ -486,13 +520,12 @@ const CountPencilsByTensActivity = ({
                 <div
                   key={exercise.id}
                   id={`count-pencils-by-tens-case-${exercise.id}`}
-                  className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${
-                    !finished
+                  className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${!finished
                       ? "border-slate-200 bg-white"
                       : correct
-                      ? "border-emerald-300 bg-emerald-50"
-                      : "border-rose-300 bg-rose-50"
-                  }`}
+                        ? "border-emerald-300 bg-emerald-50"
+                        : "border-rose-300 bg-rose-50"
+                    }`}
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <h5
@@ -503,11 +536,10 @@ const CountPencilsByTensActivity = ({
                     </h5>
                     {finished ? (
                       <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                          correct
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${correct
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-rose-100 text-rose-800"
-                        }`}
+                          }`}
                       >
                         {correct ? "Correct" : "À corriger"}
                       </span>
@@ -553,11 +585,10 @@ const CountPencilsByTensActivity = ({
                           disabled={finished}
                           placeholder="Touchez ici"
                           aria-label={`Centaines de l'exercice ${exercise.id}`}
-                          className={`mt-1 w-full rounded-lg border px-2 py-2 ${
-                            activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                          className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
                               ? "border-indigo-500 ring-2 ring-indigo-200"
                               : "border-slate-300"
-                          }`}
+                            }`}
                         />
                       </label>
                     )}
@@ -577,11 +608,10 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
-                          activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
                             ? "border-indigo-500 ring-2 ring-indigo-200"
                             : "border-slate-300"
-                        }`}
+                          }`}
                       />
                     </label>
 
@@ -600,11 +630,10 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Unités de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
-                          activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
                             ? "border-indigo-500 ring-2 ring-indigo-200"
                             : "border-slate-300"
-                        }`}
+                          }`}
                       />
                     </label>
 
@@ -623,11 +652,10 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Total de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${
-                          activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
+                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
                             ? "border-indigo-500 ring-2 ring-indigo-200"
                             : "border-slate-300"
-                        }`}
+                          }`}
                       />
                     </label>
                   </div>
@@ -648,18 +676,51 @@ const CountPencilsByTensActivity = ({
         </div>
       </section>
 
-      <FloatingNumberPad
-        isOpen={Boolean(activeInput) && !finished}
-        activeFieldLabel={
-          activeInput
-            ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
-            : ""
-        }
-        onKeyPress={handleNumberPadKeyPress}
-        onBackspace={handleNumberPadBackspace}
-        onClose={closeNumberPad}
-        disabledKeys={["<", "=", ">"]}
-      />
+      {inputType === "NumberPad" && (
+        <FloatingNumberPad
+          isOpen={Boolean(activeInput) && !finished}
+          activeFieldLabel={
+            activeInput
+              ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+              : ""
+          }
+          onKeyPress={handleNumberPadKeyPress}
+          onBackspace={handleNumberPadBackspace}
+          onClose={closeNumberPad}
+          disabledKeys={["<", "=", ">"]}
+        />
+      )}
+
+      {inputType === "OCR" && (
+        <HandwritingOCRModal
+          isOpen={Boolean(activeInput) && !finished}
+          activeFieldLabel={
+            activeInput
+              ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+              : ""
+          }
+          mode="minimal"
+          maxWidth="max-w-[340px]"
+          overlayType="Normal"
+          position={ocrPosition}
+          onRecognized={handleOCRRecognized}
+          onClose={closeNumberPad}
+        />
+      )}
+
+      {inputType === "MyScript" && (
+        <MyScriptHandwritingModal
+          isOpen={Boolean(activeInput) && !finished}
+          activeFieldLabel={
+            activeInput
+              ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+              : ""
+          }
+          position={ocrPosition}
+          onRecognized={handleOCRRecognized}
+          onClose={closeNumberPad}
+        />
+      )}
 
       {finished && (
         <ActivitySummaryCard

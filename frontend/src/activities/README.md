@@ -196,6 +196,10 @@ Exemple de configuration :
 }
 ```
 
+Paramètres disponibles au niveau de l'activité :
+
+- `inputType` : `"NumberPad"` (par défaut) ou `"OCR"` pour utiliser la reconnaissance d'écriture manuscrite via Tesseract.js.
+
 Paramètres disponibles par niveau :
 
 - `exerciseCount`

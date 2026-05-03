@@ -8,7 +8,8 @@
   --glass-bg: rgba(255, 255, 255, 0.45);
   --glass-border: rgba(255, 255, 255, 0.3);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  --accent-soft: #818cf8; /* Indigo soft */
+  --accent-soft: #818cf8;
+  /* Indigo soft */
   --accent-deep: #4f46e5;
 }
 
@@ -17,8 +18,10 @@ body {
   font-family: 'Outfit', sans-serif;
   background: radial-gradient(circle at top left, #f8fafc, #f1f5f9);
   color: #334155;
-  touch-action: pan-x pan-y; /* Bloque le pinch-to-zoom */
-  overscroll-behavior: none; /* Empêche le rebond et le pull-to-refresh */
+  touch-action: pan-x pan-y;
+  /* Bloque le pinch-to-zoom */
+  overscroll-behavior: none;
+  /* Empêche le rebond et le pull-to-refresh */
 }
 
 .glass-panel {
@@ -62,16 +65,16 @@ body {
 }
 
 /* Harmonise vertical rhythm in all activity layouts */
-#activity-container [id$="-hero"] + [id$="-status-panel"] {
+#activity-container [id$="-hero"]+[id$="-status-panel"] {
   margin-top: 0.25rem !important;
 }
 
-#activity-container [id$="-status-panel"] + * {
+#activity-container [id$="-status-panel"]+* {
   margin-top: 0.6rem !important;
 }
 
 @media (min-width: 640px) {
-  #activity-container [id$="-status-panel"] + * {
+  #activity-container [id$="-status-panel"]+* {
     margin-top: 0.8rem !important;
   }
 }
@@ -153,7 +156,7 @@ h1 {
     page-break-inside: avoid;
   }
 
-  [id^="count-pencils-by-tens-case-"] .space-y-3 > * + * {
+  [id^="count-pencils-by-tens-case-"] .space-y-3>*+* {
     margin-top: 4px !important;
   }
 
