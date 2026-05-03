@@ -218,14 +218,13 @@ const CountPencilsByTensActivity = ({
   };
 
   useEffect(() => {
-    if (activeInput && inputType === "OCR") {
+    if (activeInput && (inputType === "OCR" || inputType === "MyScript")) {
       const inputId = `count-pencils-by-tens-${activeInput.field}-${activeInput.exerciseId}`;
       const inputEl = document.getElementById(inputId);
       if (inputEl) {
         const rect = inputEl.getBoundingClientRect();
-        // Calculate position to avoid covering the input
-        // We place it above if possible, otherwise below
-        const modalHeight = 350;
+        // Use a higher estimated height for MyScript to avoid overlapping the active input.
+        const modalHeight = inputType === "MyScript" ? 430 : 350;
         const top = rect.top > modalHeight + 20
           ? rect.top - modalHeight - 10
           : rect.bottom + 10;

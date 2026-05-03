@@ -122,9 +122,8 @@ const MyScriptHandwritingModal = ({
   if (!isOpen) return null;
   const isMinimal = mode === "minimal";
   const overlayClass = overlayType === "Blur" ? "backdrop-blur-md" : "";
-  const containerStyle = position
-    ? { position: 'fixed', top: position.top, left: position.left, transform: 'none' }
-    : {};
+  const containerStyle = position ? { position: 'fixed', top: position.top, left: position.left, transform: 'none' } : {};
+
   return (
     <div
       id="myscript-modal-overlay"
@@ -133,9 +132,9 @@ const MyScriptHandwritingModal = ({
       <div
         id="myscript-modal-container"
         style={containerStyle}
-        className={`w-full ${maxWidth} rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5`}
+        className={`w-full ${maxWidth} rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5 sm:p-6`}
       >
-        <div id="ms-modal-header" className="mb-3 flex items-start justify-between">
+        <div id="ms-modal-header" className={`flex items-start justify-between ${isMinimal ? "mb-2" : "mb-6"}`}>
           <div id="ms-modal-title-area">
             {!isMinimal && <h3 id="ms-modal-title" className="text-sm font-black uppercase tracking-wider text-slate-400">Écriture MyScript</h3>}
             <p id="ms-modal-subtitle" className="text-xs font-bold text-indigo-600">{activeFieldLabel || "Saisie manuscrite"}</p>
