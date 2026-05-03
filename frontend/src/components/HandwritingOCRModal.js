@@ -129,10 +129,10 @@ const HandwritingOCRModal = ({
         style={containerStyle}
         className={`w-full ${maxWidth} rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5 sm:p-6`}
       >
-        <div className={`flex items-start justify-between ${isMinimal ? "mb-2" : "mb-6"}`}>
-          <div>
-            {!isMinimal && (<h3 className="text-xl font-black tracking-tight text-slate-800 sm:text-2xl">Écriture Manuscrite</h3>)}
-            <p id="ocr-modal-label" className="text-xs font-medium text-indigo-600 sm:text-sm">
+        <div id="ocr-modal-header" className={`flex items-start justify-between ${isMinimal ? "mb-2" : "mb-6"}`}>
+          <div id="ocr-modal-title-area">
+            {!isMinimal && (<h3 id="ocr-modal-title" className="text-xl font-black tracking-tight text-slate-800 sm:text-2xl">Écriture Manuscrite</h3>)}
+            <p id="ocr-modal-subtitle" className="text-xs font-medium text-indigo-600 sm:text-sm">
               {activeFieldLabel || "Saisie de nombre"}
             </p>
           </div>
