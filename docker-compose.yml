@@ -30,6 +30,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - REACT_APP_MYSCRIPT_APP_KEY=${REACT_APP_MYSCRIPT_APP_KEY}
+      - REACT_APP_MYSCRIPT_HMAC_KEY=${REACT_APP_MYSCRIPT_HMAC_KEY}
     depends_on:
       - backend
 
