@@ -11,6 +11,7 @@ import {
 import StudentPanel from "../components/StudentPanel";
 import LeaderboardPanel from "../components/LeaderboardPanel";
 const DEFAULT_ACTIVITY_CONTENT = {};
+const HEADER_COLLAPSE_DELAY = 5000;
 
 const StudentView = () => {
   const [classes, setClasses] = useState([]);
@@ -134,7 +135,7 @@ const StudentView = () => {
     if (selectedActivityId || isDemoMode) {
       const timer = setTimeout(() => {
         setHeaderCollapsed(true);
-      }, 2000);
+      }, HEADER_COLLAPSE_DELAY);
       return () => clearTimeout(timer);
     }
   }, [selectedActivityId, isDemoMode]);
