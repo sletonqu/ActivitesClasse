@@ -341,8 +341,11 @@ const WordClassificationActivity = ({
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
-    loadWordsForLevel(initialLevel);
-  }, [initialLevel, loadWordsForLevel]);
+  }, [initialLevel]);
+
+  useEffect(() => {
+    loadWordsForLevel(currentLevel);
+  }, [currentLevel]);
 
   const completeActivityIfNeeded = (nextVisibleWords, nextRemainingWords, nextCorrectCount, nextMistakes) => {
     if (nextVisibleWords.length > 0 || nextRemainingWords.length > 0) {
@@ -451,8 +454,8 @@ const WordClassificationActivity = ({
     if (loadingWords || finished) {
       return;
     }
+
     setCurrentLevel(levelKey);
-    loadWordsForLevel(levelKey);
   };
 
   const handleRestart = () => {

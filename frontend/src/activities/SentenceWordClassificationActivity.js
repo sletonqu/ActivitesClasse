@@ -453,8 +453,11 @@ const SentenceWordClassificationActivity = ({
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
-    loadSentencesForLevel(initialLevel);
-  }, [initialLevel, loadSentencesForLevel]);
+  }, [initialLevel]);
+
+  useEffect(() => {
+    loadSentencesForLevel(currentLevel);
+  }, [currentLevel]);
 
   const finishActivity = (nextCorrectCount, nextMistakes) => {
     const finalScore = Math.round((nextCorrectCount / Math.max(1, totalClassifiableWords)) * 20);
@@ -573,7 +576,6 @@ const SentenceWordClassificationActivity = ({
     }
 
     setCurrentLevel(levelKey);
-    loadSentencesForLevel(levelKey);
   };
 
   const handleRestart = () => {
