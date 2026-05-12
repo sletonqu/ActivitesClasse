@@ -1240,6 +1240,97 @@ router.get('/generated-sentences/practice', async (req, res) => {
   }
 });
 
+router.get('/verbs-by-ending', async (req, res) => {
+  try {
+    const endingsParam = req.query?.endings || '';
+    const requestedCountParam = Number(req.query?.count) || 3;
+    const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 20);
+
+    if (!endingsParam) {
+      return res.status(400).json({ error: 'Les terminaisons doivent être spécifiées (endings parameter)' });
+    }
+
+    const endings = Array.isArray(endingsParam)
+      ? endingsParam.map((e) => normalizeText(e).toLowerCase())
+      : normalizeText(endingsParam).toLowerCase().split(',').map((e) => e.trim());
+
+    const validEndings = endings.filter((e) => e.length > 0);
+    if (validEndings.length === 0) {
+      return res.status(400).json({ error: 'Aucune terminaison valide fournie' });
+    }
+
+    // Fonction pour vérifier si une phrase contient des verbes avec les terminaisons
+    function sentenceContainsVerbWithEnding(sentence, sentenceEndings) {
+      const words = Array.isArray(sentence?.words) ? sentence.words : [];
+      
+      // Si le payload a les mots analysés, utiliser ceux-ci
+      if (words.length > 0) {
+        return words.some((word) => {
+          const wordStr = normalizeText(word?.word || '').toLowerCase();
+          const nature = normalizeText(word?.nature || '').toLowerCase();
+          return (
+            (nature === 'verbe' || /verbe/.test(nature)) &&
+            sentenceEndings.some((ending) => wordStr.endsWith(ending))
+          );
+        });
+      }
+    }
+
+    // Récupérer les 10 phrases les moins utilisées pour chaque terminaison
+    const allSentencesByEnding = new Map();
+
+    for (const ending of validEndings) {
+      const rows = await allAsync(
+        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+         FROM generated_sentences
+         ORDER BY COALESCE(compteur, 0) ASC, id DESC
+         LIMIT 500`,
+        []
+      );
+
+      const eligibleSentences = rows
+        .map((row) => buildGeneratedSentenceFromRow(row))
+        .filter((sentence) => sentenceContainsVerbWithEnding(sentence, [ending]))
+        .slice(0, 10);
+
+      if (eligibleSentences.length > 0) {
+        allSentencesByEnding.set(ending, eligibleSentences);
+      }
+    }
+
+    if (allSentencesByEnding.size === 0) {
+      return res.status(404).json({
+        error: 'Aucune phrase avec des verbes finissant par ces terminaisons n\'a été trouvée',
+      });
+    }
+
+    // Mélanger toutes les phrases et en sélectionner le nombre demandé
+    const allSentences = Array.from(allSentencesByEnding.values()).flat();
+    const shuffledSentences = allSentences.sort(() => Math.random() - 0.5);
+    const selectedSentences = shuffledSentences.slice(0, requestedCount);
+
+    // Mettre à jour le compteur pour chaque phrase sélectionnée
+    for (const sentence of selectedSentences) {
+      await runAsync(
+        'UPDATE generated_sentences SET compteur = COALESCE(compteur, 0) + 1 WHERE id = ?',
+        [sentence.id]
+      );
+      sentence.compteur = Number(sentence.compteur || 0) + 1;
+    }
+
+    return res.json({
+      requestedCount,
+      returnedCount: selectedSentences.length,
+      totalAvailable: allSentences.length,
+      sentences: selectedSentences,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la récupération des phrases avec verbes finissant par les terminaisons spécifiées',
+    });
+  }
+});
+
 router.get('/generated-sentences/next', async (req, res) => {
   try {
     const level = normalizeText(req.query?.level).toUpperCase();

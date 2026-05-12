@@ -12,6 +12,7 @@ import MakeChangeActivity from "./MakeChangeActivity";
 import AlphabeticalSortActivity from "./AlphabeticalSortActivity";
 import ClassSoundMeterActivity from "./ClassSoundMeterActivity";
 import CodeJuniorActivity from "./CodeJuniorActivity";
+import VerbEndingCompletionActivity from "./VerbEndingCompletionActivity";
 
 const componentRegistry = {
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
@@ -53,6 +54,9 @@ const componentRegistry = {
   "src/activities/CodeJuniorActivity.js": CodeJuniorActivity,
   "CodeJuniorActivity": CodeJuniorActivity,
   "CodeJuniorActivity.js": CodeJuniorActivity,
+  "src/activities/VerbEndingCompletionActivity.js": VerbEndingCompletionActivity,
+  "VerbEndingCompletionActivity": VerbEndingCompletionActivity,
+  "VerbEndingCompletionActivity.js": VerbEndingCompletionActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {
