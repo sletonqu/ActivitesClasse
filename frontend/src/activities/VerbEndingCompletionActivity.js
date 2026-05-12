@@ -81,11 +81,11 @@ function buildVerbRound(sentenceEntry, index, endings) {
   }
 
   const words = Array.isArray(sentenceEntry?.words) ? sentenceEntry.words : [];
-  const displayTokens = words.map((word) => {
+  const displayTokens = words.map((word, wordIndex) => {
     const wordStr = String(word?.word || "");
     if (wordStr === verbInfo.wordText) {
       return {
-        id: `${sentenceEntry?.id || `phrase-${index + 1}`}-verb`,
+        id: `${sentenceEntry?.id || `phrase-${index + 1}`}-verb-${wordIndex}`,
         text: verbInfo.baseForm + "....",
         isVerb: true,
         originalWord: verbInfo.wordText,
@@ -94,7 +94,7 @@ function buildVerbRound(sentenceEntry, index, endings) {
     }
     
     return {
-      id: `${sentenceEntry?.id || `phrase-${index + 1}`}-word-${wordStr}`,
+      id: `${sentenceEntry?.id || `phrase-${index + 1}`}-word-${wordIndex}`,
       text: wordStr,
       isVerb: false,
       originalWord: wordStr,
