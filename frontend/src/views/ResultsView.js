@@ -8,6 +8,8 @@ import {
   loadClassesIntoState,
 } from "../utils/dataLoaders";
 
+const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
+
 const ResultsView = () => {
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState("");
@@ -193,7 +195,7 @@ const ResultsView = () => {
   const selectedClass = classes.find((c) => String(c.id) === String(selectedClassId));
 
   return (
-    <div id="results-view" className="w-full h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
+    <div id="results-view" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="w-full h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
       {/* En-tête */}
       <header id="results-view-header" className="bg-white shadow-sm border-b border-slate-200 px-6 py-4">
         <div id="results-view-header-content" className="flex items-center justify-between gap-4">

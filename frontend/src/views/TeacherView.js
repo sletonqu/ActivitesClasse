@@ -19,6 +19,8 @@ import {
   normalizeActivityContentForEditor,
 } from "../utils/activityManagement";
 
+const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
+
 const TeacherView = () => {
   const [openSectionId, setOpenSectionId] = useState("");
   const [classes, setClasses] = useState([]);
@@ -820,7 +822,7 @@ const TeacherView = () => {
   };
 
   return (
-    <div id="teacher-view-root" className="min-h-screen bg-slate-100 px-3 py-4 sm:px-4 sm:py-6">
+    <div id="teacher-view-root" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="min-h-screen bg-slate-100 px-3 py-4 sm:px-4 sm:py-6">
         <div className="w-full max-w-[1024px] mx-auto">
           <div className="mb-5 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
           <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">Espace Enseignant</h2>

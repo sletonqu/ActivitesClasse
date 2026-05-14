@@ -65,6 +65,35 @@ body {
   user-select: auto;
 }
 
+:where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view) {
+  position: relative;
+  isolation: isolate;
+}
+
+:where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--view-background-icon, none);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: clamp(160px, 18vw, 280px);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (min-width: 1024px) and (min-height: 768px) {
+  :where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view)::before {
+    background-size: 768px 768px;
+  }
+}
+
+:where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view) > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Harmonise vertical rhythm in all activity layouts */
 #activity-container [id$="-hero"]+[id$="-status-panel"] {
   margin-top: 0.25rem !important;

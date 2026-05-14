@@ -12,6 +12,7 @@ import StudentPanel from "../components/StudentPanel";
 import LeaderboardPanel from "../components/LeaderboardPanel";
 const DEFAULT_ACTIVITY_CONTENT = {};
 const HEADER_COLLAPSE_DELAY = 5000;
+const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
 
 const StudentView = () => {
   const [classes, setClasses] = useState([]);
@@ -270,7 +271,7 @@ const StudentView = () => {
   );
 
   return (
-    <div id="student-view-root" className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
+    <div id="student-view-root" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="min-h-screen animate-in fade-in duration-700 px-1 pt-2 pb-0 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex w-full flex-1 flex-col items-center">
 
         {/* Header Glassy Unifié - Version Compacte */}
