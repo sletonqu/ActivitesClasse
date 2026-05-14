@@ -199,6 +199,52 @@ const StudentView = () => {
     }
   };
 
+  const handleActivityContentChange = async (nextContent) => {
+    const normalizedNextContent =
+      nextContent && typeof nextContent === "object" && !Array.isArray(nextContent)
+        ? nextContent
+        : DEFAULT_ACTIVITY_CONTENT;
+
+    setActivityContent(normalizedNextContent);
+
+    if (!selectedActivity?.id) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/activities/${selectedActivity.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: selectedActivity.title || "Activité",
+          description: selectedActivity.description || "",
+          content: normalizedNextContent,
+          status: selectedActivity.status || "Active",
+          js_file: selectedActivity.js_file || null,
+          discipline: selectedActivity.discipline || null,
+          category: selectedActivity.category || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Impossible d'enregistrer les paramètres de l'activité.");
+      }
+
+      setActivities((previousActivities) =>
+        previousActivities.map((activity) =>
+          String(activity.id) === String(selectedActivity.id)
+            ? {
+              ...activity,
+              content: normalizedNextContent,
+            }
+            : activity
+        )
+      );
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du contenu de l'activité:", error);
+    }
+  };
+
   const effectiveActivityContent = useMemo(() => {
     const preferredLevel = String(preferredLevelByActivityId[selectedActivityId] || "").trim();
     if (!preferredLevel) {
@@ -387,6 +433,9 @@ const StudentView = () => {
                   content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
                   onComplete={() => { }}
+                  activityProps={{
+                    onContentChange: handleActivityContentChange,
+                  }}
                 />
               </div>
             ) : selectedStudent ? (
@@ -400,6 +449,7 @@ const StudentView = () => {
                   activityProps={{
                     allStudentsCompleted,
                     onResetStudentRound: handleResetStudentRound,
+                    onContentChange: handleActivityContentChange,
                   }}
                 />
               </div>
