@@ -151,7 +151,7 @@ function scaleGaugePoint(point) {
   };
 }
 
-const ClassSoundMeterActivity = ({ content }) => {
+const ClassSoundMeterActivity = ({ content, onContentChange }) => {
   const resolvedContent = useMemo(() => {
     const source = content && typeof content === "object" ? content : {};
     const paletteName = Object.prototype.hasOwnProperty.call(PALETTES, source.paletteName)
@@ -481,6 +481,28 @@ const ClassSoundMeterActivity = ({ content }) => {
     setAudioState("idle");
   };
 
+  const handleCloseConfig = () => {
+    const safeSensitivity = clamp(
+      Number(sensitivityMultiplier),
+      resolvedContent.sensitivityMin,
+      resolvedContent.sensitivityMax
+    );
+
+    const baseContent = content && typeof content === "object" && !Array.isArray(content)
+      ? content
+      : {};
+    const nextContent = {
+      ...baseContent,
+      sensitivityMultiplier: safeSensitivity,
+    };
+
+    if (typeof onContentChange === "function") {
+      onContentChange(nextContent);
+    }
+
+    setIsConfigOpen(false);
+  };
+
   useEffect(() => {
     if (isRunning || sessionStats.count > 0) {
       return;
@@ -794,7 +816,7 @@ const ClassSoundMeterActivity = ({ content }) => {
               <button
                 id="class-sound-meter-config-close"
                 type="button"
-                onClick={() => setIsConfigOpen(false)}
+                onClick={handleCloseConfig}
                 className="rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-sm font-semibold hover:bg-white/20"
               >
                 Fermer
