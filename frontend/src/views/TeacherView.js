@@ -57,7 +57,6 @@ const TeacherView = () => {
   const [deletingResultId, setDeletingResultId] = useState("");
   const [deletingAllResults, setDeletingAllResults] = useState(false);
   const [calculatingAverageResultId, setCalculatingAverageResultId] = useState("");
-  const [showActivitiesList, setShowActivitiesList] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [selectedResultGroupId, setSelectedResultGroupId] = useState("");
   const [selectedResultActivityId, setSelectedResultActivityId] = useState("");
@@ -686,18 +685,6 @@ const TeacherView = () => {
 
     return `${baseKey}::level:__no-level__`;
   };
-
-
-  const handleToggleActivitiesList = async () => {
-    const next = !showActivitiesList;
-    setShowActivitiesList(next);
-    if (next) {
-      await refreshActivities();
-    } else {
-      clearSelectedActivityEditor();
-    }
-  };
-
   const handleSelectActivityToEdit = (activity) => {
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");
@@ -824,10 +811,38 @@ const TeacherView = () => {
     );
   };
 
+  const handleOpenResultsView = () => {
+    window.open(`${window.location.origin}/results`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleOpenActivitiesView = () => {
+    window.open(`${window.location.origin}/`, "_blank", "noopener,noreferrer");
+  };
+
   return (
-    <div id="teacher-view-root" className="min-h-screen bg-slate-100 px-4 py-6">
-      <div className="w-full max-w-[1024px] mx-auto">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">Espace Enseignant</h2>
+    <div id="teacher-view-root" className="min-h-screen bg-slate-100 px-3 py-4 sm:px-4 sm:py-6">
+        <div className="w-full max-w-[1024px] mx-auto">
+          <div className="mb-5 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
+          <h2 className="text-xl font-bold text-slate-800 sm:text-2xl">Espace Enseignant</h2>
+          <div id="teacher-view-navigation-actions" className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3">
+            <button
+              id="teacher-view-activities-button"
+              type="button"
+              onClick={handleOpenActivitiesView}
+              className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-emerald-700 sm:flex-none sm:px-4"
+            >
+              Ouvrir les activités
+            </button>
+            <button
+              id="teacher-view-results-button"
+              type="button"
+              onClick={handleOpenResultsView}
+              className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-indigo-700 sm:flex-none sm:px-4"
+            >
+              Tableau des résultats
+            </button>
+          </div>
+          </div>
 
         <div id="bloc-classe-active" className="w-full bg-white rounded-xl shadow p-6 mb-6">
           <label className="block text-sm font-semibold text-slate-700 mb-2">Classe ciblée</label>
@@ -963,7 +978,7 @@ const TeacherView = () => {
             <ActivitiesManagementPanel
               activities={activities}
               loadingActivities={loadingActivities}
-              showActivitiesList={showActivitiesList}
+              showActivitiesList
               selectedActivityEditId={selectedActivityEditId}
               editActivityTitle={editActivityTitle}
               editActivityDescription={editActivityDescription}
@@ -977,7 +992,6 @@ const TeacherView = () => {
               activityMessage={activityMessage}
               showActivityMessage={showActivityMessage}
               fadeActivityMessage={fadeActivityMessage}
-              onToggleActivitiesList={handleToggleActivitiesList}
               onSelectActivityToEdit={handleSelectActivityToEdit}
               onUpdateActivity={handleUpdateActivity}
               onEditTitleChange={setEditActivityTitle}

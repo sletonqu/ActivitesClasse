@@ -53,38 +53,57 @@ const ActivitiesManagementPanel = ({
   onActivityContentChange = null,
   hideTitle = false,
 }) => {
+  const shouldRenderFormSection = showAddForm || !hideTitle || Boolean(onToggleActivitiesList);
+  const shouldRenderEditSection = showActivitiesList && Boolean(selectedActivityEditId);
+  const formSectionClassName = shouldRenderEditSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-[50%]";
+  const listSectionClassName = shouldRenderFormSection
+    ? shouldRenderEditSection
+      ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+      : "lg:basis-1/2 lg:max-w-[50%]"
+    : shouldRenderEditSection
+      ? "lg:basis-1/2 lg:max-w-none"
+      : "lg:basis-full lg:max-w-none";
+  const editSectionClassName = shouldRenderFormSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-none";
+
   return (
     <div id="activities-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
-      <section
-        id="activities-panel-form-section"
-        className={`w-full ${showActivitiesList && selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
-      >
-        {!hideTitle && (
-          <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
-        )}
-
-    <div id="activities-panel-actions" className="flex flex-wrap gap-3">
-          {showAddForm && (
-            <button
-              type="submit"
-              disabled={submittingActivity}
-              className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
-              form="activities-panel-add-form"
-            >
-              {submittingActivity ? "Ajout en cours..." : "Ajouter"}
-            </button>
+      {shouldRenderFormSection && (
+        <section
+          id="activities-panel-form-section"
+          className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+        >
+          {!hideTitle && (
+            <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
           )}
-          <button
-            type="button"
-            onClick={onToggleActivitiesList}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            {showActivitiesList ? "Masquer la Liste des activités" : showAddForm ? "Liste des activités" : "Afficher les activités"}
-          </button>
-        </div>
 
-        {showAddForm && (
-          <form id="activities-panel-add-form" onSubmit={onAddActivity} className="space-y-4">
+          <div id="activities-panel-actions" className="flex flex-wrap gap-3">
+            {showAddForm && (
+              <button
+                type="submit"
+                disabled={submittingActivity}
+                className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+                form="activities-panel-add-form"
+              >
+                {submittingActivity ? "Ajout en cours..." : "Ajouter"}
+              </button>
+            )}
+            {onToggleActivitiesList && (
+              <button
+                type="button"
+                onClick={onToggleActivitiesList}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                {showActivitiesList ? "Masquer la Liste des activités" : showAddForm ? "Liste des activités" : "Afficher les activités"}
+              </button>
+            )}
+          </div>
+
+          {showAddForm && (
+            <form id="activities-panel-add-form" onSubmit={onAddActivity} className="space-y-4">
             <div id="activities-panel-title-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
               <input
@@ -186,25 +205,26 @@ const ActivitiesManagementPanel = ({
                 className="w-full h-[300px] border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               />
             </div>
-          </form>
-        )}
+            </form>
+          )}
 
-        {showActivityMessage && activityMessage && (
-          <div
-            id="activities-panel-message"
-            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-              fadeActivityMessage ? "opacity-0" : "opacity-100"
-            }`}
-          >
-            {activityMessage}
-          </div>
-        )}
-      </section>
+          {showActivityMessage && activityMessage && (
+            <div
+              id="activities-panel-message"
+              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
+                fadeActivityMessage ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              {activityMessage}
+            </div>
+          )}
+        </section>
+      )}
 
       {showActivitiesList && (
         <section
           id="activities-panel-list-section"
-          className={`w-full ${selectedActivityEditId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+          className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}
         >
           <div id="activities-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800">Liste des activités</h3>
@@ -288,8 +308,8 @@ const ActivitiesManagementPanel = ({
         </section>
       )}
 
-      {showActivitiesList && selectedActivityEditId && (
-        <section id="activities-panel-edit-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/3">
+      {shouldRenderEditSection && (
+        <section id="activities-panel-edit-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${editSectionClassName}`}>
           <h3 id="activities-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
 
           <form id="activities-panel-edit-form" onSubmit={onUpdateActivity} className="space-y-4">
