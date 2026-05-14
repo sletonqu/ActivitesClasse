@@ -1,7 +1,10 @@
 # version: '3.8'
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        NPM_VERSION: ${NPM_VERSION:-11.14.1}
     ports:
       - "4000:4000"
     environment:
@@ -25,7 +28,10 @@ services:
     volumes:
       - db-data:/app/data
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NPM_VERSION: ${NPM_VERSION:-11.14.1}
     ports:
       - "3000:3000"
     environment:
