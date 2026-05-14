@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminView from "./views/AdminView";
 import TeacherView from "./views/TeacherView";
 import StudentView from "./views/StudentView";
+import ResultsView from "./views/ResultsView";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminView />} />
         <Route path="/teacher" element={<TeacherView />} />
+        <Route path="/results" element={<ResultsView />} />
         <Route path="/" element={<StudentView />} />
       </Routes>
     </Router>
