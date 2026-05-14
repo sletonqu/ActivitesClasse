@@ -94,6 +94,7 @@ const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
   value: String(size),
   label: `${size}px`,
 }));
+const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position";
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
 
@@ -457,6 +458,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const imagePendingRef = useRef(null);
   const inputJsonRef = useRef(null);
   const inputImageRef = useRef(null);
+  const toolbarDockRef = useRef(null);
+  const toolbarDragOffsetRef = useRef(null);
   const eraserFallbackLoggedRef = useRef(false);
   const modeRef = useRef("draw");
   const colorRef = useRef("black");
@@ -483,6 +486,20 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [toolbarPosition, setToolbarPosition] = useState({ x: null, y: null });
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+
+  const clampToolbarPosition = (nextX, nextY) => {
+    const toolbarWidth = toolbarDockRef.current?.offsetWidth || 800;
+    const toolbarHeight = toolbarDockRef.current?.offsetHeight || 180;
+    const maxX = Math.max(8, window.innerWidth - toolbarWidth - 8);
+    const maxY = Math.max(8, window.innerHeight - toolbarHeight - 8);
+
+    return {
+      x: Math.min(Math.max(8, nextX), maxX),
+      y: Math.min(Math.max(8, nextY), maxY),
+    };
+  };
 
   const getExplicitBrushSize = (rawSize) => {
     const numericSize = Math.max(1, parseInt(rawSize, 10) || 1);
@@ -635,6 +652,75 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   useEffect(() => {
     shapeTypeRef.current = shapeType;
   }, [shapeType]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const savedPosition = window.sessionStorage.getItem(WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY);
+      if (!savedPosition) {
+        return;
+      }
+
+      const parsedPosition = JSON.parse(savedPosition);
+      if (typeof parsedPosition?.x === "number" && typeof parsedPosition?.y === "number") {
+        setToolbarPosition(parsedPosition);
+      }
+    } catch {
+      window.sessionStorage.removeItem(WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || toolbarPosition.x === null || toolbarPosition.y === null) {
+      return;
+    }
+
+    window.sessionStorage.setItem(WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY, JSON.stringify(toolbarPosition));
+  }, [toolbarPosition]);
+
+  useEffect(() => {
+    const handlePointerMove = (event) => {
+      if (!toolbarDragOffsetRef.current) {
+        return;
+      }
+
+      const { offsetX, offsetY } = toolbarDragOffsetRef.current;
+      setToolbarPosition(clampToolbarPosition(event.clientX - offsetX, event.clientY - offsetY));
+    };
+
+    const stopDraggingToolbar = () => {
+      toolbarDragOffsetRef.current = null;
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopDraggingToolbar);
+    window.addEventListener("pointercancel", stopDraggingToolbar);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopDraggingToolbar);
+      window.removeEventListener("pointercancel", stopDraggingToolbar);
+    };
+  }, [isToolbarCollapsed]);
+
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setToolbarPosition((currentPosition) => {
+        if (currentPosition.x === null || currentPosition.y === null) {
+          return currentPosition;
+        }
+        return clampToolbarPosition(currentPosition.x, currentPosition.y);
+      });
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => {
+      window.removeEventListener("resize", handleWindowResize);
+    };
+  }, [isToolbarCollapsed]);
 
   useEffect(() => {
     paperStyleRef.current = paperStyle;
@@ -1505,6 +1591,28 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     img.src = boardDataUrl;
   };
 
+  const handleToolbarDragStart = (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    const rect = toolbarDockRef.current?.getBoundingClientRect();
+    const startX = toolbarPosition.x ?? rect?.left ?? 8;
+    const startY = toolbarPosition.y ?? rect?.top ?? 8;
+
+    toolbarDragOffsetRef.current = {
+      offsetX: event.clientX - startX,
+      offsetY: event.clientY - startY,
+    };
+
+    setToolbarPosition(clampToolbarPosition(startX, startY));
+    event.preventDefault();
+  };
+
+  const handleToolbarCollapseToggle = () => {
+    setIsToolbarCollapsed((previousState) => !previousState);
+  };
+
   if (loadError) {
     return <div className="text-rose-600 font-medium">{loadError}</div>;
   }
@@ -1546,9 +1654,44 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         </div>
       </div>
 
-      <div id="interactive-whiteboard-toolbar-dock" className="fixed bottom-4 left-1/2 z-50 w-[min(780px,calc(100vw-1rem))] -translate-x-1/2 px-2 print:hidden">
-        <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
-          <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/90 px-3 py-2 shadow-xl backdrop-blur">
+      <div
+        id="interactive-whiteboard-toolbar-dock"
+        ref={toolbarDockRef}
+        style={
+          toolbarPosition.x !== null && toolbarPosition.y !== null
+            ? { left: toolbarPosition.x, top: toolbarPosition.y, bottom: "auto", transform: "none" }
+            : undefined
+        }
+        className="fixed bottom-4 left-4 z-50 w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
+      >
+        <div id="interactive-whiteboard-toolbar-row" className="flex items-start justify-start gap-0">
+          <button
+            id="interactive-whiteboard-toolbar-drag-handle"
+            type="button"
+            onPointerDown={handleToolbarDragStart}
+            title="Déplacer la barre d'outils"
+            aria-label="Déplacer la barre d'outils"
+            className="h-7 min-w-7 rounded-2xl border border-white/60 bg-slate-900/85 px-1 text-white shadow-xl backdrop-blur transition hover:bg-slate-800/90 active:cursor-grabbing"
+          >
+            <span aria-hidden="true" className="block text-sm leading-none tracking-tight">⋮⋮</span>
+          </button>
+
+          <button
+            id="interactive-whiteboard-toolbar-collapse-button"
+            type="button"
+            onClick={handleToolbarCollapseToggle}
+            title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
+            aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
+            className="h-7 min-w-7 rounded-2xl border border-white/60 bg-slate-800/90 px-1 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+          >
+            <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
+              {isToolbarCollapsed ? "⌞⌝" : "«"}
+            </span>
+          </button>
+
+          {!isToolbarCollapsed && (
+            <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
+              <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/90 px-3 py-2 shadow-xl backdrop-blur">
             <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
               <select
                 id="interactive-whiteboard-paper-style"
@@ -1604,58 +1747,60 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
               <button type="button" onClick={handleClear} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
             </div>
-          </section>
+              </section>
 
-          {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
-            <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
-              {(mode === "draw" || mode === "text" || mode === "erase" || mode === "shape") && (
-                <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
-                  {mode !== "erase" && (
-                    <DropupSelect
-                      id="interactive-whiteboard-color-select"
-                      value={color}
-                      onChange={setColor}
-                      options={WHITEBOARD_COLOR_OPTIONS}
-                      title="Couleur"
-                      triggerClassName="min-w-14"
-                    />
+              {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
+                <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
+                  {(mode === "draw" || mode === "text" || mode === "erase" || mode === "shape") && (
+                    <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
+                      {mode !== "erase" && (
+                        <DropupSelect
+                          id="interactive-whiteboard-color-select"
+                          value={color}
+                          onChange={setColor}
+                          options={WHITEBOARD_COLOR_OPTIONS}
+                          title="Couleur"
+                          triggerClassName="min-w-14"
+                        />
+                      )}
+                      <DropupSelect
+                        id="interactive-whiteboard-size-select"
+                        value={brushSize}
+                        onChange={setBrushSize}
+                        options={WHITEBOARD_BRUSH_SIZE_OPTIONS}
+                        title="Taille du trait"
+                        triggerClassName="min-w-14"
+                        renderOption={(option) => renderBrushSizePreview(option)}
+                        renderSelectedOption={(option) => renderBrushSizePreview(option, true)}
+                        getOptionStyle={getBrushSizeOptionStyle}
+                      />
+                      {mode === "shape" && (
+                        <DropupSelect
+                          id="interactive-whiteboard-shape-type-select"
+                          value={shapeType}
+                          onChange={setShapeType}
+                          options={WHITEBOARD_SHAPE_OPTIONS}
+                          title="Forme géométrique"
+                          triggerClassName="min-w-14"
+                        />
+                      )}
+                    </div>
                   )}
-                  <DropupSelect
-                    id="interactive-whiteboard-size-select"
-                    value={brushSize}
-                    onChange={setBrushSize}
-                    options={WHITEBOARD_BRUSH_SIZE_OPTIONS}
-                    title="Taille du trait"
-                    triggerClassName="min-w-14"
-                    renderOption={(option) => renderBrushSizePreview(option)}
-                    renderSelectedOption={(option) => renderBrushSizePreview(option, true)}
-                    getOptionStyle={getBrushSizeOptionStyle}
-                  />
-                  {mode === "shape" && (
-                    <DropupSelect
-                      id="interactive-whiteboard-shape-type-select"
-                      value={shapeType}
-                      onChange={setShapeType}
-                      options={WHITEBOARD_SHAPE_OPTIONS}
-                      title="Forme géométrique"
-                      triggerClassName="min-w-14"
-                    />
-                  )}
-                </div>
-              )}
 
-              {mode === "select" && (
-                <div id="interactive-whiteboard-selection-group" className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={handleCut} title="Couper la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >✂️</button>
-                  <button type="button" onClick={handleCopy} title="Copier la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >📋</button>
-                  <button type="button" onClick={handlePaste} title="Coller" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >🗐</button>
-                  <button type="button" onClick={handleDeleteSelection} title="Supprimer la sélection" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >❌</button>
-                  <button type="button" onClick={handleBringForward} title="Avancer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔺</button>
-                  <button type="button" onClick={handleSendBackward} title="Reculer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔻</button>
-                  <button type="button" onClick={handleToggleLock} title="Verrouiller / Déverrouiller" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔒</button>
-                </div>
+                  {mode === "select" && (
+                    <div id="interactive-whiteboard-selection-group" className="flex flex-wrap items-center gap-2">
+                      <button type="button" onClick={handleCut} title="Couper la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >✂️</button>
+                      <button type="button" onClick={handleCopy} title="Copier la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >📋</button>
+                      <button type="button" onClick={handlePaste} title="Coller" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >🗐</button>
+                      <button type="button" onClick={handleDeleteSelection} title="Supprimer la sélection" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >❌</button>
+                      <button type="button" onClick={handleBringForward} title="Avancer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔺</button>
+                      <button type="button" onClick={handleSendBackward} title="Reculer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔻</button>
+                      <button type="button" onClick={handleToggleLock} title="Verrouiller / Déverrouiller" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔒</button>
+                    </div>
+                  )}
+                </section>
               )}
-            </section>
+            </div>
           )}
         </div>
       </div>
