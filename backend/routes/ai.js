@@ -1268,8 +1268,13 @@ router.get('/verbs-by-ending', async (req, res) => {
         return words.some((word) => {
           const wordStr = normalizeText(word?.word || '').toLowerCase();
           const nature = normalizeText(word?.nature || '').toLowerCase();
+          
+          // Vérifier que c'est un verbe ET pas un adverbe
+          const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && 
+                         !nature.includes('adverbe');
+          
           return (
-            (nature === 'verbe' || /verbe/.test(nature)) &&
+            isVerb &&
             sentenceEndings.some((ending) => wordStr.endsWith(ending))
           );
         });

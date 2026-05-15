@@ -56,7 +56,10 @@ function findVerbWithEnding(sentence, endings) {
     const wordStr = String(word?.word || "").toLowerCase();
     const nature = String(word?.nature || "").toLowerCase();
     
-    if (nature.includes("verbe")) {
+    // Vérifier que c'est un verbe ET pas un adverbe
+    const isVerb = (nature.includes("verbe")) && !nature.includes("adverbe");
+    
+    if (isVerb) {
       for (const ending of endings) {
         if (wordStr.endsWith(ending)) {
           return {
