@@ -287,18 +287,14 @@ const VerbEndingCompletionActivity = ({
     }
   };
 
-  const handleEndingHover = (ending) => {
-    setSelectedEnding(ending);
-  };
-
-  const handleEndingLeave = () => {
-    if (!roundFinished) {
-      setSelectedEnding(null);
-    }
-  };
-
   const handleEndingClick = (ending) => {
     if (loadingSentences || finished || roundFinished) {
+      return;
+    }
+
+    // Premier clic: prévisualiser la terminaison choisie dans la phrase.
+    if (selectedEnding !== ending) {
+      setSelectedEnding(ending);
       return;
     }
 
@@ -455,6 +451,9 @@ const VerbEndingCompletionActivity = ({
           {!finished && currentSentence && (
             <section id="verb-endings-tiles" className="rounded-2xl border border-slate-200 bg-white shadow-sm p-3 sm:p-4">
               <h4 className="text-lg font-bold text-slate-800 mb-3">Choisis la bonne terminaison</h4>
+              <p id="verb-ending-tile-instruction" className="mb-3 text-sm text-slate-600">
+                Clique une première fois pour essayer, puis clique une deuxième fois sur la même terminaison pour valider ta réponse.
+              </p>
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 {currentEndings.map((ending) => (
                   <button
@@ -462,8 +461,6 @@ const VerbEndingCompletionActivity = ({
                     id={`verb-ending-tile-${ending}`}
                     type="button"
                     onClick={() => handleEndingClick(ending)}
-                    onMouseEnter={() => handleEndingHover(ending)}
-                    onMouseLeave={handleEndingLeave}
                     disabled={loadingSentences || finished || roundFinished}
                     className={`rounded-2xl border-2 px-4 py-3 sm:px-6 sm:py-4 font-bold text-lg transition-all ${
                       roundFinished
