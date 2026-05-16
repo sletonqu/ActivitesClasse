@@ -778,7 +778,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
               className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-slate-900/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span aria-hidden="true">{isRunning ? "❚❚" : "▶"}</span>
-              {audioState === "requesting" ? "Demande micro..." : isRunning ? "Pause" : "Play"}
+              {audioState === "requesting" ? "Demande micro..." : ""}
             </button>
             <button
               id="class-sound-meter-reset"
@@ -787,7 +787,6 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
               className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
             >
               <span aria-hidden="true">↻</span>
-              Réinitialiser
             </button>
           </div>
 
