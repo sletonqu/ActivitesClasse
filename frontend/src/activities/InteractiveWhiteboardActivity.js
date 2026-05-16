@@ -94,7 +94,7 @@ const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
   value: String(size),
   label: `${size}px`,
 }));
-const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position";
+const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position-v2";
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
 
@@ -1662,36 +1662,28 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             ? { left: toolbarPosition.x, top: toolbarPosition.y, bottom: "auto", transform: "none" }
             : undefined
         }
-        className="fixed bottom-4 left-4 z-50 w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
+        className="fixed bottom-4 right-4 z-50 w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
       >
-        <div id="interactive-whiteboard-toolbar-row" className="flex items-start justify-start gap-0">
-          <button
-            id="interactive-whiteboard-toolbar-drag-handle"
-            type="button"
-            onPointerDown={handleToolbarDragStart}
-            title="Déplacer la barre d'outils"
-            aria-label="Déplacer la barre d'outils"
-            className="h-7 min-w-7 rounded-2xl border border-white/60 bg-slate-900/85 px-1 text-white shadow-xl backdrop-blur transition hover:bg-slate-800/90 active:cursor-grabbing"
-          >
-            <span aria-hidden="true" className="block text-sm leading-none tracking-tight">⋮⋮</span>
-          </button>
-
+        <div
+          id="interactive-whiteboard-toolbar-row"
+          className="flex items-start justify-end gap-0"
+        >
           <button
             id="interactive-whiteboard-toolbar-collapse-button"
             type="button"
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="h-7 min-w-7 rounded-2xl border border-white/60 bg-slate-800/90 px-1 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+            className="h-[97.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
-              {isToolbarCollapsed ? "⌞⌝" : "«"}
+              {isToolbarCollapsed ? "⌞⌝" : "〢"}
             </span>
           </button>
 
           {!isToolbarCollapsed && (
             <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
-              <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/90 px-3 py-2 shadow-xl backdrop-blur">
+              <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-none border border-white/40 bg-white/90 py-2 shadow-xl backdrop-blur">
             <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
               <select
                 id="interactive-whiteboard-paper-style"
@@ -1802,6 +1794,21 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               )}
             </div>
           )}
+          <button
+            id="interactive-whiteboard-toolbar-drag-handle"
+            type="button"
+            onPointerDown={handleToolbarDragStart}
+            title="Déplacer la barre d'outils"
+            aria-label="Déplacer la barre d'outils"
+            className="h-[97.33px] min-w-7 self-start rounded-l-none rounded-r-2xl border border-white/60 bg-slate-900/85 px-1 py-2 text-white shadow-x1 backdrop-blur transition hover:bg-slate-800/90 active:cursor-grabbing"
+          >
+            <span aria-hidden="true" className="flex h-full flex-col items-center justify-center gap-1 text-[20px] leading-none tracking-tight">
+              <span>░</span>
+              <span>░</span>
+              <span>░</span>
+            </span>
+          </button>
+
         </div>
       </div>
     </div>
