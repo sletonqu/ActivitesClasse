@@ -1674,7 +1674,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="h-[97.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+            className="h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
               {isToolbarCollapsed ? "⌞⌝" : "〢"}
@@ -1682,8 +1682,25 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           </button>
 
           {!isToolbarCollapsed && (
-            <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-2">
-              <section id="interactive-whiteboard-main-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-none border border-white/40 bg-white/90 py-2 shadow-xl backdrop-blur">
+            <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-1">
+              <section
+                id="interactive-whiteboard-main-toolbar"
+                className="flex w-full flex-col items-stretch rounded-none border border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur"
+              >
+                <button
+                  id="interactive-whiteboard-toolbar-drag-handle"
+                  type="button"
+                  onPointerDown={handleToolbarDragStart}
+                  title="Déplacer la barre d'outils"
+                  aria-label="Déplacer la barre d'outils"
+                  className="h-5 w-full border-none bg-slate-50 px-0 text-slate-300 transition hover:bg-slate-100 active:cursor-grabbing"
+                >
+                  <span aria-hidden="true" className="block h-full w-full overflow-hidden whitespace-nowrap text-center text-sm leading-none tracking-[-0.02em]">
+                    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                  </span>
+                </button>
+
+                <div id="interactive-whiteboard-main-toolbar-content" className="flex flex-wrap items-center justify-center gap-1 px-3 pt-0">
             <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
               <select
                 id="interactive-whiteboard-paper-style"
@@ -1739,6 +1756,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
               <button type="button" onClick={handleClear} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
             </div>
+                </div>
               </section>
 
               {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
@@ -1794,21 +1812,6 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               )}
             </div>
           )}
-          <button
-            id="interactive-whiteboard-toolbar-drag-handle"
-            type="button"
-            onPointerDown={handleToolbarDragStart}
-            title="Déplacer la barre d'outils"
-            aria-label="Déplacer la barre d'outils"
-            className="h-[97.33px] min-w-7 self-start rounded-l-none rounded-r-2xl border border-white/60 bg-slate-900/85 px-1 py-2 text-white shadow-x1 backdrop-blur transition hover:bg-slate-800/90 active:cursor-grabbing"
-          >
-            <span aria-hidden="true" className="flex h-full flex-col items-center justify-center gap-1 text-[20px] leading-none tracking-tight">
-              <span>░</span>
-              <span>░</span>
-              <span>░</span>
-            </span>
-          </button>
-
         </div>
       </div>
     </div>
