@@ -1627,7 +1627,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
       <div
         id="interactive-whiteboard-workspace"
-        className="overflow-auto rounded-xl border border-slate-200 bg-slate-100 p-4"
+        className="overflow-auto rounded-xl border border-slate-200 bg-slate-100 p-0"
         style={{
           backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
           backgroundSize: "20px 20px",
