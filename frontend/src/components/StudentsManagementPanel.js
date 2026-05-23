@@ -15,11 +15,13 @@ const StudentsManagementPanel = ({
   loadingStudents,
   deletingAllStudents,
   deletingStudentId,
+  editingStudentId,
   onStudentNameChange,
   onStudentFirstnameChange,
   onAddStudent,
   onToggleStudentsList,
   onSelectStudent,
+  onEditStudent,
   onDeleteStudent,
   onDeleteAllStudents,
   hideTitle = false,
@@ -136,14 +138,26 @@ const StudentsManagementPanel = ({
                       </p>
                     </div>
                     {String(selectedStudentId) === String(student.id) && (
-                      <button
-                        type="button"
-                        onClick={() => onDeleteStudent(student)}
-                        disabled={deletingStudentId === String(student.id) || deletingAllStudents}
-                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-                      >
-                        {deletingStudentId === String(student.id) ? "Suppression..." : "Supprimer"}
-                      </button>
+                      <div id={`student-row-selected-actions-${student.id}`} className="flex items-center gap-2">
+                        <button
+                          id={`student-row-edit-button-${student.id}`}
+                          type="button"
+                          onClick={() => onEditStudent(student)}
+                          disabled={editingStudentId === String(student.id) || deletingAllStudents}
+                          className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-60"
+                        >
+                          {editingStudentId === String(student.id) ? "Modification..." : "Modifier"}
+                        </button>
+                        <button
+                          id={`student-row-delete-button-${student.id}`}
+                          type="button"
+                          onClick={() => onDeleteStudent(student)}
+                          disabled={deletingStudentId === String(student.id) || deletingAllStudents || editingStudentId === String(student.id)}
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                        >
+                          {deletingStudentId === String(student.id) ? "Suppression..." : "Supprimer"}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </li>

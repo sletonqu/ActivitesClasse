@@ -36,6 +36,7 @@ const TeacherView = () => {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [deletingStudentId, setDeletingStudentId] = useState("");
   const [deletingAllStudents, setDeletingAllStudents] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState("");
   const [groupName, setGroupName] = useState("");
   const [submittingGroup, setSubmittingGroup] = useState(false);
   const [groupMessage, setGroupMessage] = useState("");
@@ -301,6 +302,63 @@ const TeacherView = () => {
       setStudentError(err.message || "Erreur inconnue");
     } finally {
       setDeletingStudentId("");
+    }
+  };
+
+  const handleEditStudent = async (student) => {
+    if (!student) return;
+
+    const currentFirstname = String(student.firstname || "").trim();
+    const currentName = String(student.name || "").trim();
+    const newFirstname = window.prompt("Prénom de l'élève", currentFirstname);
+    if (newFirstname === null) return;
+
+    const newName = window.prompt("Nom de l'élève", currentName);
+    if (newName === null) return;
+
+    const trimmedFirstname = newFirstname.trim();
+    const trimmedName = newName.trim();
+
+    setStudentError("");
+    setStudentMessage("");
+
+    try {
+      if (!trimmedFirstname || !trimmedName) {
+        throw new Error("Les champs nom et prénom sont obligatoires");
+      }
+
+      if (trimmedFirstname === currentFirstname && trimmedName === currentName) {
+        setStudentMessage("Aucune modification détectée");
+        return;
+      }
+
+      setEditingStudentId(String(student.id));
+
+      const res = await fetch(`${API_URL}/students/${student.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trimmedName,
+          firstname: trimmedFirstname,
+          class_id: Number(student.class_id),
+          group_id:
+            student.group_id === null || student.group_id === undefined || student.group_id === ""
+              ? null
+              : Number(student.group_id),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de la modification de l'élève");
+      }
+
+      await loadStudents();
+      setStudentMessage("Élève modifié");
+    } catch (err) {
+      setStudentError(err.message || "Erreur inconnue");
+    } finally {
+      setEditingStudentId("");
     }
   };
 
@@ -883,11 +941,13 @@ const TeacherView = () => {
             loadingStudents={loadingStudents}
             deletingAllStudents={deletingAllStudents}
             deletingStudentId={deletingStudentId}
+            editingStudentId={editingStudentId}
             onStudentNameChange={setStudentName}
             onStudentFirstnameChange={setStudentFirstname}
             onAddStudent={handleAddStudent}
             onToggleStudentsList={handleToggleStudentsList}
             onSelectStudent={setSelectedStudentId}
+            onEditStudent={handleEditStudent}
             onDeleteStudent={handleDeleteStudent}
             onDeleteAllStudents={handleDeleteAllStudents}
             hideTitle
