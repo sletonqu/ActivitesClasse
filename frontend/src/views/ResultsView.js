@@ -434,11 +434,12 @@ const ResultsView = () => {
               <div id="results-detail-modal-attempts" className="space-y-3">
                 <h4 id="results-detail-modal-attempts-title" className="font-semibold text-slate-800">Tentatives ({selectedResult.results.length})</h4>
                 {selectedResult.results
+                  .slice()
                   .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
                   .map((result, idx) => (
                     <div id={`results-detail-attempt-${result.id}`} key={result.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                       <div id={`results-detail-attempt-header-${result.id}`} className="flex justify-between items-start mb-1">
-                        <span id={`results-detail-attempt-title-${result.id}`} className="font-medium text-slate-800">Tentative {idx + 1}</span>
+                        <span id={`results-detail-attempt-title-${result.id}`} className="font-medium text-slate-800">Tentative {selectedResult.results.length - idx}</span>
                         <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded ${getScoreColor(result.score)}`}>
                           {result.score}
                         </span>
