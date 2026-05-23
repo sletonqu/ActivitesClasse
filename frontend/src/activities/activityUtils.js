@@ -59,8 +59,8 @@ export function randomRotation(minDegrees = -10, maxDegrees = 10) {
 
 export function handleRoundRestart(allStudentsCompleted, onResetStudentRound) {
   if (allStudentsCompleted && typeof onResetStudentRound === "function") {
-    onResetStudentRound();
-    return true;
+    const shouldStopLocalRestart = onResetStudentRound();
+    return shouldStopLocalRestart !== false;
   }
 
   return false;

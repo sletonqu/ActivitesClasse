@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ActivityContainer from "../activities/ActivityContainer";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
@@ -27,12 +28,48 @@ const StudentView = () => {
   const [activityContent, setActivityContent] = useState(DEFAULT_ACTIVITY_CONTENT);
   const [preferredLevelByActivityId, setPreferredLevelByActivityId] = useState({});
   const [scoresByStudentId, setScoresByStudentId] = useState({});
+  const [activityRunToken, setActivityRunToken] = useState(0);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [focusedModeError, setFocusedModeError] = useState("");
+  const location = useLocation();
+
+  const focusedModeParams = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const classId = String(searchParams.get("classId") || "").trim();
+    const groupId = String(searchParams.get("groupId") || "").trim();
+    const activityId = String(searchParams.get("activityId") || "").trim();
+    const studentId = String(searchParams.get("studentId") || "").trim();
+
+    const values = { classId, groupId, activityId, studentId };
+    const hasAny = Object.values(values).some(Boolean);
+    const missingParams = Object.entries(values)
+      .filter(([, value]) => !value)
+      .map(([key]) => key);
+
+    return {
+      ...values,
+      hasAny,
+      missingParams,
+      hasAllRequired: missingParams.length === 0,
+    };
+  }, [location.search]);
+
+  const isFocusedMode = focusedModeParams.hasAny;
 
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
+  const selectedClass = classes.find((cls) => String(cls.id) === String(selectedClassId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
+  const focusedClassName =
+    selectedClass?.name
+    || classes.find((cls) => String(cls.id) === String(selectedStudent?.class_id))?.name
+    || "-";
+  const focusedGroupName =
+    selectedGroup?.name
+    || selectedStudent?.group_name
+    || groups.find((group) => String(group.id) === String(selectedStudent?.group_id))?.name
+    || "-";
   const availableDisciplines = Array.from(new Set(activities.map(a => a.discipline).filter(Boolean))).sort((a, b) => a.localeCompare(b));
   const activeActivities = activities.filter((a) => !a.status || a.status === "Active");
   const filteredActivities = activeActivities.filter((activity) => {
@@ -46,6 +83,25 @@ const StudentView = () => {
     loadStudentsIntoState(setStudents);
     loadActivitiesIntoState(setActivities);
   }, []);
+
+  useEffect(() => {
+    if (!isFocusedMode) {
+      setFocusedModeError("");
+      return;
+    }
+
+    setIsDemoMode(false);
+    setHeaderCollapsed(true);
+    setSelectedDiscipline("");
+    setSelectedClassId(focusedModeParams.classId);
+    setSelectedGroupId(focusedModeParams.groupId);
+    setSelectedActivityId(focusedModeParams.activityId);
+  }, [
+    focusedModeParams.activityId,
+    focusedModeParams.classId,
+    focusedModeParams.groupId,
+    isFocusedMode,
+  ]);
 
   useEffect(() => {
     if (!selectedClassId) {
@@ -68,6 +124,84 @@ const StudentView = () => {
       })
       .finally(() => setLoadingGroups(false));
   }, [selectedClassId]);
+
+  useEffect(() => {
+    if (!isFocusedMode) {
+      setFocusedModeError("");
+      return;
+    }
+
+    if (!focusedModeParams.hasAllRequired) {
+      setSelectedStudent(null);
+      setFocusedModeError(
+        `Lien incomplet: paramètres URL manquants (${focusedModeParams.missingParams.join(", ")}).`
+      );
+      return;
+    }
+
+    if (loadingGroups) {
+      return;
+    }
+
+    const targetClass = classes.find((cls) => String(cls.id) === focusedModeParams.classId);
+    if (!targetClass) {
+      setSelectedStudent(null);
+      setFocusedModeError("Mode ciblé invalide: classe introuvable.");
+      return;
+    }
+
+    const targetGroup = groups.find((group) => String(group.id) === focusedModeParams.groupId);
+    if (!targetGroup) {
+      setSelectedStudent(null);
+      setFocusedModeError("Mode ciblé invalide: groupe introuvable pour cette classe.");
+      return;
+    }
+
+    const targetActivity = activities.find(
+      (activity) => String(activity.id) === focusedModeParams.activityId
+    );
+    if (!targetActivity) {
+      setSelectedStudent(null);
+      setFocusedModeError("Mode ciblé invalide: activité introuvable.");
+      return;
+    }
+
+    const targetStudent = students.find(
+      (student) => String(student.id) === focusedModeParams.studentId
+    );
+    if (!targetStudent) {
+      setSelectedStudent(null);
+      setFocusedModeError("Mode ciblé invalide: élève introuvable.");
+      return;
+    }
+
+    if (
+      String(targetStudent.class_id) !== focusedModeParams.classId
+      || String(targetStudent.group_id) !== focusedModeParams.groupId
+    ) {
+      setSelectedStudent(null);
+      setFocusedModeError("Mode ciblé invalide: l'élève ne correspond pas à la classe ou au groupe demandés.");
+      return;
+    }
+
+    setFocusedModeError("");
+    setSelectedStudent((previousStudent) =>
+      String(previousStudent?.id) === String(targetStudent.id) ? previousStudent : targetStudent
+    );
+  }, [
+    activities,
+    classes,
+    focusedModeParams.activityId,
+    focusedModeParams.classId,
+    focusedModeParams.groupId,
+    focusedModeParams.hasAllRequired,
+    focusedModeParams.missingParams,
+    focusedModeParams.studentId,
+    groups,
+    isFocusedMode,
+    loadingGroups,
+    students,
+  ]);
 
   const filteredStudents = students.filter((student) => {
     if (!selectedClassId || String(student.class_id) !== String(selectedClassId)) {
@@ -97,22 +231,47 @@ const StudentView = () => {
   }, [isDemoMode, selectedClassId, selectedGroupId, selectedStudent, selectedStudentStillVisible]);
 
   const allStudentsCompleted =
-    !isDemoMode
-    && Boolean(selectedClassId)
-    && Boolean(selectedActivityId)
-    && filteredStudents.length > 0
-    && filteredStudents.every((student) => scoresByStudentId[student.id] !== undefined);
+    isFocusedMode
+      ? Boolean(selectedStudent) && Boolean(selectedActivityId) && !focusedModeError
+      : !isDemoMode
+      && Boolean(selectedClassId)
+      && Boolean(selectedActivityId)
+      && filteredStudents.length > 0
+      && filteredStudents.every((student) => scoresByStudentId[student.id] !== undefined);
+
+  const focusedActivityCompleted =
+    Boolean(selectedStudent) && scoresByStudentId[selectedStudent.id] !== undefined;
 
   const handleResetStudentRound = () => {
+    if (isFocusedMode) {
+      if (!selectedStudent) {
+        setScoresByStudentId({});
+        setActivityRunToken((previousToken) => previousToken + 1);
+        return false;
+      }
+
+      setScoresByStudentId((previousScores) => {
+        const nextScores = { ...previousScores };
+        delete nextScores[selectedStudent.id];
+        return nextScores;
+      });
+      setActivityRunToken((previousToken) => previousToken + 1);
+      return false;
+    }
+
     setSelectedStudent(null);
     setScoresByStudentId({});
+    return true;
   };
 
   useEffect(() => {
     if (!selectedActivity) {
       setActivityContent(DEFAULT_ACTIVITY_CONTENT);
-      setSelectedStudent(null);
+      if (!isFocusedMode) {
+        setSelectedStudent(null);
+      }
       setScoresByStudentId({});
+      setActivityRunToken(0);
       return;
     }
 
@@ -128,18 +287,21 @@ const StudentView = () => {
     }
 
     setActivityContent(parsedContent);
-    setSelectedStudent(null);
+    if (!isFocusedMode) {
+      setSelectedStudent(null);
+    }
     setScoresByStudentId({});
-  }, [selectedActivityId, selectedActivity]);
+    setActivityRunToken(0);
+  }, [isFocusedMode, selectedActivityId, selectedActivity]);
 
   useEffect(() => {
-    if (selectedActivityId || isDemoMode) {
+    if (selectedActivityId || isDemoMode || isFocusedMode) {
       const timer = setTimeout(() => {
         setHeaderCollapsed(true);
       }, HEADER_COLLAPSE_DELAY);
       return () => clearTimeout(timer);
     }
-  }, [selectedActivityId, isDemoMode]);
+  }, [isFocusedMode, selectedActivityId, isDemoMode]);
 
 
   const leaderboard = filteredStudents
@@ -151,7 +313,7 @@ const StudentView = () => {
     .sort((a, b) => b.score - a.score);
 
   const handleStudentClick = (student) => {
-    if (isDemoMode || scoresByStudentId[student.id] !== undefined) return;
+    if (isDemoMode || isFocusedMode || scoresByStudentId[student.id] !== undefined) return;
     setSelectedStudent(student);
   };
 
@@ -275,7 +437,31 @@ const StudentView = () => {
       <div className="flex w-full flex-1 flex-col items-center">
 
         {/* Header Glassy Unifié - Version Compacte */}
-        {headerCollapsed ? (
+        {isFocusedMode ? (
+          <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1.2fr_1fr] md:items-center">
+            <div id="student-title-block" className="flex flex-col min-w-0 items-start text-left">
+              <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none">Espace Élève</h1>
+              <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight">
+                {selectedActivity?.title || "Choisir une activité"}
+              </span>
+            </div>
+
+            <div id="student-focused-student-name" className="min-w-0 text-center text-base sm:text-lg md:text-xl font-extrabold text-indigo-700 truncate leading-tight">
+              {selectedStudent
+                ? `${selectedStudent.firstname || ""} ${selectedStudent.name || ""}`.trim()
+                : "Élève ciblé"}
+            </div>
+
+            <div id="student-focused-student-meta" className="flex flex-col min-w-0 items-start md:items-end text-left md:text-right">
+              <span id="student-focused-class" className="text-[11px] sm:text-xs text-slate-700 font-bold truncate leading-tight w-full md:w-auto">
+                Classe: {focusedClassName}
+              </span>
+              <span id="student-focused-group" className="text-[10px] sm:text-xs text-slate-600 font-semibold truncate leading-tight w-full md:w-auto">
+                Groupe: {focusedGroupName}
+              </span>
+            </div>
+          </header>
+        ) : (headerCollapsed ? (
           <button
             id="student-logo-collapsed"
             type="button"
@@ -400,14 +586,14 @@ const StudentView = () => {
               </button>
             </div>
           </header>
-        )}
+        ))}
 
         <div
           id="student-view-main-layout"
-          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-stretch gap-1 ${isDemoMode ? "lg:grid-cols-1" : "lg:grid-cols-[130px_minmax(0,1fr)_140px]"
+          className={`mt-auto sticky bottom-0 z-10 grid w-full grid-cols-1 items-stretch gap-1 ${isDemoMode || isFocusedMode ? "lg:grid-cols-1" : "lg:grid-cols-[130px_minmax(0,1fr)_140px]"
             }`}
         >
-          {!isDemoMode && (
+          {!isDemoMode && !isFocusedMode && (
             <div id="student-view-students-panel" className="w-full min-w-0 self-stretch">
               <StudentPanel
                 students={filteredStudents}
@@ -421,15 +607,22 @@ const StudentView = () => {
             </div>
           )}
 
-          <div id="student-view-activity-panel" className="w-full min-w-0">
-            {!selectedActivityId ? (
+          <div
+            id="student-view-activity-panel"
+            className={`w-full min-w-0 ${isFocusedMode && !focusedActivityCompleted ? "focused-mode-hide-restart" : ""}`}
+          >
+            {isFocusedMode && focusedModeError ? (
+              <div id="student-focused-mode-error" className="rounded-xl bg-red-50 p-4 text-red-700 shadow border border-red-200">
+                {focusedModeError}
+              </div>
+            ) : !selectedActivityId ? (
               <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
                 Sélectionnez une activité active pour commencer.
               </div>
             ) : isDemoMode ? (
               <div className="space-y-3">
                 <ActivityContainer
-                  key={`demo-${selectedActivityId}`}
+                  key={`demo-${selectedActivityId}-${activityRunToken}`}
                   student={null}
                   content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
@@ -442,7 +635,7 @@ const StudentView = () => {
             ) : selectedStudent ? (
               <div className="space-y-2.5">
                 <ActivityContainer
-                  key={`${selectedStudent.id}-${selectedActivityId}`}
+                  key={`${selectedStudent.id}-${selectedActivityId}-${activityRunToken}`}
                   student={selectedStudent}
                   content={effectiveActivityContent}
                   activityJsFile={selectedActivity?.js_file}
@@ -456,12 +649,14 @@ const StudentView = () => {
               </div>
             ) : (
               <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
-                Sélectionnez un élève pour commencer l'activité.
+                {isFocusedMode
+                  ? "Chargement de l'élève ciblé..."
+                  : "Sélectionnez un élève pour commencer l'activité."}
               </div>
             )}
           </div>
 
-          {!isDemoMode && (
+          {!isDemoMode && !isFocusedMode && (
             <div id="student-view-leaderboard-panel" className="w-full min-w-0 self-stretch">
               <LeaderboardPanel
                 leaderboard={leaderboard}

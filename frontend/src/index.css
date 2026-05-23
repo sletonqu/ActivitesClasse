@@ -103,6 +103,10 @@ body {
   margin-top: 0.6rem !important;
 }
 
+#student-view-activity-panel.focused-mode-hide-restart button[id$="restart-button"] {
+  display: none !important;
+}
+
 @media (min-width: 640px) {
   #activity-container [id$="-status-panel"]+* {
     margin-top: 0.8rem !important;
