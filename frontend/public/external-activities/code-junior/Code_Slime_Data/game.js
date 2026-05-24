@@ -19,7 +19,7 @@ const G = {
   state: "load",         // Main game state: 'load', 'game', 'menu', etc.
   state2: "main",        // Sub-state for detailed control: 'idle', 'drop', 'wheel', etc.
 
-  sound: true,           // Whether game sound is enabled
+  sound: false,           // Whether game sound is enabled
 
   btn_c: {               // Central button state (used on title screen or in-game)
     x: 0,                // X position of the button
@@ -97,9 +97,11 @@ const G = {
     }
 
     // Sound toggle button
+    /*
     if (DrawBtn(W - 130, 5, 60, 60, G.sound ? img.btn_sound_on : img.btn_sound_off) && mld) {
       G.sound = !G.sound;       // Toggle sound on/off
     }
+    */
 
     G.clear_borders();
   },
