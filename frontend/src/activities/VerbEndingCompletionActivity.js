@@ -532,7 +532,7 @@ const VerbEndingCompletionActivity = ({
           {
             id: "verb-ending-completion-restart-button",
             onClick: handleRestart,
-            disabled: loadingSentences || restartLocked,
+            disabled: loadingSentences || restartLocked || !finished,
             ariaLabel: restartTitle,
             title: restartTitle,
             icon: "↻",
