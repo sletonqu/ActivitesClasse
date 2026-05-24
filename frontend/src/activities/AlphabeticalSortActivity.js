@@ -741,7 +741,7 @@ const AlphabeticalSortActivity = ({
           {
             id: "alphabetical-sort-restart",
             onClick: handleRestart,
-            disabled: loadingWords || restartLocked,
+            disabled: loadingWords || restartLocked || !finished,
             ariaLabel: "Recommencer",
             title: "Recommencer",
             icon: "↻",
