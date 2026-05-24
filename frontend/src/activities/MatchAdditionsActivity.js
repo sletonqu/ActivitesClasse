@@ -493,7 +493,7 @@ const MatchAdditionsActivity = ({
           {
             id: "match-additions-restart-button",
             onClick: handleRestart,
-            disabled: restartLocked,
+            disabled: restartLocked || !finished,
             ariaLabel: "Recommencer",
             title: "Recommencer",
             icon: "↻",
