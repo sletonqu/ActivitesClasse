@@ -763,7 +763,7 @@ const CompareNumbersActivity = ({
           {
             id: "compare-numbers-restart-button",
             onClick: handleRestart,
-            disabled: restartLocked,
+            disabled: restartLocked || !finished,
             ariaLabel: "Recommencer",
             title: "Recommencer",
             icon: "↻",
