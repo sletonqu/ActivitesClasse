@@ -652,7 +652,7 @@ const FractionsVisualSelectionActivity = ({
           {
             id: "fractions-selection-restart-button",
             onClick: handleRestart,
-            disabled: restartLocked,
+            disabled: restartLocked || !finished,
             ariaLabel: "Recommencer",
             title: "Recommencer",
             icon: "↻",
