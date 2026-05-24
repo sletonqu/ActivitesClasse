@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { API_URL } from "../config/api";
 
-const CodeJuniorActivity = ({ student, content = {}, onComplete }) => {
+const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId }) => {
   const [completed, setCompleted] = useState(false);
+  const [iframeReady, setIframeReady] = useState(false);
   const isDemoMode = !student;
 
   const title = content?.title || "Code Junior";
@@ -11,16 +13,39 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete }) => {
   const storageKey = `CODE_JUNIOR_STORAGE_${student?.id || studentFullName}`;
   const iframeSrc = `external-activities/code-junior/index.html?storageKey=${encodeURIComponent(storageKey)}`;
 
+  // Charger la progression précédente depuis la base de données
+  useEffect(() => {
+    if (isDemoMode || !student?.id || !activityId) {
+      setIframeReady(true);
+      return;
+    }
+
+    fetch(`${API_URL}/results/game-state?student_id=${student.id}&activity_id=${activityId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.game_state) {
+          try {
+            localStorage.setItem(storageKey, data.game_state);
+          } catch (e) {
+            console.warn("Impossible de restaurer la progression Code Junior :", e);
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIframeReady(true));
+  }, [student?.id, activityId, storageKey, isDemoMode]);
+
   const handleComplete = () => {
+    const gameState = localStorage.getItem(storageKey) || null;
     setCompleted(true);
     if (!isDemoMode && onComplete) {
-      onComplete();
+      onComplete({ score: 100, game_state: gameState });
     }
   };
 
   const handleReset = () => {
     setCompleted(false);
-    // Reload iframe to restart game
+    // Recharger l'iframe pour recommencer le jeu
     const iframe = document.getElementById("code-junior-iframe");
     if (iframe) {
       iframe.src = iframeSrc;
@@ -37,12 +62,18 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete }) => {
 
       {/* Main Content Area */}
       <div id="code-junior-content-area" className="flex-1 w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative" style={{ minHeight: isDemoMode ? "565px" : "408px" }}>
-        <iframe
-          id="code-junior-iframe"
-          src={iframeSrc}
-          className="absolute inset-0 w-full h-full border-none"
-          title="Jeu Code Junior"
-        />
+        {iframeReady ? (
+          <iframe
+            id="code-junior-iframe"
+            src={iframeSrc}
+            className="absolute inset-0 w-full h-full border-none"
+            title="Jeu Code Junior"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm font-medium">
+            Chargement de la progression…
+          </div>
+        )}
 
         {completed && (
           <div id="code-junior-completed-overlay" className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 transition-all duration-500">
