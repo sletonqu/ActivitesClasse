@@ -676,7 +676,7 @@ const WordClassificationActivity = ({
           {
             id: "word-classification-restart-button",
             onClick: handleRestart,
-            disabled: loadingWords || restartLocked,
+            disabled: loadingWords || restartLocked || !finished,
             ariaLabel: "Recommencer avec de nouveaux mots",
             title: "Recommencer avec de nouveaux mots",
             icon: "↻",
