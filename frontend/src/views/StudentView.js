@@ -255,7 +255,6 @@ const StudentView = () => {
         delete nextScores[selectedStudent.id];
         return nextScores;
       });
-      setActivityRunToken((previousToken) => previousToken + 1);
       return false;
     }
 

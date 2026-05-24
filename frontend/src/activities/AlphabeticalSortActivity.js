@@ -373,8 +373,11 @@ const AlphabeticalSortActivity = ({
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
-    loadWordsForLevel(initialLevel);
-  }, [initialLevel, loadWordsForLevel]);
+  }, [initialLevel]);
+
+  useEffect(() => {
+    loadWordsForLevel(currentLevel);
+  }, [currentLevel]);
 
   // ── Drag & Drop ────────────────────────────────────────────────────────────
   const handleDragStartFromPool = (tile) => {
@@ -463,7 +466,6 @@ const AlphabeticalSortActivity = ({
   const handleSelectLevel = (levelKey) => {
     if (loadingWords || finished) return;
     setCurrentLevel(levelKey);
-    loadWordsForLevel(levelKey);
   };
 
   // ─── Rendu ─────────────────────────────────────────────────────────────────
