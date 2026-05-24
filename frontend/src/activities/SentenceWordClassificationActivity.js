@@ -828,7 +828,7 @@ const SentenceWordClassificationActivity = ({
           {
             id: "sentence-word-classification-restart-button",
             onClick: handleRestart,
-            disabled: loadingSentences || restartLocked,
+            disabled: loadingSentences || restartLocked || !finished,
             ariaLabel: "Recommencer avec d'autres phrases",
             title: "Recommencer avec d'autres phrases",
             icon: "↻",
