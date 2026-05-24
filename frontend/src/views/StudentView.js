@@ -354,6 +354,7 @@ const StudentView = () => {
           activity_level: activityLevel,
           activity_level_label: activityLevelLabel,
           completed_at: new Date().toISOString(),
+          game_state: payload.game_state || null,
         }),
       });
     } catch (err) {
@@ -641,6 +642,7 @@ const StudentView = () => {
                   onComplete={handleActivityComplete}
                   activityProps={{
                     allStudentsCompleted,
+                    activityId: Number(selectedActivityId),
                     onResetStudentRound: handleResetStudentRound,
                     onContentChange: handleActivityContentChange,
                   }}

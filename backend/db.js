@@ -90,6 +90,15 @@ function ensureGroupsSchema() {
           }
         });
       }
+
+      const hasGameState = Array.isArray(columns) && columns.some((column) => column.name === 'game_state');
+      if (!hasGameState) {
+        db.run('ALTER TABLE results ADD COLUMN game_state TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration game_state:', alterErr.message);
+          }
+        });
+      }
     });
   });
 }
