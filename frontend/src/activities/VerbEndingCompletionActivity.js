@@ -524,7 +524,7 @@ const VerbEndingCompletionActivity = ({
                 disabled: false,
                 ariaLabel: "Aller à la phrase suivante",
                 title: "Aller à la phrase suivante",
-                icon: "→",
+                icon: "➥",
                 srText: "Suivant",
                 variant: "validate",
               }
