@@ -356,7 +356,7 @@ const MatchAdditionsActivity = ({
                 >
                   <div
                     id={`match-additions-operation-${challenge.id}`}
-                    className="rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
+                    className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
                   >
                     {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
                   </div>
@@ -385,7 +385,7 @@ const MatchAdditionsActivity = ({
                         }`}
                         style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
                       >
-                        <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
+                        <span className="activity-number-tile-text block text-xl text-slate-800 sm:text-2xl">
                           {formatNumberWithThousandsSpace(assignedTile.value)}
                         </span>
                       </button>
@@ -447,7 +447,7 @@ const MatchAdditionsActivity = ({
                     }`}
                     style={{ transform: `rotate(${answerTile.rotation}deg)` }}
                   >
-                    <span className="block text-xl font-bold text-slate-800 sm:text-2xl">
+                    <span className="activity-number-tile-text block text-xl text-slate-800 sm:text-2xl">
                       {formatNumberWithThousandsSpace(answerTile.value)}
                     </span>
                   </button>
@@ -468,6 +468,7 @@ const MatchAdditionsActivity = ({
               : "Observe les cases colorées pour repérer les bonnes réponses et celles à corriger."
           }
           score={score}
+          valueClassName="activity-number-tile-text"
           stats={[
             { key: "correct", label: "Bonnes réponses", value: correctCount },
             { key: "total", label: "Total traité", value: totalChallenges },

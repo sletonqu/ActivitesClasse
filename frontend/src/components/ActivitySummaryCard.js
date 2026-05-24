@@ -26,6 +26,8 @@ const ActivitySummaryCard = ({
   stats = [],
   footer,
   className = "",
+  valueClassName = "",
+  footerClassName = "",
 }) => {
   const palette = SUMMARY_TONE_CLASSNAMES[tone] || SUMMARY_TONE_CLASSNAMES.success;
 
@@ -40,13 +42,13 @@ const ActivitySummaryCard = ({
         {score !== null && score !== undefined ? (
           <div className={`rounded-2xl border px-3 py-2.5 text-center shadow-sm ${palette.card}`}>
             <p className={`text-xs uppercase tracking-wide ${palette.label}`}>{scoreLabel}</p>
-            <p className="text-2xl font-bold">{score} / {scoreMax}</p>
+            <p className={`text-2xl font-bold ${valueClassName}`}>{score} / {scoreMax}</p>
           </div>
         ) : null}
       </div>
 
       {footer ? (
-        <div className={`mt-3 rounded-xl border p-3 text-sm shadow-sm ${palette.card}`}>{footer}</div>
+        <div className={`mt-3 rounded-xl border p-3 text-sm shadow-sm ${palette.card} ${footerClassName}`}>{footer}</div>
       ) : null}
 
       {stats.length > 0 ? (
@@ -54,7 +56,7 @@ const ActivitySummaryCard = ({
           {stats.map((stat, index) => (
             <div key={stat.key || `${stat.label}-${index}`} className={`rounded-xl border p-3 ${palette.card}`}>
               <div className={`text-xs uppercase tracking-wide ${palette.label}`}>{stat.label}</div>
-              <div className="text-xl font-bold sm:text-2xl">{stat.value}</div>
+              <div className={`text-xl font-bold sm:text-2xl ${valueClassName}`}>{stat.value}</div>
             </div>
           ))}
         </div>

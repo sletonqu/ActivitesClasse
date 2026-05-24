@@ -323,7 +323,7 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null, siz
                 <span className={`${isCompact ? "text-sm sm:text-lg" : "text-lg sm:text-2xl"} font-bold text-slate-400`}>+</span>
               ) : null}
               <span
-                className={`inline-flex items-center justify-center rounded-xl border font-bold ${
+                className={`activity-number-tile-text inline-flex items-center justify-center rounded-xl border ${
                   isCompact
                     ? "min-h-[32px] min-w-[38px] px-2 py-1 text-xs sm:min-h-[36px] sm:min-w-[42px] sm:px-2.5 sm:py-1 sm:text-sm"
                     : "min-h-[44px] min-w-[52px] px-2.5 py-1.5 text-base sm:min-h-[52px] sm:min-w-[62px] sm:px-3 sm:py-2 sm:text-xl"
@@ -335,7 +335,7 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null, siz
           ))}
         </div>
       ) : (
-        <span className={`block font-bold text-slate-800 ${isCompact ? "text-xl sm:text-3xl" : "text-2xl sm:text-4xl"}`}>
+        <span className={`activity-number-tile-text block text-slate-800 ${isCompact ? "text-xl sm:text-3xl" : "text-2xl sm:text-4xl"}`}>
           {formatNumberWithThousandsSpace(value)}
         </span>
       )}
@@ -737,6 +737,8 @@ const CompareNumbersActivity = ({
           }
           score={score}
           tone={isCorrect ? "success" : "error"}
+          valueClassName="activity-number-tile-text"
+          footerClassName="activity-number-tile-text"
           footer={
             <>
               <span className="font-semibold">Réponse :</span>{" "}

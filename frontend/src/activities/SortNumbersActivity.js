@@ -401,7 +401,7 @@ const SortNumbersActivity = ({
                   className="min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3"
                   style={{ transform: `rotate(${tile.rotation}deg)` }}
                 >
-                  <span className="block text-lg font-bold text-slate-800 sm:text-2xl">
+                  <span className="activity-number-tile-text block text-lg text-slate-800 sm:text-2xl">
                     {formatNumberWithThousandsSpace(tile.value)}
                   </span>
                 </button>
@@ -447,7 +447,9 @@ const SortNumbersActivity = ({
                       className={!finished ? "cursor-move select-none" : "select-none"}
                       style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
                     >
-                      {formatNumberWithThousandsSpace(assignedTile.value)}
+                      <span className="activity-number-tile-text block text-lg text-slate-800 sm:text-2xl">
+                        {formatNumberWithThousandsSpace(assignedTile.value)}
+                      </span>
                     </button>
                   ) : (
                     "?"
@@ -478,6 +480,7 @@ const SortNumbersActivity = ({
               : "Observe les cases colorées pour repérer les positions correctes et celles à corriger."
           }
           score={score}
+          valueClassName="activity-number-tile-text"
           stats={[
             { key: "correct", label: "Bonnes positions", value: correctCount },
             { key: "total", label: "Total traité", value: totalSlots },

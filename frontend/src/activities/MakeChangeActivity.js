@@ -260,7 +260,7 @@ const MakeChangeActivity = ({
         {/* En-tête : Montant à payer */}
         <div id="make-change-target-amount" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
           <span className="text-slate-500 text-sm sm:text-base font-medium mb-1">Montant à préparer :</span>
-          <span className="text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
+          <span className="activity-number-tile-text text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
             {formatCurrency(targetAmountCents)}
           </span>
         </div>
@@ -323,6 +323,7 @@ const MakeChangeActivity = ({
               : `Tu as déposé ${formatCurrency(currentTotalCents)} au lieu de ${formatCurrency(targetAmountCents)}.`
           }
           score={score}
+          valueClassName="activity-number-tile-text"
           stats={[]}
         />
       )}

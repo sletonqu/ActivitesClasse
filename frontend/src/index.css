@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
+@font-face {
+  font-family: 'Scriptco';
+  src: url('./assets/fonts/SCRIPTCO.TTF') format('truetype');
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +55,12 @@ body {
 
 .sleek-input {
   @apply bg-white/50 border-white/40 focus:bg-white/80 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-300;
+}
+
+.activity-number-tile-text {
+  font-family: 'Scriptco', 'Outfit', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 :where(#student-view-root, #admin-view-root, #teacher-view-root) {

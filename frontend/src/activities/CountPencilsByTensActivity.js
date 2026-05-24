@@ -584,7 +584,7 @@ const CountPencilsByTensActivity = ({
                           disabled={finished}
                           placeholder="Touchez ici"
                           aria-label={`Centaines de l'exercice ${exercise.id}`}
-                          className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                          className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
                             ? "border-indigo-500 ring-2 ring-indigo-200"
                             : "border-slate-300"
                             }`}
@@ -607,7 +607,7 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
                           ? "border-indigo-500 ring-2 ring-indigo-200"
                           : "border-slate-300"
                           }`}
@@ -629,7 +629,7 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Unités de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
                           ? "border-indigo-500 ring-2 ring-indigo-200"
                           : "border-slate-300"
                           }`}
@@ -651,7 +651,7 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Total de l'exercice ${exercise.id}`}
-                        className={`mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
                           ? "border-indigo-500 ring-2 ring-indigo-200"
                           : "border-slate-300"
                           }`}
@@ -730,6 +730,7 @@ const CountPencilsByTensActivity = ({
           title="Activité terminée"
           message="Les cartes vertes sont correctes et les cartes roses montrent la correction attendue."
           score={score ?? 0}
+          valueClassName="activity-number-tile-text"
           stats={[
             { key: "correct", label: "Bonnes réponses", value: correctCount },
             { key: "total", label: "Total traité", value: totalExercises },

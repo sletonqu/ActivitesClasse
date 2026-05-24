@@ -277,7 +277,7 @@ function FractionChoiceTile({
       <FractionLabel
         numerator={fraction.numerator}
         denominator={fraction.denominator}
-        className="text-xl font-bold sm:text-2xl"
+        className="activity-number-tile-text text-xl font-bold sm:text-2xl"
       />
     </button>
   );
@@ -619,6 +619,7 @@ const FractionsVisualSelectionActivity = ({
           }
           score={score}
           tone={isCorrect ? "success" : "error"}
+          valueClassName="activity-number-tile-text"
           stats={[
             {
               key: "selected",

@@ -176,7 +176,7 @@ const ReadNumbersActivity = ({
             className="flex min-h-[72px] min-w-[110px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm sm:min-h-[88px] sm:min-w-[140px] sm:px-6 sm:py-5"
             style={{ transform: `rotate(${currentTile.rotation}deg)` }}
           >
-            <span className="block text-2xl font-bold text-slate-800 sm:text-4xl">
+            <span className="activity-number-tile-text block text-2xl text-slate-800 sm:text-4xl">
               {formatNumberWithThousandsSpace(currentTile.value)}
             </span>
           </div>
