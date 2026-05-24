@@ -345,7 +345,7 @@ const MakeChangeActivity = ({
           {
             id: "make-change-restart",
             onClick: handleRestart,
-            disabled: restartLocked,
+            disabled: restartLocked || !finished,
             ariaLabel: "Recommencer",
             title: "Recommencer",
             icon: "↻",
