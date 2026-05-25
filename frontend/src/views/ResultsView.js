@@ -21,6 +21,8 @@ const ResultsView = () => {
   const [selectedResult, setSelectedResult] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [studentSortMode, setStudentSortMode] = useState("name");
+  const [deletingResultId, setDeletingResultId] = useState(null);
+  const [modalErrorMessage, setModalErrorMessage] = useState("");
 
   // Couleurs subtiles de fond pour les groupes
   const groupColors = [
@@ -192,6 +194,77 @@ const ResultsView = () => {
     setShowModal(true);
   };
 
+  const handleDeleteAttempt = async (resultToDelete) => {
+    if (!resultToDelete?.id || deletingResultId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Voulez-vous vraiment supprimer cette tentative ? Cette action est irreversible."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingResultId(resultToDelete.id);
+    setModalErrorMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/results/${resultToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Impossible de supprimer ce résultat.");
+      }
+
+      const updatedResults = results.filter((r) => String(r.id) !== String(resultToDelete.id));
+      setResults(updatedResults);
+
+      if (!selectedResult?.student || !selectedResult?.activity) {
+        return;
+      }
+
+      const updatedCellResults = updatedResults.filter(
+        (r) =>
+          String(r.student_id) === String(selectedResult.student.id) &&
+          String(r.activity_id) === String(selectedResult.activity.id) &&
+          (selectedResult.level
+            ? String(r.activity_level) === String(selectedResult.level)
+            : !r.activity_level)
+      );
+
+      if (updatedCellResults.length === 0) {
+        setShowModal(false);
+        setSelectedResult(null);
+        return;
+      }
+
+      const totalScore = updatedCellResults.reduce((sum, r) => {
+        const score = Number(r.score);
+        return sum + (Number.isNaN(score) ? 0 : score);
+      }, 0);
+
+      const average = Math.round((totalScore / updatedCellResults.length) * 100) / 100;
+
+      setSelectedResult((prev) =>
+        prev
+          ? {
+              ...prev,
+              results: updatedCellResults,
+              average,
+            }
+          : prev
+      );
+    } catch (error) {
+      console.error("Erreur lors de la suppression du résultat:", error);
+      setModalErrorMessage("La suppression a échoué. Veuillez réessayer.");
+    } finally {
+      setDeletingResultId(null);
+    }
+  };
+
   const selectedClass = classes.find((c) => String(c.id) === String(selectedClassId));
 
   return (
@@ -360,7 +433,7 @@ const ResultsView = () => {
                           <td
                             id={`results-cell-${student.id}-${col.activity.id}-${level || "all"}`}
                             key={`${student.id}-${col.activity.id}-${level || "all"}`}
-                            className="px-3 py-3 text-center border-l border-slate-200 cursor-pointer"
+                            className="px-1 py-1 text-center border-l border-slate-200 cursor-pointer"
                             onClick={() =>
                               average !== null &&
                               handleCellClick(student.id, col.activity.id, level)
@@ -369,7 +442,7 @@ const ResultsView = () => {
                             {average !== null ? (
                               <div
                                 id={`results-score-${student.id}-${col.activity.id}-${level || "all"}`}
-                                className={`rounded-lg py-2 px-3 font-semibold inline-block ${scoreColor} hover:shadow-md transition-shadow`}
+                                className={`rounded-lg py-1 px-1 font-semibold inline-block ${scoreColor} hover:shadow-md transition-shadow`}
                               >
                                 {average}
                               </div>
@@ -416,6 +489,14 @@ const ResultsView = () => {
             </div>
 
             <div id="results-detail-modal-content" className="px-6 py-4">
+              {modalErrorMessage && (
+                <p
+                  id="results-detail-modal-error"
+                  className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                >
+                  {modalErrorMessage}
+                </p>
+              )}
               <div id="results-detail-modal-summary" className="mb-4">
                 <h3 id="results-detail-modal-activity" className="font-semibold text-slate-800 text-lg mb-2">
                   {selectedResult.activity.title}
@@ -437,7 +518,15 @@ const ResultsView = () => {
                   .slice()
                   .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
                   .map((result, idx) => (
-                    <div id={`results-detail-attempt-${result.id}`} key={result.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                    <button
+                      id={`results-detail-attempt-${result.id}`}
+                      key={result.id}
+                      type="button"
+                      disabled={deletingResultId !== null}
+                      onClick={() => handleDeleteAttempt(result)}
+                      title="Cliquer pour supprimer cette tentative"
+                      className="w-full text-left bg-slate-50 rounded-lg p-3 border border-slate-200 transition-colors hover:bg-red-50 hover:border-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
                       <div id={`results-detail-attempt-header-${result.id}`} className="flex justify-between items-start mb-1">
                         <span id={`results-detail-attempt-title-${result.id}`} className="font-medium text-slate-800">Tentative {selectedResult.results.length - idx}</span>
                         <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded ${getScoreColor(result.score)}`}>
@@ -453,7 +542,7 @@ const ResultsView = () => {
                           minute: "2-digit",
                         })}
                       </p>
-                    </div>
+                    </button>
                   ))}
               </div>
             </div>
