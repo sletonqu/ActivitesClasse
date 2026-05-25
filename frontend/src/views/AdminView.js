@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
@@ -79,9 +79,14 @@ const AdminView = () => {
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [editTeacherName, setEditTeacherName] = useState("");
+  const [editTeacherEmail, setEditTeacherEmail] = useState("");
+  const [editTeacherPassword, setEditTeacherPassword] = useState("");
   const [deletingTeacherId, setDeletingTeacherId] = useState("");
   const [deletingAllTeachers, setDeletingAllTeachers] = useState(false);
   const [selectedClassListId, setSelectedClassListId] = useState("");
+  const [editClassName, setEditClassName] = useState("");
+  const [editClassTeacherId, setEditClassTeacherId] = useState("");
   const [deletingClassId, setDeletingClassId] = useState("");
   const [deletingAllClasses, setDeletingAllClasses] = useState(false);
 
@@ -149,6 +154,9 @@ const AdminView = () => {
       await refreshAdminData();
     } else {
       setSelectedTeacherId("");
+      setEditTeacherName("");
+      setEditTeacherEmail("");
+      setEditTeacherPassword("");
     }
   };
 
@@ -159,6 +167,8 @@ const AdminView = () => {
       await refreshAdminData();
     } else {
       setSelectedClassListId("");
+      setEditClassName("");
+      setEditClassTeacherId("");
     }
   };
 
@@ -317,8 +327,77 @@ const AdminView = () => {
     }
   };
 
-  const handleSelectTeacher = (teacherId) => {
-    setSelectedTeacherId((prev) => (String(prev) === String(teacherId) ? "" : String(teacherId)));
+  const handleSelectTeacher = (teacher) => {
+    if (!teacher?.id) {
+      return;
+    }
+
+    setSelectedTeacherId(String(teacher.id));
+    setEditTeacherName(String(teacher.name || ""));
+    setEditTeacherEmail(String(teacher.email || ""));
+    setEditTeacherPassword("");
+    setTeacherError("");
+  };
+
+  const handleUpdateTeacher = async (e) => {
+    e.preventDefault();
+
+    const selectedTeacher = teachers.find(
+      (teacher) => String(teacher.id) === String(selectedTeacherId)
+    );
+    if (!selectedTeacher) {
+      setTeacherError("Aucun enseignant sélectionné");
+      return;
+    }
+
+    const trimmedName = String(editTeacherName || "").trim();
+    const trimmedEmail = String(editTeacherEmail || "").trim();
+    const passwordToSave = String(editTeacherPassword || "").trim() || String(selectedTeacher.password || "");
+
+    setTeacherError("");
+    setTeacherMessage("");
+
+    try {
+      if (!trimmedName || !trimmedEmail) {
+        throw new Error("Les champs nom et email sont obligatoires");
+      }
+
+      if (!passwordToSave) {
+        throw new Error("Le mot de passe est obligatoire");
+      }
+
+      const isSameName = trimmedName === String(selectedTeacher.name || "").trim();
+      const isSameEmail = trimmedEmail === String(selectedTeacher.email || "").trim();
+      const isPasswordUnchanged = !String(editTeacherPassword || "").trim();
+
+      if (isSameName && isSameEmail && isPasswordUnchanged) {
+        setTeacherMessage("Aucune modification détectée");
+        return;
+      }
+
+      const resp = await fetch(`${API_URL}/teachers/${selectedTeacher.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          password: passwordToSave,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la modification de l'enseignant");
+      }
+
+      setTeacherMessage("Enseignant modifié");
+      await refreshAdminData();
+      setEditTeacherName(trimmedName);
+      setEditTeacherEmail(trimmedEmail);
+      setEditTeacherPassword("");
+    } catch (err) {
+      setTeacherError(err.message || "Erreur inconnue");
+    }
   };
 
   const unlinkTeacherFromClasses = async (teacherId) => {
@@ -477,8 +556,82 @@ const AdminView = () => {
     }
   };
 
-  const handleSelectClass = (classId) => {
-    setSelectedClassListId((prev) => (String(prev) === String(classId) ? "" : String(classId)));
+  const handleSelectClass = (cls) => {
+    if (!cls?.id) {
+      return;
+    }
+
+    setSelectedClassListId(String(cls.id));
+    setEditClassName(String(cls.name || ""));
+    setEditClassTeacherId(
+      cls.teacher_id === null || cls.teacher_id === undefined || cls.teacher_id === ""
+        ? ""
+        : String(cls.teacher_id)
+    );
+    setClassError("");
+  };
+
+  const handleUpdateClass = async (e) => {
+    e.preventDefault();
+
+    const selectedClass = classes.find(
+      (cls) => String(cls.id) === String(selectedClassListId)
+    );
+    if (!selectedClass) {
+      setClassError("Aucune classe sélectionnée");
+      return;
+    }
+
+    const trimmedName = String(editClassName || "").trim();
+    const nextTeacherId =
+      editClassTeacherId === "" ? null : Number(editClassTeacherId);
+
+    setClassError("");
+    setClassMessage("");
+
+    try {
+      if (!trimmedName) {
+        throw new Error("Le nom de la classe est obligatoire");
+      }
+
+      if (nextTeacherId !== null && Number.isNaN(nextTeacherId)) {
+        throw new Error("teacher_id invalide");
+      }
+
+      const currentTeacherId =
+        selectedClass.teacher_id === null || selectedClass.teacher_id === undefined || selectedClass.teacher_id === ""
+          ? null
+          : Number(selectedClass.teacher_id);
+      const sameTeacherId =
+        (currentTeacherId === null && nextTeacherId === null) ||
+        (currentTeacherId !== null && nextTeacherId !== null && Number(currentTeacherId) === Number(nextTeacherId));
+
+      if (trimmedName === String(selectedClass.name || "").trim() && sameTeacherId) {
+        setClassMessage("Aucune modification détectée");
+        return;
+      }
+
+      const resp = await fetch(`${API_URL}/classes/${selectedClass.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trimmedName,
+          teacher_id: nextTeacherId,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Erreur lors de la modification de la classe");
+      }
+
+      setClassMessage("Classe modifiée");
+      await refreshAdminData();
+      setEditClassName(trimmedName);
+      setEditClassTeacherId(nextTeacherId === null ? "" : String(nextTeacherId));
+    } catch (err) {
+      setClassError(err.message || "Erreur inconnue");
+    }
   };
 
   const deleteResultsForStudentIds = async (studentIds, existingResults) => {
@@ -722,6 +875,11 @@ const AdminView = () => {
     );
   };
 
+  const selectedTeacher =
+    teachers.find((teacher) => String(teacher.id) === String(selectedTeacherId)) || null;
+  const selectedClass =
+    classes.find((cls) => String(cls.id) === String(selectedClassListId)) || null;
+
   return (
     <div id="admin-view-root" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="min-h-screen bg-slate-100 px-4 py-6">
       <div className="w-full max-w-[1024px] mx-auto">
@@ -738,6 +896,10 @@ const AdminView = () => {
             teacherEmail={teacherEmail}
             teacherPassword={teacherPassword}
             teacherSelectedClassId={teacherSelectedClassId}
+            editTeacherName={editTeacherName}
+            editTeacherEmail={editTeacherEmail}
+            editTeacherPassword={editTeacherPassword}
+            selectedTeacher={selectedTeacher}
             submittingTeacher={submittingTeacher}
             teacherMessage={teacherMessage}
             teacherError={teacherError}
@@ -754,9 +916,13 @@ const AdminView = () => {
             onTeacherEmailChange={setTeacherEmail}
             onTeacherPasswordChange={setTeacherPassword}
             onTeacherSelectedClassIdChange={setTeacherSelectedClassId}
+            onEditTeacherNameChange={setEditTeacherName}
+            onEditTeacherEmailChange={setEditTeacherEmail}
+            onEditTeacherPasswordChange={setEditTeacherPassword}
             onAddTeacher={handleAddTeacher}
             onToggleTeachersList={handleToggleTeachersList}
             onSelectTeacher={handleSelectTeacher}
+            onUpdateTeacher={handleUpdateTeacher}
             onDeleteTeacher={handleDeleteTeacher}
             onDeleteAllTeachers={handleDeleteAllTeachers}
             hideTitle
@@ -772,6 +938,9 @@ const AdminView = () => {
           <ClassesManagementPanel
             className={className}
             classTeacherId={classTeacherId}
+            editClassName={editClassName}
+            editClassTeacherId={editClassTeacherId}
+            selectedClass={selectedClass}
             submittingClass={submittingClass}
             classMessage={classMessage}
             classError={classError}
@@ -786,9 +955,12 @@ const AdminView = () => {
             deletingAllClasses={deletingAllClasses}
             onClassNameChange={setClassName}
             onClassTeacherIdChange={setClassTeacherId}
+            onEditClassNameChange={setEditClassName}
+            onEditClassTeacherIdChange={setEditClassTeacherId}
             onAddClass={handleAddClass}
             onToggleClassesList={handleToggleClassesList}
             onSelectClass={handleSelectClass}
+            onUpdateClass={handleUpdateClass}
             onDeleteClass={handleDeleteClass}
             onDeleteAllClasses={handleDeleteAllClasses}
             hideTitle

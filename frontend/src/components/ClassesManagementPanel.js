@@ -3,6 +3,9 @@ import React from "react";
 const ClassesManagementPanel = ({
   className,
   classTeacherId,
+  editClassName,
+  editClassTeacherId,
+  selectedClass,
   submittingClass,
   classMessage,
   classError,
@@ -17,16 +20,30 @@ const ClassesManagementPanel = ({
   deletingAllClasses,
   onClassNameChange,
   onClassTeacherIdChange,
+  onEditClassNameChange,
+  onEditClassTeacherIdChange,
   onAddClass,
   onToggleClassesList,
   onSelectClass,
+  onUpdateClass,
   onDeleteClass,
   onDeleteAllClasses,
   hideTitle = false,
 }) => {
+  const shouldRenderEditSection = showClassesList && Boolean(selectedClass);
+  const formSectionClassName = shouldRenderEditSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-[50%]";
+  const listSectionClassName = shouldRenderEditSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-[50%]";
+
   return (
     <div id="classes-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
-      <section id="classes-panel-form-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+      <section
+        id="classes-panel-form-section"
+        className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+      >
         {!hideTitle && (
           <h3 id="classes-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des classes</h3>
         )}
@@ -97,7 +114,7 @@ const ClassesManagementPanel = ({
       </section>
 
       {showClassesList && (
-        <section id="classes-panel-list-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+        <section id="classes-panel-list-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}>
           <div id="classes-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="classes-panel-list-title" className="text-xl font-bold text-slate-800">Liste des classes</h3>
             <button
@@ -126,11 +143,11 @@ const ClassesManagementPanel = ({
                     key={cls.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => onSelectClass(String(cls.id))}
+                    onClick={() => onSelectClass(cls)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        onSelectClass(String(cls.id));
+                        onSelectClass(cls);
                       }
                     }}
                     className={`border rounded-lg p-3 cursor-pointer ${
@@ -163,6 +180,51 @@ const ClassesManagementPanel = ({
               })}
             </ul>
           )}
+        </section>
+      )}
+
+      {shouldRenderEditSection && (
+        <section id="classes-panel-edit-section" className="w-full grow bg-white rounded-xl shadow p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
+          <h3 id="classes-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier la classe</h3>
+
+          <form id="classes-panel-edit-form" onSubmit={onUpdateClass} className="space-y-4">
+            <div id="classes-panel-edit-name-field">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Nom de la classe</label>
+              <input
+                type="text"
+                value={editClassName}
+                onChange={(e) => onEditClassNameChange(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Ex: CM1 A"
+              />
+            </div>
+
+            <div id="classes-panel-edit-teacher-field">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Enseignant associé (teacher_id)</label>
+              <select
+                value={editClassTeacherId}
+                onChange={(e) => onEditClassTeacherIdChange(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              >
+                <option value="">Aucun (null)</option>
+                {teachers.map((teacher) => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.name} (ID: {teacher.id})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div id="classes-panel-edit-actions" className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={deletingAllClasses}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+              >
+                Modifier
+              </button>
+            </div>
+          </form>
         </section>
       )}
     </div>

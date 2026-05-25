@@ -5,6 +5,10 @@ const TeachersManagementPanel = ({
   teacherEmail,
   teacherPassword,
   teacherSelectedClassId,
+  editTeacherName,
+  editTeacherEmail,
+  editTeacherPassword,
+  selectedTeacher,
   submittingTeacher,
   teacherMessage,
   teacherError,
@@ -21,16 +25,31 @@ const TeachersManagementPanel = ({
   onTeacherEmailChange,
   onTeacherPasswordChange,
   onTeacherSelectedClassIdChange,
+  onEditTeacherNameChange,
+  onEditTeacherEmailChange,
+  onEditTeacherPasswordChange,
   onAddTeacher,
   onToggleTeachersList,
   onSelectTeacher,
+  onUpdateTeacher,
   onDeleteTeacher,
   onDeleteAllTeachers,
   hideTitle = false,
 }) => {
+  const shouldRenderEditSection = showTeachersList && Boolean(selectedTeacher);
+  const formSectionClassName = shouldRenderEditSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-[50%]";
+  const listSectionClassName = shouldRenderEditSection
+    ? "lg:basis-1/3 lg:max-w-[33.333333%]"
+    : "lg:basis-1/2 lg:max-w-[50%]";
+
   return (
     <div id="teachers-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
-      <section id="teachers-panel-form-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+      <section
+        id="teachers-panel-form-section"
+        className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+      >
         {!hideTitle && (
           <h3 id="teachers-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
         )}
@@ -123,7 +142,7 @@ const TeachersManagementPanel = ({
       </section>
 
       {showTeachersList && (
-        <section id="teachers-panel-list-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+        <section id="teachers-panel-list-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}>
           <div id="teachers-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
             <button
@@ -154,11 +173,11 @@ const TeachersManagementPanel = ({
                     key={teacher.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => onSelectTeacher(String(teacher.id))}
+                    onClick={() => onSelectTeacher(teacher)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        onSelectTeacher(String(teacher.id));
+                        onSelectTeacher(teacher);
                       }
                     }}
                     className={`border rounded-lg p-3 cursor-pointer ${
@@ -192,6 +211,61 @@ const TeachersManagementPanel = ({
               })}
             </ul>
           )}
+        </section>
+      )}
+
+      {shouldRenderEditSection && (
+        <section id="teachers-panel-edit-section" className="w-full grow bg-white rounded-xl shadow p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
+          <h3 id="teachers-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'enseignant</h3>
+
+          <form id="teachers-panel-edit-form" onSubmit={onUpdateTeacher} className="space-y-4">
+            <div id="teachers-panel-edit-name-field">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Nom</label>
+              <input
+                type="text"
+                value={editTeacherName}
+                onChange={(e) => onEditTeacherNameChange(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Ex: Mme Martin"
+              />
+            </div>
+
+            <div id="teachers-panel-edit-email-field">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={editTeacherEmail}
+                onChange={(e) => onEditTeacherEmailChange(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Ex: martin@ecole.local"
+              />
+            </div>
+
+            <div id="teachers-panel-edit-password-field">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Mot de passe</label>
+              <input
+                type="password"
+                value={editTeacherPassword}
+                onChange={(e) => onEditTeacherPasswordChange(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                placeholder="Laisser vide pour conserver"
+              />
+            </div>
+
+            <div id="teachers-panel-edit-actions" className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={deletingAllTeachers}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+              >
+                Modifier
+              </button>
+            </div>
+          </form>
+
+          <p className="mt-3 text-xs text-slate-500">
+            Classes associées : {classes.filter((c) => Number(c.teacher_id) === Number(selectedTeacher.id)).map((c) => c.name).join(", ") || "Aucune"}
+          </p>
         </section>
       )}
     </div>
