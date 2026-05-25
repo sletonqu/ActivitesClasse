@@ -176,7 +176,7 @@ const GroupManagementPanel = ({
           <div id="groups-panel-students-header" className="flex items-center justify-between mb-4 gap-3">
             <div>
               <h3 id="groups-panel-students-title" className="text-xl font-bold text-slate-800">
-                Liste des Élèves du groupe
+                Modifier le Groupe
               </h3>
               <p className="text-sm text-slate-500">{selectedGroup.name}</p>
             </div>
