@@ -35,6 +35,8 @@ const TeacherView = () => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [students, setStudents] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [editStudentName, setEditStudentName] = useState("");
+  const [editStudentFirstname, setEditStudentFirstname] = useState("");
   const [deletingStudentId, setDeletingStudentId] = useState("");
   const [deletingAllStudents, setDeletingAllStudents] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState("");
@@ -155,6 +157,10 @@ const TeacherView = () => {
     setShowStudentsList(next);
     if (next) {
       await loadStudents();
+    } else {
+      setSelectedStudentId("");
+      setEditStudentName("");
+      setEditStudentFirstname("");
     }
   };
 
@@ -308,19 +314,30 @@ const TeacherView = () => {
     }
   };
 
-  const handleEditStudent = async (student) => {
-    if (!student) return;
+  const handleSelectStudent = (student) => {
+    if (!student?.id) return;
 
-    const currentFirstname = String(student.firstname || "").trim();
-    const currentName = String(student.name || "").trim();
-    const newFirstname = window.prompt("Prénom de l'élève", currentFirstname);
-    if (newFirstname === null) return;
+    setSelectedStudentId(String(student.id));
+    setEditStudentName(String(student.name || ""));
+    setEditStudentFirstname(String(student.firstname || ""));
+    setStudentError("");
+  };
 
-    const newName = window.prompt("Nom de l'élève", currentName);
-    if (newName === null) return;
+  const handleEditStudent = async (e) => {
+    e.preventDefault();
 
-    const trimmedFirstname = newFirstname.trim();
-    const trimmedName = newName.trim();
+    const selectedStudent = students.find(
+      (student) => String(student.id) === String(selectedStudentId)
+    );
+    if (!selectedStudent) {
+      setStudentError("Aucun élève sélectionné");
+      return;
+    }
+
+    const currentFirstname = String(selectedStudent.firstname || "").trim();
+    const currentName = String(selectedStudent.name || "").trim();
+    const trimmedFirstname = String(editStudentFirstname || "").trim();
+    const trimmedName = String(editStudentName || "").trim();
 
     setStudentError("");
     setStudentMessage("");
@@ -335,19 +352,19 @@ const TeacherView = () => {
         return;
       }
 
-      setEditingStudentId(String(student.id));
+      setEditingStudentId(String(selectedStudent.id));
 
-      const res = await fetch(`${API_URL}/students/${student.id}`, {
+      const res = await fetch(`${API_URL}/students/${selectedStudent.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: trimmedName,
           firstname: trimmedFirstname,
-          class_id: Number(student.class_id),
+          class_id: Number(selectedStudent.class_id),
           group_id:
-            student.group_id === null || student.group_id === undefined || student.group_id === ""
+            selectedStudent.group_id === null || selectedStudent.group_id === undefined || selectedStudent.group_id === ""
               ? null
-              : Number(student.group_id),
+              : Number(selectedStudent.group_id),
         }),
       });
 
@@ -357,6 +374,8 @@ const TeacherView = () => {
       }
 
       await loadStudents();
+      setEditStudentFirstname(trimmedFirstname);
+      setEditStudentName(trimmedName);
       setStudentMessage("Élève modifié");
     } catch (err) {
       setStudentError(err.message || "Erreur inconnue");
@@ -592,6 +611,8 @@ const TeacherView = () => {
     loadStudents();
     loadGroups();
     setSelectedStudentId("");
+    setEditStudentName("");
+    setEditStudentFirstname("");
     setSelectedResultStudentId("");
     setStudentResults([]);
     setSelectedResultId("");
@@ -623,6 +644,21 @@ const TeacherView = () => {
     loadResultsForStudent(selectedResultStudentId);
   }, [selectedResultStudentId]);
 
+  useEffect(() => {
+    const selectedStudent = students.find(
+      (student) => String(student.id) === String(selectedStudentId)
+    );
+
+    if (!selectedStudent) {
+      setEditStudentName("");
+      setEditStudentFirstname("");
+      return;
+    }
+
+    setEditStudentName(String(selectedStudent.name || ""));
+    setEditStudentFirstname(String(selectedStudent.firstname || ""));
+  }, [students, selectedStudentId]);
+
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId));
   const groupStudents = students.filter(
     (student) => String(student.group_id) === String(selectedGroupId)
@@ -634,6 +670,9 @@ const TeacherView = () => {
   const selectedResultStudent = students.find(
     (student) => String(student.id) === String(selectedResultStudentId)
   );
+  const selectedStudent = students.find(
+    (student) => String(student.id) === String(selectedStudentId)
+  ) || null;
   const selectedWorkshopGroup = groups.find(
     (group) => String(group.id) === String(selectedWorkshopGroupId)
   ) || null;
@@ -961,6 +1000,9 @@ const TeacherView = () => {
           <StudentsManagementPanel
             studentName={studentName}
             studentFirstname={studentFirstname}
+            editStudentName={editStudentName}
+            editStudentFirstname={editStudentFirstname}
+            selectedStudent={selectedStudent}
             submittingStudent={submittingStudent}
             studentMessage={studentMessage}
             studentError={studentError}
@@ -976,10 +1018,12 @@ const TeacherView = () => {
             editingStudentId={editingStudentId}
             onStudentNameChange={setStudentName}
             onStudentFirstnameChange={setStudentFirstname}
+            onEditStudentNameChange={setEditStudentName}
+            onEditStudentFirstnameChange={setEditStudentFirstname}
             onAddStudent={handleAddStudent}
             onToggleStudentsList={handleToggleStudentsList}
-            onSelectStudent={setSelectedStudentId}
-            onEditStudent={handleEditStudent}
+            onSelectStudent={handleSelectStudent}
+            onUpdateStudent={handleEditStudent}
             onDeleteStudent={handleDeleteStudent}
             onDeleteAllStudents={handleDeleteAllStudents}
             hideTitle
