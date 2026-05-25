@@ -5,6 +5,7 @@ import StudentsManagementPanel from "../components/StudentsManagementPanel";
 import GroupManagementPanel from "../components/GroupManagementPanel";
 import ResultsManagementPanel from "../components/ResultsManagementPanel";
 import CollapsibleSection from "../components/CollapsibleSection";
+import WorkshopManagementPanel from "../components/WorkshopManagementPanel";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
@@ -63,6 +64,8 @@ const TeacherView = () => {
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [selectedResultGroupId, setSelectedResultGroupId] = useState("");
   const [selectedResultActivityId, setSelectedResultActivityId] = useState("");
+  const [selectedWorkshopGroupId, setSelectedWorkshopGroupId] = useState("");
+  const [selectedWorkshopActivityId, setSelectedWorkshopActivityId] = useState("");
   const [selectedActivityEditId, setSelectedActivityEditId] = useState("");
   const [editActivityTitle, setEditActivityTitle] = useState("");
   const [editActivityDescription, setEditActivityDescription] = useState("");
@@ -595,10 +598,26 @@ const TeacherView = () => {
     setResultsError("");
     setSelectedResultGroupId("");
     setSelectedResultActivityId("");
+    setSelectedWorkshopGroupId("");
+    setSelectedWorkshopActivityId("");
     setSelectedAvailableStudentId("");
     setGroupError("");
     setGroupMessage("");
   }, [selectedClassId]);
+
+  useEffect(() => {
+    setSelectedWorkshopGroupId((previousGroupId) =>
+      groups.some((group) => String(group.id) === String(previousGroupId)) ? previousGroupId : ""
+    );
+  }, [groups]);
+
+  useEffect(() => {
+    setSelectedWorkshopActivityId((previousActivityId) =>
+      activities.some((activity) => String(activity.id) === String(previousActivityId))
+        ? previousActivityId
+        : ""
+    );
+  }, [activities]);
 
   useEffect(() => {
     loadResultsForStudent(selectedResultStudentId);
@@ -615,6 +634,19 @@ const TeacherView = () => {
   const selectedResultStudent = students.find(
     (student) => String(student.id) === String(selectedResultStudentId)
   );
+  const selectedWorkshopGroup = groups.find(
+    (group) => String(group.id) === String(selectedWorkshopGroupId)
+  ) || null;
+  const selectedWorkshopActivity = activities.find(
+    (activity) => String(activity.id) === String(selectedWorkshopActivityId)
+  ) || null;
+  const workshopGroupStudents = students
+    .filter((student) => String(student.group_id) === String(selectedWorkshopGroupId))
+    .sort((a, b) => {
+      const left = `${a.firstname || ""} ${a.name || ""}`.trim().toLowerCase();
+      const right = `${b.firstname || ""} ${b.name || ""}`.trim().toLowerCase();
+      return left.localeCompare(right, "fr");
+    });
 
   const getActivityLabel = (activityId) => {
     const activity = activities.find((a) => String(a.id) === String(activityId));
@@ -993,6 +1025,28 @@ const TeacherView = () => {
             onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
             hideTitle
           />
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          id="teacher-workshop-management"
+          title="Atelier"
+          isOpen={openSectionId === "workshop-management"}
+          onToggle={() => handleToggleSection("workshop-management")}
+        >
+          <div id="teacher-workshop-panel-wrapper" className="w-full mb-6">
+            <WorkshopManagementPanel
+              selectedClass={classes.find((cls) => String(cls.id) === String(selectedClassId)) || null}
+              selectedGroup={selectedWorkshopGroup}
+              selectedActivity={selectedWorkshopActivity}
+              groupStudents={workshopGroupStudents}
+              groups={groups}
+              activities={activities}
+              selectedGroupId={selectedWorkshopGroupId}
+              selectedActivityId={selectedWorkshopActivityId}
+              onSelectGroupId={setSelectedWorkshopGroupId}
+              onSelectActivityId={setSelectedWorkshopActivityId}
+            />
+          </div>
         </CollapsibleSection>
 
         <CollapsibleSection
