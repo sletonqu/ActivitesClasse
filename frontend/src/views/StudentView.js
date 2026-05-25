@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ActivityContainer from "../activities/ActivityContainer";
 import { API_URL } from "../config/api";
-import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import {
   fetchGroupsByClass,
   loadActivitiesIntoState,
