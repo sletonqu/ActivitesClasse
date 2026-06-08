@@ -489,6 +489,7 @@ Exemple de configuration :
 {
   "title": "Le Jeu de la Monnaie",
   "instruction": "Prépare la somme demandée en utilisant le moins de pièces et billets possible.",
+  "mode": "deposer",
   "defaultLevel": "level1",
   "levels": {
     "level1": {
@@ -522,11 +523,18 @@ Paramètres disponibles par niveau :
 - `useCents` : `true` pour activer les centimes, `false` pour rester sur des sommes rondes en euros.
 - `centsStep` : définit le multiple des centimes (`1` pour tous les centimes, `5` pour des multiples de 0,05 €).
 
+Paramètres globaux utiles :
+
+- `mode` : `deposer` (mode classique) ou `calculer` (mode inversé).
+
 Comportement :
 
 - **Rendu réaliste** : Les pièces de centimes utilisent des couleurs distinctes (cuivré pour 1c/2c/5c, doré pour 10c/20c/50c).
 - **Précision** : La logique interne utilise des calculs en centimes entiers pour éviter les erreurs de virgule flottante.
-- **Validation** : Le bouton "Valider" compare la somme déposée avec la cible. Un feedback visuel immédiat est fourni.
+- **Mode `deposer`** : L'élève reçoit un montant cible et ajoute/retire des pièces et billets depuis la réserve.
+- **Mode `calculer`** : L'élève voit directement des pièces et billets déposés, puis saisit la somme via `FloatingNumberPad`.
+- **Saisie décimale** : La touche `,` est affichée sur le pavé numérique uniquement si le niveau courant active `useCents`.
+- **Validation** : Le bouton "Valider" compare la réponse saisie (mode `calculer`) ou la somme déposée (mode `deposer`).
 - **Réinitialisation** : Le bouton "Vider" permet de retirer tout l'argent déposé pour recommencer.
 - **Score** : Enregistré avec le niveau courant via `onComplete(...)`.
 

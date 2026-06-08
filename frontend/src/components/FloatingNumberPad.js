@@ -16,6 +16,7 @@ const FloatingNumberPad = ({
   onBackspace,
   onClose,
   disabledKeys = [],
+  showCommaKey = false,
 }) => {
   const [position, setPosition] = useState({ x: null, y: null });
   const panelRef = useRef(null);
@@ -105,6 +106,15 @@ const FloatingNumberPad = ({
   }
 
   const disabledSet = new Set(disabledKeys);
+  const keysGrid = showCommaKey
+    ? [
+        ["7", "8", "9"],
+        ["4", "5", "6"],
+        ["1", "2", "3"],
+        ["<", "0", ","],
+        ["="],
+      ]
+    : NUMBER_PAD_KEYS;
 
   const handleDragStart = (event) => {
     const rect = panelRef.current?.getBoundingClientRect();
@@ -159,13 +169,13 @@ const FloatingNumberPad = ({
         </div>
 
         <div id="floating-number-pad-grid" className="mt-2 grid grid-cols-3 gap-1">
-          {NUMBER_PAD_KEYS.flat()
+          {keysGrid.flat()
             .filter((keyValue) => !disabledSet.has(keyValue))
             .map((keyValue) => {
               return (
                 <button
                   key={keyValue}
-                  id={`floating-number-pad-key-${keyValue === "=" ? "equal" : keyValue === "<" ? "lt" : keyValue === ">" ? "gt" : keyValue}`}
+                  id={`floating-number-pad-key-${keyValue === "=" ? "equal" : keyValue === "<" ? "lt" : keyValue === ">" ? "gt" : keyValue === "," ? "comma" : keyValue}`}
                   type="button"
                   onClick={() => onKeyPress?.(keyValue)}
                   className={`inline-flex min-h-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-base font-bold text-slate-800 shadow-sm transition hover:bg-indigo-100 sm:min-h-9 sm:text-lg ${keyValue === "=" ? "col-span-3" : ""}`}
