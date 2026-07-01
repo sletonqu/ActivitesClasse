@@ -11,7 +11,6 @@ services:
       - NODE_ENV=development
       - DB_PATH=/app/data/database.sqlite
       - GITHUB_OWNER=sletonqu
-      - GITHUB_REPO=ActivitesClasse
       - GITHUB_BRANCH=main
       - ENABLE_ADMIN_UPDATE_TRIGGER=true
       # Optional for AI sentence generation from the admin panel:
@@ -36,10 +35,25 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - HOST=0.0.0.0
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
       - REACT_APP_MYSCRIPT_APP_KEY=${REACT_APP_MYSCRIPT_APP_KEY}
       - REACT_APP_MYSCRIPT_HMAC_KEY=${REACT_APP_MYSCRIPT_HMAC_KEY}
     depends_on:
       - backend
+
+  ngrok-frontend:
+    image: ngrok/ngrok:latest
+    command: ["http", "frontend:3000", "--log=stdout"]
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - frontend
+    ports:
+      - "4040:4040"
+    restart: unless-stopped
+    profiles:
+      - ngrok
 
 volumes:
   db-data:

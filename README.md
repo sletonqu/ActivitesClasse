@@ -75,6 +75,28 @@ docker compose up -d --build
 - **Frontend** : `http://localhost:3000`
 - **API backend** : `http://localhost:4000`
 
+### Accès HTTPS simple avec ngrok
+
+1. Mettre l'authtoken dans [.env](.env) :
+
+```env
+NGROK_AUTHTOKEN=...
+```
+
+2. Démarrer le tunnel :
+
+```bash
+docker compose --profile ngrok up -d --build
+```
+
+3. Lire l'URL HTTPS du frontend :
+
+```powershell
+Invoke-RestMethod http://localhost:4040/api/tunnels | Select-Object -ExpandProperty tunnels | Select-Object -ExpandProperty public_url
+```
+
+4. Ouvrir cette URL sur la tablette.
+
 ### Arrêter l'application
 
 ```bash
