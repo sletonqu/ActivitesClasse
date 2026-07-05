@@ -5,6 +5,7 @@ import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 const WordsManagementPanel = ({ hideTitle = false }) => {
   const fileInputRef = useRef(null);
   const [loadingImport, setLoadingImport] = useState(false);
+  const [loadingExport, setLoadingExport] = useState(false);
   const [loadingStats, setLoadingStats] = useState(false);
   const [deletingAllWords, setDeletingAllWords] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
@@ -122,6 +123,34 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
       setError(err.message || "Erreur inconnue");
     } finally {
       setLoadingImport(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setLoadingExport(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/words/export-csv`);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erreur lors de l'export des mots");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `words_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setMessage("Export CSV des mots téléchargé.");
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
+    } finally {
+      setLoadingExport(false);
     }
   };
 
@@ -319,19 +348,30 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
 
       <div id="words-management-actions" className="flex flex-wrap gap-3">
         <button
+          id="words-management-import-button"
           type="button"
           onClick={handleFilePick}
-          disabled={loadingImport || deletingAllWords}
+          disabled={loadingImport || loadingExport || deletingAllWords}
           className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
         >
           {loadingImport ? "Import en cours..." : "Importer le CSV Dubois-Buyse"}
         </button>
 
         <button
+          id="words-management-export-button"
+          type="button"
+          onClick={handleExportCsv}
+          disabled={loadingExport || loadingImport || deletingAllWords}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+        >
+          {loadingExport ? "Export en cours..." : "Exporter CSV"}
+        </button>
+
+        <button
           id="words-management-delete-all-button"
           type="button"
           onClick={handleDeleteAllWords}
-          disabled={deletingAllWords || loadingImport || stats.total === 0}
+          disabled={deletingAllWords || loadingImport || loadingExport || stats.total === 0}
           className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-60"
         >
           {deletingAllWords ? "Suppression..." : "Supprimer Tout"}

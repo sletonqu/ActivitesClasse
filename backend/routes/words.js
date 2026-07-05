@@ -114,6 +114,14 @@ function shuffleArrayInPlace(items) {
   }
 }
 
+function escapeCsvValue(value) {
+  const str = value === null || value === undefined ? '' : String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
 router.get('/stats', async (req, res) => {
   try {
     const totalRow = await getAsync('SELECT COUNT(*) AS total FROM words');
@@ -230,6 +238,43 @@ router.get('/random', async (req, res) => {
     });
   } catch (err) {
     return res.status(400).json({ error: err.message });
+  }
+});
+
+router.get('/export-csv', async (req, res) => {
+  try {
+    const rows = await allAsync(
+      'SELECT id, word, echelon_db, nature, category, school_class, level, source FROM words ORDER BY id ASC'
+    );
+
+    const headers = ['id', 'word', 'echelon_db', 'nature', 'category', 'school_class', 'level', 'source'];
+    const csvLines = [headers.join(',')];
+
+    rows.forEach((row) => {
+      csvLines.push([
+        escapeCsvValue(row.id),
+        escapeCsvValue(row.word),
+        escapeCsvValue(row.echelon_db),
+        escapeCsvValue(row.nature),
+        escapeCsvValue(row.category),
+        escapeCsvValue(row.school_class),
+        escapeCsvValue(row.level),
+        escapeCsvValue(row.source),
+      ].join(','));
+    });
+
+    const csv = `${csvLines.join('\n')}\n`;
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const filename = `words_export_${y}${m}${d}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.send(csv);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 

@@ -248,12 +248,16 @@ function parseGlobalCsvRows(csvText) {
       content: getVal(cols, 'content'),
       status: getVal(cols, 'status'),
       js_file: getVal(cols, 'js_file'),
+      discipline: getVal(cols, 'discipline'),
+      category: getVal(cols, 'category'),
       student_id: getVal(cols, 'student_id'),
       activity_id: getVal(cols, 'activity_id'),
       score: getVal(cols, 'score'),
       completed_at: getVal(cols, 'completed_at'),
       activity_level: getVal(cols, 'activity_level'),
       activity_level_label: getVal(cols, 'activity_level_label'),
+      game_state: getVal(cols, 'game_state'),
+      game_state_summary: getVal(cols, 'game_state_summary'),
     };
   });
 }
@@ -619,8 +623,16 @@ router.post('/global-csv', (req, res) => {
           }
 
           await runAsync(
-            'INSERT INTO activities (title, description, content, status, js_file) VALUES (?, ?, ?, ?, ?)',
-            [row.title, row.description || '', JSON.stringify(parsedContent), row.status || 'Active', row.js_file || null]
+            'INSERT INTO activities (title, description, content, status, js_file, discipline, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [
+              row.title,
+              row.description || '',
+              JSON.stringify(parsedContent),
+              row.status || 'Active',
+              row.js_file || null,
+              row.discipline || null,
+              row.category || null,
+            ]
           );
           activityPayloadTitles.add(activityKey);
           activitiesImported += 1;
@@ -637,7 +649,7 @@ router.post('/global-csv', (req, res) => {
           const score = Number.isNaN(parsedScore) ? 0 : parsedScore;
 
           await runAsync(
-            'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state, game_state_summary) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [
               parsedStudentId,
               parsedActivityId,
@@ -645,6 +657,8 @@ router.post('/global-csv', (req, res) => {
               row.activity_level || null,
               row.activity_level_label || null,
               row.completed_at || new Date().toISOString(),
+              row.game_state || null,
+              row.game_state_summary || null,
             ]
           );
           resultsImported += 1;
