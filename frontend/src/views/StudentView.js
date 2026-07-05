@@ -354,6 +354,7 @@ const StudentView = () => {
           activity_level_label: activityLevelLabel,
           completed_at: new Date().toISOString(),
           game_state: payload.game_state || null,
+          game_state_summary: payload.game_state_summary || null,
         }),
       });
     } catch (err) {

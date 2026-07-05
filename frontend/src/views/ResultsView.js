@@ -517,7 +517,10 @@ const ResultsView = () => {
                 {selectedResult.results
                   .slice()
                   .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
-                  .map((result, idx) => (
+                  .map((result, idx) => {
+                    const gameStateSummary = String(result?.game_state_summary || "").trim();
+
+                    return (
                     <button
                       id={`results-detail-attempt-${result.id}`}
                       key={result.id}
@@ -542,8 +545,16 @@ const ResultsView = () => {
                           minute: "2-digit",
                         })}
                       </p>
+                      {gameStateSummary && (
+                        <p
+                          id={`results-detail-attempt-game-state-summary-${result.id}`}
+                          className="mt-1 text-xs text-slate-600"
+                          dangerouslySetInnerHTML={{ __html: gameStateSummary }}
+                        />
+                      )}
                     </button>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 

@@ -29,10 +29,10 @@ router.get('/game-state', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state } = req.body;
+  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state, game_state_summary } = req.body;
   db.run(
-    'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at, game_state || null],
+    'INSERT INTO results (student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state, game_state_summary) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at, game_state || null, game_state_summary || null],
     function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ id: this.lastID });
@@ -52,10 +52,10 @@ router.get('/:id', (req, res) => {
 
 // PUT update result
 router.put('/:id', (req, res) => {
-  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state } = req.body;
+  const { student_id, activity_id, score, activity_level, activity_level_label, completed_at, game_state, game_state_summary } = req.body;
   db.run(
-    'UPDATE results SET student_id = ?, activity_id = ?, score = ?, activity_level = ?, activity_level_label = ?, completed_at = ?, game_state = ? WHERE id = ?',
-    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at, game_state || null, req.params.id],
+    'UPDATE results SET student_id = ?, activity_id = ?, score = ?, activity_level = ?, activity_level_label = ?, completed_at = ?, game_state = ?, game_state_summary = ? WHERE id = ?',
+    [student_id, activity_id, score, activity_level || null, activity_level_label || null, completed_at, game_state || null, game_state_summary || null, req.params.id],
     function(err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ updated: this.changes });

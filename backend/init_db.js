@@ -64,6 +64,24 @@ function ensureGroupsSchema(done) {
           });
         }
 
+        const hasGameState = Array.isArray(resultColumns) && resultColumns.some((column) => column.name === 'game_state');
+        if (!hasGameState) {
+          db.run('ALTER TABLE results ADD COLUMN game_state TEXT', (alterErr) => {
+            if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+              console.error('Erreur lors de la migration game_state:', alterErr.message);
+            }
+          });
+        }
+
+        const hasGameStateSummary = Array.isArray(resultColumns) && resultColumns.some((column) => column.name === 'game_state_summary');
+        if (!hasGameStateSummary) {
+          db.run('ALTER TABLE results ADD COLUMN game_state_summary TEXT', (alterErr) => {
+            if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+              console.error('Erreur lors de la migration game_state_summary:', alterErr.message);
+            }
+          });
+        }
+
         done();
       });
     });

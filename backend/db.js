@@ -99,6 +99,15 @@ function ensureGroupsSchema() {
           }
         });
       }
+
+      const hasGameStateSummary = Array.isArray(columns) && columns.some((column) => column.name === 'game_state_summary');
+      if (!hasGameStateSummary) {
+        db.run('ALTER TABLE results ADD COLUMN game_state_summary TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration game_state_summary:', alterErr.message);
+          }
+        });
+      }
     });
   });
 }
@@ -248,6 +257,8 @@ function createTables() {
       activity_level TEXT,
       activity_level_label TEXT,
       completed_at TEXT,
+      game_state TEXT,
+      game_state_summary TEXT,
       FOREIGN KEY (student_id) REFERENCES students(id),
       FOREIGN KEY (activity_id) REFERENCES activities(id)
     );

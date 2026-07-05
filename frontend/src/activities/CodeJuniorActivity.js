@@ -1,6 +1,60 @@
 import React, { useEffect, useState } from "react";
 import { API_URL } from "../config/api";
 
+const extractCodeJuniorStats = (rawGameState) => {
+  if (!rawGameState) {
+    return { lastReachedLevel: null, totalStars: 0 };
+  }
+
+  let parsedState = rawGameState;
+  if (typeof rawGameState === "string") {
+    try {
+      parsedState = JSON.parse(rawGameState);
+    } catch (error) {
+      return { lastReachedLevel: null, totalStars: 0 };
+    }
+  }
+
+  if (!Array.isArray(parsedState)) {
+    return { lastReachedLevel: null, totalStars: 0 };
+  }
+
+  let lastReachedLevel = null;
+  let totalStars = 0;
+
+  parsedState.forEach((levelState, index) => {
+    if (levelState?.win === true) {
+      lastReachedLevel = index + 1;
+    }
+
+    const stars = Number(levelState?.star);
+    if (Number.isFinite(stars) && stars > 0) {
+      totalStars += stars;
+    }
+  });
+
+  return { lastReachedLevel, totalStars };
+};
+
+export const summarizeCodeJuniorGameState = (rawGameState) => {
+  const formatSummaryHtml = (lastReachedLevel, totalStars) => {
+    const safeLastReachedLevel =
+      Number.isFinite(Number(lastReachedLevel)) && Number(lastReachedLevel) > 0
+        ? String(Number(lastReachedLevel))
+        : "Aucun";
+    const safeTotalStars =
+      Number.isFinite(Number(totalStars)) && Number(totalStars) > 0
+        ? String(Number(totalStars))
+        : "0";
+
+    return `Dernier niveau atteint : <span class="font-semibold">${safeLastReachedLevel}</span> | Étoiles totales : <span class="font-semibold">${safeTotalStars}</span>`;
+  };
+
+  const { lastReachedLevel, totalStars } = extractCodeJuniorStats(rawGameState);
+
+  return formatSummaryHtml(lastReachedLevel, totalStars);
+};
+
 const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isFocusedMode = false }) => {
   const [completed, setCompleted] = useState(false);
   const [iframeReady, setIframeReady] = useState(false);
@@ -37,9 +91,15 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isF
 
   const handleComplete = () => {
     const gameState = localStorage.getItem(storageKey) || null;
+    const gameStateStats = extractCodeJuniorStats(gameState);
+    const gameStateSummary = summarizeCodeJuniorGameState(gameState);
     setCompleted(true);
     if (!isDemoMode && onComplete) {
-      onComplete({ score: 100, game_state: gameState });
+      onComplete({
+        score: gameStateStats.totalStars,
+        game_state: gameState,
+        game_state_summary: gameStateSummary,
+      });
     }
   };
 
