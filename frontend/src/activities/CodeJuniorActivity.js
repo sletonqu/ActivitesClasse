@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { API_URL } from "../config/api";
 
-const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId }) => {
+const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isFocusedMode = false }) => {
   const [completed, setCompleted] = useState(false);
   const [iframeReady, setIframeReady] = useState(false);
   const isDemoMode = !student;
@@ -61,7 +61,11 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId }) =
       </div>
 
       {/* Main Content Area */}
-      <div id="code-junior-content-area" className="flex-1 w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative" style={{ minHeight: isDemoMode ? "565px" : "408px" }}>
+      <div
+        id="code-junior-content-area"
+        className="flex-1 w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative"
+        style={{ minHeight: isDemoMode || isFocusedMode ? "565px" : "408px" }}
+      >
         {iframeReady ? (
           <iframe
             id="code-junior-iframe"

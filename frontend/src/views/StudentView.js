@@ -627,6 +627,7 @@ const StudentView = () => {
                   activityJsFile={selectedActivity?.js_file}
                   onComplete={() => { }}
                   activityProps={{
+                    isFocusedMode,
                     onContentChange: handleActivityContentChange,
                   }}
                 />
@@ -642,6 +643,7 @@ const StudentView = () => {
                   activityProps={{
                     allStudentsCompleted,
                     activityId: Number(selectedActivityId),
+                    isFocusedMode,
                     onResetStudentRound: handleResetStudentRound,
                     onContentChange: handleActivityContentChange,
                   }}
