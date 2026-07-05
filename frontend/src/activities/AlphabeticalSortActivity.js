@@ -3,7 +3,10 @@ import ActivityHero from "../components/ActivityHero";
 import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
+import PlacementDropZone from "../components/PlacementDropZone";
+import PlacementTileButton from "../components/PlacementTileButton";
 import { API_URL } from "../config/api";
+import useSlotPoolPlacement from "../hooks/useSlotPoolPlacement";
 import {
   getSafeDisplayText,
   handleRoundRestart,
@@ -280,12 +283,29 @@ const AlphabeticalSortActivity = ({
   const [loadingWords, setLoadingWords] = useState(true);
   const [loadingError, setLoadingError] = useState("");
   const [correctOrder, setCorrectOrder] = useState([]);
-  const [poolTiles, setPoolTiles] = useState([]);
-  const [assignments, setAssignments] = useState({});
-  const [draggedItem, setDraggedItem] = useState(null);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
+  const {
+    poolItems: poolTiles,
+    assignments,
+    activePlacement,
+    resetPlacement,
+    clearInteraction,
+    endDrag,
+    startDragFromPool,
+    startDragFromSlot,
+    toggleSelectFromPool,
+    toggleSelectFromSlot,
+    dropToSlot,
+    dropToPool,
+    isPoolItemSelected,
+    isSlotSelected,
+  } = useSlotPoolPlacement({
+    initialPoolItems: [],
+    initialAssignments: {},
+    disabled: finished,
+  });
 
   const requestIdRef = useRef(0);
 
@@ -298,7 +318,7 @@ const AlphabeticalSortActivity = ({
   const progressPercent =
     totalSlots > 0 ? Math.round((answeredCount / totalSlots) * 100) : 0;
   const allAssigned = answeredCount === totalSlots && totalSlots > 0;
-  const selectedTile = draggedItem?.tile || null;
+  const selectedTile = activePlacement?.item || null;
 
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
@@ -319,9 +339,7 @@ const AlphabeticalSortActivity = ({
       setLoadingWords(true);
       setLoadingError("");
       setCorrectOrder([]);
-      setPoolTiles([]);
-      setAssignments({});
-      setDraggedItem(null);
+      resetPlacement([], {});
       setFinished(false);
       setScore(null);
       setCorrectCount(0);
@@ -358,7 +376,7 @@ const AlphabeticalSortActivity = ({
         const tiles = buildTilesFromWords(selectedWords);
 
         setCorrectOrder(sortedWords);
-        setPoolTiles(tiles);
+        resetPlacement(tiles, {});
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
         setLoadingError(err.message || "Erreur inconnue lors du chargement des mots.");
@@ -368,7 +386,7 @@ const AlphabeticalSortActivity = ({
         }
       }
     },
-    [configuredLevels]
+    [configuredLevels, resetPlacement]
   );
 
   useEffect(() => {
@@ -379,63 +397,37 @@ const AlphabeticalSortActivity = ({
     loadWordsForLevel(currentLevel);
   }, [currentLevel]);
 
-  // ── Drag & Drop ────────────────────────────────────────────────────────────
-  const handleDragStartFromPool = (tile) => {
-    if (finished) return;
-    setDraggedItem({ tile, source: "pool" });
-  };
-
-  const handleDragStartFromSlot = (slotIndex) => {
-    if (finished) return;
-    const tile = assignments[slotIndex];
-    if (!tile) return;
-    setDraggedItem({ tile, source: "slot", slotIndex });
-  };
-
   const handleDropToSlot = (slotIndex) => {
-    if (finished || !draggedItem) return;
-    const { tile, source, slotIndex: srcSlot } = draggedItem;
-
-    if (source === "slot" && srcSlot === slotIndex) {
-      setDraggedItem(null);
-      return;
-    }
-
-    const nextAssignments = { ...assignments };
-    let nextPool = [...poolTiles];
-    const prevTileInSlot = nextAssignments[slotIndex];
-
-    if (source === "pool") {
-      nextPool = nextPool.filter((t) => t.id !== tile.id);
-    } else {
-      delete nextAssignments[srcSlot];
-    }
-
-    if (prevTileInSlot !== undefined) {
-      if (source === "slot") {
-        nextAssignments[srcSlot] = prevTileInSlot;
-      } else {
-        nextPool = [...nextPool, prevTileInSlot];
-      }
-    }
-
-    nextAssignments[slotIndex] = tile;
-    setAssignments(nextAssignments);
-    setPoolTiles(nextPool);
-    setDraggedItem(null);
+    dropToSlot(slotIndex);
   };
 
   const handleDropToPool = () => {
-    if (finished || !draggedItem || draggedItem.source !== "slot") {
-      setDraggedItem(null);
+    dropToPool();
+  };
+
+  const handleSlotClick = (slotIndex) => {
+    if (finished) {
       return;
     }
-    const { tile, slotIndex } = draggedItem;
-    const nextAssignments = { ...assignments };
-    delete nextAssignments[slotIndex];
-    setAssignments(nextAssignments);
-    setPoolTiles((prev) => [...prev, tile]);
-    setDraggedItem(null);
+
+    if (activePlacement) {
+      dropToSlot(slotIndex);
+      return;
+    }
+
+    if (assignments[slotIndex] !== undefined) {
+      toggleSelectFromSlot(slotIndex);
+    }
+  };
+
+  const handlePoolClick = () => {
+    if (finished || !activePlacement) {
+      return;
+    }
+
+    if (activePlacement.source === "slot") {
+      dropToPool();
+    }
   };
 
   // ── Validation ─────────────────────────────────────────────────────────────
@@ -448,7 +440,7 @@ const AlphabeticalSortActivity = ({
     setCorrectCount(correct);
     setScore(nextScore);
     setFinished(true);
-    setDraggedItem(null);
+    clearInteraction();
 
     if (onComplete) {
       onComplete(nextScore, {
@@ -567,6 +559,7 @@ const AlphabeticalSortActivity = ({
                 className="flex min-h-[60px] flex-wrap justify-center gap-2 bg-slate-50/70 p-2 sm:gap-2.5 sm:p-3"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDropToPool}
+                onClick={handlePoolClick}
               >
                 {poolTiles.length === 0 ? (
                   <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
@@ -574,20 +567,23 @@ const AlphabeticalSortActivity = ({
                   </div>
                 ) : (
                   poolTiles.map((tile, index) => (
-                    <button
+                    <PlacementTileButton
                       key={tile.id}
                       id={`alphabetical-sort-tile-pool-${index}`}
                       type="button"
                       draggable={!finished}
-                      onDragStart={() => handleDragStartFromPool(tile)}
-                      onDragEnd={() => setDraggedItem(null)}
+                      onDragStart={() => startDragFromPool(tile)}
+                      onDragEnd={endDrag}
+                      onClick={() => toggleSelectFromPool(tile)}
+                      isSelected={isPoolItemSelected(tile)}
+                      selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                       className="min-h-[36px] rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 disabled:cursor-default sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-1.5"
                       style={{ transform: `rotate(${tile.rotation}deg)` }}
                     >
                       <span className="block text-base font-bold text-slate-800 sm:text-xl">
                         {tile.word}
                       </span>
-                    </button>
+                    </PlacementTileButton>
                   ))
                 )}
               </div>
@@ -608,7 +604,7 @@ const AlphabeticalSortActivity = ({
                   finished && assigned !== undefined && !isCorrect;
 
                 return (
-                  <div
+                  <PlacementDropZone
                     key={`slot-${slotIndex}`}
                     id={`alphabetical-sort-slot-${slotIndex}`}
                     className={`flex items-center gap-2 rounded-lg border border-dashed px-2 py-1.5 transition-all ${finished
@@ -617,10 +613,12 @@ const AlphabeticalSortActivity = ({
                         : isWrong
                         ? "border-rose-400 bg-rose-50"
                         : "border-slate-200 bg-slate-50"
-                      : "border-sky-300 bg-white hover:border-sky-400"
+                      : isSlotSelected(slotIndex)
+                        ? "border-amber-400 bg-amber-50"
+                        : "border-sky-300 bg-white hover:border-sky-400"
                     }`}
-                    onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropToSlot(slotIndex)}
+                    onClick={() => handleSlotClick(slotIndex)}
                   >
                     <div className="mx-auto flex w-fit max-w-full items-center justify-center gap-2">
                       {/* Numéro de rang */}
@@ -640,12 +638,15 @@ const AlphabeticalSortActivity = ({
                       {/* Tuile ou zone vide */}
                       <div className="flex min-h-[30px] items-center justify-center">
                         {assigned !== undefined ? (
-                          <button
+                          <PlacementTileButton
                             id={`alphabetical-sort-slot-tile-${slotIndex}`}
                             type="button"
                             draggable={!finished}
-                            onDragStart={() => handleDragStartFromSlot(slotIndex)}
-                            onDragEnd={() => setDraggedItem(null)}
+                            onDragStart={() => startDragFromSlot(slotIndex)}
+                            onDragEnd={endDrag}
+                            onClick={() => toggleSelectFromSlot(slotIndex)}
+                            isSelected={isSlotSelected(slotIndex)}
+                            selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                             className={`rounded-lg border px-2.5 py-0.5 text-center font-bold shadow-sm transition-all ${!finished
                               ? "cursor-move border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
                               : "cursor-default border-transparent bg-transparent"
@@ -666,7 +667,7 @@ const AlphabeticalSortActivity = ({
                             >
                               {assigned.word}
                             </span>
-                          </button>
+                          </PlacementTileButton>
                         ) : (
                           <span className="text-center text-xs italic text-slate-400">
                             Place un mot ici…
@@ -692,7 +693,7 @@ const AlphabeticalSortActivity = ({
                         )}
                       </div>
                     )}
-                  </div>
+                  </PlacementDropZone>
                 );
               })}
             </div>

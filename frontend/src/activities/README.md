@@ -22,6 +22,22 @@ Chaque activité React reçoit généralement les props suivantes :
 - le bouton `Recommencer` doit rester utilisable en mode démo, même après validation ;
 - `student` ne doit jamais être supposé obligatoire.
 
+### Standard interactions de placement
+
+Pour les activités de placement (tri, association, classement), le comportement cible est désormais **hybride** :
+
+- Drag&Drop (souris) ;
+- Select&Point (sélection d'une tuile puis clic sur la cible), utile sur tablette.
+
+Base partagée recommandée :
+
+- `frontend/src/hooks/useHybridPlacementInteraction.js` : interaction hybride item -> cible ;
+- `frontend/src/hooks/useSlotPoolPlacement.js` : logique pool/slots avec swap, retour au pool et sélection ;
+- `frontend/src/components/PlacementTileButton.js` : primitive de tuile sélectionnable/drag ;
+- `frontend/src/components/PlacementDropZone.js` : primitive de zone cible drop/click.
+
+Objectif : réduire la duplication des handlers de drag/click entre activités et garder un comportement cohérent sur desktop et tactile.
+
 Exemple de validation avec niveau :
 
 ```js

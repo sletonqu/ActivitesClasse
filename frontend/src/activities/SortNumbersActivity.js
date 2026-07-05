@@ -3,6 +3,9 @@ import ActivityHero from "../components/ActivityHero";
 import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
+import PlacementDropZone from "../components/PlacementDropZone";
+import PlacementTileButton from "../components/PlacementTileButton";
+import useSlotPoolPlacement from "../hooks/useSlotPoolPlacement";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
@@ -161,12 +164,29 @@ const SortNumbersActivity = ({
   };
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
-  const [availableTiles, setAvailableTiles] = useState(() => buildTilesForLevel(initialLevel));
-  const [assignments, setAssignments] = useState({});
-  const [draggedItem, setDraggedItem] = useState(null);
   const [finished, setFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
+  const {
+    poolItems: availableTiles,
+    assignments,
+    activePlacement,
+    resetPlacement,
+    clearInteraction,
+    endDrag,
+    startDragFromPool,
+    startDragFromSlot,
+    toggleSelectFromPool,
+    toggleSelectFromSlot,
+    dropToSlot,
+    dropToPool,
+    isPoolItemSelected,
+    isSlotSelected,
+  } = useSlotPoolPlacement({
+    initialPoolItems: buildTilesForLevel(initialLevel),
+    initialAssignments: {},
+    disabled: finished,
+  });
 
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
@@ -199,80 +219,47 @@ const SortNumbersActivity = ({
   const remainingCount = availableTiles.length;
   const progressPercent = totalSlots > 0 ? Math.round((answeredCount / totalSlots) * 100) : 0;
   const allAssigned = slotIndexes.every((slotIndex) => assignments[slotIndex] !== undefined);
-  const selectedTile = draggedItem?.tile || null;
+  const selectedTile = activePlacement?.item || null;
 
   const resetForLevel = (levelKey) => {
     const nextTiles = buildTilesForLevel(levelKey);
-    setAvailableTiles(nextTiles);
-    setAssignments({});
-    setDraggedItem(null);
+    resetPlacement(nextTiles, {});
     setFinished(false);
     setCorrectCount(0);
     setScore(null);
   };
 
-  const handleDragStartFromPool = (tile) => {
-    if (finished) return;
-    setDraggedItem({ tile, source: "pool" });
-  };
-
-  const handleDragStartFromSlot = (slotIndex) => {
-    if (finished) return;
-    const tile = assignments[slotIndex];
-    if (tile === undefined) return;
-    setDraggedItem({ tile, source: "slot", slotIndex });
-  };
-
   const handleDropToSlot = (slotIndex) => {
-    if (finished || !draggedItem) return;
-
-    const { tile, source, slotIndex: sourceSlotIndex } = draggedItem;
-    if (source === "slot" && sourceSlotIndex === slotIndex) {
-      setDraggedItem(null);
-      return;
-    }
-
-    const nextAssignments = { ...assignments };
-    const nextAvailableTiles = availableTiles.slice();
-    const previousTargetTile = nextAssignments[slotIndex];
-
-    if (source === "pool") {
-      const tileIndex = nextAvailableTiles.findIndex((candidate) => candidate.id === tile.id);
-      if (tileIndex !== -1) {
-        nextAvailableTiles.splice(tileIndex, 1);
-      }
-    } else if (source === "slot") {
-      delete nextAssignments[sourceSlotIndex];
-    }
-
-    nextAssignments[slotIndex] = tile;
-
-    if (previousTargetTile !== undefined) {
-      if (source === "slot") {
-        nextAssignments[sourceSlotIndex] = previousTargetTile;
-      } else {
-        nextAvailableTiles.push(previousTargetTile);
-      }
-    }
-
-    setAssignments(nextAssignments);
-    setAvailableTiles(nextAvailableTiles);
-    setDraggedItem(null);
+    dropToSlot(slotIndex);
   };
 
   const handleDropToPool = () => {
-    if (finished || !draggedItem) return;
-    if (draggedItem.source !== "slot") {
-      setDraggedItem(null);
+    dropToPool();
+  };
+
+  const handleSlotClick = (slotIndex) => {
+    if (finished) {
       return;
     }
 
-    const nextAssignments = { ...assignments };
-    delete nextAssignments[draggedItem.slotIndex];
+    if (activePlacement) {
+      dropToSlot(slotIndex);
+      return;
+    }
 
-    setAssignments(nextAssignments);
-    setAvailableTiles((previousTiles) => [...previousTiles, draggedItem.tile]);
-    setDraggedItem(null);
+    if (assignments[slotIndex] !== undefined) {
+      toggleSelectFromSlot(slotIndex);
+    }
+  };
+
+  const handlePoolClick = () => {
+    if (finished || !activePlacement) {
+      return;
+    }
+
+    if (activePlacement.source === "slot") {
+      dropToPool();
+    }
   };
 
   const handleValidate = () => {
@@ -285,7 +272,7 @@ const SortNumbersActivity = ({
     setCorrectCount(nextCorrectCount);
     setScore(nextScore);
     setFinished(true);
-    setDraggedItem(null);
+    clearInteraction();
 
     if (onComplete) {
       onComplete(nextScore, {
@@ -384,6 +371,7 @@ const SortNumbersActivity = ({
             className="flex min-h-[76px] flex-wrap justify-center gap-1.5 bg-slate-50/70 p-2.5 sm:min-h-[110px] sm:gap-3 sm:p-5"
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDropToPool}
+            onClick={handlePoolClick}
           >
             {availableTiles.length === 0 ? (
               <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
@@ -391,20 +379,23 @@ const SortNumbersActivity = ({
               </div>
             ) : (
               availableTiles.map((tile, index) => (
-                <button
+                <PlacementTileButton
                   key={tile.id}
                   id={`sort-numbers-tuile-${index}`}
                   type="button"
                   draggable={!finished}
-                  onDragStart={() => handleDragStartFromPool(tile)}
-                  onDragEnd={() => setDraggedItem(null)}
+                  onDragStart={() => startDragFromPool(tile)}
+                  onDragEnd={endDrag}
+                  onClick={() => toggleSelectFromPool(tile)}
+                  isSelected={isPoolItemSelected(tile)}
+                  selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                   className="min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3"
                   style={{ transform: `rotate(${tile.rotation}deg)` }}
                 >
                   <span className="activity-number-tile-text block text-lg text-slate-800 sm:text-2xl">
                     {formatNumberWithThousandsSpace(tile.value)}
                   </span>
-                </button>
+                </PlacementTileButton>
               ))
             )}
           </div>
@@ -425,36 +416,41 @@ const SortNumbersActivity = ({
 
             return (
               <React.Fragment key={`sort-slot-${slotIndex}`}>
-                <div
+                <PlacementDropZone
                   id={`sort-numbers-drop-zone-${slotIndex}`}
                   className={`flex min-h-[54px] min-w-[54px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
                     finished
                       ? isCorrect
                         ? "border-emerald-400 bg-emerald-50 text-emerald-700"
                         : "border-rose-400 bg-rose-50 text-rose-700"
-                      : "border-sky-300 bg-white text-slate-700"
+                      : isSlotSelected(slotIndex)
+                        ? "border-amber-400 bg-amber-50 text-slate-700"
+                        : "border-sky-300 bg-white text-slate-700"
                   }`}
-                  onDragOver={(event) => event.preventDefault()}
                   onDrop={() => handleDropToSlot(slotIndex)}
+                  onClick={() => handleSlotClick(slotIndex)}
                 >
                   {assignedTile !== undefined ? (
-                    <button
+                    <PlacementTileButton
                       id={`sort-numbers-assigned-tile-${slotIndex}`}
                       type="button"
                       draggable={!finished}
-                      onDragStart={() => handleDragStartFromSlot(slotIndex)}
-                      onDragEnd={() => setDraggedItem(null)}
+                      onDragStart={() => startDragFromSlot(slotIndex)}
+                      onDragEnd={endDrag}
+                      onClick={() => toggleSelectFromSlot(slotIndex)}
+                      isSelected={isSlotSelected(slotIndex)}
+                      selectedClassName="rounded-lg border border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                       className={!finished ? "cursor-move select-none" : "select-none"}
                       style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
                     >
                       <span className="activity-number-tile-text block text-lg text-slate-800 sm:text-2xl">
                         {formatNumberWithThousandsSpace(assignedTile.value)}
                       </span>
-                    </button>
+                    </PlacementTileButton>
                   ) : (
                     "?"
                   )}
-                </div>
+                </PlacementDropZone>
 
                 {slotIndex < slotIndexes.length - 1 ? (
                   <span

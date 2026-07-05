@@ -3,6 +3,9 @@ import ActivityHero from "../components/ActivityHero";
 import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
+import PlacementDropZone from "../components/PlacementDropZone";
+import PlacementTileButton from "../components/PlacementTileButton";
+import useSlotPoolPlacement from "../hooks/useSlotPoolPlacement";
 import {
   formatNumberWithThousandsSpace,
   getSafeDisplayText,
@@ -161,12 +164,29 @@ const MatchAdditionsActivity = ({
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [challenges, setChallenges] = useState(initialChallenges);
-  const [availableAnswers, setAvailableAnswers] = useState(buildAnswerTiles(initialChallenges));
-  const [assignments, setAssignments] = useState({});
-  const [draggedItem, setDraggedItem] = useState(null);
   const [finished, setFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
+  const {
+    poolItems: availableAnswers,
+    assignments,
+    activePlacement,
+    resetPlacement,
+    clearInteraction,
+    endDrag,
+    startDragFromPool,
+    startDragFromSlot,
+    toggleSelectFromPool,
+    toggleSelectFromSlot,
+    dropToSlot,
+    dropToPool,
+    isPoolItemSelected,
+    isSlotSelected,
+  } = useSlotPoolPlacement({
+    initialPoolItems: buildAnswerTiles(initialChallenges),
+    initialAssignments: {},
+    disabled: finished,
+  });
 
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
@@ -181,76 +201,43 @@ const MatchAdditionsActivity = ({
 
   const resetForChallenges = (nextChallenges) => {
     setChallenges(nextChallenges);
-    setAvailableAnswers(buildAnswerTiles(nextChallenges));
-    setAssignments({});
-    setDraggedItem(null);
+    resetPlacement(buildAnswerTiles(nextChallenges), {});
     setFinished(false);
     setCorrectCount(0);
     setScore(null);
   };
 
-  const handleDragStartFromPool = (answerTile) => {
-    if (finished) return;
-    setDraggedItem({ answerTile, source: "pool" });
-  };
-
-  const handleDragStartFromChallenge = (challengeId) => {
-    if (finished) return;
-    const answerTile = assignments[challengeId];
-    if (answerTile === undefined) return;
-    setDraggedItem({ answerTile, source: "challenge", challengeId });
-  };
-
   const handleDrop = (challengeId) => {
-    if (finished || !draggedItem) return;
-
-    const { answerTile, source, challengeId: sourceChallengeId } = draggedItem;
-    if (source === "challenge" && String(sourceChallengeId) === String(challengeId)) {
-      setDraggedItem(null);
-      return;
-    }
-
-    const nextAssignments = { ...assignments };
-    const nextAvailableAnswers = availableAnswers.slice();
-    const previousTargetAnswer = nextAssignments[challengeId];
-
-    if (source === "pool") {
-      const answerIndex = nextAvailableAnswers.findIndex((tile) => tile.id === answerTile.id);
-      if (answerIndex !== -1) {
-        nextAvailableAnswers.splice(answerIndex, 1);
-      }
-    } else if (source === "challenge") {
-      delete nextAssignments[sourceChallengeId];
-    }
-
-    nextAssignments[challengeId] = answerTile;
-
-    if (previousTargetAnswer !== undefined) {
-      if (source === "challenge") {
-        nextAssignments[sourceChallengeId] = previousTargetAnswer;
-      } else {
-        nextAvailableAnswers.push(previousTargetAnswer);
-      }
-    }
-
-    setAssignments(nextAssignments);
-    setAvailableAnswers(nextAvailableAnswers);
-    setDraggedItem(null);
+    dropToSlot(challengeId);
   };
 
   const handleDropToAnswerPool = () => {
-    if (finished || !draggedItem) return;
-    if (draggedItem.source !== "challenge") {
-      setDraggedItem(null);
+    dropToPool();
+  };
+
+  const handleChallengeClick = (challengeId) => {
+    if (finished) {
       return;
     }
 
-    const nextAssignments = { ...assignments };
-    delete nextAssignments[draggedItem.challengeId];
+    if (activePlacement) {
+      dropToSlot(challengeId);
+      return;
+    }
 
-    setAssignments(nextAssignments);
-    setAvailableAnswers((prev) => [...prev, draggedItem.answerTile]);
-    setDraggedItem(null);
+    if (assignments[challengeId] !== undefined) {
+      toggleSelectFromSlot(challengeId);
+    }
+  };
+
+  const handleAnswerPoolClick = () => {
+    if (finished || !activePlacement) {
+      return;
+    }
+
+    if (activePlacement.source === "slot") {
+      dropToPool();
+    }
   };
 
   const handleValidate = () => {
@@ -262,7 +249,7 @@ const MatchAdditionsActivity = ({
     setCorrectCount(nextCorrectCount);
     setScore(nextScore);
     setFinished(true);
-    setDraggedItem(null);
+    clearInteraction();
 
     if (onComplete) {
       onComplete(nextScore, {
@@ -291,7 +278,7 @@ const MatchAdditionsActivity = ({
   const answeredCount = challenges.filter((challenge) => assignments[challenge.id] !== undefined).length;
   const progressPercent = totalChallenges > 0 ? Math.round((answeredCount / totalChallenges) * 100) : 0;
   const allAssigned = challenges.every((challenge) => assignments[challenge.id] !== undefined);
-  const selectedTile = draggedItem?.answerTile || null;
+  const selectedTile = activePlacement?.item || null;
 
   return (
     <div id="match-additions-activity-root" className="space-y-2.5 sm:space-y-3">
@@ -361,25 +348,30 @@ const MatchAdditionsActivity = ({
                     {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
                   </div>
 
-                  <div
+                  <PlacementDropZone
                     id={`match-additions-drop-zone-${challenge.id}`}
                     className={`flex min-h-[54px] min-w-[64px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[72px] sm:min-w-[90px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
                       finished
                         ? isCorrect
                           ? "border-emerald-400 bg-emerald-50 text-emerald-700"
                           : "border-rose-400 bg-rose-50 text-rose-700"
-                        : "border-sky-300 bg-white text-slate-700"
+                        : isSlotSelected(challenge.id)
+                          ? "border-amber-400 bg-amber-50 text-slate-700"
+                          : "border-sky-300 bg-white text-slate-700"
                     }`}
-                    onDragOver={(event) => event.preventDefault()}
                     onDrop={() => handleDrop(challenge.id)}
+                    onClick={() => handleChallengeClick(challenge.id)}
                   >
                     {assignedTile !== undefined ? (
-                      <button
+                      <PlacementTileButton
                         id={`match-additions-assigned-tile-${challenge.id}`}
                         type="button"
                         draggable={!finished}
-                        onDragStart={() => handleDragStartFromChallenge(challenge.id)}
-                        onDragEnd={() => setDraggedItem(null)}
+                        onDragStart={() => startDragFromSlot(challenge.id)}
+                        onDragEnd={endDrag}
+                        onClick={() => toggleSelectFromSlot(challenge.id)}
+                        isSelected={isSlotSelected(challenge.id)}
+                        selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                         className={`min-h-[44px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-2 ${
                           finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
                         }`}
@@ -388,11 +380,11 @@ const MatchAdditionsActivity = ({
                         <span className="activity-number-tile-text block text-xl text-slate-800 sm:text-2xl">
                           {formatNumberWithThousandsSpace(assignedTile.value)}
                         </span>
-                      </button>
+                      </PlacementTileButton>
                     ) : (
                       "?"
                     )}
-                  </div>
+                  </PlacementDropZone>
                 </div>
               );
             })}
@@ -428,6 +420,7 @@ const MatchAdditionsActivity = ({
               className="flex min-h-[72px] flex-wrap justify-center gap-1.5 bg-slate-50/70 p-2.5 sm:min-h-[92px] sm:gap-3 sm:p-5"
               onDragOver={(event) => event.preventDefault()}
               onDrop={handleDropToAnswerPool}
+              onClick={handleAnswerPoolClick}
             >
               {availableAnswers.length === 0 ? (
                 <div className="w-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-slate-500">
@@ -435,13 +428,16 @@ const MatchAdditionsActivity = ({
                 </div>
               ) : (
                 availableAnswers.map((answerTile, index) => (
-                  <button
+                  <PlacementTileButton
                     key={answerTile.id}
                     id={`match-additions-tuile-${index}`}
                     type="button"
                     draggable={!finished}
-                    onDragStart={() => handleDragStartFromPool(answerTile)}
-                    onDragEnd={() => setDraggedItem(null)}
+                    onDragStart={() => startDragFromPool(answerTile)}
+                    onDragEnd={endDrag}
+                    onClick={() => toggleSelectFromPool(answerTile)}
+                    isSelected={isPoolItemSelected(answerTile)}
+                    selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                     className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
                       finished ? "cursor-default" : "cursor-move"
                     }`}
@@ -450,7 +446,7 @@ const MatchAdditionsActivity = ({
                     <span className="activity-number-tile-text block text-xl text-slate-800 sm:text-2xl">
                       {formatNumberWithThousandsSpace(answerTile.value)}
                     </span>
-                  </button>
+                  </PlacementTileButton>
                 ))
               )}
             </div>

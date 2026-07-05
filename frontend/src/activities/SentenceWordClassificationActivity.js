@@ -4,7 +4,10 @@ import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import CharacterSprite from "../components/CharacterSprite";
+import PlacementDropZone from "../components/PlacementDropZone";
+import PlacementTileButton from "../components/PlacementTileButton";
 import { API_URL } from "../config/api";
+import useHybridPlacementInteraction from "../hooks/useHybridPlacementInteraction";
 import {
   getSafeDisplayText,
   handleRoundRestart,
@@ -332,11 +335,17 @@ const SentenceWordClassificationActivity = ({
   const [mistakesByCategory, setMistakesByCategory] = useState(
     buildEmptyMistakes(configuredLevels[initialLevel]?.requiredNatures || [])
   );
-  const [draggedWordId, setDraggedWordId] = useState(null);
-  const [selectedWordId, setSelectedWordId] = useState("");
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
   const requestIdRef = useRef(0);
+  const {
+    activeItemId,
+    selectedItemId,
+    startDrag,
+    endDrag,
+    toggleSelection,
+    clearInteraction,
+  } = useHybridPlacementInteraction({ disabled: loadingSentences || finished });
 
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const currentSentence = sentenceRounds[currentSentenceIndex] || null;
@@ -348,7 +357,7 @@ const SentenceWordClassificationActivity = ({
   const progressPercent = totalClassifiableWords > 0
     ? Math.round((processedCount / totalClassifiableWords) * 100)
     : 0;
-  const selectedWord = currentWords.find((word) => word.runtimeId === selectedWordId) || null;
+  const selectedWord = currentWords.find((word) => word.runtimeId === selectedItemId) || null;
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
     defaultSentenceWordClassificationActivityContent.title
@@ -380,11 +389,10 @@ const SentenceWordClassificationActivity = ({
     setProcessedCount(0);
     setCorrectCount(0);
     setMistakesByCategory(buildEmptyMistakes(levelRule.requiredNatures));
-    setDraggedWordId(null);
-    setSelectedWordId("");
+    clearInteraction();
     setFinished(false);
     setScore(null);
-  }, []);
+  }, [clearInteraction]);
 
   const loadSentencesForLevel = useCallback(async (levelKey) => {
     const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
@@ -439,8 +447,7 @@ const SentenceWordClassificationActivity = ({
       setProcessedCount(0);
       setCorrectCount(0);
       setMistakesByCategory(buildEmptyMistakes(levelRule.requiredNatures));
-      setDraggedWordId(null);
-      setSelectedWordId("");
+      clearInteraction();
       setFinished(false);
       setScore(null);
       setLoadingError(err.message || "Erreur inconnue");
@@ -449,7 +456,7 @@ const SentenceWordClassificationActivity = ({
         setLoadingSentences(false);
       }
     }
-  }, [configuredLevels, resetWithSentences]);
+  }, [clearInteraction, configuredLevels, resetWithSentences]);
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -520,8 +527,7 @@ const SentenceWordClassificationActivity = ({
     setProcessedCount(nextProcessedCount);
     setCorrectCount(nextCorrectCount);
     setMistakesByCategory(nextMistakes);
-    setDraggedWordId(null);
-    setSelectedWordId("");
+    clearInteraction();
 
     if (nextWords.length > 0) {
       setCurrentWords(nextWords);
@@ -531,30 +537,9 @@ const SentenceWordClassificationActivity = ({
     moveToNextSentenceOrFinish(nextCorrectCount, nextMistakes);
   };
 
-  const handleDragStart = (runtimeId) => {
-    if (loadingSentences || finished) {
-      return;
-    }
-
-    setDraggedWordId(runtimeId);
-    setSelectedWordId(runtimeId);
-  };
-
-  const handleWordClick = (runtimeId) => {
-    if (loadingSentences || finished) {
-      return;
-    }
-
-    setSelectedWordId((previousValue) => {
-      const nextValue = previousValue === runtimeId ? "" : runtimeId;
-      setDraggedWordId(nextValue || null);
-      return nextValue;
-    });
-  };
-
   const handleCategoryDrop = (event, categoryLabel) => {
     event.preventDefault();
-    const activeWordId = draggedWordId || selectedWordId;
+    const activeWordId = activeItemId;
     if (!activeWordId) {
       return;
     }
@@ -563,11 +548,11 @@ const SentenceWordClassificationActivity = ({
   };
 
   const handleCategoryClick = (categoryLabel) => {
-    if (!selectedWordId) {
+    if (!selectedItemId) {
       return;
     }
 
-    classifyWord(categoryLabel, selectedWordId);
+    classifyWord(categoryLabel, selectedItemId);
   };
 
   const handleSelectLevel = (levelKey) => {
@@ -665,18 +650,18 @@ const SentenceWordClassificationActivity = ({
                       const pendingWord = token.runtimeId
                         ? currentWords.find((word) => word.runtimeId === token.runtimeId)
                         : null;
-                      const isSelected = Boolean(token.runtimeId) && selectedWordId === token.runtimeId;
+                      const isSelected = Boolean(token.runtimeId) && selectedItemId === token.runtimeId;
 
                       if (pendingWord) {
                         return (
-                          <button
+                          <PlacementTileButton
                             key={token.id}
                             id={`sentence-word-classification-word-${index}`}
                             type="button"
                             draggable={!finished}
-                            onDragStart={() => handleDragStart(pendingWord.runtimeId)}
-                            onDragEnd={() => setDraggedWordId(null)}
-                            onClick={() => handleWordClick(pendingWord.runtimeId)}
+                            onDragStart={() => startDrag(pendingWord.runtimeId)}
+                            onDragEnd={endDrag}
+                            onClick={() => toggleSelection(pendingWord.runtimeId)}
                             className={`rounded-xl border-2 bg-white px-2.5 py-1.5 text-center font-semibold text-slate-800 shadow-sm select-none transition-all ${
                               isSelected
                                 ? "border-slate-500 ring-4 ring-slate-200"
@@ -684,7 +669,7 @@ const SentenceWordClassificationActivity = ({
                             } ${finished ? "cursor-default" : "cursor-move"}`}
                           >
                             <span className="block text-sm font-bold text-slate-800 sm:text-base">{token.text}</span>
-                          </button>
+                          </PlacementTileButton>
                         );
                       }
 
@@ -727,15 +712,14 @@ const SentenceWordClassificationActivity = ({
               const spriteImage = resolveSpriteImageByCategory(categoryLabel);
 
               return (
-                <section
+                <PlacementDropZone
                   key={categoryKey}
                   id={`sentence-word-classification-category-${categoryKey}`}
                   className={`rounded-2xl border-2 transition-all ${
                     student ? "min-h-[84px] p-1.5 sm:min-h-[96px] sm:p-2" : "min-h-[120px] p-2.5 sm:min-h-[144px] sm:p-3"
-                  } ${selectedWordId && !finished ? theme.activePanel : theme.panel} ${
+                  } ${selectedItemId && !finished ? theme.activePanel : theme.panel} ${
                     finished ? "" : "flex items-center justify-center"
                   }`}
-                  onDragOver={(event) => event.preventDefault()}
                   onDrop={(event) => handleCategoryDrop(event, categoryLabel)}
                   onClick={() => handleCategoryClick(categoryLabel)}
                 >
@@ -800,7 +784,7 @@ const SentenceWordClassificationActivity = ({
                       </span>
                     </div>
                   )}
-                </section>
+                </PlacementDropZone>
               );
             })}
           </div>

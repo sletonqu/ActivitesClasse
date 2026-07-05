@@ -4,7 +4,10 @@ import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import CharacterSprite from "../components/CharacterSprite";
+import PlacementDropZone from "../components/PlacementDropZone";
+import PlacementTileButton from "../components/PlacementTileButton";
 import { API_URL } from "../config/api";
+import useHybridPlacementInteraction from "../hooks/useHybridPlacementInteraction";
 import {
   handleRoundRestart,
   getSafeDisplayText,
@@ -236,18 +239,24 @@ const WordClassificationActivity = ({
   const [mistakesByCategory, setMistakesByCategory] = useState(
     buildEmptyMistakes(configuredLevels[initialLevel]?.classifications || [])
   );
-  const [draggedWordId, setDraggedWordId] = useState(null);
-  const [selectedWordId, setSelectedWordId] = useState("");
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
   const requestIdRef = useRef(0);
+  const {
+    activeItemId,
+    selectedItemId,
+    startDrag,
+    endDrag,
+    toggleSelection,
+    clearInteraction,
+  } = useHybridPlacementInteraction({ disabled: loadingWords || finished });
 
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const answeredCount = Math.max(0, loadedWordsCount - visibleWords.length - remainingWords.length);
   const remainingCount = visibleWords.length + remainingWords.length;
   const progressPercent = loadedWordsCount > 0 ? Math.round((answeredCount / loadedWordsCount) * 100) : 0;
-  const selectedWord = visibleWords.find((word) => word.runtimeId === selectedWordId) || null;
+  const selectedWord = visibleWords.find((word) => word.runtimeId === selectedItemId) || null;
   const spritePositionByCategory = useMemo(() => {
     return currentLevelRule.classifications.reduce((accumulator, categoryLabel) => {
       const categoryKey = normalizeCategoryKey(categoryLabel);
@@ -277,11 +286,10 @@ const WordClassificationActivity = ({
     setLoadedWordsCount(preparedWords.length);
     setCorrectCount(0);
     setMistakesByCategory(buildEmptyMistakes(levelRule.classifications));
-    setDraggedWordId(null);
-    setSelectedWordId("");
+    clearInteraction();
     setFinished(false);
     setScore(null);
-  }, []);
+  }, [clearInteraction]);
 
   const loadWordsForLevel = useCallback(async (levelKey) => {
     const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
@@ -327,8 +335,7 @@ const WordClassificationActivity = ({
       setLoadedWordsCount(0);
       setCorrectCount(0);
       setMistakesByCategory(buildEmptyMistakes(levelRule.classifications));
-      setDraggedWordId(null);
-      setSelectedWordId("");
+      clearInteraction();
       setFinished(false);
       setScore(null);
       setLoadingError(err.message || "Erreur inconnue");
@@ -337,7 +344,7 @@ const WordClassificationActivity = ({
         setLoadingWords(false);
       }
     }
-  }, [configuredLevels, resetWithWords]);
+  }, [clearInteraction, configuredLevels, resetWithWords]);
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -408,35 +415,14 @@ const WordClassificationActivity = ({
     setRemainingWords(nextRemainingWords);
     setCorrectCount(nextCorrectCount);
     setMistakesByCategory(nextMistakes);
-    setDraggedWordId(null);
-    setSelectedWordId("");
+    clearInteraction();
 
     completeActivityIfNeeded(nextVisibleWords, nextRemainingWords, nextCorrectCount, nextMistakes);
   };
 
-  const handleDragStart = (runtimeId) => {
-    if (loadingWords || finished) {
-      return;
-    }
-    setDraggedWordId(runtimeId);
-    setSelectedWordId(runtimeId);
-  };
-
-  const handleWordClick = (runtimeId) => {
-    if (loadingWords || finished) {
-      return;
-    }
-
-    setSelectedWordId((prev) => {
-      const nextValue = prev === runtimeId ? "" : runtimeId;
-      setDraggedWordId(nextValue || null);
-      return nextValue;
-    });
-  };
-
   const handleCategoryDrop = (event, categoryLabel) => {
     event.preventDefault();
-    const activeWordId = draggedWordId || selectedWordId;
+    const activeWordId = activeItemId;
     if (!activeWordId) {
       return;
     }
@@ -444,10 +430,10 @@ const WordClassificationActivity = ({
   };
 
   const handleCategoryClick = (categoryLabel) => {
-    if (!selectedWordId) {
+    if (!selectedItemId) {
       return;
     }
-    classifyWord(categoryLabel, selectedWordId);
+    classifyWord(categoryLabel, selectedItemId);
   };
 
   const handleSelectLevel = (levelKey) => {
@@ -544,16 +530,16 @@ const WordClassificationActivity = ({
                   </div>
                 ) : (
                   visibleWords.map((word, index) => {
-                    const isSelected = selectedWordId === word.runtimeId;
+                    const isSelected = selectedItemId === word.runtimeId;
                     return (
-                      <button
+                      <PlacementTileButton
                         key={word.runtimeId}
                         id={`word-classification-word-${index}`}
                         type="button"
                         draggable={!finished}
-                        onDragStart={() => handleDragStart(word.runtimeId)}
-                        onDragEnd={() => setDraggedWordId(null)}
-                        onClick={() => handleWordClick(word.runtimeId)}
+                        onDragStart={() => startDrag(word.runtimeId)}
+                        onDragEnd={endDrag}
+                        onClick={() => toggleSelection(word.runtimeId)}
                         className={`min-w-[90px] rounded-2xl border px-2.5 py-1.5 text-center shadow-sm select-none transition-all sm:min-w-[108px] sm:px-3.5 sm:py-2.5 ${
                           isSelected
                             ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
@@ -564,7 +550,7 @@ const WordClassificationActivity = ({
                         }}
                       >
                         <span className="block text-base font-bold text-slate-800 sm:text-lg">{word.word}</span>
-                      </button>
+                      </PlacementTileButton>
                     );
                   })
                 )}
@@ -583,13 +569,12 @@ const WordClassificationActivity = ({
               const theme = getCategoryTheme(categoryLabel);
               const spriteImage = resolveSpriteImageByCategory(categoryLabel);
               return (
-                <section
+                <PlacementDropZone
                   key={categoryKey}
                   id={`word-classification-category-${categoryKey}`}
                   className={`min-h-[100px] sm:min-h-[120px] rounded-2xl border-2 p-2 sm:p-2.5 transition-all lg:flex-1 lg:min-w-[180px] ${
-                    selectedWordId && !finished ? theme.activePanel : theme.panel
+                    selectedItemId && !finished ? theme.activePanel : theme.panel
                   } ${finished ? "" : "flex items-center justify-center"}`}
-                  onDragOver={(event) => event.preventDefault()}
                   onDrop={(event) => handleCategoryDrop(event, categoryLabel)}
                   onClick={() => handleCategoryClick(categoryLabel)}
                 >
@@ -649,7 +634,7 @@ const WordClassificationActivity = ({
                       </span>
                     </div>
                   )}
-                </section>
+                </PlacementDropZone>
               );
             })}
           </div>
