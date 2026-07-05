@@ -138,7 +138,7 @@ const CATEGORY_SPRITE_IMAGE_BY_KEY = {
   verbe: "/images/Verbe.png",
   adjectif: "/images/Adjectif.png",
   pronom: "/images/PronomPersonnel.png",
-  determinant: "/images/Déterminant.png",
+  determinant: "/images/Determinant.png",
 };
 
 function normalizeCategoryKey(value) {

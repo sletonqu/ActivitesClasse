@@ -6,7 +6,7 @@ const CHARACTER_OPTIONS = [
   { key: "verbe", label: "Verbe", src: "/images/Verbe.png" },
   { key: "adjectif", label: "Adjectif", src: "/images/Adjectif.png" },
   { key: "pronom", label: "Pronom personnel", src: "/images/PronomPersonnel.png" },
-  { key: "determinant", label: "Déterminant", src: "/images/Déterminant.png" },
+  { key: "determinant", label: "Déterminant", src: "/images/Determinant.png" },
 ];
 
 function clamp(value, min, max) {
