@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import * as fabric from "fabric";
 
 export const defaultInteractiveWhiteboardActivityContent = {
   defaultTitle: "Tableau",
@@ -11,37 +12,8 @@ export const defaultInteractiveWhiteboardActivityContent = {
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
 
-let fabricLoaderPromise = null;
-const LOCAL_FABRIC_SCRIPT_PATH = "/vendor/fabric.js";
-
 function loadFabricScript() {
-  if (window.fabric) {
-    return Promise.resolve(window.fabric);
-  }
-
-  if (fabricLoaderPromise) {
-    return fabricLoaderPromise;
-  }
-
-  fabricLoaderPromise = new Promise((resolve, reject) => {
-    const existingScript = document.querySelector('script[data-fabric-loader="true"]');
-
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(window.fabric));
-      existingScript.addEventListener("error", () => reject(new Error("Impossible de charger Fabric.js")));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = LOCAL_FABRIC_SCRIPT_PATH;
-    script.async = true;
-    script.dataset.fabricLoader = "true";
-    script.onload = () => resolve(window.fabric);
-    script.onerror = () => reject(new Error("Impossible de charger Fabric.js"));
-    document.body.appendChild(script);
-  });
-
-  return fabricLoaderPromise;
+  return Promise.resolve(fabric);
 }
 
 function sanitizeFileNamePart(value) {
@@ -270,8 +242,8 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
 }
 
 function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
-  const fabric = window.fabric;
-  if (!canvas || !fabric) return;
+  const fabricApi = fabric;
+  if (!canvas || !fabricApi) return;
 
   const resolvedPaperStyle = resolvePaperStyleValue(paperStyle, "blank");
   const patternSource = createPaperPatternCanvas(
@@ -281,7 +253,7 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
     canvas.getHeight()
   );
 
-  const backgroundImage = new fabric.Image(patternSource, {
+  const backgroundImage = new fabricApi.Image(patternSource, {
     originX: "left",
     originY: "top",
     left: 0,
@@ -295,14 +267,9 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
   backgroundImage.scaleY = canvas.getHeight() / Math.max(1, patternSource.height);
 
   canvas.backgroundVpt = true;
-  canvas.setBackgroundColor(backgroundColor, () => {
-    canvas.setBackgroundImage(backgroundImage, () => {
-      if (canvas.backgroundImage) {
-        canvas.backgroundImage.set({ erasable: false, selectable: false, evented: false });
-      }
-      canvas.renderAll();
-    });
-  });
+  canvas.backgroundColor = backgroundColor;
+  canvas.backgroundImage = backgroundImage;
+  canvas.requestRenderAll();
 }
 
 function alignFabricLayersTopLeft(canvas) {
@@ -328,7 +295,7 @@ function logWhiteboardFabricDiagnostics(fabric) {
 
   const diagnostics = {
     versionFabric: fabric.version || "inconnue",
-    eraserBrushDisponible: typeof fabric.EraserBrush !== "undefined",
+    eraserBrushDisponible: false,
     pencilBrushDisponible: typeof fabric.PencilBrush !== "undefined",
   };
 
@@ -441,6 +408,26 @@ const getGridSnapSize = (style) => {
 const snapCoordinate = (val, gridSize) => {
   if (!gridSize) return val;
   return Math.round(val / gridSize) * gridSize;
+};
+
+const getCanvasScenePoint = (canvas, opt) => {
+  if (!canvas || !opt) {
+    return null;
+  }
+
+  if (opt.scenePoint) {
+    return opt.scenePoint;
+  }
+
+  if (opt.viewportPoint) {
+    return opt.viewportPoint;
+  }
+
+  if (typeof canvas.getScenePoint === "function" && opt.e) {
+    return canvas.getScenePoint(opt.e);
+  }
+
+  return opt.pointer || opt.absolutePointer || null;
 };
 
 const InteractiveWhiteboardActivity = ({ content, student }) => {
@@ -775,8 +762,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
   const renderHistoryStep = (json) => {
     const canvas = fabricCanvasRef.current;
-    const fabric = window.fabric;
-    if (!canvas || !fabric || !json) return;
+    const fabricApi = fabric;
+    if (!canvas || !fabricApi || !json) return;
 
     historyLockedRef.current = true;
 
@@ -808,32 +795,25 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
-    const fabric = window.fabric;
-    if (!fabric) return;
+    const fabricApi = fabric;
+    if (!fabricApi) return;
+    const pencilBrush = fabricApi.PencilBrush;
 
     canvas.isDrawingMode = mode === "draw" || mode === "erase";
 
     if (mode === "erase") {
-      if (fabric.EraserBrush) {
-        if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) {
-          canvas.freeDrawingBrush = new fabric.EraserBrush(canvas);
-        }
-      } else {
-        if (!eraserFallbackLoggedRef.current) {
-          console.warn("[Tableau blanc] Mode gomme sans EraserBrush : fallback activé.");
-          eraserFallbackLoggedRef.current = true;
-        }
-        if (!(canvas.freeDrawingBrush instanceof fabric.PencilBrush)) {
-          canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-        }
-        canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
-        canvas.freeDrawingBrush.color = "rgba(0, 0, 0, 0)";
+      if (!eraserFallbackLoggedRef.current) {
+        console.warn("[Tableau blanc] Mode gomme sans EraserBrush : fallback activé.");
+        eraserFallbackLoggedRef.current = true;
       }
+      if (!(canvas.freeDrawingBrush instanceof pencilBrush)) {
+        canvas.freeDrawingBrush = new pencilBrush(canvas);
+      }
+      canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
+      canvas.freeDrawingBrush.color = "rgba(0, 0, 0, 0)";
     } else if (mode === "draw") {
-      const isEraserBrushActive =
-        typeof fabric.EraserBrush !== "undefined" && canvas.freeDrawingBrush instanceof fabric.EraserBrush;
-      if (isEraserBrushActive || !(canvas.freeDrawingBrush instanceof fabric.PencilBrush)) {
-        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      if (!(canvas.freeDrawingBrush instanceof pencilBrush)) {
+        canvas.freeDrawingBrush = new pencilBrush(canvas);
       }
       canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
       canvas.freeDrawingBrush.color = color;
@@ -894,12 +874,12 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     let disposed = false;
 
     Promise.all([loadFabricScript(), ensureWhiteboardFontsLoaded()])
-      .then(([fabric]) => {
+      .then(([fabricApi]) => {
         if (disposed || !canvasRef.current) return;
 
-        logWhiteboardFabricDiagnostics(fabric);
+        logWhiteboardFabricDiagnostics(fabricApi);
 
-        const canvas = new fabric.Canvas(canvasRef.current, {
+        const canvas = new fabricApi.Canvas(canvasRef.current, {
           width: canvasWidth,
           height: canvasHeight,
           backgroundColor,
@@ -957,11 +937,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         };
 
         canvas.on("mouse:down", (opt) => {
+          const pointer = getCanvasScenePoint(canvas, opt);
+
           if (imagePendingRef.current) {
+            if (!pointer) {
+              return;
+            }
+
             fabric.Image.fromURL(imagePendingRef.current, (img) => {
               img.set({
-                left: opt.pointer.x,
-                top: opt.pointer.y,
+                left: pointer.x,
+                top: pointer.y,
                 originX: "center",
                 originY: "center",
               });
@@ -976,12 +962,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           }
 
           if (modeRef.current === "text") {
-            addTextAtPointer(opt.pointer);
+            if (pointer) {
+              addTextAtPointer(pointer);
+            }
           }
 
           if (modeRef.current === "shape") {
+            if (!pointer) {
+              return;
+            }
+
             isDrawingShapeRef.current = true;
-            const pointer = opt.pointer;
             const gridSize = getGridSnapSize(paperStyleRef.current);
             const startX = snapCoordinate(pointer.x, gridSize);
             const startY = snapCoordinate(pointer.y, gridSize);
@@ -1038,10 +1029,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
         canvas.on("mouse:move", (opt) => {
           if (modeRef.current === "shape" && isDrawingShapeRef.current && activeShapeRef.current) {
+            const pointer = getCanvasScenePoint(canvas, opt);
+            if (!pointer) {
+              return;
+            }
+
             const origin = shapeOriginRef.current;
             const gridSize = getGridSnapSize(paperStyleRef.current);
-            const pointerX = snapCoordinate(opt.pointer.x, gridSize);
-            const pointerY = snapCoordinate(opt.pointer.y, gridSize);
+            const pointerX = snapCoordinate(pointer.x, gridSize);
+            const pointerY = snapCoordinate(pointer.y, gridSize);
             const shape = activeShapeRef.current;
             const type = shapeTypeRef.current;
 
@@ -1122,7 +1118,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         canvas.on("path:created", (event) => {
           const createdPath = event?.path;
 
-          if (modeRef.current === "erase" && !fabric.EraserBrush && createdPath) {
+          if (modeRef.current === "erase" && createdPath) {
             const objectsToRemove = canvas
               .getObjects()
               .filter((obj) => obj !== createdPath)
