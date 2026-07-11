@@ -1314,6 +1314,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   ...shapeProps,
                   left: initialTriangle.left,
                   top: initialTriangle.top,
+                  originX: "left",
+                  originY: "top",
                   objectCaching: false,
                 });
                 break;
@@ -1330,6 +1332,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   ...shapeProps,
                   left: initialTriangle.left,
                   top: initialTriangle.top,
+                  originX: "left",
+                  originY: "top",
                   objectCaching: false,
                 });
                 break;
@@ -1464,12 +1468,39 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             isDrawingShapeRef.current = false;
             if (activeShapeRef.current) {
               if (activeShapeRef.current.type === "polygon") {
-                if (typeof activeShapeRef.current.setBoundingBox === "function") {
-                  activeShapeRef.current.setBoundingBox(false);
-                } else if (typeof activeShapeRef.current.setDimensions === "function") {
-                  activeShapeRef.current.setDimensions();
+                const pointer = getCanvasScenePoint(canvas, opt);
+                if (pointer) {
+                  const origin = shapeOriginRef.current;
+                  const gridSize = getGridSnapSize(paperStyleRef.current);
+                  const pointerX = snapCoordinate(pointer.x, gridSize);
+                  const pointerY = snapCoordinate(pointer.y, gridSize);
+                  const trianglePoints = shapeTypeRef.current === "triangle-iso"
+                    ? getEquilateralTrianglePoints(origin, { x: pointerX, y: pointerY })
+                    : getRightTrianglePoints(origin, { x: pointerX, y: pointerY });
+                  const normalizedTriangle = normalizePolygonPoints(trianglePoints);
+                  const previousShape = activeShapeRef.current;
+
+                  const finalizedTriangle = new fabric.Polygon(normalizedTriangle.points, {
+                    left: normalizedTriangle.left,
+                    top: normalizedTriangle.top,
+                    originX: "left",
+                    originY: "top",
+                    fill: previousShape.fill,
+                    stroke: previousShape.stroke,
+                    strokeWidth: previousShape.strokeWidth,
+                    strokeUniform: previousShape.strokeUniform,
+                    strokeLineCap: previousShape.strokeLineCap,
+                    selectable: previousShape.selectable,
+                    evented: previousShape.evented,
+                    objectCaching: false,
+                  });
+
+                  canvas.remove(previousShape);
+                  canvas.add(finalizedTriangle);
+                  activeShapeRef.current = finalizedTriangle;
                 }
               }
+
               activeShapeRef.current.setCoords();
               saveHistory();
               activeShapeRef.current = null;
