@@ -490,6 +490,8 @@ const getRightTrianglePoints = (startPoint, endPoint) => {
   ];
 };
 const WHITEBOARD_ERASER_CLIP_MARKER = "__whiteboardEraserClipAccumulator";
+const WHITEBOARD_ERASER_BASELINE_MARKER = "__whiteboardVisiblePixelBaseline";
+const WHITEBOARD_ERASER_DELETE_THRESHOLD = 0.04;
 
 const isWhiteboardEraserClipAccumulator = (clipPath) =>
   Boolean(clipPath?.[WHITEBOARD_ERASER_CLIP_MARKER] && typeof clipPath?.add === "function");
@@ -569,7 +571,83 @@ const clonePathForObjectEraser = async (fabricApi, eraserPath, targetObject) => 
   return clonedPath;
 };
 
-const applyPartialEraserPathToObject = async (fabricApi, targetObject, eraserPath) => {
+const countVisiblePixels = (canvasElement) => {
+  const context = canvasElement?.getContext?.("2d", { willReadFrequently: true });
+  if (!context || !canvasElement.width || !canvasElement.height) {
+    return null;
+  }
+
+  const { data } = context.getImageData(0, 0, canvasElement.width, canvasElement.height);
+  let visiblePixelCount = 0;
+
+  for (let index = 3; index < data.length; index += 4) {
+    if (data[index] > 0) {
+      visiblePixelCount += 1;
+    }
+  }
+
+  return visiblePixelCount;
+};
+
+const measureObjectVisiblePixels = (targetObject, { ignoreClipPath = false } = {}) => {
+  if (typeof document === "undefined" || !targetObject || typeof targetObject.toCanvasElement !== "function") {
+    return null;
+  }
+
+  const bounds = typeof targetObject.getBoundingRect === "function"
+    ? targetObject.getBoundingRect()
+    : { width: targetObject.width || 0, height: targetObject.height || 0 };
+  const largestSide = Math.max(bounds?.width || 0, bounds?.height || 0, 1);
+  const multiplier = Math.max(0.25, Math.min(1, 256 / largestSide));
+  const originalClipPath = targetObject.clipPath;
+
+  if (ignoreClipPath) {
+    targetObject.clipPath = null;
+  }
+
+  try {
+    const measurementCanvas = targetObject.toCanvasElement({
+      enableRetinaScaling: false,
+      multiplier,
+    });
+
+    return countVisiblePixels(measurementCanvas);
+  } catch {
+    return null;
+  } finally {
+    if (ignoreClipPath) {
+      targetObject.clipPath = originalClipPath;
+    }
+  }
+};
+
+const shouldDeleteAlmostFullyErasedObject = (targetObject) => {
+  if (!targetObject) {
+    return false;
+  }
+
+  if (typeof targetObject[WHITEBOARD_ERASER_BASELINE_MARKER] !== "number") {
+    const baselineVisiblePixels = measureObjectVisiblePixels(targetObject, { ignoreClipPath: true });
+    if (typeof baselineVisiblePixels !== "number" || baselineVisiblePixels <= 0) {
+      return false;
+    }
+
+    targetObject[WHITEBOARD_ERASER_BASELINE_MARKER] = baselineVisiblePixels;
+  }
+
+  const currentVisiblePixels = measureObjectVisiblePixels(targetObject);
+  const baselineVisiblePixels = targetObject[WHITEBOARD_ERASER_BASELINE_MARKER];
+
+  if (typeof currentVisiblePixels !== "number" || typeof baselineVisiblePixels !== "number" || baselineVisiblePixels <= 0) {
+    return false;
+  }
+
+  return currentVisiblePixels / baselineVisiblePixels <= WHITEBOARD_ERASER_DELETE_THRESHOLD;
+};
+
+const applyPartialEraserPathToObject = async (fabricApi, targetObject, eraserPath, options = {}) => {
+  const { allowObjectDeletion = false } = options;
+
   if (!fabricApi || !targetObject || !eraserPath || targetObject.erasable === false) {
     return false;
   }
@@ -581,7 +659,7 @@ const applyPartialEraserPathToObject = async (fabricApi, targetObject, eraserPat
     }
 
     const childResults = await Promise.all(
-      childObjects.map((childObject) => applyPartialEraserPathToObject(fabricApi, childObject, eraserPath))
+      childObjects.map((childObject) => applyPartialEraserPathToObject(fabricApi, childObject, eraserPath, options))
     );
 
     if (childResults.some(Boolean)) {
@@ -629,6 +707,14 @@ const applyPartialEraserPathToObject = async (fabricApi, targetObject, eraserPat
 
   if (typeof targetObject.setCoords === "function") {
     targetObject.setCoords();
+  }
+
+  if (allowObjectDeletion && shouldDeleteAlmostFullyErasedObject(targetObject)) {
+    const owningCanvas = targetObject.canvas;
+    if (owningCanvas) {
+      owningCanvas.remove(targetObject);
+      owningCanvas.discardActiveObject();
+    }
   }
 
   return true;
@@ -1534,7 +1620,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             const eraserTargets = getEraserTargetsForPath(canvas, createdPath);
 
             Promise.all(
-              eraserTargets.map((targetObject) => applyPartialEraserPathToObject(fabricApi, targetObject, createdPath))
+              eraserTargets.map((targetObject) => applyPartialEraserPathToObject(fabricApi, targetObject, createdPath, {
+                allowObjectDeletion: true,
+              }))
             )
               .then((results) => {
                 const changedCount = results.filter(Boolean).length;
