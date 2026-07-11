@@ -489,6 +489,224 @@ const getRightTrianglePoints = (startPoint, endPoint) => {
     },
   ];
 };
+const WHITEBOARD_ERASER_CLIP_MARKER = "__whiteboardEraserClipAccumulator";
+
+const isWhiteboardEraserClipAccumulator = (clipPath) =>
+  Boolean(clipPath?.[WHITEBOARD_ERASER_CLIP_MARKER] && typeof clipPath?.add === "function");
+
+const isLikelyPersistedEraserAccumulator = (clipPath) => {
+  if (!clipPath || clipPath.type !== "group" || clipPath.inverted !== true || typeof clipPath.add !== "function") {
+    return false;
+  }
+
+  const children = typeof clipPath.getObjects === "function" ? clipPath.getObjects() : clipPath._objects || [];
+  if (!Array.isArray(children) || children.length === 0) {
+    return false;
+  }
+
+  return children.every((child) => child?.type === "path" && child?.erasable === false);
+};
+
+const normalizeObjectEraserClipAccumulator = (fabricApi, targetObject) => {
+  if (!fabricApi || !targetObject?.clipPath) {
+    return;
+  }
+
+  const existingClipPath = targetObject.clipPath;
+  if (isWhiteboardEraserClipAccumulator(existingClipPath) || isLikelyPersistedEraserAccumulator(existingClipPath)) {
+    existingClipPath[WHITEBOARD_ERASER_CLIP_MARKER] = true;
+    existingClipPath.set({
+      inverted: true,
+      selectable: false,
+      evented: false,
+      erasable: false,
+      objectCaching: false,
+    });
+    return;
+  }
+
+  const accumulator = new fabricApi.Group([existingClipPath], {
+    absolutePositioned: false,
+    inverted: true,
+    selectable: false,
+    evented: false,
+    erasable: false,
+    objectCaching: false,
+  });
+  accumulator[WHITEBOARD_ERASER_CLIP_MARKER] = true;
+  targetObject.clipPath = accumulator;
+};
+
+const clonePathForObjectEraser = async (fabricApi, eraserPath, targetObject) => {
+  if (!fabricApi || !eraserPath || !targetObject || typeof eraserPath.clone !== "function") {
+    return null;
+  }
+
+  const clonedPath = await eraserPath.clone();
+  const objectTransform = targetObject.calcTransformMatrix();
+  const pathTransform = clonedPath.calcTransformMatrix();
+  const desiredTransform = fabricApi.util.multiplyTransformMatrices(
+    fabricApi.util.invertTransform(objectTransform),
+    pathTransform
+  );
+
+  fabricApi.util.applyTransformToObject(clonedPath, desiredTransform);
+  clonedPath.set({
+    fill: null,
+    stroke: "black",
+    strokeLineCap: "round",
+    strokeLineJoin: "round",
+    strokeWidth: eraserPath.strokeWidth || 1,
+    strokeUniform: false,
+    absolutePositioned: false,
+    inverted: false,
+    globalCompositeOperation: "source-over",
+    selectable: false,
+    evented: false,
+    erasable: false,
+  });
+
+  return clonedPath;
+};
+
+const applyPartialEraserPathToObject = async (fabricApi, targetObject, eraserPath) => {
+  if (!fabricApi || !targetObject || !eraserPath || targetObject.erasable === false) {
+    return false;
+  }
+
+  if (typeof targetObject.forEachObject === "function" && targetObject.erasable === "deep") {
+    const childObjects = targetObject.getObjects().filter((childObject) => childObject?.erasable !== false);
+    if (childObjects.length === 0) {
+      return false;
+    }
+
+    const childResults = await Promise.all(
+      childObjects.map((childObject) => applyPartialEraserPathToObject(fabricApi, childObject, eraserPath))
+    );
+
+    if (childResults.some(Boolean)) {
+      targetObject.dirty = true;
+      if (typeof targetObject.setCoords === "function") {
+        targetObject.setCoords();
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  const localizedEraserPath = await clonePathForObjectEraser(fabricApi, eraserPath, targetObject);
+  if (!localizedEraserPath) {
+    return false;
+  }
+
+  normalizeObjectEraserClipAccumulator(fabricApi, targetObject);
+
+  if (!targetObject.clipPath) {
+    const eraserClipAccumulator = new fabricApi.Group([localizedEraserPath], {
+      absolutePositioned: false,
+      inverted: true,
+      selectable: false,
+      evented: false,
+      erasable: false,
+      objectCaching: false,
+    });
+    eraserClipAccumulator[WHITEBOARD_ERASER_CLIP_MARKER] = true;
+    targetObject.clipPath = eraserClipAccumulator;
+  } else if (isWhiteboardEraserClipAccumulator(targetObject.clipPath)) {
+    targetObject.clipPath.add(localizedEraserPath);
+    targetObject.clipPath.dirty = true;
+  } else {
+    // Safety net: normalize and append, never merge inverted masks (can produce inverse effects).
+    normalizeObjectEraserClipAccumulator(fabricApi, targetObject);
+    if (isWhiteboardEraserClipAccumulator(targetObject.clipPath)) {
+      targetObject.clipPath.add(localizedEraserPath);
+      targetObject.clipPath.dirty = true;
+    }
+  }
+
+  targetObject.dirty = true;
+
+  if (typeof targetObject.setCoords === "function") {
+    targetObject.setCoords();
+  }
+
+  return true;
+};
+
+const getEraserTargetsForPath = (canvas, eraserPath) => {
+  if (!canvas || !eraserPath) {
+    return [];
+  }
+
+  return canvas
+    .getObjects()
+    .filter((object) => object !== eraserPath)
+    .filter((object) => object?.erasable !== false)
+    .filter((object) => {
+      if (typeof object.intersectsWithObject === "function" && object.intersectsWithObject(eraserPath, true, true)) {
+        return true;
+      }
+
+      if (typeof eraserPath.intersectsWithObject === "function" && eraserPath.intersectsWithObject(object, true, true)) {
+        return true;
+      }
+
+      if (typeof object.containsPoint === "function") {
+        const center = eraserPath.getCenterPoint?.();
+        if (center && object.containsPoint(center)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+};
+
+const createEraserSegmentPath = (fabricApi, fromPoint, toPoint, strokeWidth) => {
+  if (!fabricApi || !fromPoint || !toPoint) {
+    return null;
+  }
+
+  const path = new fabricApi.Path(`M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`, {
+    fill: null,
+    stroke: "black",
+    strokeWidth: Math.max(1, strokeWidth || 1),
+    strokeLineCap: "round",
+    strokeLineJoin: "round",
+    selectable: false,
+    evented: false,
+    erasable: false,
+  });
+
+  if (typeof path.setCoords === "function") {
+    path.setCoords();
+  }
+
+  return path;
+};
+
+const applyLiveEraserSegment = (canvas, fabricApi, fromPoint, toPoint, brushWidth) => {
+  if (!canvas || !fabricApi || !fromPoint || !toPoint) {
+    return Promise.resolve(false);
+  }
+
+  const segmentPath = createEraserSegmentPath(fabricApi, fromPoint, toPoint, brushWidth);
+  if (!segmentPath) {
+    return Promise.resolve(false);
+  }
+
+  const liveTargets = getEraserTargetsForPath(canvas, segmentPath);
+  return Promise.all(
+    liveTargets.map((targetObject) => applyPartialEraserPathToObject(fabricApi, targetObject, segmentPath))
+  ).then((results) => {
+    const changed = results.some(Boolean);
+    if (changed) {
+      canvas.requestRenderAll();
+    }
+    return changed;
+  });
+};
 
 const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
@@ -519,6 +737,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const isDrawingShapeRef = useRef(false);
   const shapeOriginRef = useRef({ x: 0, y: 0 });
   const activeShapeRef = useRef(null);
+  const isErasingRef = useRef(false);
+  const lastErasePointRef = useRef(null);
+  const eraseLivePendingRef = useRef(false);
 
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -999,6 +1220,27 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         canvas.on("mouse:down", (opt) => {
           const pointer = getCanvasScenePoint(canvas, opt);
 
+          if (modeRef.current === "erase") {
+            isErasingRef.current = true;
+            const startPoint = pointer ? { x: pointer.x, y: pointer.y } : null;
+            lastErasePointRef.current = startPoint;
+
+            if (startPoint && !eraseLivePendingRef.current) {
+              eraseLivePendingRef.current = true;
+              const epsilon = 0.01;
+              const immediatePoint = { x: startPoint.x + epsilon, y: startPoint.y + epsilon };
+              applyLiveEraserSegment(
+                canvas,
+                fabricApi,
+                startPoint,
+                immediatePoint,
+                parseInt(brushSizeRef.current, 10) || 1
+              ).finally(() => {
+                eraseLivePendingRef.current = false;
+              });
+            }
+          }
+
           if (imagePendingRef.current) {
             if (!pointer) {
               return;
@@ -1108,6 +1350,44 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         });
 
         canvas.on("mouse:move", (opt) => {
+          if (modeRef.current === "erase" && isErasingRef.current) {
+            const pointer = getCanvasScenePoint(canvas, opt);
+            if (!pointer) {
+              return;
+            }
+
+            const previousPoint = lastErasePointRef.current;
+            const currentPoint = { x: pointer.x, y: pointer.y };
+
+            if (!previousPoint) {
+              lastErasePointRef.current = currentPoint;
+              return;
+            }
+
+            if (eraseLivePendingRef.current) {
+              // Keep previous point to accumulate motion while async erase is pending.
+              return;
+            }
+
+            const distance = Math.hypot(currentPoint.x - previousPoint.x, currentPoint.y - previousPoint.y);
+            const brushWidth = parseInt(brushSizeRef.current, 10) || 1;
+            const liveThreshold = Math.max(0.5, Math.min(2, brushWidth * 0.12));
+            if (distance < liveThreshold) {
+              // Keep the same origin point so tiny moves accumulate into a visible segment.
+              return;
+            }
+
+            lastErasePointRef.current = currentPoint;
+
+            eraseLivePendingRef.current = true;
+            applyLiveEraserSegment(canvas, fabricApi, previousPoint, currentPoint, brushWidth)
+              .finally(() => {
+                eraseLivePendingRef.current = false;
+              });
+
+            return;
+          }
+
           if (modeRef.current === "shape" && isDrawingShapeRef.current && activeShapeRef.current) {
             const pointer = getCanvasScenePoint(canvas, opt);
             if (!pointer) {
@@ -1174,10 +1454,22 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           canvas.relativePan(new fabric.Point(deltaX, deltaY));
         });
 
-        canvas.on("mouse:up", () => {
+        canvas.on("mouse:up", (opt) => {
+          if (modeRef.current === "erase") {
+            isErasingRef.current = false;
+            lastErasePointRef.current = null;
+          }
+
           if (modeRef.current === "shape" && isDrawingShapeRef.current) {
             isDrawingShapeRef.current = false;
             if (activeShapeRef.current) {
+              if (activeShapeRef.current.type === "polygon") {
+                if (typeof activeShapeRef.current.setBoundingBox === "function") {
+                  activeShapeRef.current.setBoundingBox(false);
+                } else if (typeof activeShapeRef.current.setDimensions === "function") {
+                  activeShapeRef.current.setDimensions();
+                }
+              }
               activeShapeRef.current.setCoords();
               saveHistory();
               activeShapeRef.current = null;
@@ -1208,36 +1500,26 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           const createdPath = event?.path;
 
           if (modeRef.current === "erase" && createdPath) {
-            const objectsToRemove = canvas
-              .getObjects()
-              .filter((obj) => obj !== createdPath)
-              .filter((obj) => {
-                if (typeof obj.intersectsWithObject === "function" && obj.intersectsWithObject(createdPath)) {
-                  return true;
-                }
+            const eraserTargets = getEraserTargetsForPath(canvas, createdPath);
 
-                if (typeof createdPath.intersectsWithObject === "function" && createdPath.intersectsWithObject(obj)) {
-                  return true;
-                }
-
-                if (typeof obj.containsPoint === "function") {
-                  const center = createdPath.getCenterPoint?.();
-                  if (center && obj.containsPoint(center)) {
-                    return true;
-                  }
-                }
-
-                return false;
-              });
+            Promise.all(
+              eraserTargets.map((targetObject) => applyPartialEraserPathToObject(fabricApi, targetObject, createdPath))
+            )
+              .then((results) => {
+                const changedCount = results.filter(Boolean).length;
 
             canvas.remove(createdPath);
-            objectsToRemove.forEach((obj) => canvas.remove(obj));
             canvas.discardActiveObject();
             canvas.requestRenderAll();
 
-            if (objectsToRemove.length > 0) {
+                if (changedCount > 0) {
               saveHistory();
             }
+              })
+              .catch(() => {
+                canvas.remove(createdPath);
+                canvas.requestRenderAll();
+              });
 
             return;
           }
