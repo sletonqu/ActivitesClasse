@@ -430,6 +430,66 @@ const getCanvasScenePoint = (canvas, opt) => {
   return opt.pointer || opt.absolutePointer || null;
 };
 
+const normalizePolygonPoints = (points) => {
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+
+  return {
+    left: minX,
+    top: minY,
+    points: points.map((point) => ({
+      x: point.x - minX,
+      y: point.y - minY,
+    })),
+  };
+};
+
+const getEquilateralTrianglePoints = (startPoint, endPoint) => {
+  const deltaX = endPoint.x - startPoint.x;
+  const deltaY = endPoint.y - startPoint.y;
+  const sideLength = Math.hypot(deltaX, deltaY);
+
+  if (!sideLength) {
+    return [startPoint, endPoint, endPoint];
+  }
+
+  const midpoint = {
+    x: (startPoint.x + endPoint.x) / 2,
+    y: (startPoint.y + endPoint.y) / 2,
+  };
+
+  const perpendicularUnitVector = {
+    x: -deltaY / sideLength,
+    y: deltaX / sideLength,
+  };
+  const triangleHeight = (Math.sqrt(3) / 2) * sideLength;
+  const direction = deltaX >= 0 ? -1 : 1;
+
+  return [
+    startPoint,
+    endPoint,
+    {
+      x: midpoint.x + perpendicularUnitVector.x * triangleHeight * direction,
+      y: midpoint.y + perpendicularUnitVector.y * triangleHeight * direction,
+    },
+  ];
+};
+
+const getRightTrianglePoints = (startPoint, endPoint) => {
+  const deltaX = endPoint.x - startPoint.x;
+  const deltaY = endPoint.y - startPoint.y;
+
+  // Keep mouse-up as the second vertex and build a perpendicular leg from the first vertex.
+  return [
+    startPoint,
+    endPoint,
+    {
+      x: startPoint.x - deltaY,
+      y: startPoint.y + deltaX,
+    },
+  ];
+};
+
 const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
   const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
@@ -997,21 +1057,41 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 break;
               case "rectangle":
               case "square":
-                newShape = new fabric.Rect({ ...shapeProps, width: 0, height: 0 });
+                newShape = new fabric.Rect({ ...shapeProps, width: 0, height: 0, originX: "left", originY: "top" });
                 break;
               case "circle":
-                newShape = new fabric.Ellipse({ ...shapeProps, rx: 0, ry: 0 });
+                newShape = new fabric.Circle({ ...shapeProps, radius: 0, originX: "center", originY: "center" });
                 break;
-              case "triangle-iso":
-                newShape = new fabric.Triangle({ ...shapeProps, width: 0, height: 0 });
+              case "triangle-iso": {
+                const initialTriangle = normalizePolygonPoints([
+                  { x: startX, y: startY },
+                  { x: startX, y: startY },
+                  { x: startX, y: startY },
+                ]);
+                newShape = new fabric.Polygon(initialTriangle.points, {
+                  ...shapeProps,
+                  left: initialTriangle.left,
+                  top: initialTriangle.top,
+                  objectCaching: false,
+                });
                 break;
-              case "triangle-right":
+              }
+              case "triangle-right": {
+                const initialTriangle = normalizePolygonPoints([
+                  { x: startX, y: startY },
+                  { x: startX, y: startY },
+                  { x: startX, y: startY },
+                ]);
                 newShape = new fabric.Polygon([
-                  { x: 0, y: 0 },
-                  { x: 0, y: 1 },
-                  { x: 1, y: 1 }
-                ], { ...shapeProps, width: 1, height: 1, scaleX: 0.01, scaleY: 0.01 });
+                  ...initialTriangle.points,
+                ], {
+                  ...shapeProps,
+                  left: initialTriangle.left,
+                  top: initialTriangle.top,
+                  objectCaching: false,
+                });
                 break;
+              }
             }
 
             if (newShape) {
@@ -1044,8 +1124,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             if (type === "line") {
               shape.set({ x2: pointerX, y2: pointerY });
             } else {
-              let w = Math.abs(pointerX - origin.x);
-              let h = Math.abs(pointerY - origin.y);
+              const deltaX = pointerX - origin.x;
+              const deltaY = pointerY - origin.y;
+              let w = Math.abs(deltaX);
+              let h = Math.abs(deltaY);
 
               if (type === "square") {
                 const size = Math.max(w, h);
@@ -1053,23 +1135,30 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 h = size;
               }
 
-              const newLeft = pointerX < origin.x ? origin.x - w : origin.x;
-              const newTop = pointerY < origin.y ? origin.y - h : origin.y;
+              const newLeft = deltaX < 0 ? origin.x - w : origin.x;
+              const newTop = deltaY < 0 ? origin.y - h : origin.y;
 
-              shape.set({ left: newLeft, top: newTop });
+              if (type === "rectangle" || type === "square") {
+                shape.set({ left: newLeft, top: newTop });
+              }
 
               if (type === "rectangle" || type === "square") {
                 shape.set({ width: w, height: h });
               } else if (type === "circle") {
-                shape.set({ rx: w / 2, ry: h / 2 });
-              } else if (type === "triangle-iso") {
-                shape.set({ width: w, height: h });
-              } else if (type === "triangle-right") {
                 shape.set({
-                  scaleX: Math.max(w, 0.01),
-                  scaleY: Math.max(h, 0.01),
-                  flipX: pointerX < origin.x,
-                  flipY: pointerY < origin.y
+                  left: origin.x,
+                  top: origin.y,
+                  radius: Math.hypot(deltaX, deltaY),
+                });
+              } else if (type === "triangle-iso" || type === "triangle-right") {
+                const trianglePoints = type === "triangle-iso"
+                  ? getEquilateralTrianglePoints(origin, { x: pointerX, y: pointerY })
+                  : getRightTrianglePoints(origin, { x: pointerX, y: pointerY });
+                const normalizedTriangle = normalizePolygonPoints(trianglePoints);
+                shape.set({
+                  left: normalizedTriangle.left,
+                  top: normalizedTriangle.top,
+                  points: normalizedTriangle.points,
                 });
               }
             }
@@ -1105,7 +1194,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           const gridSize = getGridSnapSize(paperStyleRef.current);
           if (!gridSize) return;
           const obj = opt.target;
-          const isAlignable = ["i-text", "text", "textbox", "rect", "ellipse", "triangle", "polygon", "line", "activeSelection"].includes(obj.type);
+          const isAlignable = ["i-text", "text", "textbox", "rect", "circle", "triangle", "polygon", "line", "activeSelection"].includes(obj.type);
           if (isAlignable) {
             obj.set({
               left: snapCoordinate(obj.left, gridSize),
