@@ -71,6 +71,12 @@ const CATEGORY_THEME_BY_KEY = {
     activePanel: "border-red-400 bg-red-50 shadow-sm",
     title: "text-red-900",
   },
+  adverbe: {
+    badge: "bg-[rgb(255,69,0)]/15 text-[rgb(255,69,0)]",
+    panel: "border-[rgb(255,69,0)]/30 bg-[rgb(255,69,0)]/10",
+    activePanel: "border-[rgb(255,69,0)] bg-[rgb(255,69,0)]/15 shadow-sm",
+    title: "text-[rgb(255,69,0)]",
+  },
   adjectif: {
     badge: "bg-amber-100 text-amber-800",
     panel: "border-amber-200 bg-amber-50/70",
@@ -100,6 +106,7 @@ const CATEGORY_THEME_BY_KEY = {
 const CATEGORY_KEY_ALIASES = {
   noms: "nom",
   verbes: "verbe",
+  adverbes: "adverbe",
   adjectifs: "adjectif",
   pronoms: "pronom",
   determinant: "determinant",
@@ -110,6 +117,7 @@ const CATEGORY_KEY_ALIASES = {
 const CATEGORY_DISPLAY_LABELS = {
   nom: "Nom",
   verbe: "Verbe",
+  adverbe: "Adverbe",
   adjectif: "Adjectif",
   pronom: "Pronom",
   determinant: "Déterminant",
@@ -119,6 +127,7 @@ const CATEGORY_DISPLAY_LABELS = {
 const CATEGORY_SPRITE_IMAGE_BY_KEY = {
   nom: "/images/Nom.png",
   verbe: "/images/Verbe.png",
+  adverbe: "/images/Adverbe.png",
   adjectif: "/images/Adjectif.png",
   pronom: "/images/PronomPersonnel.png",
   determinant: "/images/Determinant.png",
@@ -154,6 +163,49 @@ function formatCategoryLabel(value) {
     return "Autres";
   }
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function resolveExpectedClassificationKey(word, allowedClassifications = []) {
+  const allowedKeys = normalizeClassifications(allowedClassifications, ["nom", "verbe", "adverbe"])
+    .map((label) => normalizeCategoryKey(label));
+
+  for (const value of [word?.nature, word?.category]) {
+    const normalizedValue = normalizeCategoryKey(value);
+    if (!normalizedValue) {
+      continue;
+    }
+
+    const matchedKey = allowedKeys.find(
+      (allowedKey) => normalizedValue === allowedKey || normalizedValue.startsWith(`${allowedKey} `)
+    );
+
+    if (matchedKey) {
+      return matchedKey;
+    }
+  }
+
+  return normalizeCategoryKey(word?.nature || word?.category);
+}
+
+function resolveExpectedClassificationLabel(word, allowedClassifications = []) {
+  const normalizedLabels = normalizeClassifications(allowedClassifications, ["nom", "verbe", "adverbe"]);
+
+  for (const label of normalizedLabels) {
+    const allowedKey = normalizeCategoryKey(label);
+
+    for (const value of [word?.nature, word?.category]) {
+      const normalizedValue = normalizeCategoryKey(value);
+      if (!normalizedValue) {
+        continue;
+      }
+
+      if (normalizedValue === allowedKey || normalizedValue.startsWith(`${allowedKey} `)) {
+        return formatCategoryLabel(label);
+      }
+    }
+  }
+
+  return formatCategoryLabel(resolveExpectedClassificationKey(word, allowedClassifications));
 }
 
 function normalizeClassifications(value, fallback = []) {
@@ -215,6 +267,20 @@ const WordClassificationActivity = ({
 }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultWordClassificationActivityContent.levels;
+  const configuredLevelKeys = useMemo(() => {
+    const parsedLevels = parsedContent?.levels;
+
+    if (!parsedLevels || typeof parsedLevels !== "object") {
+      return ALLOWED_LEVEL_KEYS;
+    }
+
+    const keys = ALLOWED_LEVEL_KEYS.filter((levelKey) => {
+      const levelRule = parsedLevels[levelKey];
+      return levelRule && typeof levelRule === "object";
+    });
+
+    return keys.length > 0 ? keys : ALLOWED_LEVEL_KEYS;
+  }, [parsedContent]);
 
   const configuredLevels = useMemo(
     () => ({
@@ -225,9 +291,9 @@ const WordClassificationActivity = ({
     [parsedContent]
   );
 
-  const initialLevel = ALLOWED_LEVEL_KEYS.includes(parsedContent?.defaultLevel)
+  const initialLevel = configuredLevelKeys.includes(parsedContent?.defaultLevel)
     ? parsedContent.defaultLevel
-    : "level1";
+    : configuredLevelKeys[0] || "level1";
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [loadingWords, setLoadingWords] = useState(true);
@@ -305,7 +371,7 @@ const WordClassificationActivity = ({
       const params = new URLSearchParams({
         limit: String(levelRule.totalWords),
         maxLevel: String(levelRule.maxWordLevel),
-        categories: levelRule.classifications.join(","),
+        nature: levelRule.classifications.join(","),
       });
 
       const response = await fetch(`${API_URL}/words/random?${params.toString()}`);
@@ -384,7 +450,8 @@ const WordClassificationActivity = ({
 
     const targetKey = normalizeCategoryKey(targetCategoryLabel);
     const word = visibleWords[wordIndex];
-    const expectedKey = normalizeCategoryKey(word.category);
+    const expectedKey = resolveExpectedClassificationKey(word, currentLevelRule.classifications);
+    const expectedLabel = resolveExpectedClassificationLabel(word, currentLevelRule.classifications);
     const isCorrect = targetKey === expectedKey;
 
     const nextVisibleWords = visibleWords.slice();
@@ -406,7 +473,7 @@ const WordClassificationActivity = ({
         {
           id: word.runtimeId,
           word: word.word,
-          expectedCategory: formatCategoryLabel(word.category),
+          expectedCategory: expectedLabel,
         },
       ];
     }
@@ -469,7 +536,7 @@ const WordClassificationActivity = ({
           };
         })}
         badgesId="word-classification-current-categories"
-        levels={ALLOWED_LEVEL_KEYS.map((levelKey) => ({
+        levels={configuredLevelKeys.map((levelKey) => ({
           key: levelKey,
           label: configuredLevels[levelKey].label,
           disabled: loadingWords || finished,

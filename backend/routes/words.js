@@ -30,7 +30,11 @@ function runAsync(sql, params = []) {
 }
 
 function normalizeTextValue(value) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 function parseListParam(value) {
@@ -43,6 +47,13 @@ function parseListParam(value) {
         .filter(Boolean)
     )
   );
+}
+
+function buildNaturePrefixCondition(natureKey) {
+  return {
+    clause: 'LOWER(nature) LIKE ?',
+    params: [`${natureKey}%`],
+  };
 }
 
 function buildWordFilters(query = {}, overrideCategories = null) {
@@ -60,16 +71,24 @@ function buildWordFilters(query = {}, overrideCategories = null) {
     : Array.from(new Set([...parseListParam(category), ...parseListParam(categories)]));
 
   if (requestedCategories.length === 1) {
-    where.push('LOWER(category) = ?');
-    params.push(requestedCategories[0]);
+    const condition = buildNaturePrefixCondition(requestedCategories[0]);
+    where.push(condition.clause);
+    params.push(...condition.params);
   } else if (requestedCategories.length > 1) {
-    where.push(`LOWER(category) IN (${requestedCategories.map(() => '?').join(', ')})`);
-    params.push(...requestedCategories);
+    const conditions = requestedCategories.map((natureKey) => buildNaturePrefixCondition(natureKey));
+    where.push(`(${conditions.map((condition) => condition.clause).join(' OR ')})`);
+    conditions.forEach((condition) => {
+      params.push(...condition.params);
+    });
   }
 
-  if (String(nature).trim()) {
-    where.push('LOWER(nature) = ?');
-    params.push(normalizeTextValue(nature));
+  const requestedNatures = parseListParam(nature);
+  if (requestedNatures.length > 0) {
+    const conditions = requestedNatures.map((natureKey) => buildNaturePrefixCondition(natureKey));
+    where.push(`(${conditions.map((condition) => condition.clause).join(' OR ')})`);
+    conditions.forEach((condition) => {
+      params.push(...condition.params);
+    });
   }
 
   if (String(classe).trim()) {
@@ -125,11 +144,11 @@ function escapeCsvValue(value) {
 router.get('/stats', async (req, res) => {
   try {
     const totalRow = await getAsync('SELECT COUNT(*) AS total FROM words');
-    const byCategory = await allAsync(
-      `SELECT category, COUNT(*) AS count
+    const byNature = await allAsync(
+      `SELECT nature, COUNT(*) AS count
        FROM words
-       GROUP BY category
-       ORDER BY count DESC, category ASC`
+       GROUP BY nature
+       ORDER BY nature ASC, count DESC`
     );
     const byClass = await allAsync(
       `SELECT school_class, COUNT(*) AS count, MIN(level) AS min_level
@@ -140,7 +159,7 @@ router.get('/stats', async (req, res) => {
 
     return res.json({
       total: totalRow?.total ?? 0,
-      byCategory,
+      byNature,
       byClass,
     });
   } catch (err) {
@@ -153,7 +172,11 @@ router.get('/random', async (req, res) => {
     const parsedLimit = Number(req.query.limit);
     const safeLimit = Number.isNaN(parsedLimit) ? 10 : Math.min(Math.max(parsedLimit, 1), 200);
     const requestedCategories = Array.from(
-      new Set([...parseListParam(req.query.category), ...parseListParam(req.query.categories)])
+      new Set([
+        ...parseListParam(req.query.category),
+        ...parseListParam(req.query.categories),
+        ...parseListParam(req.query.nature),
+      ])
     );
 
     const selectedRows = [];

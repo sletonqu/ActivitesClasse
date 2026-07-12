@@ -23,7 +23,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [stats, setStats] = useState({ total: 0, byCategory: [], byClass: [] });
+  const [stats, setStats] = useState({ total: 0, byNature: [], byClass: [] });
   const [searchText, setSearchText] = useState("");
   const [searchedWords, setSearchedWords] = useState([]);
 
@@ -42,7 +42,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
 
       setStats({
         total: data.total ?? 0,
-        byCategory: Array.isArray(data.byCategory) ? data.byCategory : [],
+        byNature: Array.isArray(data.byNature) ? data.byNature : [],
         byClass: Array.isArray(data.byClass) ? data.byClass : [],
       });
     } catch (err) {
@@ -435,7 +435,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
         </div>
       )}
 
-      {(stats.byClass.length > 0 || stats.byCategory.length > 0) && (
+      {(stats.byClass.length > 0 || stats.byNature.length > 0) && (
         <div id="words-management-overview" className="mt-4 grid gap-4 md:grid-cols-2">
           <div id="words-management-classes" className="rounded-lg border border-slate-200 p-3">
             <h4 className="font-semibold text-slate-800 mb-2">Répartition par classe</h4>
@@ -452,9 +452,9 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
           <div id="words-management-categories" className="rounded-lg border border-slate-200 p-3">
             <h4 className="font-semibold text-slate-800 mb-2">Répartition par catégorie</h4>
             <ul className="text-sm text-slate-600 space-y-1">
-              {stats.byCategory.slice(0, 6).map((item) => (
-                <li key={`category-${item.category}`} className="flex justify-between gap-3">
-                  <span>{item.category || "Non renseignée"}</span>
+              {stats.byNature.slice(0, 20).map((item) => (
+                <li key={`nature-${item.nature}`} className="flex justify-between gap-3">
+                  <span>{item.nature || "Non renseignée"}</span>
                   <span className="font-semibold text-slate-800">{item.count}</span>
                 </li>
               ))}

@@ -373,6 +373,16 @@ Paramètres disponibles par niveau :
 - `maxWordLevel`
 - `classifications`
 
+Natures grammaticales disponibles (valeurs recommandées pour `classifications`) :
+
+- `nom` mais aussi `Nom masculin`, `Nom féminin`, `nom commun`
+- `verbe` mais qussi `verbe 3eme groupe`, etc
+- `adverbe`
+- `adjectif`
+- `pronom`
+- `determinant`
+- `preposition`, `conjonction`, `interjection`
+
 Comportement :
 
 - chargement dynamique de mots depuis l'API selon le niveau et les catégories demandées ;
