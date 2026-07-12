@@ -12,10 +12,6 @@ export const defaultInteractiveWhiteboardActivityContent = {
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
 };
 
-function loadFabricScript() {
-  return Promise.resolve(fabric);
-}
-
 function sanitizeFileNamePart(value) {
   return String(value || "")
     .normalize("NFD")
@@ -1240,9 +1236,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   useEffect(() => {
     let disposed = false;
 
-    Promise.all([loadFabricScript(), ensureWhiteboardFontsLoaded()])
-      .then(([fabricApi]) => {
+    ensureWhiteboardFontsLoaded()
+      .then(() => {
         if (disposed || !canvasRef.current) return;
+
+        const fabricApi = fabric;
 
         logWhiteboardFabricDiagnostics(fabricApi);
 
