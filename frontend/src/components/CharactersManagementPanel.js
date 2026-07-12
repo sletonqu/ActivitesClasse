@@ -5,6 +5,7 @@ const CHARACTER_OPTIONS = [
   { key: "nom", label: "Nom", src: "/images/Nom.png" },
   { key: "verbe", label: "Verbe", src: "/images/Verbe.png" },
   { key: "adjectif", label: "Adjectif", src: "/images/Adjectif.png" },
+  { key: "adverbe", label: "Adverbe", src: "/images/Adverbe.png" },
   { key: "pronom", label: "Pronom personnel", src: "/images/PronomPersonnel.png" },
   { key: "determinant", label: "Déterminant", src: "/images/Determinant.png" },
 ];
@@ -18,7 +19,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
   const [position, setPosition] = useState(0);
   const [columns, setColumns] = useState(3);
   const [rows, setRows] = useState(3);
-  const [size, setSize] = useState(88);
+  const [size, setSize] = useState(320);
   const [spriteId, setSpriteId] = useState("admin-character-preview-sprite");
   const [spriteAlt, setSpriteAlt] = useState("Personnage grammatical");
   const [spriteClassName, setSpriteClassName] = useState("shadow-md rounded-lg");
