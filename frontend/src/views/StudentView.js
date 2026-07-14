@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ActivityContainer from "../activities/ActivityContainer";
 import { API_URL } from "../config/api";
@@ -14,6 +14,39 @@ const DEFAULT_ACTIVITY_CONTENT = {};
 const HEADER_COLLAPSE_DELAY = 5000;
 const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
 
+const FIXED_DISCIPLINES = ["Français", "Mathématiques", "Outils"];
+const DISCIPLINE_CONFIG = {
+  "Français": {
+    inactive: "bg-sky-50/30 text-sky-600 border-sky-100 hover:bg-sky-100/40",
+    active: "bg-sky-500 text-white border-sky-500 shadow-sm",
+    dropdown: "bg-sky-50/30 border-sky-100",
+    item: "text-sky-600 hover:bg-sky-100/40",
+    itemSelected: "bg-sky-500 text-white",
+  },
+  "Mathématiques": {
+    inactive: "bg-emerald-50/30 text-emerald-600 border-emerald-100 hover:bg-emerald-100/40",
+    active: "bg-emerald-500 text-white border-emerald-500 shadow-sm",
+    dropdown: "bg-emerald-50/30 border-emerald-100",
+    item: "text-emerald-600 hover:bg-emerald-100/40",
+    itemSelected: "bg-emerald-500 text-white",
+  },
+  "Outils": {
+    inactive: "bg-amber-50/30 text-amber-600 border-amber-100 hover:bg-amber-100/40",
+    active: "bg-amber-500 text-white border-amber-500 shadow-sm",
+    dropdown: "bg-amber-50/30 border-amber-100",
+    item: "text-amber-600 hover:bg-amber-100/40",
+    itemSelected: "bg-amber-500 text-white",
+  },
+  "Autres": {
+    inactive: "bg-violet-50/30 text-violet-600 border-violet-100 hover:bg-violet-100/40",
+    active: "bg-violet-500 text-white border-violet-500 shadow-sm",
+    dropdown: "bg-violet-50/30 border-violet-100",
+    item: "text-violet-600 hover:bg-violet-100/40",
+    itemSelected: "bg-violet-500 text-white",
+  },
+};
+const MAX_ACTIVITY_LIST_HEIGHT = "max-h-96"; // pixels
+
 const StudentView = () => {
   const [classes, setClasses] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -21,7 +54,8 @@ const StudentView = () => {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [selectedActivityId, setSelectedActivityId] = useState("");
-  const [selectedDiscipline, setSelectedDiscipline] = useState("");
+  const [openDisciplineDropdown, setOpenDisciplineDropdown] = useState("");
+  const disciplineDropdownRef = useRef(null);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activityContent, setActivityContent] = useState(DEFAULT_ACTIVITY_CONTENT);
@@ -69,18 +103,37 @@ const StudentView = () => {
     || selectedStudent?.group_name
     || groups.find((group) => String(group.id) === String(selectedStudent?.group_id))?.name
     || "-";
-  const availableDisciplines = Array.from(new Set(activities.map(a => a.discipline).filter(Boolean))).sort((a, b) => a.localeCompare(b));
   const activeActivities = activities.filter((a) => !a.status || a.status === "Active");
-  const filteredActivities = activeActivities.filter((activity) => {
-    if (!selectedDiscipline) return true;
-    if (selectedDiscipline === "Autre") return !activity.discipline;
-    return activity.discipline === selectedDiscipline;
-  }).sort((a, b) => a.title.localeCompare(b.title));
+  const hasAutreActivities = activeActivities.some(
+    (a) => !a.discipline || !FIXED_DISCIPLINES.includes(a.discipline)
+  );
+  const activitiesByDiscipline = useMemo(() => {
+    const byDisc = {};
+    FIXED_DISCIPLINES.forEach((disc) => {
+      byDisc[disc] = activeActivities
+        .filter((a) => a.discipline === disc)
+        .sort((a, b) => a.title.localeCompare(b.title));
+    });
+    byDisc["Autres"] = activeActivities
+      .filter((a) => !a.discipline || !FIXED_DISCIPLINES.includes(a.discipline))
+      .sort((a, b) => a.title.localeCompare(b.title));
+    return byDisc;
+  }, [activeActivities]);
 
   useEffect(() => {
     loadClassesIntoState(setClasses);
     loadStudentsIntoState(setStudents);
     loadActivitiesIntoState(setActivities);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (disciplineDropdownRef.current && !disciplineDropdownRef.current.contains(event.target)) {
+        setOpenDisciplineDropdown("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -91,7 +144,7 @@ const StudentView = () => {
 
     setIsDemoMode(false);
     setHeaderCollapsed(true);
-    setSelectedDiscipline("");
+    setOpenDisciplineDropdown("");
     setSelectedClassId(focusedModeParams.classId);
     setSelectedGroupId(focusedModeParams.groupId);
     setSelectedActivityId(focusedModeParams.activityId);
@@ -523,38 +576,61 @@ const StudentView = () => {
                 </div>
               </div>
 
-              {/* Groupe Discipline/Activité */}
-              <div id="student-activity-controls" className="flex gap-2 flex-1 sm:flex-initial">
-                <div id="student-view-discipline-container" className="relative group flex-1 sm:w-32">
-                  <select
-                    id="student-discipline-selector"
-                    value={selectedDiscipline}
-                    onChange={(e) => {
-                      setSelectedDiscipline(e.target.value);
-                      setSelectedActivityId("");
-                    }}
-                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                  >
-                    <option value="">Discipline</option>
-                    {availableDisciplines.map((disc) => (
-                      <option key={disc} value={disc}>{disc}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div id="student-view-activity-container" className="relative group flex-1 sm:w-40">
-                  <select
-                    id="student-activity-selector"
-                    value={selectedActivityId}
-                    onChange={(e) => setSelectedActivityId(e.target.value)}
-                    className="w-full border border-slate-200 bg-indigo-50/50 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                  >
-                    <option value="">Activité</option>
-                    {filteredActivities.map((activity) => (
-                      <option key={activity.id} value={activity.id}>{activity.title}</option>
-                    ))}
-                  </select>
-                </div>
+              {/* Groupe Discipline/Activité – menus déroulants par discipline */}
+              <div id="student-activity-controls" ref={disciplineDropdownRef} className="flex gap-1 flex-wrap justify-end flex-1 sm:flex-initial">
+                {[...FIXED_DISCIPLINES, ...(hasAutreActivities ? ["Autres"] : [])].map((disc) => {
+                  const cfg = DISCIPLINE_CONFIG[disc];
+                  const discActivities = activitiesByDiscipline[disc] || [];
+                  const isOpen = openDisciplineDropdown === disc;
+                  const hasSelectedInDisc = discActivities.some((a) => String(a.id) === String(selectedActivityId));
+                  return (
+                    <div key={disc} className="relative">
+                      <button
+                        id={`student-discipline-btn-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
+                        type="button"
+                        onClick={() => setOpenDisciplineDropdown(isOpen ? "" : disc)}
+                        className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all shrink-0 flex items-center gap-1 ${
+                          hasSelectedInDisc || isOpen ? cfg.active : cfg.inactive
+                        }`}
+                      >
+                        {disc}
+                        {hasSelectedInDisc && !isOpen && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80 shrink-0" />
+                        )}
+                        <svg className={`w-2.5 h-2.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 1l4 4 4-4"/></svg>
+                      </button>
+                      {isOpen && (
+                        <div
+                          id={`student-discipline-dropdown-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
+                          className={`absolute right-0 top-full mt-1.5 z-[200] rounded-xl shadow-xl min-w-[250px] ${MAX_ACTIVITY_LIST_HEIGHT} overflow-y-auto py-1 ${cfg.dropdown}`}
+                        >
+                          {discActivities.length === 0 ? (
+                            <p className="px-3 py-2 text-xs text-slate-400 italic">Aucune activité</p>
+                          ) : (
+                            discActivities.map((activity) => (
+                              <button
+                                key={activity.id}
+                                id={`student-activity-item-${activity.id}`}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedActivityId(String(activity.id));
+                                  setOpenDisciplineDropdown("");
+                                }}
+                                className={`w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${
+                                  String(activity.id) === String(selectedActivityId)
+                                    ? cfg.itemSelected
+                                    : cfg.item
+                                }`}
+                              >
+                                {activity.title}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Mode Démo Toggle */}
