@@ -564,3 +564,70 @@ Comportement :
 - **Réinitialisation** : Le bouton "Vider" permet de retirer tout l'argent déposé pour recommencer.
 - **Score** : Enregistré avec le niveau courant via `onComplete(...)`.
 
+---
+
+### 11. `EvenOddClassificationActivity.js`
+
+**But** : classer des nombres aléatoires dans la bonne catégorie (Pair ou Impair).
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Tri de nombres pairs ou impairs",
+  "instruction": "Fais glisser chaque nombre dans la bonne colonne (Pair ou Impair).",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "totalNumbers": 10,
+      "numbersPerRound": 1,
+      "min": 0,
+      "max": 20,
+      "classifications": [
+        "Pair",
+        "Impair"
+      ]
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "totalNumbers": 12,
+      "numbersPerRound": 2,
+      "min": 20,
+      "max": 99,
+      "classifications": [
+        "Pair",
+        "Impair"
+      ]
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "totalNumbers": 15,
+      "numbersPerRound": 4,
+      "min": 50,
+      "max": 999,
+      "classifications": [
+        "Pair",
+        "Impair"
+      ]
+    }
+  }
+}
+```
+
+Paramètres disponibles par niveau :
+
+- `totalNumbers` : Nombre total de nombres à trier pour le niveau.
+- `numbersPerRound` : Nombre maximum de tuiles affichées simultanément dans le pool.
+- `min` : Borne minimale pour la génération des nombres.
+- `max` : Borne maximale pour la génération des nombres.
+- `classifications` : Catégories à afficher (par défaut `["Pair", "Impair"]`).
+
+Comportement :
+
+- **Génération dynamique** : Les nombres sont tirés de manière aléatoire côté client selon le range `[min, max]`.
+- **Rounds de jeu** : Le pool affiche `numbersPerRound` tuiles. Dès qu'un nombre est placé, il est remplacé par un nombre restant.
+- **Interactions hybrides** : Support du glisser-déposer ainsi que de la sélection au clic tactile (tuile puis catégorie).
+- **Affichage des erreurs** : Bilan final avec score sur 20 et affichage pour chaque catégorie des nombres mal classés ainsi que de leur catégorie attendue.
+- **Mode Démo** : Si aucun élève n'est actif, l'activité tourne en mode démo et le bouton "Recommencer" est toujours accessible.
+
