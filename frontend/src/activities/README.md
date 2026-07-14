@@ -156,7 +156,7 @@ Comportement :
 
 **But** : associer chaque addition à son bon résultat.
 
-Exemple de configuration :
+Exemple de configuration standard (3 niveaux) :
 
 ```json
 {
@@ -169,10 +169,81 @@ Exemple de configuration :
 }
 ```
 
+Paramètres disponibles par niveau :
+
+- `label` : libellé affiché pour le niveau.
+- `count` : nombre de paires à associer.
+- `min` : borne minimale pour le tirage aléatoire des termes.
+- `max` : borne maximale pour le tirage aléatoire des termes.
+- `step` *(défaut : `1`)* : pas de progression du tirage aléatoire, équivalent à `range(min, max+1, step)` en Python. Par exemple, `step: 5` avec `min: 20, max: 50` génère uniquement les valeurs 20, 25, 30, 35, 40, 45, 50.
+- `mode` *(défaut : `"addition"`)* : définit le type d'addition générée.
+  - `"addition"` : les deux termes sont tirés indépendamment dans `[min, max]` avec le pas `step`.
+  - `"double"` : les deux termes sont identiques (`a + a = résultat`), permettant d'associer un nombre et son double.
+
+L'activité supporte jusqu'à **4 niveaux** (`level1` à `level4`). Les niveaux affichés sont déduits dynamiquement de ceux présents dans la configuration JSON.
+
+---
+
+#### Cas particulier : Associer un nombre et son double
+
+Avec `"mode": "double"`, les deux termes de l'addition sont toujours égaux (`a + a`). Le paramètre `step` permet de contraindre les valeurs tirées.
+
+Exemples :
+
+```json
+{
+  "title": "Associe chaque nombre à son double",
+  "instruction": "Fais glisser chaque résultat vers la bonne addition, puis valide.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Doubles de 1 à 15",
+      "count": 5,
+      "min": 1,
+      "max": 15,
+      "step": 1,
+      "mode": "double"
+    },
+    "level2": {
+      "label": "Doubles de 20 à 50 (multiples de 5)",
+      "count": 5,
+      "min": 20,
+      "max": 50,
+      "step": 5,
+      "mode": "double"
+    },
+    "level3": {
+      "label": "Doubles de 100 à 150 (pas de 50)",
+      "count": 3,
+      "min": 100,
+      "max": 150,
+      "step": 50,
+      "mode": "double"
+    },
+    "level4": {
+      "label": "Doubles de 26 à 99",
+      "count": 6,
+      "min": 26,
+      "max": 99,
+      "step": 1,
+      "mode": "double"
+    }
+  }
+}
+```
+
+Résultats produits par chaque niveau :
+- **Niveau 1** (`min=1, max=15, step=1`) → 1+1=2, 2+2=4, … jusqu'à 15+15=30
+- **Niveau 2** (`min=20, max=50, step=5`) → 20+20=40, 25+25=50, … jusqu'à 50+50=100
+- **Niveau 3** (`min=100, max=150, step=50`) → 100+100=200, 150+150=300
+- **Niveau 4** (`min=26, max=99, step=1`) → 26+26=52, 27+27=54, … jusqu'à 99+99=198
+
+---
+
 Personnalisation avancée possible via :
 
 - `challenges`
-- `challengesByLevel.level1|2|3`
+- `challengesByLevel.level1|2|3|4`
 
 Chaque défi suit le format :
 

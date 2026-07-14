@@ -27,21 +27,29 @@ export const defaultMatchAdditionsActivityContent = {
       count: 3,
       min: 1,
       max: 20,
+      step: 1,
+      mode: "addition",
     },
     level2: {
       label: "Niveau 2",
       count: 3,
       min: 10,
       max: 99,
+      step: 1,
+      mode: "addition",
     },
     level3: {
       label: "Niveau 3",
       count: 3,
       min: 10,
       max: 599,
+      step: 1,
+      mode: "addition",
     },
   },
 };
+
+const ALLOWED_MODES = ["addition", "double"];
 
 const TILE_ROTATION_MIN_DEGREES = -10;
 const TILE_ROTATION_MAX_DEGREES = 10;
@@ -62,16 +70,22 @@ function normalizeLevelRule(rule, fallbackRule) {
   const fallbackCount = parsePositiveInt(fallbackRule.count, 3);
   const fallbackMin = parseIntWithFallback(fallbackRule.min, 1);
   const fallbackMax = parseIntWithFallback(fallbackRule.max, 9);
+  const fallbackStep = parsePositiveInt(fallbackRule.step, 1);
+  const fallbackMode = ALLOWED_MODES.includes(fallbackRule.mode) ? fallbackRule.mode : "addition";
 
   const count = parsePositiveInt(source.count, fallbackCount);
   const min = parseIntWithFallback(source.min, fallbackMin);
   const max = parseIntWithFallback(source.max, fallbackMax);
+  const step = parsePositiveInt(source.step, fallbackStep);
+  const mode = ALLOWED_MODES.includes(source.mode) ? source.mode : fallbackMode;
 
   return {
     label: source.label || fallbackRule.label,
     count,
     min: Math.min(min, max),
     max: Math.max(min, max),
+    step,
+    mode,
   };
 }
 
@@ -97,23 +111,51 @@ function normalizeChallenges(challenges) {
     .filter(Boolean);
 }
 
-function randomIntBetween(min, max) {
-  const range = max - min + 1;
-  return Math.floor(Math.random() * range) + min;
+function getRandomFromRange(min, max, step = 1) {
+  const safeStep = Math.max(1, step);
+  const stepsCount = Math.floor((max - min) / safeStep) + 1;
+  if (stepsCount <= 0) return min;
+  const randomStepIndex = Math.floor(Math.random() * stepsCount);
+  return min + randomStepIndex * safeStep;
 }
 
 function buildGeneratedChallenges(levelRule) {
   const challenges = [];
-  for (let i = 0; i < levelRule.count; i += 1) {
-    const left = randomIntBetween(levelRule.min, levelRule.max);
-    const right = randomIntBetween(levelRule.min, levelRule.max);
+  const isDouble = levelRule.mode === "double";
+  const step = levelRule.step || 1;
+  const usedKeys = new Set();
+  const maxAttempts = levelRule.count * 20;
+  let attempts = 0;
+
+  while (challenges.length < levelRule.count && attempts < maxAttempts) {
+    attempts += 1;
+    const left = getRandomFromRange(levelRule.min, levelRule.max, step);
+    const right = isDouble ? left : getRandomFromRange(levelRule.min, levelRule.max, step);
+    const key = `${left}+${right}`;
+
+    if (!usedKeys.has(key)) {
+      usedKeys.add(key);
+      challenges.push({
+        id: challenges.length + 1,
+        left,
+        right,
+        result: left + right,
+      });
+    }
+  }
+
+  // Si la plage est trop petite pour garantir l'unicité, compléter sans contrainte
+  while (challenges.length < levelRule.count) {
+    const left = getRandomFromRange(levelRule.min, levelRule.max, step);
+    const right = isDouble ? left : getRandomFromRange(levelRule.min, levelRule.max, step);
     challenges.push({
-      id: i + 1,
+      id: challenges.length + 1,
       left,
       right,
       result: left + right,
     });
   }
+
   return challenges;
 }
 
@@ -136,16 +178,29 @@ const MatchAdditionsActivity = ({
 }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultMatchAdditionsActivityContent.levels;
-  const configuredLevels = {
-    level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
-    level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
-    level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
-  };
 
-  const allowedLevelKeys = ["level1", "level2", "level3"];
+  const allowedLevelKeys = useMemo(() => {
+    const allKeys = ["level1", "level2", "level3", "level4"];
+    if (parsedContent?.levels && typeof parsedContent.levels === "object") {
+      const configuredKeys = allKeys.filter((k) => parsedContent.levels[k] !== undefined);
+      if (configuredKeys.length > 0) return configuredKeys;
+    }
+    return ["level1", "level2", "level3"];
+  }, [parsedContent]);
+
+  const configuredLevels = useMemo(() => {
+    const allKeys = ["level1", "level2", "level3", "level4"];
+    const result = {};
+    allKeys.forEach((k) => {
+      const fallback = defaultLevels[k] || defaultLevels.level1;
+      result[k] = normalizeLevelRule(parsedContent?.levels?.[k], fallback);
+    });
+    return result;
+  }, [parsedContent, defaultLevels]);
+
   const initialLevel = allowedLevelKeys.includes(parsedContent?.defaultLevel)
     ? parsedContent.defaultLevel
-    : "level1";
+    : allowedLevelKeys[0] || "level1";
 
   const buildChallengesForLevel = (levelKey) => {
     const byLevel = normalizeChallenges(parsedContent?.challengesByLevel?.[levelKey]);
