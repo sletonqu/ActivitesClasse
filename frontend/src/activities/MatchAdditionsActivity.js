@@ -372,7 +372,7 @@ const MatchAdditionsActivity = ({
                         onClick={() => toggleSelectFromSlot(challenge.id)}
                         isSelected={isSlotSelected(challenge.id)}
                         selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                        className={`min-h-[44px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-2 ${
+                        className={`min-h-[44px] min-w-[84px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[108px] sm:rounded-2xl sm:px-4 sm:py-2 ${
                           finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
                         }`}
                         style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
