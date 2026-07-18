@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { ACTIVITY_FILES } from "../utils/activityManagement";
+import JsonEditorModal from "./JsonEditorModal";
 
 const ActivitiesManagementPanel = ({
   activities,
@@ -53,6 +54,11 @@ const ActivitiesManagementPanel = ({
   onActivityContentChange = null,
   hideTitle = false,
 }) => {
+  const [jsonEditorState, setJsonEditorState] = useState({
+    isOpen: false,
+    value: "{}",
+    onSave: null,
+  });
   const shouldRenderFormSection = showAddForm || !hideTitle || Boolean(onToggleActivitiesList);
   const shouldRenderEditSection = showActivitiesList && Boolean(selectedActivityEditId);
   const formSectionClassName = shouldRenderEditSection
@@ -69,8 +75,26 @@ const ActivitiesManagementPanel = ({
     ? "lg:basis-1/3 lg:max-w-[33.333333%]"
     : "lg:basis-1/2 lg:max-w-none";
 
+  const openJsonEditor = (value, onSave) => {
+    setJsonEditorState({
+      isOpen: true,
+      value: value || "{}",
+      onSave,
+    });
+  };
+
   return (
     <div id="activities-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
+      <JsonEditorModal
+        isOpen={jsonEditorState.isOpen}
+        initialValue={jsonEditorState.value}
+        title="Éditer le contenu JSON"
+        onClose={() => setJsonEditorState((prev) => ({ ...prev, isOpen: false }))}
+        onSave={(nextValue) => {
+          jsonEditorState.onSave?.(nextValue);
+          setJsonEditorState((prev) => ({ ...prev, isOpen: false }));
+        }}
+      />
       {shouldRenderFormSection && (
         <section
           id="activities-panel-form-section"
@@ -199,11 +223,18 @@ const ActivitiesManagementPanel = ({
 
             <div id="activities-panel-content-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
-              <textarea
-                value={activityContentText}
-                onChange={(e) => onActivityContentChange(e.target.value)}
-                className="w-full h-[300px] border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-              />
+              <button
+                type="button"
+                onClick={() => openJsonEditor(activityContentText, (nextValue) => onActivityContentChange?.(nextValue))}
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-sky-400 hover:bg-sky-50"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium">Éditer le JSON</span>
+                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
+                    Ouvrir
+                  </span>
+                </div>
+              </button>
             </div>
             </form>
           )}
@@ -386,11 +417,18 @@ const ActivitiesManagementPanel = ({
 
             <div id="activities-panel-edit-content-field">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
-              <textarea
-                value={editActivityContentText}
-                onChange={(e) => onEditContentChange(e.target.value)}
-                className="w-full h-[300px] border border-slate-300 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-              />
+              <button
+                type="button"
+                onClick={() => openJsonEditor(editActivityContentText, (nextValue) => onEditContentChange?.(nextValue))}
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-sky-400 hover:bg-sky-50"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium">Éditer le JSON</span>
+                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
+                    Ouvrir
+                  </span>
+                </div>
+              </button>
             </div>
 
             <div id="activities-panel-edit-actions" className="flex flex-wrap gap-3">
