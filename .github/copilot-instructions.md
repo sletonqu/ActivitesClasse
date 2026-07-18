@@ -8,6 +8,7 @@ These rules apply across the whole project:
 - Generated code must stay **clear, readable, and easy to debug**, with meaningful naming. In the frontend, add explicit `id` attributes on key UI blocks and controls (`div`, `section`, `input`, `button`, etc.) whenever useful for debugging and inspection.
 - All user-facing text (labels, buttons, instructions, placeholders, success/error messages, and activity content) must be written in **French**, with correct spelling, punctuation, and accents (`é`, `è`, `à`, `ç`, etc.). Avoid mixed French/English wording in the UI unless technically required.
 - Before declaring the work complete, verify relevant changes with `docker compose up --build -d`.
+- Toutes commandes et instructions doivent être exécutées en préfixant les commandes par `rtk` (ex: `rtk docker compose up --build -d`).
 
 ## Frontend management panels
 

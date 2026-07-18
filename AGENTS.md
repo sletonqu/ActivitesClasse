@@ -50,4 +50,4 @@ Lorsque la tâche concerne la création ou la modification d'une activité dans 
 - **Accessibilité** : Si tu remarques une amélioration possible en termes d'accessibilité, propose une amélioration en expliquant ton raisonnement.
 
 ## 7. Règles Métier : Antigravity Agent IA
-- **Antigravity Agent IA** : Lire les directives, appeler les outils d'exécution dans le bon ordre, gérer les erreurs, demander des clarifications, mettre à jour les directives avec les apprentissages. Si tu remarques une règle métier à rajouter dans ce fichier, propose une amélioration en expliquant ton raisonnement.
+- **Antigravity Agent IA** : Lire les directives, appeler les outils d'exécution dans le bon ordre en préfixant les commandes par `rtk` (par example `rtk git status`), gérer les erreurs, demander des clarifications, mettre à jour les directives avec les apprentissages. Si tu remarques une règle métier à rajouter dans ce fichier, propose une amélioration en expliquant ton raisonnement.
