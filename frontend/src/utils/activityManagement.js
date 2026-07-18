@@ -13,6 +13,7 @@ import { defaultClassSoundMeterActivityContent } from "../activities/ClassSoundM
 import { defaultCodeJuniorActivityContent } from "../activities/CodeJuniorActivity";
 import { defaultVerbEndingCompletionActivityContent } from "../activities/VerbEndingCompletionActivity";
 import { defaultEvenOddClassificationActivityContent } from "../activities/EvenOddClassificationActivity";
+import { defaultHomophonesActivityContent } from "../activities/HomophonesActivity";
 
 
 export const ACTIVITY_FILES = [
@@ -31,6 +32,7 @@ export const ACTIVITY_FILES = [
   "src/activities/CodeJuniorActivity.js",
   "src/activities/VerbEndingCompletionActivity.js",
   "src/activities/EvenOddClassificationActivity.js",
+  "src/activities/HomophonesActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -49,6 +51,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/CodeJuniorActivity.js": defaultCodeJuniorActivityContent,
   "src/activities/VerbEndingCompletionActivity.js": defaultVerbEndingCompletionActivityContent,
   "src/activities/EvenOddClassificationActivity.js": defaultEvenOddClassificationActivityContent,
+  "src/activities/HomophonesActivity.js": defaultHomophonesActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {

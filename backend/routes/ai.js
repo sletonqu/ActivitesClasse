@@ -1336,6 +1336,107 @@ router.get('/verbs-by-ending', async (req, res) => {
   }
 });
 
+router.get('/sentences-by-word', async (req, res) => {
+  try {
+    const wordsParam = req.query?.words || '';
+    const requestedCountParam = Number(req.query?.count) || 3;
+    const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 20);
+
+    if (!wordsParam) {
+      return res.status(400).json({ error: 'Les mots doivent être spécifiés (words parameter)' });
+    }
+
+    const words = Array.isArray(wordsParam)
+      ? wordsParam.map((w) => String(w || '').toLowerCase()).filter(Boolean)
+      : String(wordsParam).toLowerCase().split(',').map((w) => w.trim()).filter(Boolean);
+
+    if (words.length === 0) {
+      return res.status(400).json({ error: 'Aucun mot valide fourni' });
+    }
+
+    // Function to check if a sentence contains all required words
+    function sentenceContainsAllWords(sentence, requiredWords) {
+      const wordsList = Array.isArray(sentence?.words) ? sentence.words : [];
+      
+      if (wordsList.length === 0) {
+        return false;
+      }
+
+      // For each required word, check if it exists in the sentence (case-insensitive match)
+      return requiredWords.every((requiredWord) => {
+        return wordsList.some((wordObj) => {
+          const wordStr = String(wordObj?.word || '').toLowerCase();
+          return wordStr === requiredWord;
+        });
+      });
+    }
+
+    // Fetch least-used sentences for each word
+    const allSentencesByWord = new Map();
+
+    for (const word of words) {
+      const rows = await allAsync(
+        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+         FROM generated_sentences
+         ORDER BY COALESCE(compteur, 0) ASC, id DESC
+         LIMIT 500`,
+        []
+      );
+
+      const eligibleSentences = rows
+        .map((row) => buildGeneratedSentenceFromRow(row))
+        .filter((sentence) => sentenceContainsAllWords(sentence, [word]))
+        .slice(0, 10);
+
+      if (eligibleSentences.length > 0) {
+        allSentencesByWord.set(word, eligibleSentences);
+      }
+    }
+
+    if (allSentencesByWord.size === 0) {
+      return res.status(404).json({
+        error: 'Aucune phrase contenant ces mots n\'a été trouvée',
+      });
+    }
+
+    // Deduplicate sentences by ID (each word may share sentences)
+    const allSentences = Array.from(allSentencesByWord.values()).flat();
+    const uniqueSentenceMap = new Map();
+    
+    for (const sentence of allSentences) {
+      if (!uniqueSentenceMap.has(sentence.id)) {
+        uniqueSentenceMap.set(sentence.id, sentence);
+      }
+    }
+
+    const allUniqueSentences = Array.from(uniqueSentenceMap.values());
+
+    // Shuffle and select requested count
+    const shuffledSentences = allUniqueSentences.sort(() => Math.random() - 0.5);
+    const selectedSentences = shuffledSentences.slice(0, requestedCount);
+
+    // Update compteur for each selected sentence
+    for (const sentence of selectedSentences) {
+      await runAsync(
+        'UPDATE generated_sentences SET compteur = COALESCE(compteur, 0) + 1 WHERE id = ?',
+        [sentence.id]
+      );
+      sentence.compteur = Number(sentence.compteur || 0) + 1;
+    }
+
+    return res.json({
+      requestedCount,
+      returnedCount: selectedSentences.length,
+      totalAvailable: allUniqueSentences.length,
+      sentences: selectedSentences,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || 'Erreur lors de la récupération des phrases contenant les mots spécifiés',
+    });
+  }
+});
+
 router.get('/generated-sentences/next', async (req, res) => {
   try {
     const level = normalizeText(req.query?.level).toUpperCase();

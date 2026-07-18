@@ -14,6 +14,7 @@ import ClassSoundMeterActivity from "./ClassSoundMeterActivity";
 import CodeJuniorActivity from "./CodeJuniorActivity";
 import VerbEndingCompletionActivity from "./VerbEndingCompletionActivity";
 import EvenOddClassificationActivity from "./EvenOddClassificationActivity";
+import HomophonesActivity from "./HomophonesActivity";
 
 
 const componentRegistry = {
@@ -62,6 +63,9 @@ const componentRegistry = {
   "src/activities/EvenOddClassificationActivity.js": EvenOddClassificationActivity,
   "EvenOddClassificationActivity": EvenOddClassificationActivity,
   "EvenOddClassificationActivity.js": EvenOddClassificationActivity,
+  "src/activities/HomophonesActivity.js": HomophonesActivity,
+  "HomophonesActivity": HomophonesActivity,
+  "HomophonesActivity.js": HomophonesActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

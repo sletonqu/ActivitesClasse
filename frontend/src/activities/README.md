@@ -558,6 +558,59 @@ Exemple de configuration :
 
 Paramètres utiles :
 
+---
+
+### 12. `HomophonesActivity.js`
+
+**But** : compléter des phrases à trou avec le bon homophone (mot au même son) parmi plusieurs propositions.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Homophones",
+  "instruction": "Sélectionne le mot correct pour compléter la phrase.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "es / est / et",
+      "sentenceCount": 10,
+      "sounds": ["es", "est", "et"]
+    },
+    "level2": {
+      "label": "à / a / as",
+      "sentenceCount": 10,
+      "sounds": ["à", "a", "as"]
+    },
+    "level3": {
+      "label": "on / ont",
+      "sentenceCount": 10,
+      "sounds": ["on", "ont"]
+    }
+  }
+}
+```
+
+Paramètres disponibles par niveau :
+
+- `sentenceCount` : nombre de phrases à compléter pour ce niveau (1-20) ;
+- `sounds` : liste des mots/homophones proposés comme boutons (ex: `["à", "a", "as"]`).
+
+Interaction :
+
+- **Premier clic** : sélectionne un homophone et le **prévisualise** dans le blanc de la phrase ;
+- **Deuxième clic** sur le même bouton : **valide** la réponse ;
+- Si juste : message d'encouragement "Bravo ! Bonne réponse." ;
+- Si faux : affichage de la bonne réponse "Erreur. La bonne réponse était : [son]".
+
+Comportement :
+
+- **Chargement dynamique** : les phrases sont récupérées via l'API `/api/ai/sentences-by-word` en fonction du niveau et des sons demandés ;
+- **Sélection intelligente** : les phrases les moins utilisées sont prioritaires (compteur bas) pour favoriser la diversité ;
+- **Gestion multi-niveaux** : le changement de niveau charge automatiquement de nouvelles phrases ;
+- Score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)` ;
+- En mode démo (`student=null`), aucun résultat n'est enregistré et le bouton "Recommencer" reste actif.
+
 - `title`
 - `instruction`
 - `defaultLevel`
