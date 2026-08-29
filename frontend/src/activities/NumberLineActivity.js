@@ -168,7 +168,15 @@ const NumberLineActivity = ({
   const [isCorrect, setIsCorrect] = useState(null);
   const [score, setScore] = useState(null);
 
-  // Re-generate round data only when level configuration or active level changes
+  const levelConfigSignature = allowedLevelKeys
+    .map((levelKey) => {
+      const rule = configuredLevels[levelKey] || configuredLevels.level1;
+      return `${levelKey}:${rule.label}:${rule.min}:${rule.max}:${rule.step}:${rule.ticksCount}:${rule.readonlyCount}:${rule.inputsCount}`;
+    })
+    .join("|");
+
+  // Re-generate round data only when the actual level configuration or active level changes.
+  // Keep the round stable across parent rerenders that recreate the same content object.
   useEffect(() => {
     const rule = configuredLevels[currentLevel] || configuredLevels.level1;
     setRoundData(buildRoundForLevel(rule));
@@ -177,7 +185,7 @@ const NumberLineActivity = ({
     setIsCorrect(null);
     setScore(null);
     setActiveInputIndex(null);
-  }, [configuredLevels, currentLevel]);
+  }, [levelConfigSignature, currentLevel]);
 
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
@@ -356,7 +364,7 @@ const NumberLineActivity = ({
         className="rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:p-2"
       >
         <div className="border-b border-slate-100 pb-1 mb-1">
-          <h4 className="text-lg font-bold text-slate-800">Droite Graduée</h4>
+          <h4 className="text-lg font-bold text-slate-800">Nombres à placer sur la droite graduée</h4>
         </div>
 
         {roundData.error ? (
