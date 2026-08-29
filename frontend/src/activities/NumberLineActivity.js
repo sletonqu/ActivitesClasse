@@ -200,10 +200,10 @@ const NumberLineActivity = ({
 
   const progressPercent = inputsIndices.length > 0
     ? Math.round(
-        (inputsIndices.filter((index) => answers[index] !== undefined && answers[index] !== "").length /
-          inputsIndices.length) *
-          100
-      )
+      (inputsIndices.filter((index) => answers[index] !== undefined && answers[index] !== "").length /
+        inputsIndices.length) *
+      100
+    )
     : 0;
 
   const handleSelectLevel = (levelKey) => {
@@ -353,9 +353,9 @@ const NumberLineActivity = ({
 
       <section
         id="number-line-board-section"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+        className="rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:p-2"
       >
-        <div className="border-b border-slate-100 pb-3 mb-4">
+        <div className="border-b border-slate-100 pb-1 mb-1">
           <h4 className="text-lg font-bold text-slate-800">Droite Graduée</h4>
         </div>
 
@@ -364,8 +364,8 @@ const NumberLineActivity = ({
             <p className="text-base font-semibold text-rose-800">{roundData.error}</p>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto rounded-xl bg-slate-50/50 p-2 sm:p-4 select-none scrollbar-thin">
-            <div className="relative w-full min-w-[850px] h-60 my-2">
+          <div id="number-line-scroll-container" className="w-full overflow-x-auto rounded-xl bg-slate-50/50 p-1 sm:p-1 select-none scrollbar-thin">
+            <div id="number-line-canvas" className="relative w-full min-w-[850px] h-60 my-2">
               {/* Le trait de la droite graduée */}
               <div className="absolute left-10 right-10 top-24 h-1.5 bg-slate-900 rounded-full shadow-sm" />
 
@@ -379,46 +379,45 @@ const NumberLineActivity = ({
                 return (
                   <div
                     key={i}
+                    id={`number-line-tick-${i}`}
                     className="absolute top-24 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
                     style={{ left: `calc(40px + ${leftPercent}% - ${leftPercent * 0.8}px)` }}
                   >
                     {/* Trait de graduation */}
                     <div
-                      className={`rounded-full transition-all duration-300 ${
-                        isMarked
-                          ? "w-[3px] h-6 bg-slate-900 shadow-sm"
-                          : "w-[2px] h-4 bg-slate-400"
-                      }`}
+                      className={`rounded-full transition-all duration-300 ${isMarked
+                        ? "w-[3px] h-6 bg-slate-900 shadow-sm"
+                        : "w-[2px] h-4 bg-slate-400"
+                        }`}
                     />
 
                     {/* Repère déjà placé (au-dessus) */}
                     {isReadonly && (
-                      <div className="absolute bottom-6 flex flex-col items-center animate-fade-in">
-                        <span className="text-sm font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg shadow-sm whitespace-nowrap">
+                      <div id={`number-line-readonly-label-${i}`} className="absolute bottom-6 flex flex-col items-center animate-fade-in">
+                        <span id={`number-line-readonly-value-${i}`} className="text-sm font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg shadow-sm whitespace-nowrap">
                           {formatNumberWithThousandsSpace(val)}
                         </span>
-                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1" />
+                        <div id={`number-line-readonly-dot-${i}`} className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1" />
                       </div>
                     )}
 
                     {/* Repère à compléter (en dessous) */}
                     {isInput && (
-                      <div className="absolute top-6 flex flex-col items-center">
-                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mb-1" />
+                      <div id={`number-line-input-group-${i}`} className="absolute top-6 flex flex-col items-center">
+                        <div id={`number-line-input-dot-${i}`} className="w-1.5 h-1.5 bg-indigo-500 rounded-full mb-1" />
                         <button
                           id={`number-line-input-slot-${i}`}
                           type="button"
                           disabled={finished}
                           onClick={() => openNumberPad(i)}
-                          className={`w-14 h-10 flex items-center justify-center border-2 rounded-xl text-lg font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-                            activeInputIndex === i
-                              ? "border-indigo-600 ring-4 ring-indigo-100 bg-indigo-50 text-indigo-700 font-extrabold scale-105"
-                              : finished
-                                ? answers[i] === String(val)
-                                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 cursor-default"
-                                  : "border-rose-500 bg-rose-50 text-rose-700 cursor-default"
-                                : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
-                          }`}
+                          className={`w-14 h-10 flex items-center justify-center border-2 rounded-xl text-lg font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 ${activeInputIndex === i
+                            ? "border-indigo-600 ring-4 ring-indigo-100 bg-indigo-50 text-indigo-700 font-extrabold scale-105"
+                            : finished
+                              ? answers[i] === String(val)
+                                ? "border-emerald-500 bg-emerald-50 text-emerald-700 cursor-default"
+                                : "border-rose-500 bg-rose-50 text-rose-700 cursor-default"
+                              : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                            }`}
                         >
                           {answers[i] !== undefined && answers[i] !== ""
                             ? formatNumberWithThousandsSpace(answers[i])
@@ -427,7 +426,7 @@ const NumberLineActivity = ({
 
                         {/* Correction en dessous si incorrect et validé */}
                         {finished && answers[i] !== String(val) && (
-                          <span className="mt-1.5 text-xs font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap animate-fade-in">
+                          <span id={`number-line-correction-${i}`} className="mt-1.5 text-xs font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap animate-fade-in">
                             {formatNumberWithThousandsSpace(val)}
                           </span>
                         )}
