@@ -18,11 +18,13 @@ export const defaultReadNumbersActivityContent = {
     level1: { label: "Niveau 1", min: 1, max: 99 },
     level2: { label: "Niveau 2", min: 100, max: 999 },
     level3: { label: "Niveau 3", min: 1000, max: 9999 },
+    level4: { label: "Niveau 4", min: 10000, max: 99999 },
   },
   numbersByLevel: {
     level1: [],
     level2: [],
     level3: [],
+    level4: [],
   },
 };
 
@@ -77,12 +79,13 @@ const ReadNumbersActivity = ({
 }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultReadNumbersActivityContent.levels;
-  const allowedLevelKeys = ["level1", "level2", "level3"];
+  const allowedLevelKeys = ["level1", "level2", "level3", "level4"];
 
   const configuredLevels = {
     level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
     level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
     level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
+    level4: normalizeLevelRule(parsedContent?.levels?.level4, defaultLevels.level4),
   };
 
   const initialLevel = allowedLevelKeys.includes(parsedContent?.defaultLevel)
@@ -168,7 +171,7 @@ const ReadNumbersActivity = ({
 
         <div
           id="read-numbers-tiles-pool"
-          className="flex min-h-[120px] items-center justify-center bg-slate-50/70 p-3 sm:min-h-[160px] sm:p-6"
+          className="flex min-h-[120px] items-start justify-center bg-slate-50/70 p-3 sm:min-h-[440px] sm:p-12"
         >
           <div
             key={currentTile.id}
