@@ -253,6 +253,9 @@ const NumberLineActivity = ({
   const handleValidate = () => {
     if (!allCompleted || finished) return;
 
+    // Fermer le pavé numérique avant de vérifier les résultats
+    setActiveInputIndex(null);
+
     let correctCount = 0;
     inputsIndices.forEach((index) => {
       const expected = String(roundData.ticks[index]);
