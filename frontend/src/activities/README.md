@@ -755,3 +755,46 @@ Comportement :
 - **Affichage des erreurs** : Bilan final avec score sur 20 et affichage pour chaque catégorie des nombres mal classés ainsi que de leur catégorie attendue.
 - **Mode Démo** : Si aucun élève n'est actif, l'activité tourne en mode démo et le bouton "Recommencer" est toujours accessible.
 
+---
+
+### 13. `NumberLineActivity.js`
+
+**But** : Compléter les nombres manquants placés aléatoirement sous une droite graduée en s'aidant des repères déjà affichés au-dessus.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Droite graduée",
+  "instruction": "Complète les nombres manquants placés en dessous de la droite graduée.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Pas de 1 (10 à 100)",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "ticksCount": 20,
+      "readonlyCount": 3,
+      "inputsCount": 5
+    }
+  }
+}
+```
+
+Paramètres disponibles par niveau :
+
+- `min` : Borne minimale de valeur autorisée pour le tirage de la première graduation à gauche.
+- `max` : Borne maximale de valeur autorisée pour la droite graduée.
+- `step` : Le pas de graduation (ex: `1`, `2`, `5`, `10`, `100`).
+- `ticksCount` : Nombre total de graduations affichées (défaut : `20`).
+- `readonlyCount` : Nombre de repères déjà placés et visibles au-dessus de la droite (défaut : `3`).
+- `inputsCount` : Nombre de repères vides à compléter en dessous de la droite (défaut : `5`).
+
+Comportement :
+
+- **Calcul de plage et contraintes** : La première graduation de gauche $V_0$ est tirée aléatoirement de sorte que $V_0 \ge \text{min}$, que $V_0$ soit un multiple de `step`, et que la dernière graduation à droite $V_{N-1} = V_0 + (ticksCount - 1) \times step \le \text{max}$. Si ces contraintes ne sont pas applicables, un message d'erreur en français s'affiche à la place de la droite graduée.
+- **Tirage des repères** : Les index des repères affichés au-dessus et des repères à compléter en dessous sont tirés de manière aléatoire et sont strictement disjoints.
+- **Saisie et validation** : Au clic sur une zone "?", un pavé numérique s'ouvre. Le bouton "Valider" apparaît lorsque toutes les cases sont complétées. Après validation, les réponses correctes sont affichées en vert, les incorrectes en rouge avec la bonne réponse affichée en noir sous la case.
+
+

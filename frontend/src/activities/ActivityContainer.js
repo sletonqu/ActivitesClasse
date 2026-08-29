@@ -15,9 +15,13 @@ import CodeJuniorActivity from "./CodeJuniorActivity";
 import VerbEndingCompletionActivity from "./VerbEndingCompletionActivity";
 import EvenOddClassificationActivity from "./EvenOddClassificationActivity";
 import HomophonesActivity from "./HomophonesActivity";
+import NumberLineActivity from "./NumberLineActivity";
 
 
 const componentRegistry = {
+  "src/activities/NumberLineActivity.js": NumberLineActivity,
+  "NumberLineActivity": NumberLineActivity,
+  "NumberLineActivity.js": NumberLineActivity,
   "src/activities/SortNumbersActivity.js": SortNumbersActivity,
   "SortNumbersActivity": SortNumbersActivity,
   "SortNumbersActivity.js": SortNumbersActivity,
