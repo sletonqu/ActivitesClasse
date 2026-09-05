@@ -179,6 +179,7 @@ Paramètres disponibles par niveau :
 - `mode` *(défaut : `"addition"`)* : définit le type d'addition générée.
   - `"addition"` : les deux termes sont tirés indépendamment dans `[min, max]` avec le pas `step`.
   - `"double"` : les deux termes sont identiques (`a + a = résultat`), permettant d'associer un nombre et son double.
+- `fake` *(défaut : `false`)* : si activé, ajoute une tuile imposteur (un résultat plausible mais erroné) dans la réserve pour augmenter la difficulté. Peut être défini globalement ou spécifiquement par niveau.
 
 L'activité supporte jusqu'à **4 niveaux** (`level1` à `level4`). Les niveaux affichés sont déduits dynamiquement de ceux présents dans la configuration JSON.
 

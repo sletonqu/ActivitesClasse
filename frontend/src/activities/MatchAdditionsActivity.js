@@ -46,6 +46,15 @@ export const defaultMatchAdditionsActivityContent = {
       step: 1,
       mode: "addition",
     },
+    level4: {
+      label: "Niveau 4",
+      count: 3,
+      min: 10,
+      max: 599,
+      step: 1,
+      mode: "addition",
+      fake: true,
+    },
   },
 };
 
@@ -72,12 +81,14 @@ function normalizeLevelRule(rule, fallbackRule) {
   const fallbackMax = parseIntWithFallback(fallbackRule.max, 9);
   const fallbackStep = parsePositiveInt(fallbackRule.step, 1);
   const fallbackMode = ALLOWED_MODES.includes(fallbackRule.mode) ? fallbackRule.mode : "addition";
+  const fallbackFake = Boolean(fallbackRule.fake);
 
   const count = parsePositiveInt(source.count, fallbackCount);
   const min = parseIntWithFallback(source.min, fallbackMin);
   const max = parseIntWithFallback(source.max, fallbackMax);
   const step = parsePositiveInt(source.step, fallbackStep);
   const mode = ALLOWED_MODES.includes(source.mode) ? source.mode : fallbackMode;
+  const fake = source.fake !== undefined ? Boolean(source.fake) : fallbackFake;
 
   return {
     label: source.label || fallbackRule.label,
@@ -86,6 +97,7 @@ function normalizeLevelRule(rule, fallbackRule) {
     max: Math.max(min, max),
     step,
     mode,
+    fake,
   };
 }
 
@@ -159,14 +171,39 @@ function buildGeneratedChallenges(levelRule) {
   return challenges;
 }
 
-function buildAnswerTiles(challenges) {
-  return shuffle(
-    challenges.map((challenge, index) => ({
-      id: `${challenge.id}-${index}`,
-      value: challenge.result,
+function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
+  const tiles = challenges.map((challenge, index) => ({
+    id: `${challenge.id}-${index}`,
+    value: challenge.result,
+    rotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
+  }));
+
+  if (useFake && levelRule) {
+    const existingValues = new Set(challenges.map((c) => c.result));
+    let fakeValue;
+    let attempts = 0;
+    while (attempts < 50) {
+      const left = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1);
+      const right = levelRule.mode === "double" ? left : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1);
+      const val = left + right;
+      if (!existingValues.has(val)) {
+        fakeValue = val;
+        break;
+      }
+      attempts++;
+    }
+    if (fakeValue === undefined) {
+      fakeValue = levelRule.max + levelRule.min; // Fallback
+    }
+
+    tiles.push({
+      id: `fake-tile-${Math.random()}`,
+      value: fakeValue,
       rotation: randomRotation(TILE_ROTATION_MIN_DEGREES, TILE_ROTATION_MAX_DEGREES),
-    }))
-  );
+    });
+  }
+
+  return shuffle(tiles);
 }
 
 const MatchAdditionsActivity = ({
@@ -216,6 +253,8 @@ const MatchAdditionsActivity = ({
   };
 
   const initialChallenges = buildChallengesForLevel(initialLevel);
+  const initialLevelRule = configuredLevels[initialLevel] || configuredLevels.level1;
+  const initialUseFake = Boolean(parsedContent?.fake) || Boolean(initialLevelRule?.fake);
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [challenges, setChallenges] = useState(initialChallenges);
@@ -238,7 +277,7 @@ const MatchAdditionsActivity = ({
     isPoolItemSelected,
     isSlotSelected,
   } = useSlotPoolPlacement({
-    initialPoolItems: buildAnswerTiles(initialChallenges),
+    initialPoolItems: buildAnswerTiles(initialChallenges, initialLevelRule, initialUseFake),
     initialAssignments: {},
     disabled: finished,
   });
@@ -254,9 +293,10 @@ const MatchAdditionsActivity = ({
     defaultMatchAdditionsActivityContent.instruction
   );
 
-  const resetForChallenges = (nextChallenges) => {
+  const resetForChallenges = (nextChallenges, levelRule) => {
+    const isFake = Boolean(parsedContent?.fake) || Boolean(levelRule?.fake);
     setChallenges(nextChallenges);
-    resetPlacement(buildAnswerTiles(nextChallenges), {});
+    resetPlacement(buildAnswerTiles(nextChallenges, levelRule, isFake), {});
     setFinished(false);
     setCorrectCount(0);
     setScore(null);
@@ -320,13 +360,14 @@ const MatchAdditionsActivity = ({
     }
 
     const nextChallenges = buildChallengesForLevel(currentLevel);
-    resetForChallenges(nextChallenges);
+    resetForChallenges(nextChallenges, currentLevelRule);
   };
 
   const handleSelectLevel = (levelKey) => {
     setCurrentLevel(levelKey);
     const nextChallenges = buildChallengesForLevel(levelKey);
-    resetForChallenges(nextChallenges);
+    const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
+    resetForChallenges(nextChallenges, levelRule);
   };
 
   const totalChallenges = challenges.length;
