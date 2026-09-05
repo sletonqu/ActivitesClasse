@@ -262,9 +262,11 @@ function applyPaperStyleToCanvas(canvas, paperStyle, backgroundColor) {
   backgroundImage.scaleX = canvas.getWidth() / Math.max(1, patternSource.width);
   backgroundImage.scaleY = canvas.getHeight() / Math.max(1, patternSource.height);
 
-  canvas.backgroundVpt = true;
-  canvas.backgroundColor = backgroundColor;
-  canvas.backgroundImage = backgroundImage;
+  canvas.set({
+    backgroundVpt: true,
+    backgroundColor: backgroundColor,
+    backgroundImage: backgroundImage
+  });
   canvas.requestRenderAll();
 }
 
@@ -1130,7 +1132,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
     historyLockedRef.current = true;
 
-    canvas.loadFromJSON(json, () => {
+    canvas.loadFromJSON(json).then(() => {
       const parsed = JSON.parse(json);
       if (parsed.width && parsed.height) {
         canvas.setDimensions({ width: parsed.width, height: parsed.height });
@@ -1162,7 +1164,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     if (!fabricApi) return;
     const pencilBrush = fabricApi.PencilBrush;
 
-    canvas.isDrawingMode = mode === "draw" || mode === "erase";
+    canvas.set({ isDrawingMode: mode === "draw" || mode === "erase" });
 
     if (mode === "erase") {
       if (!eraserFallbackLoggedRef.current) {
@@ -1172,13 +1174,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       if (!(canvas.freeDrawingBrush instanceof pencilBrush)) {
         canvas.freeDrawingBrush = new pencilBrush(canvas);
       }
-      canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
       canvas.freeDrawingBrush.color = "rgba(0, 0, 0, 0)";
     } else if (mode === "draw") {
       if (!(canvas.freeDrawingBrush instanceof pencilBrush)) {
         canvas.freeDrawingBrush = new pencilBrush(canvas);
       }
-      canvas.freeDrawingBrush.globalCompositeOperation = "source-over";
       canvas.freeDrawingBrush.color = color;
     }
 
@@ -1244,7 +1244,12 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
         logWhiteboardFabricDiagnostics(fabricApi);
 
-        const canvas = new fabricApi.Canvas(canvasRef.current, {
+        canvasRef.current.innerHTML = "";
+        const canvasEl = document.createElement("canvas");
+        canvasEl.id = "interactive-whiteboard-canvas";
+        canvasRef.current.appendChild(canvasEl);
+
+        const canvas = new fabricApi.Canvas(canvasEl, {
           width: canvasWidth,
           height: canvasHeight,
           backgroundColor,
@@ -1676,7 +1681,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           }
 
           if (savedCanvas) {
-            canvas.loadFromJSON(savedCanvas, () => {
+            canvas.loadFromJSON(savedCanvas).then(() => {
               if (disposed) return;
               if (savedCanvas.width && savedCanvas.height) {
                 canvas.setDimensions({ width: savedCanvas.width, height: savedCanvas.height });
@@ -1687,6 +1692,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               historyRef.current = [JSON.stringify(savedCanvas)];
               historyStepRef.current = 0;
               updateHistoryButtons();
+              setIsReady(true);
+            }).catch((err) => {
+              console.warn("Failed to load whiteboard history:", err);
               setIsReady(true);
             });
           } else {
@@ -1711,15 +1719,18 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     return () => {
       disposed = true;
       if (fabricCanvasRef.current) {
-        // Prévenir les appels de rendu asynchrones post-dispose (ex: fin de loadFromJSON en StrictMode)
         fabricCanvasRef.current.renderAll = () => { };
         fabricCanvasRef.current.requestRenderAll = () => { };
         try {
-          fabricCanvasRef.current.dispose();
+          const canvasToDispose = fabricCanvasRef.current;
+          canvasToDispose.clearContext = () => {};
+          canvasToDispose.dispose().catch(() => {});
         } catch (e) {
-          // Ignorer les erreurs internes de destruction Fabric
         }
         fabricCanvasRef.current = null;
+      }
+      if (canvasRef.current) {
+        canvasRef.current.innerHTML = "";
       }
     };
   }, [
@@ -2019,7 +2030,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         }
 
         historyLockedRef.current = true;
-        fabricCanvasRef.current.loadFromJSON(payload, () => {
+        fabricCanvasRef.current.loadFromJSON(payload).then(() => {
           if (payload.width && payload.height) {
             fabricCanvasRef.current.setDimensions({ width: payload.width, height: payload.height });
           }
@@ -2032,6 +2043,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           historyLockedRef.current = false;
           saveHistory();
           window.alert("Tableau chargé avec succès !");
+        }).catch(() => {
+          window.alert("Erreur lors du chargement du tableau.");
+          historyLockedRef.current = false;
         });
       } catch {
         window.alert("Le fichier JSON sélectionné est invalide.");
@@ -2134,7 +2148,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             ref={brushPreviewRef}
             className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-600/80 bg-sky-300/20 opacity-0 transition-opacity duration-100"
           />
-          <canvas id="interactive-whiteboard-canvas" ref={canvasRef} />
+          <div ref={canvasRef} />
         </div>
       </div>
 
