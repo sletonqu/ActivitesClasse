@@ -6,6 +6,15 @@
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+Write-Host @"
+========================================
+ Mise à jour d'ActivitesClasse
+========================================
+Cette opération sauvegarde la base SQLite, récupère les mises à jour
+et reconstruit puis redémarre les services Docker.
+L'application peut être indisponible pendant quelques instants.
+"@ -ForegroundColor Yellow
+
 function Write-Step {
   param([string]$Message)
   Write-Host "`n==> $Message" -ForegroundColor Cyan
