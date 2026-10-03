@@ -7,6 +7,8 @@ import {
   loadActivitiesIntoState,
   loadClassesIntoState,
 } from "../utils/dataLoaders";
+import { getActiveSkillDescription } from "../utils/activitySkills";
+import { parseActivityContent } from "../activities/activityUtils";
 
 const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
 
@@ -165,6 +167,7 @@ const ResultsView = () => {
 
       return {
         activity,
+        content: parseActivityContent(activity.content),
         levels: levels.length > 0 ? levels : [null],
       };
     });
@@ -387,14 +390,19 @@ const ResultsView = () => {
                     </div>
                   </th>
                   {activityColumns.map((col) =>
-                    col.levels.map((level) => (
-                      <th
-                        key={`${col.activity.id}-${level || "all"}`}
-                        className="px-3 py-2 text-center font-medium text-xs text-slate-600 border-l border-slate-200"
-                      >
-                        {level ? `${level}` : "-"}
-                      </th>
-                    ))
+                    col.levels.map((level) => {
+                      const skillDescription = getActiveSkillDescription(col.content, level);
+
+                      return (
+                        <th
+                          key={`${col.activity.id}-${level || "all"}`}
+                          title={skillDescription || undefined}
+                          className="px-3 py-2 text-center font-medium text-xs text-slate-600 border-l border-slate-200"
+                        >
+                          {level ? `${level}` : "-"}
+                        </th>
+                      );
+                    })
                   )}
                 </tr>
               </thead>
