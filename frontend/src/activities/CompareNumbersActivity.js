@@ -610,6 +610,10 @@ const CompareNumbersActivity = ({
                     isSelected
                       ? "border-indigo-600 bg-indigo-600 text-white"
                       : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
+                  } ${
+                    !selectedSign && !finished
+                      ? "animate-pulse-slow motion-reduce:animate-none"
+                      : ""
                   } ${finished ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
                 >
                   {sign}

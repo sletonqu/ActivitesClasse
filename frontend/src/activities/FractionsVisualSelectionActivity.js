@@ -249,6 +249,7 @@ function FractionChoiceTile({
   finished = false,
   isCorrect = false,
   isIncorrect = false,
+  pulsing = false,
   onSelect,
 }) {
   let className = "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50";
@@ -269,7 +270,7 @@ function FractionChoiceTile({
       type="button"
       disabled={disabled}
       onClick={onSelect}
-      className={`mx-auto flex aspect-square min-h-[59px] w-full max-w-[69px] items-center justify-center rounded-2xl border px-1.5 py-1.5 text-xl font-bold shadow-sm transition-all sm:min-h-[66px] sm:max-w-[78px] ${className} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
+      className={`mx-auto flex aspect-square min-h-[59px] w-full max-w-[69px] items-center justify-center rounded-2xl border px-1.5 py-1.5 text-xl font-bold shadow-sm transition-all sm:min-h-[66px] sm:max-w-[78px] ${className} ${pulsing ? "animate-pulse-slow motion-reduce:animate-none" : ""} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
       style={{ transform: `rotate(${fraction.rotation || 0}deg)` }}
       aria-pressed={selected}
       aria-label={`Choisir ${formatFraction(fraction)}`}
@@ -601,6 +602,7 @@ const FractionsVisualSelectionActivity = ({
                   finished={finished}
                   isCorrect={isTileCorrect}
                   isIncorrect={isTileIncorrect}
+                  pulsing={!selectedAnswerKey && !finished}
                   onSelect={() => setSelectedAnswerKey(fraction.key)}
                 />
               );

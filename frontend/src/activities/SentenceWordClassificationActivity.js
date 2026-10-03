@@ -667,7 +667,11 @@ const SentenceWordClassificationActivity = ({
                               isSelected
                                 ? "border-slate-500 ring-4 ring-slate-200"
                                 : "border-slate-200 hover:border-slate-300"
-                            } ${finished ? "cursor-default" : "cursor-move"}`}
+                            } ${finished ? "cursor-default" : "cursor-move"} ${
+                              !selectedItemId && !finished
+                                ? "animate-pulse-slow motion-reduce:animate-none"
+                                : ""
+                            }`}
                           >
                             <span className="block text-sm font-bold text-slate-800 sm:text-base">{token.text}</span>
                           </PlacementTileButton>
@@ -720,6 +724,10 @@ const SentenceWordClassificationActivity = ({
                     student ? "min-h-[84px] p-1.5 sm:min-h-[96px] sm:p-2" : "min-h-[120px] p-2.5 sm:min-h-[144px] sm:p-3"
                   } ${selectedItemId && !finished ? theme.activePanel : theme.panel} ${
                     finished ? "" : "flex items-center justify-center"
+                  } ${
+                    selectedItemId && !finished
+                      ? "animate-pulse-slow motion-reduce:animate-none"
+                      : ""
                   }`}
                   onDrop={(event) => handleCategoryDrop(event, categoryLabel)}
                   onClick={() => handleCategoryClick(categoryLabel)}

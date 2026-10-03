@@ -451,7 +451,10 @@ const HomophonesActivity = ({
               <p id="homophones-sound-tile-instruction" className="mb-3 text-sm text-slate-600">
                 Clique une première fois pour essayer, puis clique une deuxième fois sur le même mot pour valider ta réponse.
               </p>
-              <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+              <div
+                id="homophones-sound-tiles"
+                className="flex flex-wrap justify-center gap-3 sm:gap-4"
+              >
                 {currentSounds.map((sound) => (
                   <button
                     key={sound}
@@ -469,7 +472,11 @@ const HomophonesActivity = ({
                         : selectedSound === sound
                           ? "border-blue-400 bg-blue-100 text-blue-900 shadow-sm"
                           : "border-slate-300 bg-white text-slate-800 hover:border-blue-300"
-                    } ${roundFinished ? "cursor-default" : "cursor-pointer"}`}
+                    } ${roundFinished ? "cursor-default" : "cursor-pointer"} ${
+                      !selectedSound && !roundFinished && !loadingSentences && !finished
+                        ? "animate-pulse-slow motion-reduce:animate-none"
+                        : ""
+                    }`}
                   >
                     {sound}
                   </button>

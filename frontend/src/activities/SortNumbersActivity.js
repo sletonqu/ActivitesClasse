@@ -390,7 +390,11 @@ const SortNumbersActivity = ({
                   onClick={() => toggleSelectFromPool(tile)}
                   isSelected={isPoolItemSelected(tile)}
                   selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                  className="min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3"
+                  className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
+                    !activePlacement
+                      ? "animate-pulse-slow motion-reduce:animate-none"
+                      : ""
+                  }`}
                   style={{ transform: `rotate(${tile.rotation}deg)` }}
                 >
                   <span className="activity-number-tile-text block text-lg text-slate-800 sm:text-2xl">
@@ -427,6 +431,10 @@ const SortNumbersActivity = ({
                       : isSlotSelected(slotIndex)
                         ? "border-amber-400 bg-amber-50 text-slate-700"
                         : "border-sky-300 bg-white text-slate-700"
+                  } ${
+                    !finished && activePlacement && assignedTile === undefined
+                      ? "animate-pulse-slow motion-reduce:animate-none"
+                      : ""
                   }`}
                   onDrop={() => handleDropToSlot(slotIndex)}
                   onClick={() => handleSlotClick(slotIndex)}

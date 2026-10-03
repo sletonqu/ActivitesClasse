@@ -441,7 +441,11 @@ const EvenOddClassificationActivity = ({
                           isSelected
                             ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                             : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
-                        } ${finished ? "cursor-default" : "cursor-move"}`}
+                        } ${finished ? "cursor-default" : "cursor-move"} ${
+                          !selectedItemId && !finished
+                            ? "animate-pulse-slow motion-reduce:animate-none"
+                            : ""
+                        }`}
                         style={{
                           transform: `${isSelected ? "scale(1.02) " : ""}rotate(${numTile.rotation ?? 0}deg)`,
                         }}
@@ -472,7 +476,11 @@ const EvenOddClassificationActivity = ({
                   id={`even-odd-category-${categoryKey}`}
                   className={`min-h-[100px] sm:min-h-[120px] rounded-2xl border-2 p-2 sm:p-2.5 transition-all lg:flex-1 lg:min-w-[180px] ${
                     selectedItemId && !finished ? theme.activePanel : theme.panel
-                  } ${finished ? "" : "flex items-center justify-center"}`}
+                  } ${finished ? "" : "flex items-center justify-center"} ${
+                    selectedItemId && !finished
+                      ? "animate-pulse-slow motion-reduce:animate-none"
+                      : ""
+                  }`}
                   onDrop={(event) => handleCategoryDrop(event, categoryLabel)}
                   onClick={() => handleCategoryClick(categoryLabel)}
                 >

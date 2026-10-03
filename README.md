@@ -174,7 +174,7 @@ L'animation de guidage est définie dans [`frontend/tailwind.config.js`](fronten
 - Dans `boxShadow`, le premier nombre (`4px`) règle la taille du halo bleu et la dernière valeur (`0.4`) son opacité.
 - Dans `animation`, la durée (`3.2s`) règle le rythme : une durée plus courte accélère le clignotement.
 
-Cette animation est utilisée dans [`frontend/src/activities/MatchAdditionsActivity.js`](frontend/src/activities/MatchAdditionsActivity.js) : les tuiles de résultats pulsent avant la sélection d'une tuile, puis les cases de réponse pulsent jusqu'à son placement. Elle est désactivée lorsque le navigateur signale une préférence de réduction des animations.
+Cette animation sert de repère visuel dans les activités interactives : elle peut attirer l'attention sur des choix disponibles, puis, après une sélection, sur une zone à compléter. Elle s'arrête lorsque l'action attendue est réalisée. Le navigateur peut la désactiver si l'utilisateur préfère réduire les animations.
 
 Après avoir modifié la configuration Tailwind, reconstruire le frontend avec :
 

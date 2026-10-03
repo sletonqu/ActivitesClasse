@@ -578,7 +578,11 @@ const AlphabeticalSortActivity = ({
                       onClick={() => toggleSelectFromPool(tile)}
                       isSelected={isPoolItemSelected(tile)}
                       selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                      className="min-h-[36px] rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 disabled:cursor-default sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-1.5"
+                      className={`min-h-[36px] rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 disabled:cursor-default sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-1.5 ${
+                        !activePlacement
+                          ? "animate-pulse-slow motion-reduce:animate-none"
+                          : ""
+                      }`}
                       style={{ transform: `rotate(${tile.rotation}deg)` }}
                     >
                       <span className="block text-base font-bold text-slate-800 sm:text-xl">
@@ -617,6 +621,10 @@ const AlphabeticalSortActivity = ({
                       : isSlotSelected(slotIndex)
                         ? "border-amber-400 bg-amber-50"
                         : "border-sky-300 bg-white hover:border-sky-400"
+                    } ${
+                      !finished && activePlacement && assigned === undefined
+                        ? "animate-pulse-slow motion-reduce:animate-none"
+                        : ""
                     }`}
                     onDrop={() => handleDropToSlot(slotIndex)}
                     onClick={() => handleSlotClick(slotIndex)}
