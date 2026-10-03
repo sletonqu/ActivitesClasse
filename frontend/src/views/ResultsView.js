@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { API_URL } from "../config/api";
 import {
@@ -27,6 +27,8 @@ const ResultsView = () => {
   const [studentSortMode, setStudentSortMode] = useState("name");
   const [deletingResultId, setDeletingResultId] = useState(null);
   const [modalErrorMessage, setModalErrorMessage] = useState("");
+  const tableScrollRef = useRef(null);
+  const [tableScrollEdges, setTableScrollEdges] = useState({ left: false, right: false });
 
   // Couleurs subtiles de fond pour les groupes
   const groupColors = [
@@ -185,6 +187,40 @@ const ResultsView = () => {
     });
   }, [activities, results]);
 
+  useEffect(() => {
+    const scrollContainer = tableScrollRef.current;
+    if (!scrollContainer) return undefined;
+
+    const updateScrollEdges = () => {
+      const hasHorizontalOverflow = scrollContainer.scrollWidth > scrollContainer.clientWidth + 1;
+      setTableScrollEdges({
+        left: scrollContainer.scrollLeft > 1,
+        right:
+          hasHorizontalOverflow &&
+          scrollContainer.scrollLeft + scrollContainer.clientWidth < scrollContainer.scrollWidth - 1,
+      });
+    };
+
+    updateScrollEdges();
+    scrollContainer.addEventListener("scroll", updateScrollEdges, { passive: true });
+    window.addEventListener("resize", updateScrollEdges);
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updateScrollEdges);
+      window.removeEventListener("resize", updateScrollEdges);
+    };
+  }, [activityColumns, sortedStudents]);
+
+  const scrollResultsTable = (direction) => {
+    const scrollContainer = tableScrollRef.current;
+    if (!scrollContainer) return;
+
+    scrollContainer.scrollBy({
+      left: direction * Math.max(scrollContainer.clientWidth * 0.8, 240),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  };
+
   // Détails des résultats pour la modale
   const handleCellClick = (studentId, activityId, levelKey) => {
     const cellResults = results.filter(
@@ -285,15 +321,15 @@ const ResultsView = () => {
   return (
     <div id="results-view" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="w-full h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
       {/* En-tête */}
-      <header id="results-view-header" className="bg-white shadow-sm border-b border-slate-200 px-6 py-4">
-        <div id="results-view-header-content" className="flex items-center justify-between gap-4">
+      <header id="results-view-header" className="bg-white shadow-sm border-b border-slate-200 px-6 py-1">
+        <div id="results-view-header-content" className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
           <div id="results-view-title-block">
             <h1 id="results-view-title" className="text-2xl font-bold text-slate-800">Résultats de la Classe</h1>
             <p id="results-view-subtitle" className="text-sm text-slate-500 mt-1">
               {selectedClass ? selectedClass.name : "Sélectionnez une classe"}
             </p>
           </div>
-          <div id="results-view-class-filter" className="flex-1 max-w-xs">
+          <div id="results-view-class-filter" className="w-full sm:flex-1 sm:max-w-xs">
             <label id="results-view-class-filter-label" className="block text-sm font-semibold text-slate-700 mb-2">
               Classe
             </label>
@@ -310,6 +346,32 @@ const ResultsView = () => {
                 </option>
               ))}
             </select>
+            {selectedClassId && !loading && students.length > 0 && activityColumns.length > 0 && (
+              <div id="results-view-table-scroll-controls" className="mt-1 flex justify-end gap-1">
+                <button
+                  id="results-table-scroll-left"
+                  type="button"
+                  aria-label="Faire défiler le tableau vers la gauche"
+                  title="Faire défiler vers la gauche"
+                  disabled={!tableScrollEdges.left}
+                  onClick={() => scrollResultsTable(-1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-lg text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
+                <button
+                  id="results-table-scroll-right"
+                  type="button"
+                  aria-label="Faire défiler le tableau vers la droite"
+                  title="Faire défiler vers la droite"
+                  disabled={!tableScrollEdges.right}
+                  onClick={() => scrollResultsTable(1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-lg text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+                >
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -347,8 +409,14 @@ const ResultsView = () => {
             </div>
           </div>
         ) : (
-          <div id="results-view-table-wrapper" className="bg-white rounded-lg shadow-lg overflow-hidden overflow-x-auto">
-            <table id="results-view-table" className="w-full border-collapse">
+          <div id="results-view-table-panel" className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div
+              id="results-view-table-wrapper"
+              ref={tableScrollRef}
+              className="overflow-x-auto overscroll-x-contain"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              <table id="results-view-table" className="w-full border-collapse">
               {/* En-tête du tableau */}
               <thead id="results-view-table-head">
                 <tr id="results-view-table-head-main-row" className="bg-slate-100 border-b-2 border-slate-300">
@@ -476,7 +544,8 @@ const ResultsView = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         )}
       </div>
