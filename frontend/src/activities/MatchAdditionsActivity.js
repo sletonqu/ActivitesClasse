@@ -58,7 +58,7 @@ export const defaultMatchAdditionsActivityContent = {
   },
 };
 
-const ALLOWED_MODES = ["addition", "double"];
+const ALLOWED_MODES = ["addition", "double", "moitie"];
 
 const TILE_ROTATION_MIN_DEGREES = -10;
 const TILE_ROTATION_MAX_DEGREES = 10;
@@ -134,6 +134,7 @@ function getRandomFromRange(min, max, step = 1) {
 function buildGeneratedChallenges(levelRule) {
   const challenges = [];
   const isDouble = levelRule.mode === "double";
+  const isMoitie = levelRule.mode === "moitie";
   const step = levelRule.step || 1;
   const usedKeys = new Set();
   const maxAttempts = levelRule.count * 20;
@@ -141,9 +142,14 @@ function buildGeneratedChallenges(levelRule) {
 
   while (challenges.length < levelRule.count && attempts < maxAttempts) {
     attempts += 1;
-    const left = getRandomFromRange(levelRule.min, levelRule.max, step);
-    const right = isDouble ? left : getRandomFromRange(levelRule.min, levelRule.max, step);
-    const key = `${left}+${right}`;
+    let left = getRandomFromRange(levelRule.min, levelRule.max, step);
+    if (isMoitie && left % 2 !== 0) {
+      if (left < levelRule.max) left += 1;
+      else left -= 1;
+    }
+    const right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
+    const result = isMoitie ? (left / 2) : (left + right);
+    const key = isMoitie ? `moitie-${left}` : `${left}+${right}`;
 
     if (!usedKeys.has(key)) {
       usedKeys.add(key);
@@ -151,20 +157,25 @@ function buildGeneratedChallenges(levelRule) {
         id: challenges.length + 1,
         left,
         right,
-        result: left + right,
+        result,
       });
     }
   }
 
   // Si la plage est trop petite pour garantir l'unicité, compléter sans contrainte
   while (challenges.length < levelRule.count) {
-    const left = getRandomFromRange(levelRule.min, levelRule.max, step);
-    const right = isDouble ? left : getRandomFromRange(levelRule.min, levelRule.max, step);
+    let left = getRandomFromRange(levelRule.min, levelRule.max, step);
+    if (isMoitie && left % 2 !== 0) {
+      if (left < levelRule.max) left += 1;
+      else left -= 1;
+    }
+    const right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
+    const result = isMoitie ? (left / 2) : (left + right);
     challenges.push({
       id: challenges.length + 1,
       left,
       right,
-      result: left + right,
+      result,
     });
   }
 
@@ -183,9 +194,13 @@ function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
     let fakeValue;
     let attempts = 0;
     while (attempts < 50) {
-      const left = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1);
-      const right = levelRule.mode === "double" ? left : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1);
-      const val = left + right;
+      let left = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1);
+      if (levelRule.mode === "moitie" && left % 2 !== 0) {
+        if (left < levelRule.max) left += 1;
+        else left -= 1;
+      }
+      const right = levelRule.mode === "double" ? left : (levelRule.mode === "moitie" ? 0 : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1));
+      const val = levelRule.mode === "moitie" ? (left / 2) : (left + right);
       if (!existingValues.has(val)) {
         fakeValue = val;
         break;
@@ -193,7 +208,7 @@ function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
       attempts++;
     }
     if (fakeValue === undefined) {
-      fakeValue = levelRule.max + levelRule.min; // Fallback
+      fakeValue = levelRule.mode === "moitie" ? Math.floor((levelRule.max + levelRule.min) / 2) : levelRule.max + levelRule.min; // Fallback
     }
 
     tiles.push({
@@ -441,7 +456,11 @@ const MatchAdditionsActivity = ({
                     id={`match-additions-operation-${challenge.id}`}
                     className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
                   >
-                    {formatNumberWithThousandsSpace(challenge.left)} + {formatNumberWithThousandsSpace(challenge.right)}
+                    {currentLevelRule.mode === "moitie" ? (
+                      `la moitié de ${formatNumberWithThousandsSpace(challenge.left)}`
+                    ) : (
+                      `${formatNumberWithThousandsSpace(challenge.left)} + ${formatNumberWithThousandsSpace(challenge.right)}`
+                    )}
                   </div>
 
                   <PlacementDropZone
