@@ -166,6 +166,22 @@ docker compose up --build
 
 ## ✅ Fonctionnalités disponibles
 
+### Réglage de l'animation des tuiles
+
+L'animation de guidage est définie dans [`frontend/tailwind.config.js`](frontend/tailwind.config.js), sous `theme.extend.keyframes["pulse-slow"]` et `theme.extend.animation["pulse-slow"]`.
+
+- Dans l'étape `"50%"`, `opacity` règle l'intensité du clignotement : plus la valeur est basse, plus les éléments s'atténuent.
+- Dans `boxShadow`, le premier nombre (`4px`) règle la taille du halo bleu et la dernière valeur (`0.4`) son opacité.
+- Dans `animation`, la durée (`3.2s`) règle le rythme : une durée plus courte accélère le clignotement.
+
+Cette animation est utilisée dans [`frontend/src/activities/MatchAdditionsActivity.js`](frontend/src/activities/MatchAdditionsActivity.js) : les tuiles de résultats pulsent avant la sélection d'une tuile, puis les cases de réponse pulsent jusqu'à son placement. Elle est désactivée lorsque le navigateur signale une préférence de réduction des animations.
+
+Après avoir modifié la configuration Tailwind, reconstruire le frontend avec :
+
+```bash
+rtk docker compose up --build -d
+```
+
 ### Administration
 
 - interface en accordéon : sections repliées par défaut, ouverture au clic sur le titre, une seule section ouverte à la fois ;
@@ -377,4 +393,3 @@ Quelques routes utiles :
 - les clés/tokens ne doivent jamais être commités en clair dans `docker-compose.yml` ;
 - le projet est pensé pour un usage **local / MVP** ;
 - le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
-

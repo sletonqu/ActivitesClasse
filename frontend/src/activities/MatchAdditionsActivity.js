@@ -475,6 +475,10 @@ const MatchAdditionsActivity = ({
                         : isSlotSelected(challenge.id)
                           ? "border-amber-400 bg-amber-50 text-slate-700"
                           : "border-sky-300 bg-white text-slate-700"
+                    } ${
+                      !finished && activePlacement
+                        ? "animate-pulse-slow motion-reduce:animate-none"
+                        : ""
                     }`}
                     onDrop={() => handleDrop(challenge.id)}
                     onClick={() => handleChallengeClick(challenge.id)}
@@ -518,14 +522,14 @@ const MatchAdditionsActivity = ({
                 <div>
                   <h4 className="text-base font-bold text-slate-800 sm:text-lg">Résultats à placer maintenant</h4>
                 </div>
-                <div className="text-xs text-slate-600 sm:text-sm">
+                <div id="match-additions-placement-hint" className="text-xs text-slate-600 sm:text-sm" aria-live="polite">
                   {selectedTile ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 font-semibold text-amber-800">
-                      Tuile sélectionnée : {formatNumberWithThousandsSpace(selectedTile.value)}
+                      Tuile sélectionnée : {formatNumberWithThousandsSpace(selectedTile.value)} — choisis une case.
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                      Fais glisser un résultat
+                      Choisis une tuile, puis une case.
                     </span>
                   )}
                 </div>
@@ -556,7 +560,11 @@ const MatchAdditionsActivity = ({
                     isSelected={isPoolItemSelected(answerTile)}
                     selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                     className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
-                      finished ? "cursor-default" : "cursor-move"
+                      finished
+                        ? "cursor-default"
+                        : activePlacement
+                          ? "cursor-move"
+                          : "cursor-move animate-pulse-slow motion-reduce:animate-none"
                     }`}
                     style={{ transform: `rotate(${answerTile.rotation}deg)` }}
                   >
