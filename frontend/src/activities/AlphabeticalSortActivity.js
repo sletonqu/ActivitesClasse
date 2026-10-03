@@ -466,6 +466,7 @@ const AlphabeticalSortActivity = ({
       {/* En-tête */}
       <ActivityHero
         idPrefix="alphabetical-sort"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

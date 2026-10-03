@@ -439,6 +439,7 @@ const CountPencilsByTensActivity = ({
     <div id="count-pencils-by-tens-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="count-pencils-by-tens"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

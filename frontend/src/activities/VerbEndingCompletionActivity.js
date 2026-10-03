@@ -359,6 +359,7 @@ const VerbEndingCompletionActivity = ({
     <div id="verb-ending-completion-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="verb-ending-completion"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

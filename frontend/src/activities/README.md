@@ -22,6 +22,40 @@ Chaque activité React reçoit généralement les props suivantes :
 - le bouton `Recommencer` doit rester utilisable en mode démo, même après validation ;
 - `student` ne doit jamais être supposé obligatoire.
 
+### Compétence affichée dans les réglages
+
+Les activités qui utilisent le bandeau `ActivityHero` peuvent recevoir une compétence dans leur contenu JSON. Le badge est visible dans l'aperçu de l'activité et masqué pendant la réalisation par un élève.
+
+- `skill` à la racine du contenu définit la compétence générale de l'activité ;
+- `levels.levelX.skill` définit une compétence propre au niveau et est prioritaire pour ce niveau ; si elle est absente ou vide, la compétence générale est utilisée ;
+- la compétence peut être une chaîne ou un objet. Pour un objet, le badge affiche la première valeur textuelle non vide parmi `description`, `label` et `name`.
+
+Exemple :
+
+```json
+{
+  "skill": {
+    "id": "math.addition",
+    "description": "Calculer une addition"
+  },
+  "levels": {
+    "level1": {
+      "label": "Sans retenue",
+      "skill": "Additionner sans retenue"
+    },
+    "level2": {
+      "label": "Avec retenue",
+      "skill": {
+        "id": "math.addition.retenue",
+        "description": "Additionner avec retenue"
+      }
+    }
+  }
+}
+```
+
+Le badge est mis à jour automatiquement lors d'un changement de niveau. Les activités sans compétence configurée n'affichent aucun badge supplémentaire.
+
 ### Standard interactions de placement
 
 Pour les activités de placement (tri, association, classement), le comportement cible est désormais **hybride** :
@@ -179,6 +213,7 @@ Paramètres disponibles par niveau :
 - `mode` *(défaut : `"addition"`)* : définit le type d'addition générée.
   - `"addition"` : les deux termes sont tirés indépendamment dans `[min, max]` avec le pas `step`.
   - `"double"` : les deux termes sont identiques (`a + a = résultat`), permettant d'associer un nombre et son double.
+  - `"moitie"` : demande de trouver la moitié d'un nombre généré. Le nombre généré sera toujours rendu pair pour garantir un résultat entier. La question s'affichera sous la forme `la moitié de X`.
 - `fake` *(défaut : `false`)* : si activé, ajoute une tuile imposteur (un résultat plausible mais erroné) dans la réserve pour augmenter la difficulté. Peut être défini globalement ou spécifiquement par niveau.
 
 L'activité supporte jusqu'à **4 niveaux** (`level1` à `level4`). Les niveaux affichés sont déduits dynamiquement de ceux présents dans la configuration JSON.
@@ -238,6 +273,33 @@ Résultats produits par chaque niveau :
 - **Niveau 2** (`min=20, max=50, step=5`) → 20+20=40, 25+25=50, … jusqu'à 50+50=100
 - **Niveau 3** (`min=100, max=150, step=50`) → 100+100=200, 150+150=300
 - **Niveau 4** (`min=26, max=99, step=1`) → 26+26=52, 27+27=54, … jusqu'à 99+99=198
+
+---
+
+#### Cas particulier : Trouver la moitié d'un nombre
+
+Avec `"mode": "moitie"`, le système génère un nombre cible (rendu pair automatiquement) et demande de glisser le résultat correspondant à sa moitié. On utilise souvent l'attribut `"fake": true` pour ajouter un intrus parmi les réponses proposées.
+
+Exemple :
+
+```json
+{
+  "title": "Associe chaque nombre à sa moitié",
+  "instruction": "Fais glisser la bonne moitié vers le nombre correspondant.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Moitiés simples",
+      "count": 4,
+      "min": 10,
+      "max": 50,
+      "step": 2,
+      "mode": "moitie",
+      "fake": true
+    }
+  }
+}
+```
 
 ---
 

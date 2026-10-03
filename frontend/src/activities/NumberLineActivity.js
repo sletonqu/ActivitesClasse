@@ -319,6 +319,7 @@ const NumberLineActivity = ({
     <div id="number-line-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="number-line"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

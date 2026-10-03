@@ -301,6 +301,7 @@ const SortNumbersActivity = ({
     <div id="sort-numbers-activity-root" className="space-y-2.5 sm:space-y-3">
       <ActivityHero
         idPrefix="sort-numbers"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

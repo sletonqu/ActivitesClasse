@@ -523,6 +523,7 @@ const WordClassificationActivity = ({
     <div id="word-classification-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="word-classification"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

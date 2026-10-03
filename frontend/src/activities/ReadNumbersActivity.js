@@ -136,6 +136,7 @@ const ReadNumbersActivity = ({
     <div id="read-numbers-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="read-numbers"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

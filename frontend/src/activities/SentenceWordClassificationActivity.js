@@ -575,6 +575,7 @@ const SentenceWordClassificationActivity = ({
     <div id="sentence-word-classification-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="sentence-word-classification"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

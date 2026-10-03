@@ -352,6 +352,7 @@ const HomophonesActivity = ({
     <div id="homophones-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="homophones"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

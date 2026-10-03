@@ -356,6 +356,7 @@ const EvenOddClassificationActivity = ({
     <div id="even-odd-activity-root" className="space-y-3 sm:space-y-4">
       <ActivityHero
         idPrefix="even-odd"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}

@@ -1,4 +1,5 @@
 import React from "react";
+import { getActiveSkillDescription } from "../utils/activitySkills";
 
 const DEFAULT_INSTRUCTION_CLASSNAME =
   "block min-h-[1.25rem] w-full text-sm text-slate-800 sm:text-base";
@@ -14,6 +15,7 @@ const ActivityHero = ({
   idPrefix,
   title,
   instruction,
+  activityContent,
   showInstruction = true,
   showBadges = true,
   badges = [],
@@ -26,6 +28,20 @@ const ActivityHero = ({
   disableAllLevels = false,
   instructionClassName = DEFAULT_INSTRUCTION_CLASSNAME,
 }) => {
+  const skillDescription = getActiveSkillDescription(activityContent, currentLevel);
+  const visibleBadges = showBadges
+    ? [
+        ...badges,
+        ...(skillDescription
+          ? [{
+              key: "skill",
+              content: skillDescription,
+              className: "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800",
+            }]
+          : []),
+      ]
+    : [];
+
   return (
     <section
       id={`${idPrefix}-hero`}
@@ -42,9 +58,9 @@ const ActivityHero = ({
             </p>
           )}
 
-          {showBadges && badges.length > 0 && (
+          {visibleBadges.length > 0 && (
             <div id={badgesId || `${idPrefix}-current-settings`} className={`${showInstruction && instruction ? "mt-2" : "mt-1"} flex flex-wrap gap-1.5 sm:gap-2`}>
-              {badges.map((badge, index) => (
+              {visibleBadges.map((badge, index) => (
                 <span
                   key={getBadgeKey(badge, index)}
                   className={badge?.className || "inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"}

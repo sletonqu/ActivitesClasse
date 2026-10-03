@@ -430,6 +430,7 @@ const MakeChangeActivity = ({
     <div id="make-change-root" className="space-y-2 sm:space-y-3">
       <ActivityHero
         idPrefix="make-change"
+        activityContent={parsedContent}
         title={displayTitle}
         instruction={displayInstruction}
         showInstruction={!student}
