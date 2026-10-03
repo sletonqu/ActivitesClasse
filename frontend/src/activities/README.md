@@ -21,6 +21,8 @@ Chaque activité React reçoit généralement les props suivantes :
 - en mode démo, aucun résultat n'est enregistré côté application ;
 - le bouton `Recommencer` doit rester utilisable en mode démo, même après validation ;
 - `student` ne doit jamais être supposé obligatoire.
+- le composant partagé `ActivitySummaryCard` célèbre automatiquement tout score parfait de `20 / 20` avec une animation de confettis.
+- pour régler la durée de cette célébration, modifier la durée en millisecondes (`2900ms` actuellement) dans la déclaration `animation` de `.activity-summary-confetti-piece`, dans `frontend/src/index.css`.
 
 ### Compétence affichée dans les réglages
 
