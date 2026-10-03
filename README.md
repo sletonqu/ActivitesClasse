@@ -267,6 +267,8 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 
 ## 🧩 Activités disponibles
 
+Documentation détaillée : [README des activités](./frontend/src/activities/README.md).
+
 | Activité | Fichier | Objectif |
 | --- | --- | --- |
 | Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant ou décroissant. |
