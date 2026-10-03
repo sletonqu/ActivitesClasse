@@ -92,6 +92,7 @@ function normalizeLevelRule(rule, fallbackRule) {
 
   return {
     label: source.label || fallbackRule.label,
+    skill: source.skill ?? fallbackRule.skill,
     count,
     min: Math.min(min, max),
     max: Math.max(min, max),
@@ -99,6 +100,14 @@ function normalizeLevelRule(rule, fallbackRule) {
     mode,
     fake,
   };
+}
+
+function getSkillDescription(skill) {
+  if (typeof skill === "string") return skill.trim();
+  if (!skill || typeof skill !== "object") return "";
+
+  const description = skill.description ?? skill.label ?? skill.name;
+  return typeof description === "string" ? description.trim() : "";
 }
 
 function normalizeChallenges(challenges) {
@@ -299,6 +308,8 @@ const MatchAdditionsActivity = ({
 
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const activeSkillDescription =
+    getSkillDescription(currentLevelRule.skill) || getSkillDescription(parsedContent?.skill);
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
     defaultMatchAdditionsActivityContent.title
@@ -410,6 +421,13 @@ const MatchAdditionsActivity = ({
             label: `Entre ${formatNumberWithThousandsSpace(currentLevelRule.min)} et ${formatNumberWithThousandsSpace(currentLevelRule.max)}`,
             className: "inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800",
           },
+          ...(activeSkillDescription
+            ? [{
+                key: "skill",
+                label: `${activeSkillDescription}`,
+                className: "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800",
+              }]
+            : []),
         ]}
         levels={allowedLevelKeys.map((levelKey) => ({
           key: levelKey,
