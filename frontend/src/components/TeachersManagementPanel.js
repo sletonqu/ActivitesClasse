@@ -95,10 +95,10 @@ const TeachersManagementPanel = ({
               onChange={(e) => onTeacherSelectedClassIdChange(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
             >
-              <option value="">Aucune (null)</option>
+              <option value="">Aucune</option>
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} (ID: {cls.id})
+                  {cls.name}
                 </option>
               ))}
             </select>

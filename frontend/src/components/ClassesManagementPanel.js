@@ -61,16 +61,16 @@ const ClassesManagementPanel = ({
           </div>
 
           <div id="classes-panel-teacher-field">
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Enseignant associé (teacher_id)</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Enseignant associé</label>
             <select
               value={classTeacherId}
               onChange={(e) => onClassTeacherIdChange(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
             >
-              <option value="">Aucun (null)</option>
+              <option value="">Aucun</option>
               {teachers.map((teacher) => (
                 <option key={teacher.id} value={teacher.id}>
-                  {teacher.name} (ID: {teacher.id})
+                  {teacher.name}
                 </option>
               ))}
             </select>
