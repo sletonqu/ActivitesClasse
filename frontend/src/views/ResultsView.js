@@ -27,6 +27,7 @@ const ResultsView = () => {
   const [studentSortMode, setStudentSortMode] = useState("name");
   const [deletingResultId, setDeletingResultId] = useState(null);
   const [modalErrorMessage, setModalErrorMessage] = useState("");
+  const [pinnedStudentId, setPinnedStudentId] = useState(null);
   const tableScrollRef = useRef(null);
   const [tableScrollEdges, setTableScrollEdges] = useState({ left: false, right: false });
 
@@ -165,6 +166,10 @@ const ResultsView = () => {
 
     return sortableStudents;
   }, [groups, studentSortMode, students]);
+
+  const visibleStudents = pinnedStudentId
+    ? sortedStudents.filter((student) => String(student.id) === pinnedStudentId)
+    : sortedStudents;
 
   // Structurer les colonnes d'activités avec leurs niveaux
   const activityColumns = useMemo(() => {
@@ -489,7 +494,7 @@ const ResultsView = () => {
 
               {/* Corps du tableau */}
               <tbody id="results-view-table-body">
-                {sortedStudents.map((student) => (
+                {visibleStudents.map((student) => (
                   <tr
                     id={`results-student-row-${student.id}`}
                     key={student.id}
@@ -500,9 +505,31 @@ const ResultsView = () => {
                     {/* Cellule de l'élève */}
                     <td id={`results-student-cell-${student.id}`} className="px-4 py-3 font-medium text-slate-800 sticky left-0 z-10 min-w-[180px] bg-inherit">
                       <div id={`results-student-info-${student.id}`} className="flex flex-col">
-                        <span id={`results-student-name-${student.id}`} className="font-semibold">
+                        <button
+                          id={`results-student-name-${student.id}`}
+                          type="button"
+                          aria-pressed={String(pinnedStudentId) === String(student.id)}
+                          title={
+                            String(pinnedStudentId) === String(student.id)
+                              ? "Afficher tous les élèves"
+                              : "Isoler cet élève"
+                          }
+                          onClick={() =>
+                            setPinnedStudentId((currentStudentId) =>
+                              String(currentStudentId) === String(student.id)
+                                ? null
+                                : String(student.id)
+                            )
+                          }
+                          className="inline-flex items-center gap-1 self-start text-left font-semibold hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        >
                           {student.firstname} {student.name}
-                        </span>
+                          {String(pinnedStudentId) === String(student.id) && (
+                            <span id={`results-student-pin-${student.id}`} aria-hidden="true">
+                              📌
+                            </span>
+                          )}
+                        </button>
                         {student.group_id && (
                           <span id={`results-student-group-${student.id}`} className="text-xs text-slate-500">
                             {getGroupName(student.group_id)}
