@@ -29,7 +29,9 @@ Le projet propose trois espaces complémentaires :
 
 ### Prérequis
 
-- Docker Desktop démarré
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) installé et démarré. **Attention sur Windows** :
+  - Il faut au préalable installer et mettre à jour **WSL** (Windows Subsystem for Linux).
+  - La **virtualisation matérielle** doit être activée dans le BIOS de la machine.
 - Ports `3000` et `4000` disponibles
 
 ### Configuration des variables d'environnement
