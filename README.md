@@ -267,19 +267,25 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 
 ## 🧩 Activités disponibles
 
-| Activité | Fichier | Objectif | Paramètres principaux |
-| --- | --- | --- | --- |
-| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Glisser des nombres dans des cases `? < ?` ou `? > ?` pour les ranger dans l'ordre croissant ou décroissant | `title`, `instruction`, `defaultLevel`, `levels`, `levels.order`, `numbersByLevel` |
-| Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.js` | Afficher un nombre à lire selon le niveau, sans dépôt, validation ni score | `title`, `instruction`, `defaultLevel`, `levels`, `numbersByLevel` |
-| Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Choisir `<`, `=` ou `>` entre deux nombres, avec écriture décomposée possible | `title`, `instruction`, `defaultLevel`, `levels.min/max`, `allowEquality`, `equalityChance`, `decompositionMode`, `pairsByLevel` |
-| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat (ou un nombre à son double) | `defaultLevel`, `levels`, `challenges`, `challengesByLevel`, `levels.levelX.step`, `levels.levelX.mode` (`"addition"` ou `"double"`) |
-| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Compter unités, dizaines et centaines avec des crayons | `defaultLevel`, `levels`, `exerciseCount`, `min/maxCartons`, `min/maxPouches`, `min/maxUnits` |
-| Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Associer un visuel fractionné à la bonne fraction parmi plusieurs tuiles | `title`, `instruction`, `defaultLevel`, `levels.answerCount`, `levels.fractions`, `minDenominator`, `maxDenominator`, `visualTypes` |
-| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots par catégorie grammaticale en glisser-déposer ou par clic | `title`, `instruction`, `defaultLevel`, `levels.totalWords`, `levels.wordsPerRound`, `levels.maxWordLevel`, `levels.classifications` |
-| Phrase à trous | `frontend/src/activities/FillInTheBlanksActivity.js` | Compléter des phrases avec des mots manquants (banque de mots ou saisie), avec possibilité de charger une phrase depuis la base générée par IA | `title`, `instruction`, `showWordBank`, `sourceLevel`, `sourceTheme`, `useGeneratedSentencePool`, `sentences[]` |
-| Le Jeu de la Monnaie | `frontend/src/activities/MakeChangeActivity.js` | Préparer une somme exacte avec des pièces et billets (support des euros et centimes) | `title`, `instruction`, `defaultLevel`, `levels.useCents`, `levels.centsStep`, `levels.min`, `levels.max` |
-| Droite graduée | `frontend/src/activities/NumberLineActivity.js` | Compléter les nombres manquants placés aléatoirement sous une droite graduée en s'aidant des repères | `title`, `instruction`, `defaultLevel`, `levels.min/max`, `levels.step`, `levels.ticksCount`, `levels.readonlyCount`, `levels.inputsCount` |
-| Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Dessiner, écrire, ajouter des images et exporter le tableau | `defaultTitle`, `width`, `height`, `backgroundColor`, `paperStyle`, `defaultZoom`, `storageKey` |
+| Activité | Fichier | Objectif |
+| --- | --- | --- |
+| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant ou décroissant. |
+| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer chaque addition à son résultat ou relier un nombre à son double, ou sa moitié. |
+| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
+| Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
+| Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |
+| Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Écrire, dessiner et insérer des images sur un tableau, puis exporter son travail. |
+| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots selon leur catégorie grammaticale. |
+| Classification des mots d'une phrase | `frontend/src/activities/SentenceWordClassificationActivity.js` | Repérer les mots demandés dans une phrase et les classer selon leur nature grammaticale. |
+| Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.js` | S'entraîner à lire des nombres adaptés au niveau choisi. |
+| Le Jeu de la Monnaie | `frontend/src/activities/MakeChangeActivity.js` | Composer une somme exacte avec des pièces et des billets, en euros et, selon le niveau, en centimes. |
+| Classement alphabétique | `frontend/src/activities/AlphabeticalSortActivity.js` | Ranger des mots dans l'ordre alphabétique en comparant leurs premières lettres. |
+| Sonomètre de classe | `frontend/src/activities/ClassSoundMeterActivity.js` | Visualiser le niveau sonore de la classe et accompagner une période de travail calme chronométrée. |
+| Code Junior | `frontend/src/activities/CodeJuniorActivity.js` | Découvrir la programmation au moyen d'un jeu interactif et suivre sa progression. |
+| Terminaisons des verbes en `-er` | `frontend/src/activities/VerbEndingCompletionActivity.js` | Compléter des phrases en choisissant la terminaison correcte des verbes en `-er`. |
+| Tri de nombres pairs ou impairs | `frontend/src/activities/EvenOddClassificationActivity.js` | Classer des nombres dans la catégorie « pair » ou « impair ». |
+| Homophones | `frontend/src/activities/HomophonesActivity.js` | Choisir le bon homophone pour compléter une phrase. |
+| Droite graduée | `frontend/src/activities/NumberLineActivity.js` | Trouver les nombres manquants sur une droite graduée à partir des repères affichés. |
 
 > Documentation détaillée : voir `frontend/src/activities/README.md`.
 
