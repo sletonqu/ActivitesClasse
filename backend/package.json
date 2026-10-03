@@ -10,5 +10,8 @@
     "cors": "^2.8.6",
     "express": "^4.22.2",
     "sqlite3": "^5.1.7"
+  },
+  "allowScripts": {
+    "sqlite3@5.1.7": true
   }
 }

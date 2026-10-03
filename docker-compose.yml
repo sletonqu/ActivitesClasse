@@ -4,7 +4,7 @@ services:
     build:
       context: ./backend
       args:
-        NPM_VERSION: ${NPM_VERSION:-11.14.1}
+        NPM_VERSION: ${NPM_VERSION:-12.2.0}
     ports:
       - "4000:4000"
     environment:
@@ -30,7 +30,7 @@ services:
     build:
       context: ./frontend
       args:
-        NPM_VERSION: ${NPM_VERSION:-11.14.1}
+        NPM_VERSION: ${NPM_VERSION:-12.2.0}
     ports:
       - "3000:3000"
     environment:

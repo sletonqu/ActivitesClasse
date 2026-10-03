@@ -1,6 +1,6 @@
 # Backend Dockerfile
-FROM node:20-alpine
-ARG NPM_VERSION=11.14.1
+FROM node:24-alpine
+ARG NPM_VERSION=12.2.0
 WORKDIR /app
 COPY package*.json ./
 RUN npm install -g npm@${NPM_VERSION}
