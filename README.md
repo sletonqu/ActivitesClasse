@@ -16,6 +16,27 @@ Le projet propose trois espaces complémentaires :
 | `Enseignant` | `/teacher` | Gérer les élèves, groupes, résultats et activités d'une classe |
 | `Élève` | `/` | Choisir une classe, filtrer par groupe, lancer une activité ou un mode démo |
 
+### Captures d'écran
+
+Captures réalisées avec les données fictives: les vues Administration, Enseignant, Élève et Mode focus sont au format 1024 × 768 ; la vue Résultats est au format 1920 × 1080.
+
+<table>
+  <tr>
+    <td align="center"><strong>Administration</strong><br><a href="./docs/screenshots/administration.png"><img src="./docs/screenshots/administration.png" alt="Tableau de bord d’administration avec la gestion des classes ouverte" width="100%"></a></td>
+    <td align="center"><strong>Enseignant — atelier, groupe A</strong><br><a href="./docs/screenshots/enseignant.png"><img src="./docs/screenshots/enseignant.png" alt="Espace enseignant avec les liens focus de l’atelier du groupe A, dont celui de Pierre Quiroule" width="100%"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Élève — Pierre Quiroule, groupe A</strong><br><a href="./docs/screenshots/eleve.png"><img src="./docs/screenshots/eleve.png" alt="Activité en cours dans le groupe A avec Pierre Quiroule sélectionné" width="100%"></a></td>
+    <td align="center"><strong>Mode focus — Pierre Quiroule</strong><br><a href="./docs/screenshots/mode-focus.png"><img src="./docs/screenshots/mode-focus.png" alt="Activité Dizaines et Unités en mode focus pour Pierre Quiroule du groupe A" width="100%"></a></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center"><strong>Résultats — classe CE1 Céline (1920 × 1080)</strong><br><a href="./docs/screenshots/resultats.png"><img src="./docs/screenshots/resultats.png" alt="Vue des résultats de la classe CE1 Céline" width="100%"></a></td>
+  </tr>
+</table>
+
 ### Stack technique
 
 - **Frontend** : React + React Router + Tailwind CSS
@@ -165,22 +186,6 @@ docker compose up --build
 ---
 
 ## ✅ Fonctionnalités disponibles
-
-### Réglage de l'animation des tuiles
-
-L'animation de guidage est définie dans [`frontend/tailwind.config.js`](frontend/tailwind.config.js), sous `theme.extend.keyframes["pulse-slow"]` et `theme.extend.animation["pulse-slow"]`.
-
-- Dans l'étape `"50%"`, `opacity` règle l'intensité du clignotement : plus la valeur est basse, plus les éléments s'atténuent.
-- Dans `boxShadow`, le premier nombre (`4px`) règle la taille du halo bleu et la dernière valeur (`0.4`) son opacité.
-- Dans `animation`, la durée (`3.2s`) règle le rythme : une durée plus courte accélère le clignotement.
-
-Cette animation sert de repère visuel dans les activités interactives : elle peut attirer l'attention sur des choix disponibles, puis, après une sélection, sur une zone à compléter. Elle s'arrête lorsque l'action attendue est réalisée. Le navigateur peut la désactiver si l'utilisateur préfère réduire les animations.
-
-Après avoir modifié la configuration Tailwind, reconstruire le frontend avec :
-
-```bash
-rtk docker compose up --build -d
-```
 
 ### Administration
 
@@ -385,6 +390,22 @@ Quelques routes utiles :
 - `GET /api/export/global-csv`
 
 ---
+
+### Réglage de l'animation des tuiles
+
+L'animation de guidage est définie dans [`frontend/tailwind.config.js`](frontend/tailwind.config.js), sous `theme.extend.keyframes["pulse-slow"]` et `theme.extend.animation["pulse-slow"]`.
+
+- Dans l'étape `"50%"`, `opacity` règle l'intensité du clignotement : plus la valeur est basse, plus les éléments s'atténuent.
+- Dans `boxShadow`, le premier nombre (`4px`) règle la taille du halo bleu et la dernière valeur (`0.4`) son opacité.
+- Dans `animation`, la durée (`3.2s`) règle le rythme : une durée plus courte accélère le clignotement.
+
+Cette animation sert de repère visuel dans les activités interactives : elle peut attirer l'attention sur des choix disponibles, puis, après une sélection, sur une zone à compléter. Elle s'arrête lorsque l'action attendue est réalisée. Le navigateur peut la désactiver si l'utilisateur préfère réduire les animations.
+
+Après avoir modifié la configuration Tailwind, reconstruire le frontend avec :
+
+```bash
+rtk docker compose up --build -d
+```
 
 ## ⚠️ Notes actuelles
 
