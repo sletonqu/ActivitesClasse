@@ -1,6 +1,6 @@
 {
   "name": "activites-frontend",
-  "version": "v1.0.2",
+  "version": "v1.0.3",
   "private": true,
   "dependencies": {
     "fabric": "7.4.0",
