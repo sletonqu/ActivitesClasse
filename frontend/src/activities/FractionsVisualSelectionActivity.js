@@ -10,7 +10,7 @@ import {
   parseIntWithFallback,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultFractionsVisualSelectionActivityContent = {
   title: "Reconnais la bonne fraction",

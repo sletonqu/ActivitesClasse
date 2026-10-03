@@ -14,7 +14,7 @@ import {
   parseIntWithFallback,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultSortNumbersActivityContent = {
   title: "Classe les nombres dans le bon ordre",

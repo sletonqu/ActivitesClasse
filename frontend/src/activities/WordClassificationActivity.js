@@ -14,7 +14,7 @@ import {
   parseActivityContent,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultWordClassificationActivityContent = {
   title: "Classe les mots dans la bonne catégorie",

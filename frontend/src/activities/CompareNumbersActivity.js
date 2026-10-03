@@ -11,7 +11,7 @@ import {
   parseActivityContent,
   parseIntWithFallback,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultCompareNumbersActivityContent = {
   title: "Comparaison de nombres",

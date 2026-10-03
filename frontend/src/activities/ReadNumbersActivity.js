@@ -8,7 +8,7 @@ import {
   parseActivityContent,
   parseIntWithFallback,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultReadNumbersActivityContent = {
   title: "Lecture de nombres",

@@ -13,7 +13,7 @@ import {
   parseActivityContent,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultCountPencilsByTensActivityContent = {
   "title": "Compte les crayons par dizaines et centaines",

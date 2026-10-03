@@ -14,7 +14,7 @@ import {
   parseIntWithFallback,
   randomRotation,
   formatNumberWithThousandsSpace,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultEvenOddClassificationActivityContent = {
   title: "Tri de nombres pairs ou impairs",

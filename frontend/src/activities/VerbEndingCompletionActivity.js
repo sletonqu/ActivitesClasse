@@ -4,7 +4,7 @@ import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import ActivityActionsBar from "../components/ActivityActionsBar";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
-import { parseActivityContent, getSafeDisplayText, parsePositiveInt, handleRoundRestart } from "./activityUtils";
+import { parseActivityContent, getSafeDisplayText, parsePositiveInt, handleRoundRestart } from "../utils/activityUtils";
 import { API_URL } from "../config/api";
 
 const ALLOWED_LEVEL_KEYS = ["level1", "level2", "level3"];

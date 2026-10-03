@@ -14,7 +14,7 @@ import {
   parseIntWithFallback,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultMatchAdditionsActivityContent = {
   title: "Associe chaque addition à son bon résultat",

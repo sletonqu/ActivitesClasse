@@ -8,7 +8,7 @@ import {
   handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultMakeChangeActivityContent = {
   title: "Le Jeu de la Monnaie",

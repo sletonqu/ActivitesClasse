@@ -13,7 +13,7 @@ import {
   handleRoundRestart,
   parseActivityContent,
   parsePositiveInt,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultSentenceWordClassificationActivityContent = {
   title: "Classification des mots d'une phrase",

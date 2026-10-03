@@ -10,7 +10,7 @@ import {
   handleRoundRestart,
   parseActivityContent,
   parseIntWithFallback,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 export const defaultNumberLineActivityContent = {
   title: "Droite graduée",

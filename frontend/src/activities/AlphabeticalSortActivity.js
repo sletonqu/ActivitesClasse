@@ -13,7 +13,7 @@ import {
   parseActivityContent,
   parsePositiveInt,
   randomRotation,
-} from "./activityUtils";
+} from "../utils/activityUtils";
 
 // ─── Configuration par défaut ────────────────────────────────────────────────
 

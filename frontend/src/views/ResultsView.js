@@ -8,7 +8,7 @@ import {
   loadClassesIntoState,
 } from "../utils/dataLoaders";
 import { getActiveSkillDescription } from "../utils/activitySkills";
-import { parseActivityContent } from "../activities/activityUtils";
+import { parseActivityContent } from "../utils/activityUtils";
 
 const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
 
