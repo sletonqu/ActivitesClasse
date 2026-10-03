@@ -943,11 +943,19 @@ const TeacherView = () => {
   };
 
   const handleOpenResultsView = () => {
-    window.open(`${window.location.origin}/results`, "_blank", "noopener,noreferrer");
+    const resultsUrl = new URL("/results", window.location.origin);
+    if (selectedClassId) {
+      resultsUrl.searchParams.set("selectedClassId", selectedClassId);
+    }
+    window.open(resultsUrl.toString(), "_blank", "noopener,noreferrer");
   };
 
   const handleOpenActivitiesView = () => {
-    window.open(`${window.location.origin}/`, "_blank", "noopener,noreferrer");
+    const activitiesUrl = new URL("/", window.location.origin);
+    if (selectedClassId) {
+      activitiesUrl.searchParams.set("selectedClassId", selectedClassId);
+    }
+    window.open(activitiesUrl.toString(), "_blank", "noopener,noreferrer");
   };
 
   return (

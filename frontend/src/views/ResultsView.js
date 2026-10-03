@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { API_URL } from "../config/api";
 import {
   fetchGroupsByClass,
@@ -13,6 +14,7 @@ import { parseActivityContent } from "../utils/activityUtils";
 const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
 
 const ResultsView = () => {
+  const location = useLocation();
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [students, setStudents] = useState([]);
@@ -45,6 +47,16 @@ const ResultsView = () => {
     loadClassesIntoState(setClasses);
     loadActivitiesIntoState(setActivities);
   }, []);
+
+  useEffect(() => {
+    const requestedClassId = new URLSearchParams(location.search).get("selectedClassId");
+    if (
+      requestedClassId
+      && classes.some((cls) => String(cls.id) === requestedClassId)
+    ) {
+      setSelectedClassId(requestedClassId);
+    }
+  }, [classes, location.search]);
 
   // Charger les données de la classe sélectionnée
   useEffect(() => {

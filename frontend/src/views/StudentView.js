@@ -127,6 +127,16 @@ const StudentView = () => {
   }, []);
 
   useEffect(() => {
+    const requestedClassId = new URLSearchParams(location.search).get("selectedClassId");
+    if (
+      requestedClassId
+      && classes.some((cls) => String(cls.id) === requestedClassId)
+    ) {
+      setSelectedClassId(requestedClassId);
+    }
+  }, [classes, location.search]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (disciplineDropdownRef.current && !disciplineDropdownRef.current.contains(event.target)) {
         setOpenDisciplineDropdown("");
