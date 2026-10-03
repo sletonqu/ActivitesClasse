@@ -991,7 +991,7 @@ const TeacherView = () => {
           </select>
         </div>
 
-        <CollapsibleSection
+        {selectedClassId && <CollapsibleSection
           id="teacher-students-management"
           title="Elèves"
           isOpen={openSectionId === "students-management"}
@@ -1028,9 +1028,9 @@ const TeacherView = () => {
             onDeleteAllStudents={handleDeleteAllStudents}
             hideTitle
           />
-        </CollapsibleSection>
+        </CollapsibleSection>}
 
-        <CollapsibleSection
+        {selectedClassId && <CollapsibleSection
           id="teacher-groups-management"
           title="Groupes"
           isOpen={openSectionId === "groups-management"}
@@ -1069,9 +1069,9 @@ const TeacherView = () => {
             onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
             hideTitle
           />
-        </CollapsibleSection>
+        </CollapsibleSection>}
 
-        <CollapsibleSection
+        {selectedClassId && <CollapsibleSection
           id="teacher-workshop-management"
           title="Atelier"
           isOpen={openSectionId === "workshop-management"}
@@ -1091,9 +1091,9 @@ const TeacherView = () => {
               onSelectActivityId={setSelectedWorkshopActivityId}
             />
           </div>
-        </CollapsibleSection>
+        </CollapsibleSection>}
 
-        <CollapsibleSection
+        {selectedClassId && <CollapsibleSection
           id="teacher-results-management"
           title="Résultats"
           isOpen={openSectionId === "results-management"}
@@ -1126,7 +1126,7 @@ const TeacherView = () => {
             getResultLevelLabel={getResultLevelLabel}
             hideTitle
           />
-        </CollapsibleSection>
+        </CollapsibleSection>}
 
         <CollapsibleSection
           id="teacher-activities-management"
