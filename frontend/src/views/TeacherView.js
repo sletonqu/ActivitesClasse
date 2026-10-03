@@ -1174,7 +1174,7 @@ const TeacherView = () => {
           </div>
         </CollapsibleSection>
 
-        <CollapsibleSection
+        {selectedClassId && <CollapsibleSection
           id="teacher-students-import-export"
           title="Import / Export des élèves (Enseignant)"
           isOpen={openSectionId === "students-import-export"}
@@ -1186,7 +1186,7 @@ const TeacherView = () => {
             requireClassSelection
             hideTitle
           />
-        </CollapsibleSection>
+        </CollapsibleSection>}
       </div>
     </div>
   );
