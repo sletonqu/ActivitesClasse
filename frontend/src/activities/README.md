@@ -129,7 +129,7 @@ Options utiles :
 - `levels.levelX.count`
 - `levels.levelX.min`
 - `levels.levelX.max`
-- `levels.levelX.order` avec `asc`/`croissant` ou `desc`/`décroissant`
+- `levels.levelX.order` avec `asc`/`croissant` ou `desc`/`décroissant` ; les alias `sortOrder` et `direction` sont aussi acceptés
 - `numbersByLevel.levelX` pour imposer une série précise
 
 Comportement :
@@ -177,6 +177,8 @@ Options utiles :
 - `levels.levelX.max`
 - `numbersByLevel.levelX` pour proposer une liste précise de nombres
 
+Quatre niveaux (`level1` à `level4`) sont prévus par défaut ; l'exemple ci-dessus n'en configure que trois.
+
 Comportement :
 
 - section `hero` avec le titre, l'instruction et les niveaux disponibles ;
@@ -190,7 +192,7 @@ Comportement :
 
 **But** : associer chaque addition à son bon résultat.
 
-Exemple de configuration standard (3 niveaux) :
+Exemple de configuration à trois niveaux :
 
 ```json
 {
@@ -202,6 +204,8 @@ Exemple de configuration standard (3 niveaux) :
   }
 }
 ```
+
+Champs globaux : `title`, `instruction`, `defaultLevel`, `fake` (tuile imposteur) et `skill` (compétence affichée dans les réglages).
 
 Paramètres disponibles par niveau :
 
@@ -314,6 +318,8 @@ Chaque défi suit le format :
 { "id": 1, "left": 12, "right": 7, "result": 19 }
 ```
 
+`id` est facultatif et `result` peut être omis : il est alors calculé comme `left + right`.
+
 Comportement :
 
 - score calculé automatiquement ;
@@ -348,7 +354,8 @@ Exemple de configuration :
 
 Paramètres disponibles au niveau de l'activité :
 
-- `inputType` : `"NumberPad"` (par défaut) ou `"OCR"` pour utiliser la reconnaissance d'écriture manuscrite via Tesseract.js.
+- `title`, `instruction` et `defaultLevel` ;
+- `inputType` : `"NumberPad"` (par défaut), `"OCR"` pour utiliser Tesseract.js ou `"MyScript"` pour la reconnaissance d'écriture manuscrite MyScript.
 
 Paramètres disponibles par niveau :
 
@@ -413,12 +420,14 @@ Exemple de configuration :
 
 Paramètres utiles :
 
+- `title`, `instruction` et `defaultLevel` ;
 - `levels.levelX.min` / `levels.levelX.max`
 - `levels.levelX.allowEquality`
-- `levels.levelX.equalityChance`
+- `levels.levelX.equalityChance` : probabilité d'obtenir une égalité, entre `0` et `1`
 - `levels.levelX.decompositionMode` : `none`, `left`, `right` ou `random`
 - `levels.levelX.decompositionStyle` : `strict`/`stricte` ou `medium`/`moyenne` (ignoré si `decompositionMode` vaut `none`)
 - `pairsByLevel.levelX` pour imposer des couples précis
+- `pairsByLevel.levelX[].left` et `right` pour définir les deux nombres à comparer
 - `pairsByLevel.levelX[].decompositionMode` pour surcharger le côté décomposé sur une paire donnée
 - `pairsByLevel.levelX[].decompositionStyle` pour imposer un style précis sur une paire
 
@@ -430,6 +439,8 @@ Comportement :
 - `moyenne` : seule la partie `unités` peut dépasser 9, par exemple `752 = 700 + 40 + 12` ;
 - les centaines et les dizaines restent strictement décomposées ;
 - score enregistré sur 20 avec le niveau courant.
+
+Quatre niveaux (`level1` à `level4`) sont disponibles par défaut.
 
 ---
 
@@ -456,7 +467,7 @@ Exemple de configuration :
   "height": 1754,
   "backgroundColor": "#ffffff",
   "paperStyle": "seyes",
-  "defaultZoom": 0.7,
+  "defaultZoom": 2.0,
   "storageKey": "TBTS_INTERACTIVE_WHITEBOARD"
 }
 ```
@@ -466,12 +477,23 @@ Valeurs de `paperStyle` :
 - `blank` : fond blanc
 - `seyes` : lignage Seyès pour l'écriture
 - `grid` : quadrillage pour géométrie
+- `millimeter` : papier millimétré
+
+Paramètres de contenu :
+
+- `defaultTitle` : titre initial du tableau ;
+- `width` / `height` : dimensions du tableau ;
+- `backgroundColor` : couleur de fond ;
+- `paperStyle` : type de papier parmi les valeurs ci-dessus ; l'ancien booléen `showGrid: true` active aussi le quadrillage si `paperStyle` n'est pas défini ;
+- `fontFamily` : police du texte (`Cursif`, `Cursive Standard` ou `Inter, Arial, sans-serif`) ;
+- `defaultZoom` : zoom initial (valeur de la configuration par défaut : `2.0`) ;
+- `storageKey` : clé de sauvegarde dans `localStorage`.
 
 Notes :
 
 - `width` / `height` définissent la taille utile du tableau ;
 - `storageKey` sert à la sauvegarde `localStorage` ;
-- le `student` prop permet de personnaliser les exports ;
+- la prop `student` permet de personnaliser les exports ;
 - cette activité peut être utilisée avec ou sans élève sélectionné selon le contexte.
 - Utilise la dépendance npm `fabric` en version `7.4.0`.
 
@@ -500,8 +522,10 @@ Exemple de configuration :
 }
 ```
 
-Paramètres disponibles par niveau :
+Paramètres :
 
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
 - `totalWords`
 - `wordsPerRound`
 - `maxWordLevel`
@@ -510,7 +534,7 @@ Paramètres disponibles par niveau :
 Natures grammaticales disponibles (valeurs recommandées pour `classifications`) :
 
 - `nom` mais aussi `Nom masculin`, `Nom féminin`, `nom commun`
-- `verbe` mais qussi `verbe 3eme groupe`, etc
+- `verbe` mais aussi `verbe 3eme groupe`, etc.
 - `adverbe`
 - `adjectif`
 - `pronom`
@@ -559,7 +583,7 @@ Exemple de configuration :
 
 Paramètres utiles :
 
-- `defaultLevel`
+- `title`, `instruction` et `defaultLevel` ;
 - `levels[].sentenceCount`
 - `levels[].sourceLevel`
 - `levels[].sourceTheme`
@@ -621,9 +645,23 @@ Exemple de configuration :
 
 Paramètres utiles :
 
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
+- `levels.levelX.answerCount` : nombre de choix de réponse ;
+- `levels.levelX.fractions[]` : fractions proposées, chacune avec `numerator` et `denominator` ;
+- `levels.levelX.minDenominator`, `maxDenominator` et `maxNumerator` : bornes de génération automatique si aucune liste de fractions n'est fournie ;
+- `levels.levelX.visualTypes` : figures autorisées (`circle`, `bar`, `square`, ou leurs alias français `cercle`, `barre`, `carre`/`carré`).
+
+Comportement :
+
+- visuel affiché à gauche et réponses sur tuiles cliquables à droite ;
+- fractions toujours **strictement inférieures à 1** ;
+- une seule réponse correcte par série ;
+- score sur 20 avec renvoi du niveau courant dans `onComplete(...)`.
+
 ---
 
-### 12. `HomophonesActivity.js`
+### 10. `HomophonesActivity.js`
 
 **But** : compléter des phrases à trou avec le bon homophone (mot au même son) parmi plusieurs propositions.
 
@@ -654,9 +692,11 @@ Exemple de configuration :
 }
 ```
 
-Paramètres disponibles par niveau :
+Paramètres :
 
-- `sentenceCount` : nombre de phrases à compléter pour ce niveau (1-20) ;
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
+- `sentenceCount` : nombre de phrases à compléter pour ce niveau (au moins 1) ;
 - `sounds` : liste des mots/homophones proposés comme boutons (ex: `["à", "a", "as"]`).
 
 Interaction :
@@ -674,25 +714,9 @@ Comportement :
 - Score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)` ;
 - En mode démo (`student=null`), aucun résultat n'est enregistré et le bouton "Recommencer" reste actif.
 
-- `title`
-- `instruction`
-- `defaultLevel`
-- `levels.levelX.label`
-- `levels.levelX.answerCount`
-- `levels.levelX.fractions[]` pour imposer une liste précise
-- `levels.levelX.minDenominator` / `maxDenominator` / `maxNumerator` pour la génération automatique
-- `levels.levelX.visualTypes` avec `circle`, `bar` ou `square`
-
-Comportement :
-
-- visuel affiché à gauche et réponses sur tuiles cliquables à droite ;
-- fractions toujours **strictement inférieures à 1** ;
-- une seule réponse correcte par série ;
-- score sur 20 avec renvoi du niveau courant dans `onComplete(...)`.
-
 ---
 
-### 10. `MakeChangeActivity.js`
+### 11. `MakeChangeActivity.js`
 
 **But** : préparer la somme exacte demandée en manipulant des pièces et des billets.
 
@@ -729,8 +753,10 @@ Exemple de configuration :
 }
 ```
 
-Paramètres disponibles par niveau :
+Paramètres :
 
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
 - `min` : valeur minimale de la somme à générer (en euros).
 - `max` : valeur maximale de la somme à générer (en euros).
 - `useCents` : `true` pour activer les centimes, `false` pour rester sur des sommes rondes en euros.
@@ -753,7 +779,7 @@ Comportement :
 
 ---
 
-### 11. `EvenOddClassificationActivity.js`
+### 12. `EvenOddClassificationActivity.js`
 
 **But** : classer des nombres aléatoires dans la bonne catégorie (Pair ou Impair).
 
@@ -791,7 +817,7 @@ Exemple de configuration :
       "label": "Niveau 3",
       "totalNumbers": 15,
       "numbersPerRound": 4,
-      "min": 50,
+      "min": 100,
       "max": 999,
       "classifications": [
         "Pair",
@@ -802,8 +828,10 @@ Exemple de configuration :
 }
 ```
 
-Paramètres disponibles par niveau :
+Paramètres :
 
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
 - `totalNumbers` : Nombre total de nombres à trier pour le niveau.
 - `numbersPerRound` : Nombre maximum de tuiles affichées simultanément dans le pool.
 - `min` : Borne minimale pour la génération des nombres.
@@ -845,8 +873,10 @@ Exemple de configuration :
 }
 ```
 
-Paramètres disponibles par niveau :
+Paramètres :
 
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : libellé du niveau ;
 - `min` : Borne minimale de valeur autorisée pour le tirage de la première graduation à gauche.
 - `max` : Borne maximale de valeur autorisée pour la droite graduée.
 - `step` : Le pas de graduation (ex: `1`, `2`, `5`, `10`, `100`).
@@ -854,10 +884,123 @@ Paramètres disponibles par niveau :
 - `readonlyCount` : Nombre de repères déjà placés et visibles au-dessus de la droite (défaut : `3`).
 - `inputsCount` : Nombre de repères vides à compléter en dessous de la droite (défaut : `5`).
 
+Quatre niveaux (`level1` à `level4`) sont préconfigurés ; chaque niveau peut redéfinir ces paramètres.
+
 Comportement :
 
 - **Calcul de plage et contraintes** : La première graduation de gauche $V_0$ est tirée aléatoirement de sorte que $V_0 \ge \text{min}$, que $V_0$ soit un multiple de `step`, et que la dernière graduation à droite $V_{N-1} = V_0 + (ticksCount - 1) \times step \le \text{max}$. Si ces contraintes ne sont pas applicables, un message d'erreur en français s'affiche à la place de la droite graduée.
 - **Tirage des repères** : Les index des repères affichés au-dessus et des repères à compléter en dessous sont tirés de manière aléatoire et sont strictement disjoints.
 - **Saisie et validation** : Au clic sur une zone "?", un pavé numérique s'ouvre. Le bouton "Valider" apparaît lorsque toutes les cases sont complétées. Après validation, les réponses correctes sont affichées en vert, les incorrectes en rouge avec la bonne réponse affichée en noir sous la case.
 
+---
 
+### 14. `AlphabeticalSortActivity.js`
+
+**But** : ranger une série de mots dans l'ordre alphabétique, en comparant les lettres selon le niveau choisi.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Classe les mots dans l'ordre alphabétique",
+  "instruction": "Fais glisser chaque étiquette dans la bonne case numérotée pour ranger les mots de A à Z.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": { "label": "Niveau 1", "description": "Première lettre différente", "wordCount": 4 },
+    "level2": { "label": "Niveau 2", "description": "Même première lettre", "wordCount": 5 },
+    "level3": { "label": "Niveau 3", "description": "Mêmes deux premières lettres", "wordCount": 5 },
+    "level4": { "label": "Niveau 4", "description": "Mélange des niveaux", "wordCount": 6 }
+  }
+}
+```
+
+Paramètres :
+
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : nom du niveau ;
+- `levels.levelX.description` : règle de comparaison affichée ;
+- `levels.levelX.wordCount` : nombre de mots à ordonner.
+
+Les mots sont chargés depuis l'API. L'activité propose quatre niveaux et enregistre le score avec le niveau courant.
+
+---
+
+### 15. `ClassSoundMeterActivity.js`
+
+**But** : visualiser le niveau sonore ambiant et aider la classe à respecter une durée de travail calme.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Sonomètre de Classe",
+  "subtitle": "Outil visuel pour garder une ambiance de travail calme.",
+  "timerMinutes": 3,
+  "paletteName": "Ocean",
+  "sensitivityMultiplier": 1,
+  "sensitivityMin": 0.5,
+  "sensitivityMax": 5
+}
+```
+
+Paramètres :
+
+- `title` et `subtitle` : titre et texte descriptif ;
+- `timerMinutes` : durée du minuteur, limitée de 1 à 60 minutes ;
+- `paletteName` : palette `Classique`, `Ocean` ou `Crépuscule` ;
+- `sensitivityMin` et `sensitivityMax` : limites de sensibilité ;
+- `sensitivityMultiplier` : sensibilité utilisée, bornée par les limites configurées.
+
+L'activité mesure le son avec le microphone ; le navigateur doit autoriser son accès.
+
+---
+
+### 16. `CodeJuniorActivity.js`
+
+**But** : proposer un jeu interactif pour découvrir la programmation et suivre la progression de l'élève.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Code Junior",
+  "description": "Découvre la programmation en t'amusant !"
+}
+```
+
+Paramètres :
+
+- `title` : titre affiché au-dessus du jeu ;
+- `description` : texte descriptif affiché sous le titre.
+
+Ces champs sont facultatifs et reprennent leurs valeurs par défaut s'ils sont absents.
+
+---
+
+### 17. `VerbEndingCompletionActivity.js`
+
+**But** : choisir la terminaison correcte d'un verbe en `-er` pour compléter une phrase.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Verbes finissant par 'er'",
+  "instruction": "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": { "label": "Niveau 1", "sentenceCount": 4, "endings": ["es", "ent"] },
+    "level2": { "label": "Niveau 2", "sentenceCount": 6, "endings": ["e", "es", "ent"] },
+    "level3": { "label": "Niveau 3", "sentenceCount": 8, "endings": ["e", "es", "ez", "ent"] }
+  }
+}
+```
+
+Paramètres :
+
+- `title`, `instruction` et `defaultLevel` ;
+- `levels.levelX.label` : nom du niveau ;
+- `levels.levelX.sentenceCount` : nombre de phrases de la série ;
+- `levels.levelX.endings` : terminaisons proposées.
+
+Les phrases sont chargées depuis la base selon les terminaisons demandées. Le score est enregistré sur 20 avec le niveau courant.

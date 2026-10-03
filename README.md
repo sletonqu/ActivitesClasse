@@ -272,7 +272,7 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 | Activité | Fichier | Objectif |
 | --- | --- | --- |
 | Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant ou décroissant. |
-| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer chaque addition à son résultat ou relier un nombre à son double, ou sa moitié. |
+| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat, ou trouver le double ou la moitié d'un nombre. |
 | Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
 | Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
 | Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |
@@ -288,8 +288,6 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 | Tri de nombres pairs ou impairs | `frontend/src/activities/EvenOddClassificationActivity.js` | Classer des nombres dans la catégorie « pair » ou « impair ». |
 | Homophones | `frontend/src/activities/HomophonesActivity.js` | Choisir le bon homophone pour compléter une phrase. |
 | Droite graduée | `frontend/src/activities/NumberLineActivity.js` | Trouver les nombres manquants sur une droite graduée à partir des repères affichés. |
-
-> Documentation détaillée : voir `frontend/src/activities/README.md`.
 
 ### Focus : tableau blanc interactif
 
