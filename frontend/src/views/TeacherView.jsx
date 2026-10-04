@@ -20,7 +20,7 @@ import {
   normalizeActivityContentForEditor,
 } from "../utils/activityManagement";
 
-const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
+const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
 const TeacherView = () => {
   const [openSectionId, setOpenSectionId] = useState("");

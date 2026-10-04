@@ -39,9 +39,11 @@ Captures réalisées avec les données fictives: les vues Administration, Enseig
 
 ### Stack technique
 
-- **Frontend** : React + React Router + Tailwind CSS
-- **Backend** : Node.js + Express
+- **Frontend** : React + React Router + Vite + Tailwind CSS
+- **Backend** : Node.js 24 + Express
 - **Base de données** : SQLite
+- **Pilote SQLite** : `better-sqlite3`
+- **Gestionnaire de paquets Node.js** : npm 12.2.0
 - **Conteneurisation** : Docker / Docker Compose
 
 ---
@@ -120,6 +122,8 @@ Invoke-RestMethod http://localhost:4040/api/tunnels | Select-Object -ExpandPrope
 
 4. Ouvrir cette URL sur la tablette.
 
+> Le serveur Vite n'accepte que les hôtes explicitement autorisés dans `frontend/vite.config.mjs`. Si le nom de domaine ngrok change, ajoutez le nouveau nom à `server.allowedHosts`, puis reconstruisez et redémarrez le frontend.
+
 ### Arrêter l'application
 
 ```bash
@@ -142,7 +146,8 @@ Ce script :
 
 - sauvegarde préventivement la base SQLite dans le volume Docker ;
 - récupère la dernière version GitHub via `git pull --ff-only` ;
-- relance l'application avec `docker compose up -d --build`.
+- vérifie si le script de mise à jour lui-même a changé et demande alors de le relancer ;
+- reconstruit les images avec `docker compose build --pull`, puis redémarre les services avec `docker compose up -d`.
 
 > ⚠️ Les données sont conservées tant que vous n'utilisez pas `docker compose down -v`.
 
@@ -271,23 +276,23 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 
 | Activité | Fichier | Objectif |
 | --- | --- | --- |
-| Tri de nombres | `frontend/src/activities/SortNumbersActivity.js` | Ranger des nombres dans l'ordre croissant ou décroissant. |
-| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.js` | Associer une addition à son résultat, ou trouver le double ou la moitié d'un nombre. |
-| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.js` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
-| Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.js` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
-| Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.js` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |
-| Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.js` | Écrire, dessiner et insérer des images sur un tableau, puis exporter son travail. |
-| Classification de mots | `frontend/src/activities/WordClassificationActivity.js` | Classer des mots selon leur catégorie grammaticale. |
-| Classification des mots d'une phrase | `frontend/src/activities/SentenceWordClassificationActivity.js` | Repérer les mots demandés dans une phrase et les classer selon leur nature grammaticale. |
-| Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.js` | S'entraîner à lire des nombres adaptés au niveau choisi. |
-| Le Jeu de la Monnaie | `frontend/src/activities/MakeChangeActivity.js` | Composer une somme exacte avec des pièces et des billets, en euros et, selon le niveau, en centimes. |
-| Classement alphabétique | `frontend/src/activities/AlphabeticalSortActivity.js` | Ranger des mots dans l'ordre alphabétique en comparant leurs premières lettres. |
-| Sonomètre de classe | `frontend/src/activities/ClassSoundMeterActivity.js` | Visualiser le niveau sonore de la classe et accompagner une période de travail calme chronométrée. |
-| Code Junior | `frontend/src/activities/CodeJuniorActivity.js` | Découvrir la programmation au moyen d'un jeu interactif et suivre sa progression. |
-| Terminaisons des verbes en `-er` | `frontend/src/activities/VerbEndingCompletionActivity.js` | Compléter des phrases en choisissant la terminaison correcte des verbes en `-er`. |
-| Tri de nombres pairs ou impairs | `frontend/src/activities/EvenOddClassificationActivity.js` | Classer des nombres dans la catégorie « pair » ou « impair ». |
-| Homophones | `frontend/src/activities/HomophonesActivity.js` | Choisir le bon homophone pour compléter une phrase. |
-| Droite graduée | `frontend/src/activities/NumberLineActivity.js` | Trouver les nombres manquants sur une droite graduée à partir des repères affichés. |
+| Tri de nombres | `frontend/src/activities/SortNumbersActivity.jsx` | Ranger des nombres dans l'ordre croissant ou décroissant. |
+| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.jsx` | Associer une addition à son résultat, ou trouver le double ou la moitié d'un nombre. |
+| Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.jsx` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
+| Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.jsx` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
+| Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.jsx` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |
+| Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.jsx` | Écrire, dessiner et insérer des images sur un tableau, puis exporter son travail. |
+| Classification de mots | `frontend/src/activities/WordClassificationActivity.jsx` | Classer des mots selon leur catégorie grammaticale. |
+| Classification des mots d'une phrase | `frontend/src/activities/SentenceWordClassificationActivity.jsx` | Repérer les mots demandés dans une phrase et les classer selon leur nature grammaticale. |
+| Lecture de nombres | `frontend/src/activities/ReadNumbersActivity.jsx` | S'entraîner à lire des nombres adaptés au niveau choisi. |
+| Le Jeu de la Monnaie | `frontend/src/activities/MakeChangeActivity.jsx` | Composer une somme exacte avec des pièces et des billets, en euros et, selon le niveau, en centimes. |
+| Classement alphabétique | `frontend/src/activities/AlphabeticalSortActivity.jsx` | Ranger des mots dans l'ordre alphabétique en comparant leurs premières lettres. |
+| Sonomètre de classe | `frontend/src/activities/ClassSoundMeterActivity.jsx` | Visualiser le niveau sonore de la classe et accompagner une période de travail calme chronométrée. |
+| Code Junior | `frontend/src/activities/CodeJuniorActivity.jsx` | Découvrir la programmation au moyen d'un jeu interactif et suivre sa progression. |
+| Terminaisons des verbes en `-er` | `frontend/src/activities/VerbEndingCompletionActivity.jsx` | Compléter des phrases en choisissant la terminaison correcte des verbes en `-er`. |
+| Tri de nombres pairs ou impairs | `frontend/src/activities/EvenOddClassificationActivity.jsx` | Classer des nombres dans la catégorie « pair » ou « impair ». |
+| Homophones | `frontend/src/activities/HomophonesActivity.jsx` | Choisir le bon homophone pour compléter une phrase. |
+| Droite graduée | `frontend/src/activities/NumberLineActivity.jsx` | Trouver les nombres manquants sur une droite graduée à partir des repères affichés. |
 
 ### Focus : tableau blanc interactif
 
@@ -349,7 +354,7 @@ Exemple de configuration JSON :
 1. créer un composant dans `frontend/src/activities/` ;
 2. exporter une configuration par défaut robuste, compatible avec un `content` vide (`{}`) ;
 3. si l'activité gère des niveaux, appeler `onComplete(score, { levelKey, levelLabel })` ;
-4. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.js` ;
+4. enregistrer l'activité dans `frontend/src/activities/ActivityContainer.jsx` ;
 5. l'ajouter au registre partagé dans `frontend/src/utils/activityManagement.js` ;
 6. compléter au même endroit la configuration par défaut (`ACTIVITY_FILES`, `getDefaultActivityContentText()`) si nécessaire ;
 7. créer ou modifier l'activité depuis l'espace admin / enseignant.
@@ -419,4 +424,4 @@ rtk docker compose up --build -d
 - les mots de passe enseignants sont encore stockés en clair : à sécuriser avant une mise en production ;
 - les clés/tokens ne doivent jamais être commités en clair dans `docker-compose.yml` ;
 - le projet est pensé pour un usage **local / MVP** ;
-- le chargement des activités repose sur un registre explicite dans `ActivityContainer.js`.
+- le chargement des activités repose sur un registre explicite dans `ActivityContainer.jsx`.

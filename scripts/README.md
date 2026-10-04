@@ -110,7 +110,8 @@ Ce script :
 
 - sauvegarde la base existante ;
 - récupère les dernières modifications avec `git pull --ff-only` ;
-- relance l'application avec `docker compose up -d --build`.
+- vérifie si le script de mise à jour a lui-même changé ; si oui, il s'arrête et demande de le relancer ;
+- reconstruit les images avec `docker compose build --pull`, puis redémarre les services avec `docker compose up -d`.
 
 ---
 
@@ -120,7 +121,8 @@ Si vous préférez faire la mise à jour vous-même :
 
 ```powershell
 git pull origin main
-docker compose up -d --build
+docker compose build --pull
+docker compose up -d
 ```
 
 ---

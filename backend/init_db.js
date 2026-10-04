@@ -1,12 +1,12 @@
 // Script d'initialisation de la base SQLite au démarrage
 const fs = require('fs');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const SqliteDatabase = require('./sqliteDatabase');
 
 const dbPath = path.join(__dirname, 'database.sqlite');
 const sqlPath = path.join(__dirname, 'init_db.sql');
 
-const db = new sqlite3.Database(dbPath);
+const db = new SqliteDatabase(dbPath);
 const initSQL = fs.readFileSync(sqlPath, 'utf-8');
 
 function ensureGroupsSchema(done) {

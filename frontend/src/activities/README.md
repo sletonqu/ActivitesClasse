@@ -1,6 +1,6 @@
 # Documentation des activités
 
-Ce dossier contient les activités interactives affichées dans la vue élève via `ActivityContainer.js`.
+Ce dossier contient les activités interactives affichées dans la vue élève via `ActivityContainer.jsx`.
 
 ---
 
@@ -69,8 +69,8 @@ Base partagée recommandée :
 
 - `frontend/src/hooks/useHybridPlacementInteraction.js` : interaction hybride item -> cible ;
 - `frontend/src/hooks/useSlotPoolPlacement.js` : logique pool/slots avec swap, retour au pool et sélection ;
-- `frontend/src/components/PlacementTileButton.js` : primitive de tuile sélectionnable/drag ;
-- `frontend/src/components/PlacementDropZone.js` : primitive de zone cible drop/click.
+- `frontend/src/components/PlacementTileButton.jsx` : primitive de tuile sélectionnable/drag ;
+- `frontend/src/components/PlacementDropZone.jsx` : primitive de zone cible drop/click.
 
 Objectif : réduire la duplication des handlers de drag/click entre activités et garder un comportement cohérent sur desktop et tactile.
 
@@ -92,12 +92,12 @@ Pour brancher une nouvelle activité dans l'application :
 1. créer le composant dans ce dossier ;
 2. exporter une configuration par défaut nommée ;
 3. prévoir des valeurs de repli si `content` vaut `{}` ;
-4. l'enregistrer dans `ActivityContainer.js` ;
+4. l'enregistrer dans `ActivityContainer.jsx` ;
 5. l'ajouter au registre partagé dans `frontend/src/utils/activityManagement.js` ;
 6. compléter dans ce même fichier `ACTIVITY_FILES` et `getDefaultActivityContentText()` ;
 7. si l'activité utilise des niveaux, renvoyer aussi `levelKey` / `levelLabel` dans `onComplete(...)`.
 
-> `ActivityContainer.js` ajoute aussi un bouton d'impression PDF commun à toutes les activités.
+> `ActivityContainer.jsx` ajoute aussi un bouton d'impression PDF commun à toutes les activités.
 
 ---
 
@@ -105,7 +105,7 @@ Pour brancher une nouvelle activité dans l'application :
 
 Les activités sont organisées par **discipline** (ex: Mathématiques, Français) et **catégorie** (ex: Nombres, Calcul, Grammaire). Cette classification peut être modifiée depuis l'espace Administration pour faciliter le filtrage dans les vues Enseignant et Élève.
 
-### 1. `SortNumbersActivity.js`
+### 1. `SortNumbersActivity.jsx`
 
 **But** : ranger des nombres dans l'ordre croissant ou décroissant.
 
@@ -145,7 +145,7 @@ Comportement :
 
 ---
 
-### 2. `ReadNumbersActivity.js`
+### 2. `ReadNumbersActivity.jsx`
 
 **But** : afficher un nombre à lire à voix haute ou à observer selon le niveau choisi.
 
@@ -190,7 +190,7 @@ Comportement :
 
 ---
 
-### 3. `MatchAdditionsActivity.js`
+### 3. `MatchAdditionsActivity.jsx`
 
 **But** : associer chaque addition à son bon résultat.
 
@@ -330,7 +330,7 @@ Comportement :
 
 ---
 
-### 4. `CountPencilsByTensActivity.js`
+### 4. `CountPencilsByTensActivity.jsx`
 
 **But** : manipuler les unités, dizaines et centaines à partir de crayons groupés.
 
@@ -381,7 +381,7 @@ Comportement :
 
 ---
 
-### 5. `CompareNumbersActivity.js`
+### 5. `CompareNumbersActivity.jsx`
 
 **But** : comparer deux nombres et, si besoin, afficher l'un des deux en écriture décomposée.
 
@@ -446,7 +446,7 @@ Quatre niveaux (`level1` à `level4`) sont disponibles par défaut.
 
 ---
 
-### 6. `InteractiveWhiteboardActivity.js`
+### 6. `InteractiveWhiteboardActivity.jsx`
 
 **But** : offrir un tableau blanc interactif pour écrire, dessiner, insérer une image puis exporter le résultat.
 
@@ -501,7 +501,7 @@ Notes :
 
 ---
 
-### 7. `WordClassificationActivity.js`
+### 7. `WordClassificationActivity.jsx`
 
 **But** : classer des mots dans la bonne catégorie grammaticale.
 
@@ -553,7 +553,7 @@ Comportement :
 
 ---
 
-### 8. `SentenceWordClassificationActivity.js`
+### 8. `SentenceWordClassificationActivity.jsx`
 
 **But** : analyser une ou plusieurs phrases issues de la base, puis classer uniquement certains mots dans la bonne catégorie grammaticale.
 
@@ -601,7 +601,7 @@ Comportement :
 
 ---
 
-### 9. `FractionsVisualSelectionActivity.js`
+### 9. `FractionsVisualSelectionActivity.jsx`
 
 **But** : reconnaître la bonne fraction à partir d'un visuel découpé en parts égales.
 
@@ -663,7 +663,7 @@ Comportement :
 
 ---
 
-### 10. `HomophonesActivity.js`
+### 10. `HomophonesActivity.jsx`
 
 **But** : compléter des phrases à trou avec le bon homophone (mot au même son) parmi plusieurs propositions.
 
@@ -718,7 +718,7 @@ Comportement :
 
 ---
 
-### 11. `MakeChangeActivity.js`
+### 11. `MakeChangeActivity.jsx`
 
 **But** : préparer la somme exacte demandée en manipulant des pièces et des billets.
 
@@ -781,7 +781,7 @@ Comportement :
 
 ---
 
-### 12. `EvenOddClassificationActivity.js`
+### 12. `EvenOddClassificationActivity.jsx`
 
 **But** : classer des nombres aléatoires dans la bonne catégorie (Pair ou Impair).
 
@@ -850,7 +850,7 @@ Comportement :
 
 ---
 
-### 13. `NumberLineActivity.js`
+### 13. `NumberLineActivity.jsx`
 
 **But** : Compléter les nombres manquants placés aléatoirement sous une droite graduée en s'aidant des repères déjà affichés au-dessus.
 
@@ -896,7 +896,7 @@ Comportement :
 
 ---
 
-### 14. `AlphabeticalSortActivity.js`
+### 14. `AlphabeticalSortActivity.jsx`
 
 **But** : ranger une série de mots dans l'ordre alphabétique, en comparant les lettres selon le niveau choisi.
 
@@ -927,7 +927,7 @@ Les mots sont chargés depuis l'API. L'activité propose quatre niveaux et enreg
 
 ---
 
-### 15. `ClassSoundMeterActivity.js`
+### 15. `ClassSoundMeterActivity.jsx`
 
 **But** : visualiser le niveau sonore ambiant et aider la classe à respecter une durée de travail calme.
 
@@ -957,7 +957,7 @@ L'activité mesure le son avec le microphone ; le navigateur doit autoriser son 
 
 ---
 
-### 16. `CodeJuniorActivity.js`
+### 16. `CodeJuniorActivity.jsx`
 
 **But** : proposer un jeu interactif pour découvrir la programmation et suivre la progression de l'élève.
 
@@ -979,7 +979,7 @@ Ces champs sont facultatifs et reprennent leurs valeurs par défaut s'ils sont a
 
 ---
 
-### 17. `VerbEndingCompletionActivity.js`
+### 17. `VerbEndingCompletionActivity.jsx`
 
 **But** : choisir la terminaison correcte d'un verbe en `-er` pour compléter une phrase.
 

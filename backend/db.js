@@ -1,10 +1,10 @@
 // Connexion à la base SQLite (fichier séparé pour éviter les circular dependencies)
-const sqlite3 = require('sqlite3').verbose();
+const SqliteDatabase = require('./sqliteDatabase');
 const path = require('path');
 const fs = require('fs');
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
+const db = new SqliteDatabase(dbPath, (err) => {
   if (err) {
     console.error('Erreur de connexion à SQLite:', err.message);
   } else {

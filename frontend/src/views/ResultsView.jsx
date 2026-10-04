@@ -11,7 +11,7 @@ import {
 import { getActiveSkillDescription } from "../utils/activitySkills";
 import { parseActivityContent } from "../utils/activityUtils";
 
-const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
+const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
 const ResultsView = () => {
   const location = useLocation();

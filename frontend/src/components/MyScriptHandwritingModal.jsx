@@ -19,8 +19,9 @@ const MyScriptHandwritingModal = ({
   const [editor, setEditor] = useState(null);
   const [recognizedText, setRecognizedText] = useState("");
   const [error, setError] = useState(null);
-  const appKey = process.env.REACT_APP_MYSCRIPT_APP_KEY;
-  const hmacKey = process.env.REACT_APP_MYSCRIPT_HMAC_KEY;
+  const appKey = import.meta.env.VITE_MYSCRIPT_APP_KEY;
+  const hmacKey = import.meta.env.VITE_MYSCRIPT_HMAC_KEY;
+  const digitSubsetKnowledge = import.meta.env.VITE_MYSCRIPT_DIGITS_SK_PATH || "digitSubsetKnowledge";
   const hasValidKeys = appKey && appKey !== "VOTRE_APP_KEY" && hmacKey && hmacKey !== "VOTRE_HMAC_KEY";
   useEffect(() => {
     // Initialisation du moteur MyScript (v3.2.1) quand la modale s'ouvre
@@ -45,6 +46,13 @@ const MyScriptHandwritingModal = ({
               gesture: { enable: false },
               text: {
                 mimeTypes: ["text/plain", "application/vnd.myscript.jiix"],
+                configuration: {
+                  // SK (Subset Knowledge): chemin vers le fichier .res qui limite la reconnaissance aux chiffres.
+                  // https://developer.myscript.com/support/recognition-assets
+                  // https://cloud.myscript.com/#/resources
+                  customResources: [digitSubsetKnowledge],
+                  addLKText: true,
+                },
               },
             },
             export: {
@@ -96,7 +104,7 @@ const MyScriptHandwritingModal = ({
       };
       initEditor();
     }
-  }, [isOpen, editor, appKey, hmacKey]);
+  }, [isOpen, editor, appKey, hmacKey, digitSubsetKnowledge]);
   // Nettoyage
   useEffect(() => {
     if (!isOpen && editor) {

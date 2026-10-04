@@ -12,7 +12,7 @@ import StudentPanel from "../components/StudentPanel";
 import LeaderboardPanel from "../components/LeaderboardPanel";
 const DEFAULT_ACTIVITY_CONTENT = {};
 const HEADER_COLLAPSE_DELAY = 5000;
-const VIEW_BACKGROUND_ICON = `${process.env.PUBLIC_URL}/images/favicon_io/favicon.png`;
+const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
 const FIXED_DISCIPLINES = ["Français", "Mathématiques", "Outils"];
 const DISCIPLINE_CONFIG = {
