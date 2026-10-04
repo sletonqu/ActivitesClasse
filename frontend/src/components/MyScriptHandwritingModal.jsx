@@ -23,6 +23,7 @@ const MyScriptHandwritingModal = ({
   const hmacKey = import.meta.env.VITE_MYSCRIPT_HMAC_KEY;
   const digitSubsetKnowledge = import.meta.env.VITE_MYSCRIPT_DIGITS_SK_PATH || "digitSubsetKnowledge";
   const hasValidKeys = appKey && appKey !== "VOTRE_APP_KEY" && hmacKey && hmacKey !== "VOTRE_HMAC_KEY";
+
   useEffect(() => {
     // Initialisation du moteur MyScript (v3.2.1) quand la modale s'ouvre
     if (isOpen && editorRef.current && !editor) {
@@ -63,6 +64,8 @@ const MyScriptHandwritingModal = ({
         };
         try {
           const newEditor = new InteractiveInkEditor(editorRef.current, options);
+          // Keep the writing area and its guides fixed instead of auto-panning near the edges.
+          newEditor.renderer.ensurePointVisible = () => {};
           // Force le thème après création
           newEditor.theme = "* { -myscript-pen-width: 4; color: #4f46e5; }";
           const handleExport = (exports) => {
