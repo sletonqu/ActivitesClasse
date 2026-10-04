@@ -83,6 +83,21 @@ AI_LOCAL_TOKEN_CORRECTION=false
 
 > ⚠️ Si des clés ont déjà été exposées dans l'historique Git ou dans un fichier partagé, il faut les révoquer puis les régénérer.
 
+### Créer la ressource MyScript pour reconnaître les chiffres
+
+La ressource Subset Knowledge limite le vocabulaire proposé au moteur de reconnaissance. Le fichier source [`references/digitSubsetKnowledge.txt`](references/digitSubsetKnowledge.txt) contient les chiffres autorisés (`0123456789`).
+
+Pour générer le fichier `.res` :
+
+1. Ouvrir le [Resource Builder MyScript](https://developer.myscript.com/support/recognition-assets/#resource-builder).
+2. Choisir le type **Subset Knowledge (Text)**.
+3. Fournir le fichier `references/digitSubsetKnowledge.txt`, puis lancer la génération et télécharger le fichier `.res`.
+4. Conserver le fichier généré sous `references/digitSubsetKnowledge.res`.
+
+La procédure est décrite dans la documentation MyScript : [Build custom resources — How to build resources](https://developer.myscript.com/docs/interactive-ink/4.5/web/advanced/build-custom-resources/#how-to-build-resources).
+
+La génération locale ne rend pas automatiquement la ressource disponible au moteur en ligne. Il faut également l’ajouter à l’application correspondante dans MyScript Cloud. Le frontend transmet son identifiant via `customResources` ; par défaut, il utilise `digitSubsetKnowledge`. Pour employer un autre identifiant, renseigner `REACT_APP_MYSCRIPT_DIGITS_SK_PATH` dans `.env`.
+
 ### Lancer l'application
 
 ```bash
