@@ -96,7 +96,7 @@ Pour générer le fichier `.res` :
 
 La procédure est décrite dans la documentation MyScript : [Build custom resources — How to build resources](https://developer.myscript.com/docs/interactive-ink/4.5/web/advanced/build-custom-resources/#how-to-build-resources).
 
-La génération locale ne rend pas automatiquement la ressource disponible au moteur en ligne. Il faut également l’ajouter à l’application correspondante dans MyScript Cloud. Le frontend transmet son identifiant via `customResources` ; par défaut, il utilise `digitSubsetKnowledge`. Pour employer un autre identifiant, renseigner `REACT_APP_MYSCRIPT_DIGITS_SK_PATH` dans `.env`.
+Dans [MyScript Cloud — Resources](https://cloud.myscript.com/#/resources), configurez les clés de l’application et ajoutez-y la ressource générée. La génération locale ne rend pas automatiquement la ressource disponible au moteur en ligne. Le frontend transmet son identifiant via `customResources` ; par défaut, il utilise `digitSubsetKnowledge`. Pour employer un autre identifiant, renseigner `REACT_APP_MYSCRIPT_DIGITS_SK_PATH` dans `.env`.
 
 ### Lancer l'application
 
