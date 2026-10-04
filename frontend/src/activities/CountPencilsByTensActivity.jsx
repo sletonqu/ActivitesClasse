@@ -224,14 +224,15 @@ const CountPencilsByTensActivity = ({
       if (inputEl) {
         const rect = inputEl.getBoundingClientRect();
         // Use a higher estimated height for MyScript to avoid overlapping the active input.
-        const modalHeight = inputType === "MyScript" ? 430 : 350;
+        const modalHeight = inputType === "MyScript" ? 630 : 350;
+        const modalWidth = inputType === "MyScript" ? 448 : 350;
         const top = rect.top > modalHeight + 20
           ? rect.top - modalHeight - 10
           : rect.bottom + 10;
 
         setOcrPosition({
           top: Math.max(10, Math.min(window.innerHeight - modalHeight, top)),
-          left: Math.max(10, Math.min(window.innerWidth - 350, rect.left)),
+          left: Math.max(10, Math.min(window.innerWidth - modalWidth, rect.left)),
         });
       }
     } else {
@@ -717,7 +718,7 @@ const CountPencilsByTensActivity = ({
               : ""
           }
           mode="minimal"
-          maxWidth="max-w-[340px]"
+          maxWidth="max-w-[448px]"
           overlayType="Normal"
           position={ocrPosition}
           onRecognized={handleOCRRecognized}

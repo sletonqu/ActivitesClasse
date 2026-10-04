@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { InteractiveInkEditor } from "iink-ts";
+import { Canvas } from "iink-ts";
 /**
  * Composant utilisant le SDK MyScript iink pour une reconnaissance 
- * d'écriture manuscrite de haute précision (v3 API).
+ * d'écriture manuscrite de haute précision.
  * Configurable pour s'adapter à différents contextes (normal/minimal).
  */
 const MyScriptHandwritingModal = ({
@@ -12,11 +12,16 @@ const MyScriptHandwritingModal = ({
   onClose,
   mode = "normal", // "normal" or "minimal"
   overlayType = "Blur", // "Blur" or "Normal"
-  maxWidth = "max-w-xl", // Tailwind max-w class
+  maxWidth = "max-w-[448px]", // Tailwind max-w class
   position = null // { top, left }
 }) => {
   const editorRef = useRef(null);
+  const modalRef = useRef(null);
+  const editorInstanceRef = useRef(null);
+  const initializationIdRef = useRef(0);
+  const dragOffsetRef = useRef(null);
   const [editor, setEditor] = useState(null);
+  const [dragPosition, setDragPosition] = useState(null);
   const [recognizedText, setRecognizedText] = useState("");
   const [error, setError] = useState(null);
   const appKey = import.meta.env.VITE_MYSCRIPT_APP_KEY;
@@ -24,99 +29,148 @@ const MyScriptHandwritingModal = ({
   const digitSubsetKnowledge = import.meta.env.VITE_MYSCRIPT_DIGITS_SK_PATH || "digitSubsetKnowledge";
   const hasValidKeys = appKey && appKey !== "VOTRE_APP_KEY" && hmacKey && hmacKey !== "VOTRE_HMAC_KEY";
 
+  const clampPosition = (left, top) => {
+    const modalWidth = modalRef.current?.offsetWidth || 448;
+    const modalHeight = modalRef.current?.offsetHeight || 630;
+    const maxLeft = Math.max(8, window.innerWidth - modalWidth - 8);
+    const maxTop = Math.max(8, window.innerHeight - modalHeight - 8);
+
+    return {
+      left: Math.min(Math.max(8, left), maxLeft),
+      top: Math.min(Math.max(8, top), maxTop),
+    };
+  };
+
   useEffect(() => {
-    // Initialisation du moteur MyScript (v3.2.1) quand la modale s'ouvre
-    if (isOpen && editorRef.current && !editor) {
-      setError(null);
-      const initEditor = async () => {
-        const options = {
+    if (!isOpen) {
+      dragOffsetRef.current = null;
+      setDragPosition(null);
+      return undefined;
+    }
+
+    const handlePointerMove = (event) => {
+      if (!dragOffsetRef.current) return;
+
+      const { offsetX, offsetY } = dragOffsetRef.current;
+      setDragPosition(clampPosition(event.clientX - offsetX, event.clientY - offsetY));
+    };
+    const stopDragging = () => {
+      dragOffsetRef.current = null;
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopDragging);
+    window.addEventListener("pointercancel", stopDragging);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopDragging);
+      window.removeEventListener("pointercancel", stopDragging);
+    };
+  }, [isOpen]);
+
+  const handleDragStart = (event) => {
+    if (event.button !== 0) return;
+
+    const rect = modalRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const left = dragPosition?.left ?? rect.left;
+    const top = dragPosition?.top ?? rect.top;
+    dragOffsetRef.current = {
+      offsetX: event.clientX - left,
+      offsetY: event.clientY - top,
+    };
+
+    setDragPosition(clampPosition(left, top));
+    event.preventDefault();
+  };
+
+  useEffect(() => {
+    if (!isOpen || !editorRef.current || editorInstanceRef.current) return undefined;
+
+    const initializationId = ++initializationIdRef.current;
+    setError(null);
+
+    const initEditor = async () => {
+      let newEditor;
+      try {
+        newEditor = await Canvas.load(editorRef.current, "INTERACTIVE_INK", {
           configuration: {
             server: {
-              protocol: "WEBSOCKET",
-              apiVersion: 'V4',
               scheme: "https",
               host: "cloud.myscript.com",
               applicationKey: appKey || "VOTRE_APP_KEY",
               hmacKey: hmacKey || "VOTRE_HMAC_KEY",
             },
             menu: { enable: false },
-            penStyle: { width: 4 },
+            penStyle: { width: 4, color: "#4f46e5" },
             recognition: {
-              type: "TEXT",
               lang: "fr_FR",
               gesture: { enable: false },
-              text: {
-                mimeTypes: ["text/plain", "application/vnd.myscript.jiix"],
-                configuration: {
-                  // SK (Subset Knowledge): chemin vers le fichier .res qui limite la reconnaissance aux chiffres.
-                  // https://developer.myscript.com/support/recognition-assets
-                  // https://cloud.myscript.com/#/resources
+              "raw-content": {
+                recognition: { types: ["text"] },
+                classification: { types: ["text"] },
+                gestures: [],
+                text: {
                   customResources: [digitSubsetKnowledge],
                   addLKText: true,
                 },
               },
             },
-            export: {
-              "requested-mime-types": ["text/plain", "application/vnd.myscript.jiix"],
-              "auto-export": true
-            }
           },
-        };
-        try {
-          const newEditor = new InteractiveInkEditor(editorRef.current, options);
-          // Keep the writing area and its guides fixed instead of auto-panning near the edges.
-          newEditor.renderer.ensurePointVisible = () => {};
-          // Force le thème après création
-          newEditor.theme = "* { -myscript-pen-width: 4; color: #4f46e5; }";
-          const handleExport = (exports) => {
-            if (!exports) return;
-            let text = "";
-            if (exports['text/plain']) {
-              text = exports['text/plain'];
-            } else if (exports['application/vnd.myscript.jiix']) {
-              const jiix = exports['application/vnd.myscript.jiix'];
-              text = jiix.label || (jiix.elements ? jiix.elements.map(e => e.label || "").join("") : "");
-            }
-            if (text !== undefined && text !== null) {
-              setRecognizedText(String(text));
-            }
-          };
-          // On écoute les exports via l'élément DOM
-          editorRef.current.addEventListener('exported', (event) => {
-            const data = event.detail?.exports || event.detail;
-            handleExport(data);
-          });
-          // Fallback: Polling
-          const interval = setInterval(() => {
-            if (newEditor.exports) {
-              handleExport(newEditor.exports);
-            }
-          }, 1000);
-          // Gestion des erreurs via l'élément DOM
-          editorRef.current.addEventListener('error', (event) => {
-            const msg = event.detail?.message || "Erreur de connexion MyScript";
-            setError(msg);
-          });
-          await newEditor.initialize();
-          setEditor(newEditor);
-          newEditor._pollingInterval = interval;
-        } catch (err) {
-          console.error("Erreur fatale MyScript:", err);
+        });
+
+        if (initializationId !== initializationIdRef.current) {
+          await newEditor.destroy();
+          return;
+        }
+
+        newEditor.renderer.ensurePointVisible = () => {};
+
+        newEditor.event.addEventListener("exported", (event) => {
+          const exports = event.detail;
+          if (!exports) return;
+
+          let text = "";
+          if (exports["text/plain"]) {
+            text = exports["text/plain"];
+          } else if (exports["application/vnd.myscript.jiix"]) {
+            const jiix = exports["application/vnd.myscript.jiix"];
+            text = jiix.label || (jiix.elements ? jiix.elements.map((element) => element.label || "").join("") : "");
+          }
+          setRecognizedText(String(text));
+        });
+
+        newEditor.event.addEventListener("error", (event) => {
+          setError(event.detail?.message || "Erreur de connexion MyScript");
+        });
+
+        editorInstanceRef.current = newEditor;
+        setEditor(newEditor);
+      } catch (err) {
+        console.error("Erreur fatale MyScript:", err);
+        if (initializationId === initializationIdRef.current) {
           setError(err.message || "Échec de l'initialisation du moteur MyScript");
         }
-      };
-      initEditor();
-    }
-  }, [isOpen, editor, appKey, hmacKey, digitSubsetKnowledge]);
-  // Nettoyage
+      }
+    };
+
+    initEditor();
+    return () => {
+      initializationIdRef.current += 1;
+    };
+  }, [isOpen, appKey, hmacKey, digitSubsetKnowledge]);
+
   useEffect(() => {
     if (!isOpen && editor) {
-      if (editor._pollingInterval) {
-        clearInterval(editor._pollingInterval);
-      }
+      editorInstanceRef.current = null;
       setEditor(null);
       setRecognizedText("");
       setError(null);
+      editor.destroy().catch((err) => {
+        console.error("Erreur lors de la fermeture de MyScript:", err);
+      });
     }
   }, [isOpen, editor]);
   const handleValidate = () => {
@@ -133,7 +187,10 @@ const MyScriptHandwritingModal = ({
   if (!isOpen) return null;
   const isMinimal = mode === "minimal";
   const overlayClass = overlayType === "Blur" ? "backdrop-blur-md" : "";
-  const containerStyle = position ? { position: 'fixed', top: position.top, left: position.left, transform: 'none' } : {};
+  const activePosition = dragPosition || position;
+  const containerStyle = activePosition
+    ? { position: "fixed", top: activePosition.top, left: activePosition.left, transform: "none" }
+    : {};
 
   return (
     <div
@@ -142,9 +199,24 @@ const MyScriptHandwritingModal = ({
     >
       <div
         id="myscript-modal-container"
+        ref={modalRef}
         style={containerStyle}
         className={`w-full ${maxWidth} rounded-3xl bg-white p-4 shadow-2xl ring-1 ring-black/5 sm:p-6`}
       >
+        <div
+          id="ms-modal-drag-handle"
+          onPointerDown={handleDragStart}
+          title="Déplacer la fenêtre d’écriture"
+          aria-label="Déplacer la fenêtre d’écriture"
+          className="mb-1.5 flex cursor-grab items-center justify-center rounded-full border border-stone-700/80 px-2 py-1 shadow-inner touch-none active:cursor-grabbing"
+          style={{
+            backgroundColor: "#2f2623",
+            backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08) 0 2px, transparent 2.5px), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.06) 0 1.5px, transparent 2px), radial-gradient(circle at 35% 75%, rgba(0,0,0,0.22) 0 2px, transparent 3px), linear-gradient(135deg, #4a3a34 0%, #2f2623 50%, #221b18 100%)"
+          }}
+        >
+          <span className="sr-only">Déplacer la fenêtre d’écriture</span>
+          <span aria-hidden="true" className="h-1 w-9 rounded-full bg-white/20 shadow-inner" />
+        </div>
         <div id="ms-modal-header" className={`flex items-start justify-between ${isMinimal ? "mb-2" : "mb-6"}`}>
           <div id="ms-modal-title-area">
             {!isMinimal && <h3 id="ms-modal-title" className="text-sm font-black uppercase tracking-wider text-slate-400">Écriture MyScript</h3>}
@@ -195,8 +267,8 @@ const MyScriptHandwritingModal = ({
         <div
           id="ms-editor-area"
           ref={editorRef}
-          className={`${isMinimal ? 'h-[250px] min-h-[250px]' : 'h-[450px] min-h-[450px]'} w-full mt-3 overflow-hidden rounded-2xl border-4 border-slate-100 bg-slate-50 shadow-inner`}
-          style={{ touchAction: 'none', display: error ? 'none' : 'block' }}
+          className="mt-3 h-[400px] min-h-[400px] w-[400px] min-w-[400px] flex-none overflow-hidden rounded-2xl border-4 border-slate-100 bg-slate-50 shadow-inner"
+          style={{ width: 400, height: 400, minWidth: 400, touchAction: "none", display: error ? "none" : "block" }}
         />
         {error && (
           <div id="ms-error-container" className="message-modal error-msg">
