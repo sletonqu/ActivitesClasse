@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
-import { FabricRequerre } from "../components/FabricRequerre";
 
 export const defaultInteractiveWhiteboardActivityContent = {
   defaultTitle: "Tableau",
@@ -1983,19 +1982,6 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleAddRequerre = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    const ruler = new FabricRequerre({
-      left: canvasWidth / 2,
-      top: Math.round(canvasHeight / 4),
-    });
-
-    canvas.add(ruler);
-    setMode("select");
-  };
-
   const handleExportJson = () => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -2261,13 +2247,6 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               <button type="button" onClick={() => inputImageRef.current?.click()} title="Insérer une image" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🖼️</button>
               <input ref={inputImageRef} type="file" accept="image/*" onChange={handlePrepareImage} className="hidden" />
               <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
-              <button
-                id="interactive-whiteboard-ruler-button"
-                type="button"
-                onClick={handleAddRequerre}
-                title="Insérer une règle"
-                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
-              >📏</button>
             </div>
 
             <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
