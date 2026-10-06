@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
 import StudentsManagementPanel from "../components/StudentsManagementPanel";
@@ -79,6 +80,32 @@ const TeacherView = () => {
   const [submittingEditActivity, setSubmittingEditActivity] = useState(false);
   const [editActivityError, setEditActivityError] = useState("");
   const [activityMessage, setActivityMessage] = useState("");
+
+  const [confirmModalState, setConfirmModalState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  const confirmAction = (title, message) => {
+    return new Promise((resolve) => {
+      setConfirmModalState({
+        isOpen: true,
+        title,
+        message,
+        onConfirm: () => {
+          setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
+          resolve(true);
+        },
+        onCancel: () => {
+          setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
+          resolve(false);
+        },
+      });
+    });
+  };
 
   const { show: showStudentMessage, fade: fadeStudentMessage } = useAutoDismissMessage(
     studentMessage,
@@ -276,7 +303,8 @@ const TeacherView = () => {
   };
 
   const handleDeleteStudent = async (student) => {
-    const confirmed = window.confirm(
+    const confirmed = await confirmAction(
+      "Supprimer l'élève",
       `Supprimer ${student.firstname} ${student.name} et tous ses résultats associés ?`
     );
     if (!confirmed) return;
@@ -387,7 +415,8 @@ const TeacherView = () => {
   const handleDeleteAllStudents = async () => {
     if (!selectedClassId || students.length === 0) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmAction(
+      "Supprimer tous les élèves",
       "Supprimer tous les élèves de la classe active et tous leurs résultats associés ?"
     );
     if (!confirmed) return;
@@ -431,7 +460,8 @@ const TeacherView = () => {
   };
 
   const handleDeleteGroup = async (group) => {
-    const confirmed = window.confirm(
+    const confirmed = await confirmAction(
+      "Supprimer le groupe",
       `Supprimer le groupe ${group.name} et retirer tous ses élèves du groupe ?`
     );
     if (!confirmed) return;
@@ -463,7 +493,8 @@ const TeacherView = () => {
   const handleDeleteAllGroups = async () => {
     if (!selectedClassId || groups.length === 0) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmAction(
+      "Supprimer tous les groupes",
       "Supprimer tous les groupes de la classe active et retirer les élèves de leurs groupes ?"
     );
     if (!confirmed) return;
@@ -551,7 +582,10 @@ const TeacherView = () => {
   const handleRemoveAllStudentsFromGroup = async () => {
     if (!selectedGroupId) return;
 
-    const confirmed = window.confirm("Retirer tous les élèves de ce groupe ?");
+    const confirmed = await confirmAction(
+      "Retirer tous les élèves",
+      "Retirer tous les élèves de ce groupe ?"
+    );
     if (!confirmed) return;
 
     setRemovingAllGroupStudents(true);
@@ -719,7 +753,8 @@ const TeacherView = () => {
   const handleDeleteAllResults = async () => {
     if (!selectedResultStudentId || studentResults.length === 0) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmAction(
+      "Supprimer les résultats",
       "Confirmer la suppression de tous les résultats de cet élève ?"
     );
     if (!confirmed) return;
@@ -1188,6 +1223,15 @@ const TeacherView = () => {
           />
         </CollapsibleSection>}
       </div>
+      <ConfirmModal
+        isOpen={confirmModalState.isOpen}
+        title={confirmModalState.title}
+        message={confirmModalState.message}
+        onConfirm={confirmModalState.onConfirm}
+        onCancel={confirmModalState.onCancel}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </div>
   );
 };
