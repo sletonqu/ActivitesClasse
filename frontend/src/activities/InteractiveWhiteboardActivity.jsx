@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
+import ConfirmModal from "../components/ConfirmModal";
 
 export const defaultInteractiveWhiteboardActivityContent = {
   defaultTitle: "Tableau",
@@ -840,6 +841,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [canRedo, setCanRedo] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ x: null, y: null });
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   const clampToolbarPosition = (nextX, nextY) => {
     const toolbarWidth = toolbarDockRef.current?.offsetWidth || 800;
@@ -1831,14 +1833,21 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleClear = () => {
+  const handleClearClick = () => {
     const canvas = fabricCanvasRef.current;
-    if (!canvas || !window.confirm("Voulez-vous vraiment tout effacer ?")) return;
+    if (!canvas) return;
+    setIsClearModalOpen(true);
+  };
+
+  const executeClear = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
     canvas.clear();
     canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
     alignFabricLayersTopLeft(canvas);
     applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
     saveHistory();
+    setIsClearModalOpen(false);
   };
 
   const handleToggleOrientation = () => {
@@ -2252,7 +2261,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
               <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↩️</button>
               <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
-              <button type="button" onClick={handleClear} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
+              <button type="button" onClick={handleClearClick} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
             </div>
                 </div>
               </section>
@@ -2312,6 +2321,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={isClearModalOpen}
+        title="Effacer le tableau"
+        message="Voulez-vous vraiment tout effacer ? Cette action est irréversible."
+        onConfirm={executeClear}
+        onCancel={() => setIsClearModalOpen(false)}
+        confirmStyle="danger"
+        confirmText="Effacer"
+      />
     </div>
   );
 };
