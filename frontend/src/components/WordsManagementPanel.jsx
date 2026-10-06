@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import ConfirmModal from "./ConfirmModal";
+import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
@@ -28,6 +30,8 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
   const [searchedWords, setSearchedWords] = useState([]);
 
   const { show: showMessage, fade: fadeMessage } = useAutoDismissMessage(message, setMessage);
+
+  const { confirmAction, confirmModalState } = useConfirm();
 
   const loadStats = async () => {
     setLoadingStats(true);
@@ -159,7 +163,8 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Suppression des mots",
       "Supprimer l'ensemble des mots importés de la base de données ?"
     );
     if (!confirmDelete) {
@@ -202,7 +207,10 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
       return;
     }
 
-    const confirmDelete = window.confirm(`Supprimer le mot « ${word.word || "(vide)"} » de la base ?`);
+    const confirmDelete = await confirmAction(
+      "Supprimer le mot",
+      `Supprimer le mot « ${word.word || "(vide)"} » de la base ?`
+    );
     if (!confirmDelete) {
       return;
     }
@@ -618,6 +626,11 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
           ))
         )}
       </div>
+      <ConfirmModal
+        {...confirmModalState}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </section>
   );
 };

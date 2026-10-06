@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
 import StudentsImportExportPanel from "../components/StudentsImportExportPanel";
 import GlobalImportExportPanel from "../components/GlobalImportExportPanel";
 import ActivitiesManagementPanel from "../components/ActivitiesManagementPanel";
@@ -11,6 +12,7 @@ import CharactersManagementPanel from "../components/CharactersManagementPanel";
 import CollapsibleSection from "../components/CollapsibleSection";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import useConfirm from "../hooks/useConfirm";
 import {
   fetchGroupsByClass,
   fetchResults,
@@ -89,6 +91,8 @@ const AdminView = () => {
   const [editClassTeacherId, setEditClassTeacherId] = useState("");
   const [deletingClassId, setDeletingClassId] = useState("");
   const [deletingAllClasses, setDeletingAllClasses] = useState(false);
+
+  const { confirmAction, confirmModalState } = useConfirm();
 
   const { show: showTeacherMessage, fade: fadeTeacherMessage } = useAutoDismissMessage(
     teacherMessage,
@@ -254,7 +258,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Supprimer l'activité",
       `Supprimer l'activité "${activity.title || "Sans titre"}" et ses résultats associés ?`
     );
     if (!confirmDelete) {
@@ -294,7 +299,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Tout supprimer",
       "Supprimer toutes les activités et tous les résultats associés ?"
     );
     if (!confirmDelete) {
@@ -438,7 +444,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Supprimer l'enseignant",
       `Supprimer l'enseignant ${teacher.name} et le dissocier de ses classes ?`
     );
     if (!confirmDelete) {
@@ -467,7 +474,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Tout supprimer",
       "Supprimer tous les enseignants et les dissocier de leurs classes ?"
     );
     if (!confirmDelete) {
@@ -694,7 +702,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Supprimer la classe",
       `Supprimer la classe ${cls.name} ainsi que ses groupes, ses élèves et leurs résultats ?`
     );
     if (!confirmDelete) {
@@ -723,7 +732,8 @@ const AdminView = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Tout supprimer",
       "Supprimer toutes les classes, tous les groupes, tous les élèves et tous leurs résultats ?"
     );
     if (!confirmDelete) {
@@ -1083,6 +1093,11 @@ const AdminView = () => {
           <StudentsImportExportPanel title="Import / Export des élèves (Admin)" hideTitle />
         </CollapsibleSection>
       </div>
+      <ConfirmModal
+        {...confirmModalState}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </div>
   );
 };

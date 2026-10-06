@@ -9,6 +9,7 @@ import CollapsibleSection from "../components/CollapsibleSection";
 import WorkshopManagementPanel from "../components/WorkshopManagementPanel";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import useConfirm from "../hooks/useConfirm";
 import {
   fetchGroupsByClass,
   fetchResults,
@@ -81,31 +82,7 @@ const TeacherView = () => {
   const [editActivityError, setEditActivityError] = useState("");
   const [activityMessage, setActivityMessage] = useState("");
 
-  const [confirmModalState, setConfirmModalState] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    onConfirm: null,
-    onCancel: null,
-  });
-
-  const confirmAction = (title, message) => {
-    return new Promise((resolve) => {
-      setConfirmModalState({
-        isOpen: true,
-        title,
-        message,
-        onConfirm: () => {
-          setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
-          resolve(true);
-        },
-        onCancel: () => {
-          setConfirmModalState((prev) => ({ ...prev, isOpen: false }));
-          resolve(false);
-        },
-      });
-    });
-  };
+  const { confirmAction, confirmModalState } = useConfirm();
 
   const { show: showStudentMessage, fade: fadeStudentMessage } = useAutoDismissMessage(
     studentMessage,
@@ -1224,11 +1201,7 @@ const TeacherView = () => {
         </CollapsibleSection>}
       </div>
       <ConfirmModal
-        isOpen={confirmModalState.isOpen}
-        title={confirmModalState.title}
-        message={confirmModalState.message}
-        onConfirm={confirmModalState.onConfirm}
-        onCancel={confirmModalState.onCancel}
+        {...confirmModalState}
         confirmStyle="danger"
         confirmText="Confirmer"
       />

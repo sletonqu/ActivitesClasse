@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import ConfirmModal from "./ConfirmModal";
+import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
@@ -73,6 +75,8 @@ const GeneratedSentencesManagementPanel = () => {
   const [error, setError] = useState("");
 
   const { show: showMessage, fade: fadeMessage } = useAutoDismissMessage(message, setMessage);
+
+  const { confirmAction, confirmModalState } = useConfirm();
 
   const sortedSentences = useMemo(
     () => sortSentencesList(sentences, sortOrder),
@@ -258,7 +262,8 @@ const GeneratedSentencesManagementPanel = () => {
       return;
     }
 
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Suppression de la phrase",
       `Supprimer la phrase « ${selectedSentence.sentence} » de la base ?`
     );
     if (!confirmDelete) {
@@ -359,7 +364,8 @@ const GeneratedSentencesManagementPanel = () => {
     }
 
     const hasFilter = Boolean(levelFilter || themeFilter.trim() || searchText.trim());
-    const confirmReset = window.confirm(
+    const confirmReset = await confirmAction(
+      "Réinitialiser les compteurs",
       hasFilter
         ? "Réinitialiser les compteurs des phrases correspondant aux filtres actuels ?"
         : "Réinitialiser tous les compteurs d'utilisation sans supprimer les phrases ?"
@@ -396,7 +402,8 @@ const GeneratedSentencesManagementPanel = () => {
     }
 
     const hasFilter = Boolean(levelFilter || themeFilter.trim() || searchText.trim());
-    const confirmDelete = window.confirm(
+    const confirmDelete = await confirmAction(
+      "Suppression de phrases",
       hasFilter
         ? "Supprimer toutes les phrases correspondant aux filtres actuels ?"
         : "Supprimer toutes les phrases générées stockées en base ?"
@@ -734,6 +741,11 @@ const GeneratedSentencesManagementPanel = () => {
           })
         )}
       </div>
+      <ConfirmModal
+        {...confirmModalState}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </section>
   );
 };

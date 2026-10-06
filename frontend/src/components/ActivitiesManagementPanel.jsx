@@ -259,15 +259,17 @@ const ActivitiesManagementPanel = ({
         >
           <div id="activities-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800">Liste des activités</h3>
-            <button
-              id="activities-panel-delete-all-button"
-              type="button"
-              onClick={onDeleteAllActivities}
-              disabled={loadingActivities || activities.length === 0 || deletingAllActivities}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
-            >
-              {deletingAllActivities ? "Suppression..." : "Supprimer Tout"}
-            </button>
+            {onDeleteAllActivities && (
+              <button
+                id="activities-panel-delete-all-button"
+                type="button"
+                onClick={onDeleteAllActivities}
+                disabled={loadingActivities || activities.length === 0 || deletingAllActivities}
+                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deletingAllActivities ? "Suppression..." : "Supprimer Tout"}
+              </button>
+            )}
           </div>
 
           {loadingActivities ? (
@@ -304,7 +306,7 @@ const ActivitiesManagementPanel = ({
                         </span>
                       )}
                     </p>
-                    {String(selectedActivityEditId) === String(activity.id) && (
+                    {String(selectedActivityEditId) === String(activity.id) && onDeleteActivity && (
                       <button
                         id={`activity-delete-button-${activity.id}`}
                         type="button"

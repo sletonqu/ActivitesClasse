@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import ConfirmModal from "./ConfirmModal";
+import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
@@ -23,6 +25,8 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
   const [error, setError] = useState("");
 
   const { show: showMessage, fade: fadeMessage } = useAutoDismissMessage(message, setMessage);
+
+  const { confirmAction, confirmModalState } = useConfirm();
 
   const loadSystemInfo = async () => {
     setLoadingInfo(true);
@@ -49,7 +53,8 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
   }, []);
 
   const handleRequestUpdate = async () => {
-    const confirmUpdate = window.confirm(
+    const confirmUpdate = await confirmAction(
+      "Mise à jour du système",
       "Demander immédiatement la mise à jour de l'application sur ce poste ?"
     );
     if (!confirmUpdate) {
@@ -197,6 +202,11 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
           {error}
         </div>
       )}
+      <ConfirmModal
+        {...confirmModalState}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </section>
   );
 };

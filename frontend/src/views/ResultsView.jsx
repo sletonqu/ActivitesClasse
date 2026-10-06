@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
+import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
 import {
   fetchGroupsByClass,
@@ -27,6 +29,8 @@ const ResultsView = () => {
   const [studentSortMode, setStudentSortMode] = useState("name");
   const [deletingResultId, setDeletingResultId] = useState(null);
   const [modalErrorMessage, setModalErrorMessage] = useState("");
+
+  const { confirmAction, confirmModalState } = useConfirm();
   const [pinnedStudentId, setPinnedStudentId] = useState(null);
   const tableScrollRef = useRef(null);
   const [tableScrollEdges, setTableScrollEdges] = useState({ left: false, right: false });
@@ -255,8 +259,9 @@ const ResultsView = () => {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Voulez-vous vraiment supprimer cette tentative ? Cette action est irreversible."
+    const confirmed = await confirmAction(
+      "Suppression de tentative",
+      "Voulez-vous vraiment supprimer cette tentative ? Cette action est irréversible."
     );
 
     if (!confirmed) {
@@ -686,6 +691,11 @@ const ResultsView = () => {
           </div>
         </div>
       )}
+      <ConfirmModal
+        {...confirmModalState}
+        confirmStyle="danger"
+        confirmText="Confirmer"
+      />
     </div>
   );
 };
