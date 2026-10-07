@@ -585,11 +585,13 @@ const CountPencilsByTensActivity = ({
                             onClick={() => openNumberPad(exercise.id, "centaines")}
                             onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
                             disabled={finished}
-                            placeholder="Touchez ici"
                             aria-label={`Centaines de l'exercice ${exercise.id}`}
-                            className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                            className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
                               ? "border-[#E89E45] ring-2 ring-[#E89E45]/30"
                               : "border-[#E89E45]/40 hover:border-[#E89E45]"
+                              } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines")
+                                ? "animate-pulse-slow-orange motion-reduce:animate-none"
+                                : ""
                               }`}
                           />
                         </label>
@@ -615,11 +617,13 @@ const CountPencilsByTensActivity = ({
                         onClick={() => openNumberPad(exercise.id, "dizaines")}
                         onChange={(event) => updateAnswer(exercise.id, "dizaines", event.target.value)}
                         disabled={finished}
-                        placeholder="Touchez ici"
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#179858] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#179858] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
                           ? "border-[#179858] ring-2 ring-[#179858]/30"
                           : "border-[#179858]/40 hover:border-[#179858]"
+                          } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines")
+                            ? "animate-pulse-slow-green motion-reduce:animate-none"
+                            : ""
                           }`}
                       />
                     </label>
@@ -644,11 +648,13 @@ const CountPencilsByTensActivity = ({
                         onClick={() => openNumberPad(exercise.id, "unites")}
                         onChange={(event) => updateAnswer(exercise.id, "unites", event.target.value)}
                         disabled={finished}
-                        placeholder="Touchez ici"
                         aria-label={`Unités de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#4749EB] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#4749EB] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
                           ? "border-[#4749EB] ring-2 ring-[#4749EB]/30"
                           : "border-[#4749EB]/40 hover:border-[#4749EB]"
+                          } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "unites")
+                            ? "animate-pulse-slow-blue motion-reduce:animate-none"
+                            : ""
                           }`}
                       />
                     </label>
@@ -673,11 +679,13 @@ const CountPencilsByTensActivity = ({
                         onClick={() => openNumberPad(exercise.id, "total")}
                         onChange={(event) => updateAnswer(exercise.id, "total", event.target.value)}
                         disabled={finished}
-                        placeholder="Touchez ici"
                         aria-label={`Total de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-slate-800 placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-slate-800 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
                           ? "border-indigo-500 ring-2 ring-indigo-200"
                           : "border-slate-300"
+                          } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "total")
+                            ? "animate-pulse-slow-indigo motion-reduce:animate-none"
+                            : ""
                           }`}
                       />
                     </label>
