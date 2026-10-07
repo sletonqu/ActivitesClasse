@@ -571,7 +571,7 @@ const CountPencilsByTensActivity = ({
                     className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}
                   >
                     {showCentainesInput && (
-                      <label className="text-sm font-medium text-slate-700">
+                      <label className="text-sm font-semibold text-[#E89E45]">
                         Centaines
                         <input
                           id={`count-pencils-by-tens-centaines-${exercise.id}`}
@@ -586,15 +586,15 @@ const CountPencilsByTensActivity = ({
                           disabled={finished}
                           placeholder="Touchez ici"
                           aria-label={`Centaines de l'exercice ${exercise.id}`}
-                          className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
-                            ? "border-indigo-500 ring-2 ring-indigo-200"
-                            : "border-slate-300"
+                          className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                            ? "border-[#E89E45] ring-2 ring-[#E89E45]/30"
+                            : "border-[#E89E45]/40 hover:border-[#E89E45]"
                             }`}
                         />
                       </label>
                     )}
 
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-semibold text-[#179858]">
                       Dizaines
                       <input
                         id={`count-pencils-by-tens-dizaines-${exercise.id}`}
@@ -609,14 +609,14 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
-                          ? "border-indigo-500 ring-2 ring-indigo-200"
-                          : "border-slate-300"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#179858] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                          ? "border-[#179858] ring-2 ring-[#179858]/30"
+                          : "border-[#179858]/40 hover:border-[#179858]"
                           }`}
                       />
                     </label>
 
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-semibold text-[#4749EB]">
                       Unités
                       <input
                         id={`count-pencils-by-tens-unites-${exercise.id}`}
@@ -631,14 +631,14 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Unités de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
-                          ? "border-indigo-500 ring-2 ring-indigo-200"
-                          : "border-slate-300"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#4749EB] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "unites"
+                          ? "border-[#4749EB] ring-2 ring-[#4749EB]/30"
+                          : "border-[#4749EB]/40 hover:border-[#4749EB]"
                           }`}
                       />
                     </label>
 
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-semibold text-slate-700">
                       Total
                       <input
                         id={`count-pencils-by-tens-total-${exercise.id}`}
@@ -653,7 +653,7 @@ const CountPencilsByTensActivity = ({
                         disabled={finished}
                         placeholder="Touchez ici"
                         aria-label={`Total de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-slate-800 placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "total"
                           ? "border-indigo-500 ring-2 ring-indigo-200"
                           : "border-slate-300"
                           }`}
