@@ -17,9 +17,9 @@ import {
 } from "../utils/activityUtils";
 
 export const defaultMatchAdditionsActivityContent = {
-  title: "Associe chaque addition à son bon résultat",
+  title: "Associe chaque opération à son bon résultat",
   instruction:
-    "Fais glisser chaque vignette-réponse vers la bonne addition, puis valide pour vérifier tes réponses.",
+    "Fais glisser chaque vignette-réponse vers la bonne opération, puis valide pour vérifier tes réponses.",
   defaultLevel: "level2",
   levels: {
     level1: {
@@ -58,7 +58,7 @@ export const defaultMatchAdditionsActivityContent = {
   },
 };
 
-const ALLOWED_MODES = ["addition", "double", "moitie"];
+const ALLOWED_MODES = ["addition", "double", "moitie", "soustraction"];
 
 const TILE_ROTATION_MIN_DEGREES = -10;
 const TILE_ROTATION_MAX_DEGREES = 10;
@@ -136,21 +136,44 @@ function buildGeneratedChallenges(levelRule) {
   const challenges = [];
   const isDouble = levelRule.mode === "double";
   const isMoitie = levelRule.mode === "moitie";
+  const isSoustraction = levelRule.mode === "soustraction";
   const step = levelRule.step || 1;
   const usedKeys = new Set();
   const maxAttempts = levelRule.count * 20;
   let attempts = 0;
 
-  while (challenges.length < levelRule.count && attempts < maxAttempts) {
-    attempts += 1;
+  const generatePair = () => {
     let left = getRandomFromRange(levelRule.min, levelRule.max, step);
     if (isMoitie && left % 2 !== 0) {
       if (left < levelRule.max) left += 1;
       else left -= 1;
     }
-    const right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
-    const result = isMoitie ? (left / 2) : (left + right);
-    const key = isMoitie ? `moitie-${left}` : `${left}+${right}`;
+    let right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
+    
+    if (isSoustraction) {
+      if (left === right) {
+        if (left < levelRule.max) left += step;
+        else right -= step;
+      }
+      if (left < right) {
+        const temp = left;
+        left = right;
+        right = temp;
+      }
+    }
+    
+    let result;
+    if (isMoitie) result = left / 2;
+    else if (isSoustraction) result = left - right;
+    else result = left + right;
+    
+    return { left, right, result };
+  };
+
+  while (challenges.length < levelRule.count && attempts < maxAttempts) {
+    attempts += 1;
+    const { left, right, result } = generatePair();
+    const key = isMoitie ? `moitie-${left}` : (isSoustraction ? `${left}-${right}` : `${left}+${right}`);
 
     if (!usedKeys.has(key)) {
       usedKeys.add(key);
@@ -165,13 +188,7 @@ function buildGeneratedChallenges(levelRule) {
 
   // Si la plage est trop petite pour garantir l'unicité, compléter sans contrainte
   while (challenges.length < levelRule.count) {
-    let left = getRandomFromRange(levelRule.min, levelRule.max, step);
-    if (isMoitie && left % 2 !== 0) {
-      if (left < levelRule.max) left += 1;
-      else left -= 1;
-    }
-    const right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
-    const result = isMoitie ? (left / 2) : (left + right);
+    const { left, right, result } = generatePair();
     challenges.push({
       id: challenges.length + 1,
       left,
@@ -200,8 +217,25 @@ function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
         if (left < levelRule.max) left += 1;
         else left -= 1;
       }
-      const right = levelRule.mode === "double" ? left : (levelRule.mode === "moitie" ? 0 : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1));
-      const val = levelRule.mode === "moitie" ? (left / 2) : (left + right);
+      let right = levelRule.mode === "double" ? left : (levelRule.mode === "moitie" ? 0 : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1));
+      
+      if (levelRule.mode === "soustraction") {
+        if (left === right) {
+          if (left < levelRule.max) left += (levelRule.step || 1);
+          else right -= (levelRule.step || 1);
+        }
+        if (left < right) {
+          const temp = left;
+          left = right;
+          right = temp;
+        }
+      }
+      
+      let val;
+      if (levelRule.mode === "moitie") val = left / 2;
+      else if (levelRule.mode === "soustraction") val = left - right;
+      else val = left + right;
+
       if (!existingValues.has(val)) {
         fakeValue = val;
         break;
@@ -209,7 +243,7 @@ function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
       attempts++;
     }
     if (fakeValue === undefined) {
-      fakeValue = levelRule.mode === "moitie" ? Math.floor((levelRule.max + levelRule.min) / 2) : levelRule.max + levelRule.min; // Fallback
+      fakeValue = levelRule.mode === "moitie" ? Math.floor((levelRule.max + levelRule.min) / 2) : (levelRule.mode === "soustraction" ? 1 : levelRule.max + levelRule.min); // Fallback
     }
 
     tiles.push({
@@ -404,7 +438,7 @@ const MatchAdditionsActivity = ({
         badges={[
           {
             key: "count",
-            label: `${totalChallenges} addition${totalChallenges > 1 ? "s" : ""}`,
+            label: `${totalChallenges} opération${totalChallenges > 1 ? "s" : ""}`,
             className: "inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800",
           },
           {
@@ -429,7 +463,7 @@ const MatchAdditionsActivity = ({
           id="match-additions-status-panel"
           progressBarId="match-additions-progress-bar"
           progressPercent={progressPercent}
-          label="Progression des additions"
+          label="Progression des opérations"
         />
       )}
 
@@ -460,6 +494,8 @@ const MatchAdditionsActivity = ({
                   >
                     {currentLevelRule.mode === "moitie" ? (
                       `la moitié de ${formatNumberWithThousandsSpace(challenge.left)}`
+                    ) : currentLevelRule.mode === "soustraction" ? (
+                      `${formatNumberWithThousandsSpace(challenge.left)} - ${formatNumberWithThousandsSpace(challenge.right)}`
                     ) : (
                       `${formatNumberWithThousandsSpace(challenge.left)} + ${formatNumberWithThousandsSpace(challenge.right)}`
                     )}
@@ -585,7 +621,7 @@ const MatchAdditionsActivity = ({
           title="Activité terminée"
           message={
             correctCount === totalChallenges
-              ? "Bravo, toutes les additions sont bien associées !"
+              ? "Bravo, toutes les opérations sont bien associées !"
               : "Observe les cases colorées pour repérer les bonnes réponses et celles à corriger."
           }
           score={score}

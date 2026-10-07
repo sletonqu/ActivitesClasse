@@ -292,7 +292,7 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 | Activité | Fichier | Objectif |
 | --- | --- | --- |
 | Tri de nombres | `frontend/src/activities/SortNumbersActivity.jsx` | Ranger des nombres dans l'ordre croissant ou décroissant. |
-| Additions CE1 | `frontend/src/activities/MatchAdditionsActivity.jsx` | Associer une addition à son résultat, ou trouver le double ou la moitié d'un nombre. |
+| Opérations CE1 | `frontend/src/activities/MatchAdditionsActivity.jsx` | Associer une opération (addition, soustraction) à son résultat, ou trouver le double ou la moitié d'un nombre. |
 | Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.jsx` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
 | Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.jsx` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
 | Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.jsx` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |

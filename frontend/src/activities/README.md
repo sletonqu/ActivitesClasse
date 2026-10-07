@@ -192,7 +192,7 @@ Comportement :
 
 ### 3. `MatchAdditionsActivity.jsx`
 
-**But** : associer chaque addition à son bon résultat.
+**But** : associer chaque opération (addition, soustraction) à son bon résultat.
 
 Exemple de configuration à trois niveaux :
 
@@ -216,8 +216,9 @@ Paramètres disponibles par niveau :
 - `min` : borne minimale pour le tirage aléatoire des termes.
 - `max` : borne maximale pour le tirage aléatoire des termes.
 - `step` *(défaut : `1`)* : pas de progression du tirage aléatoire, équivalent à `range(min, max+1, step)` en Python. Par exemple, `step: 5` avec `min: 20, max: 50` génère uniquement les valeurs 20, 25, 30, 35, 40, 45, 50.
-- `mode` *(défaut : `"addition"`)* : définit le type d'addition générée.
+- `mode` *(défaut : `"addition"`)* : définit le type d'opération générée.
   - `"addition"` : les deux termes sont tirés indépendamment dans `[min, max]` avec le pas `step`.
+  - `"soustraction"` : une soustraction est générée où le résultat est garanti strictement positif. Si les termes tirés sont dans le mauvais ordre, ils sont inversés.
   - `"double"` : les deux termes sont identiques (`a + a = résultat`), permettant d'associer un nombre et son double.
   - `"moitie"` : demande de trouver la moitié d'un nombre généré. Le nombre généré sera toujours rendu pair pour garantir un résultat entier. La question s'affichera sous la forme `la moitié de X`.
 - `fake` *(défaut : `false`)* : si activé, ajoute une tuile imposteur (un résultat plausible mais erroné) dans la réserve pour augmenter la difficulté. Peut être défini globalement ou spécifiquement par niveau.
