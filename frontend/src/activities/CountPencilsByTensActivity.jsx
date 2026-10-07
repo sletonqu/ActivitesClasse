@@ -568,30 +568,38 @@ const CountPencilsByTensActivity = ({
 
                   <div
                     id={`count-pencils-by-tens-input-grid-${exercise.id}`}
-                    className={`grid gap-2 ${showCentainesInput ? "grid-cols-2 md:grid-cols-4" : "grid-cols-3"}`}
+                    className={`grid items-end gap-1.5 sm:gap-2 ${showCentainesInput ? "grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]" : "grid-cols-[1fr_auto_1fr_auto_1fr]"}`}
                   >
                     {showCentainesInput && (
-                      <label className="text-sm font-semibold text-[#E89E45]">
-                        Centaines
-                        <input
-                          id={`count-pencils-by-tens-centaines-${exercise.id}`}
-                          type="text"
-                          inputMode="none"
-                          autoComplete="off"
-                          maxLength={2}
-                          value={answers[exercise.id]?.centaines || ""}
-                          onFocus={() => openNumberPad(exercise.id, "centaines")}
-                          onClick={() => openNumberPad(exercise.id, "centaines")}
-                          onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
-                          disabled={finished}
-                          placeholder="Touchez ici"
-                          aria-label={`Centaines de l'exercice ${exercise.id}`}
-                          className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
-                            ? "border-[#E89E45] ring-2 ring-[#E89E45]/30"
-                            : "border-[#E89E45]/40 hover:border-[#E89E45]"
-                            }`}
-                        />
-                      </label>
+                      <>
+                        <label className="text-sm font-semibold text-[#E89E45]">
+                          Centaines
+                          <input
+                            id={`count-pencils-by-tens-centaines-${exercise.id}`}
+                            type="text"
+                            inputMode="none"
+                            autoComplete="off"
+                            maxLength={2}
+                            value={answers[exercise.id]?.centaines || ""}
+                            onFocus={() => openNumberPad(exercise.id, "centaines")}
+                            onClick={() => openNumberPad(exercise.id, "centaines")}
+                            onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
+                            disabled={finished}
+                            placeholder="Touchez ici"
+                            aria-label={`Centaines de l'exercice ${exercise.id}`}
+                            className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] placeholder:text-slate-400 ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                              ? "border-[#E89E45] ring-2 ring-[#E89E45]/30"
+                              : "border-[#E89E45]/40 hover:border-[#E89E45]"
+                              }`}
+                          />
+                        </label>
+                        <span
+                          className="self-end pb-2 text-center text-lg font-bold text-slate-400 select-none sm:text-xl"
+                          aria-hidden="true"
+                        >
+                          +
+                        </span>
+                      </>
                     )}
 
                     <label className="text-sm font-semibold text-[#179858]">
@@ -616,6 +624,13 @@ const CountPencilsByTensActivity = ({
                       />
                     </label>
 
+                    <span
+                      className="self-end pb-2 text-center text-lg font-bold text-slate-400 select-none sm:text-xl"
+                      aria-hidden="true"
+                    >
+                      +
+                    </span>
+
                     <label className="text-sm font-semibold text-[#4749EB]">
                       Unités
                       <input
@@ -637,6 +652,13 @@ const CountPencilsByTensActivity = ({
                           }`}
                       />
                     </label>
+
+                    <span
+                      className="self-end pb-2 text-center text-lg font-bold text-slate-400 select-none sm:text-xl"
+                      aria-hidden="true"
+                    >
+                      =
+                    </span>
 
                     <label className="text-sm font-semibold text-slate-700">
                       Total
