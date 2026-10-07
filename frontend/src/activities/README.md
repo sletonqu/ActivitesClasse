@@ -215,7 +215,8 @@ Paramètres disponibles par niveau :
 - `count` : nombre de paires à associer.
 - `min` : borne minimale pour le tirage aléatoire des termes.
 - `max` : borne maximale pour le tirage aléatoire des termes.
-- `step` *(défaut : `1`)* : pas de progression du tirage aléatoire, équivalent à `range(min, max+1, step)` en Python. Par exemple, `step: 5` avec `min: 20, max: 50` génère uniquement les valeurs 20, 25, 30, 35, 40, 45, 50.
+- `step` *(défaut : `1`)* : pas de progression du tirage aléatoire.
+- `fixedRight` *(optionnel)* : force le deuxième terme de l'opération à une valeur fixe (ex: `9`). Si défini, l'opérande devient cliquable pour afficher l'astuce de calcul par la dizaine (ex: `+ 10 - 1` pour `9`).
 - `mode` *(défaut : `"addition"`)* : définit le type d'opération générée.
   - `"addition"` : les deux termes sont tirés indépendamment dans `[min, max]` avec le pas `step`.
   - `"soustraction"` : une soustraction est générée où le résultat est garanti strictement positif. Si les termes tirés sont dans le mauvais ordre, ils sont inversés.

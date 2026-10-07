@@ -89,6 +89,8 @@ function normalizeLevelRule(rule, fallbackRule) {
   const step = parsePositiveInt(source.step, fallbackStep);
   const mode = ALLOWED_MODES.includes(source.mode) ? source.mode : fallbackMode;
   const fake = source.fake !== undefined ? Boolean(source.fake) : fallbackFake;
+  const fallbackFixedRight = fallbackRule.fixedRight !== undefined ? parseIntWithFallback(fallbackRule.fixedRight, null) : null;
+  const fixedRight = source.fixedRight !== undefined ? parseIntWithFallback(source.fixedRight, null) : fallbackFixedRight;
 
   return {
     label: source.label || fallbackRule.label,
@@ -99,6 +101,7 @@ function normalizeLevelRule(rule, fallbackRule) {
     step,
     mode,
     fake,
+    fixedRight,
   };
 }
 
@@ -148,10 +151,20 @@ function buildGeneratedChallenges(levelRule) {
       if (left < levelRule.max) left += 1;
       else left -= 1;
     }
-    let right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
+    
+    let right;
+    if (levelRule.fixedRight !== undefined && levelRule.fixedRight !== null) {
+      right = levelRule.fixedRight;
+    } else {
+      right = isDouble ? left : (isMoitie ? 0 : getRandomFromRange(levelRule.min, levelRule.max, step));
+    }
     
     if (isSoustraction) {
-      if (left === right) {
+      if (levelRule.fixedRight !== undefined && levelRule.fixedRight !== null) {
+        if (left <= right) {
+           left = right + getRandomFromRange(1, Math.max(1, levelRule.max - right), step);
+        }
+      } else if (left === right) {
         if (left < levelRule.max) left += step;
         else right -= step;
       }
@@ -217,17 +230,29 @@ function buildAnswerTiles(challenges, levelRule = null, useFake = false) {
         if (left < levelRule.max) left += 1;
         else left -= 1;
       }
-      let right = levelRule.mode === "double" ? left : (levelRule.mode === "moitie" ? 0 : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1));
+      
+      let right;
+      if (levelRule.fixedRight !== undefined && levelRule.fixedRight !== null) {
+        right = levelRule.fixedRight;
+      } else {
+        right = levelRule.mode === "double" ? left : (levelRule.mode === "moitie" ? 0 : getRandomFromRange(levelRule.min, levelRule.max, levelRule.step || 1));
+      }
       
       if (levelRule.mode === "soustraction") {
-        if (left === right) {
-          if (left < levelRule.max) left += (levelRule.step || 1);
-          else right -= (levelRule.step || 1);
-        }
-        if (left < right) {
-          const temp = left;
-          left = right;
-          right = temp;
+        if (levelRule.fixedRight !== undefined && levelRule.fixedRight !== null) {
+           if (left <= right) {
+              left = right + getRandomFromRange(1, Math.max(1, levelRule.max - right), levelRule.step || 1);
+           }
+        } else {
+          if (left === right) {
+            if (left < levelRule.max) left += (levelRule.step || 1);
+            else right -= (levelRule.step || 1);
+          }
+          if (left < right) {
+            const temp = left;
+            left = right;
+            right = temp;
+          }
         }
       }
       
@@ -311,6 +336,7 @@ const MatchAdditionsActivity = ({
   const [finished, setFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(null);
+  const [toggledHints, setToggledHints] = useState(new Set());
   const {
     poolItems: availableAnswers,
     assignments,
@@ -350,6 +376,7 @@ const MatchAdditionsActivity = ({
     setFinished(false);
     setCorrectCount(0);
     setScore(null);
+    setToggledHints(new Set());
   };
 
   const handleDrop = (challengeId) => {
@@ -490,14 +517,47 @@ const MatchAdditionsActivity = ({
                 >
                   <div
                     id={`match-additions-operation-${challenge.id}`}
-                    className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl"
+                    className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl flex items-center justify-center gap-1.5"
                   >
                     {currentLevelRule.mode === "moitie" ? (
                       `la moitié de ${formatNumberWithThousandsSpace(challenge.left)}`
-                    ) : currentLevelRule.mode === "soustraction" ? (
-                      `${formatNumberWithThousandsSpace(challenge.left)} - ${formatNumberWithThousandsSpace(challenge.right)}`
                     ) : (
-                      `${formatNumberWithThousandsSpace(challenge.left)} + ${formatNumberWithThousandsSpace(challenge.right)}`
+                      <>
+                        <span>{formatNumberWithThousandsSpace(challenge.left)}</span>
+                        
+                        {currentLevelRule.fixedRight !== undefined && currentLevelRule.fixedRight !== null ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newHints = new Set(toggledHints);
+                              if (newHints.has(challenge.id)) newHints.delete(challenge.id);
+                              else newHints.add(challenge.id);
+                              setToggledHints(newHints);
+                            }}
+                            className="hover:bg-indigo-50 rounded px-1.5 py-0.5 transition-colors text-indigo-700 cursor-pointer select-none"
+                            title="Afficher l'astuce"
+                          >
+                            {toggledHints.has(challenge.id) ? (
+                              (() => {
+                                const right = challenge.right;
+                                const mode = currentLevelRule.mode;
+                                const nearest10 = Math.round(right / 10) * 10;
+                                if (nearest10 === 0 || nearest10 === right) return ` ${mode === "soustraction" ? "-" : "+"} ${right}`;
+                                const diff = right - nearest10;
+                                if (mode === "addition") {
+                                  return `+ ${nearest10} ${diff > 0 ? "+" : "-"} ${Math.abs(diff)}`;
+                                } else {
+                                  return `- ${nearest10} ${diff > 0 ? "-" : "+"} ${Math.abs(diff)}`;
+                                }
+                              })()
+                            ) : (
+                              `${currentLevelRule.mode === "soustraction" ? "-" : "+"} ${formatNumberWithThousandsSpace(challenge.right)}`
+                            )}
+                          </button>
+                        ) : (
+                          <span>{` ${currentLevelRule.mode === "soustraction" ? "-" : "+"} ${formatNumberWithThousandsSpace(challenge.right)}`}</span>
+                        )}
+                      </>
                     )}
                   </div>
 
