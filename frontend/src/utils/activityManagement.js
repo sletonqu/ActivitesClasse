@@ -15,6 +15,7 @@ import { defaultVerbEndingCompletionActivityContent } from "../activities/VerbEn
 import { defaultEvenOddClassificationActivityContent } from "../activities/EvenOddClassificationActivity";
 import { defaultHomophonesActivityContent } from "../activities/HomophonesActivity";
 import { defaultNumberLineActivityContent } from "../activities/NumberLineActivity";
+import { defaultColumnAdditionActivityContent } from "../activities/ColumnAdditionActivity";
 
 
 export const ACTIVITY_FILES = [
@@ -35,6 +36,7 @@ export const ACTIVITY_FILES = [
   "src/activities/EvenOddClassificationActivity.js",
   "src/activities/HomophonesActivity.js",
   "src/activities/NumberLineActivity.js",
+  "src/activities/ColumnAdditionActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -55,6 +57,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/EvenOddClassificationActivity.js": defaultEvenOddClassificationActivityContent,
   "src/activities/HomophonesActivity.js": defaultHomophonesActivityContent,
   "src/activities/NumberLineActivity.js": defaultNumberLineActivityContent,
+  "src/activities/ColumnAdditionActivity.js": defaultColumnAdditionActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {
