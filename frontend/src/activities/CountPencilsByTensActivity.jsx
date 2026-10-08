@@ -572,7 +572,7 @@ const CountPencilsByTensActivity = ({
                   >
                     {showCentainesInput && (
                       <>
-                        <label className="text-sm font-semibold text-[#E89E45]">
+                        <label className="text-sm font-semibold text-[#179858]">
                           Centaines
                           <input
                             id={`count-pencils-by-tens-centaines-${exercise.id}`}
@@ -586,11 +586,11 @@ const CountPencilsByTensActivity = ({
                             onChange={(event) => updateAnswer(exercise.id, "centaines", event.target.value)}
                             disabled={finished}
                             aria-label={`Centaines de l'exercice ${exercise.id}`}
-                            className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E89E45] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
-                              ? "border-[#E89E45] ring-2 ring-[#E89E45]/30"
-                              : "border-[#E89E45]/40 hover:border-[#E89E45]"
+                            className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#179858] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines"
+                              ? "border-[#179858] ring-2 ring-[#179858]/30"
+                              : "border-[#179858]/40 hover:border-[#179858]"
                               } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "centaines")
-                                ? "animate-pulse-slow-orange motion-reduce:animate-none"
+                                ? "animate-pulse-slow-green motion-reduce:animate-none"
                                 : ""
                               }`}
                           />
@@ -604,7 +604,7 @@ const CountPencilsByTensActivity = ({
                       </>
                     )}
 
-                    <label className="text-sm font-semibold text-[#179858]">
+                    <label className="text-sm font-semibold text-[#E5395E]">
                       Dizaines
                       <input
                         id={`count-pencils-by-tens-dizaines-${exercise.id}`}
@@ -618,11 +618,11 @@ const CountPencilsByTensActivity = ({
                         onChange={(event) => updateAnswer(exercise.id, "dizaines", event.target.value)}
                         disabled={finished}
                         aria-label={`Dizaines de l'exercice ${exercise.id}`}
-                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#179858] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
-                          ? "border-[#179858] ring-2 ring-[#179858]/30"
-                          : "border-[#179858]/40 hover:border-[#179858]"
+                        className={`activity-number-tile-text mt-1 w-full rounded-lg border px-2 py-2 text-[#E5395E] ${activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines"
+                          ? "border-[#E5395E] ring-2 ring-[#E5395E]/30"
+                          : "border-[#E5395E]/40 hover:border-[#E5395E]"
                           } ${!finished && !(activeInput?.exerciseId === exercise.id && activeInput?.field === "dizaines")
-                            ? "animate-pulse-slow-green motion-reduce:animate-none"
+                            ? "animate-pulse-slow-red motion-reduce:animate-none"
                             : ""
                           }`}
                       />

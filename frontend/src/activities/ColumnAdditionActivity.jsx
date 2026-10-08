@@ -58,10 +58,10 @@ export const defaultColumnAdditionActivityContent = {
 /* ───────────────────────── colour palette ───────────────────────── */
 // Same palette as CountPencilsByTensActivity
 const COLORS = {
-  hundreds: { text: "text-[#E89E45]", border: "border-[#E89E45]", ring: "ring-[#E89E45]/30", borderLight: "border-[#E89E45]/40", hoverBorder: "hover:border-[#E89E45]", bg: "bg-[#E89E45]/10", raw: "#E89E45", animation: "animate-pulse-slow-orange" },
-  tens: { text: "text-[#179858]", border: "border-[#179858]", ring: "ring-[#179858]/30", borderLight: "border-[#179858]/40", hoverBorder: "hover:border-[#179858]", bg: "bg-[#179858]/10", raw: "#179858", animation: "animate-pulse-slow-green" },
+  hundreds: { text: "text-[#179858]", border: "border-[#179858]", ring: "ring-[#179858]/30", borderLight: "border-[#179858]/40", hoverBorder: "hover:border-[#179858]", bg: "bg-[#179858]/10", raw: "#179858", animation: "animate-pulse-slow-green" },
+  tens: { text: "text-[#E5395E]", border: "border-[#E5395E]", ring: "ring-[#E5395E]/30", borderLight: "border-[#E5395E]/40", hoverBorder: "hover:border-[#E5395E]", bg: "bg-[#E5395E]/10", raw: "#E5395E", animation: "animate-pulse-slow-red" },
   units: { text: "text-[#4749EB]", border: "border-[#4749EB]", ring: "ring-[#4749EB]/30", borderLight: "border-[#4749EB]/40", hoverBorder: "hover:border-[#4749EB]", bg: "bg-[#4749EB]/10", raw: "#4749EB", animation: "animate-pulse-slow-blue" },
-  carry: { text: "text-[#E5395E]", border: "border-[#E5395E]", ring: "ring-[#E5395E]/30", borderLight: "border-[#E5395E]/40", hoverBorder: "hover:border-[#E5395E]", bg: "bg-[#E5395E]/10", raw: "#E5395E", animation: "animate-pulse-slow-red" },
+  carry: { text: "text-[#E89E45]", border: "border-[#E89E45]", ring: "ring-[#E89E45]/30", borderLight: "border-[#E89E45]/40", hoverBorder: "hover:border-[#E89E45]", bg: "bg-[#E89E45]/10", raw: "#E89E45", animation: "animate-pulse-slow-orange" },
 };
 
 /* ───────────────────────── helpers ───────────────────────── */
