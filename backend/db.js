@@ -108,6 +108,15 @@ function ensureGroupsSchema() {
           }
         });
       }
+
+      const hasScreenshotPath = Array.isArray(columns) && columns.some((column) => column.name === 'screenshot_path');
+      if (!hasScreenshotPath) {
+        db.run('ALTER TABLE results ADD COLUMN screenshot_path TEXT', (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration screenshot_path:', alterErr.message);
+          }
+        });
+      }
     });
   });
 }
@@ -259,6 +268,7 @@ function createTables() {
       completed_at TEXT,
       game_state TEXT,
       game_state_summary TEXT,
+      screenshot_path TEXT,
       FOREIGN KEY (student_id) REFERENCES students(id),
       FOREIGN KEY (activity_id) REFERENCES activities(id)
     );

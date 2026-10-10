@@ -82,6 +82,15 @@ function ensureGroupsSchema(done) {
           });
         }
 
+        const hasScreenshotPath = Array.isArray(resultColumns) && resultColumns.some((column) => column.name === 'screenshot_path');
+        if (!hasScreenshotPath) {
+          db.run('ALTER TABLE results ADD COLUMN screenshot_path TEXT', (alterErr) => {
+            if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+              console.error('Erreur lors de la migration screenshot_path:', alterErr.message);
+            }
+          });
+        }
+
         done();
       });
     });

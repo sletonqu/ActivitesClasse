@@ -9,7 +9,12 @@ const PORT = process.env.PORT || 4000;
 
 // Middlewares
 app.use(cors());
-app.use(bodyParser.json({ limit: '5mb' }));
+app.use(bodyParser.json({ limit: '15mb' })); // Increased limit to allow base64 images
+
+// Servir statiquement les captures d'écran
+const path = require('path');
+const dataDir = process.env.DB_PATH ? path.dirname(process.env.DB_PATH) : path.join(__dirname, 'data');
+app.use('/screenshots', express.static(path.join(dataDir, 'screenshots')));
 
 // Import des routes
 app.use('/api/teachers', require('./routes/teachers'));

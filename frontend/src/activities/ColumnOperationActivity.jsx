@@ -587,12 +587,12 @@ const ColumnOperationActivity = ({
       ? `${color.animation} motion-reduce:animate-none`
       : "";
 
-    if (readonly) {
+    if (readonly || finished) {
       return (
         <div
           key={key}
           id={`column-addition-${key}`}
-          className={`activity-number-tile-text inline-flex items-center justify-center rounded-lg border-2 font-bold ${baseSize} ${color.text} ${color.border} ${color.bg}`}
+          className={`activity-number-tile-text inline-flex items-center justify-center rounded-lg border-2 font-bold ${baseSize} ${color.text} ${color.border} ${color.bg} ${isCarry ? "border-dashed" : ""}`}
         >
           {value}
         </div>

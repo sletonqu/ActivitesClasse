@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import * as htmlToImage from 'html-to-image';
 import ActivityContainer from "../activities/ActivityContainer";
 import { API_URL } from "../config/api";
 import {
@@ -381,6 +382,24 @@ const StudentView = () => {
   const handleActivityComplete = async (scoreOrPayload, completionMeta = {}) => {
     if (isDemoMode || !selectedStudent || !selectedActivityId) return;
 
+    // Wait a brief moment to let React re-render the DOM (e.g. closing modals, turning inputs to divs)
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Capture d'écran de l'activité
+    let screenshotBase64 = null;
+    try {
+      const element = document.getElementById("activity-container");
+      if (element) {
+        // Use html-to-image to bypass html2canvas layout calculation bugs
+        screenshotBase64 = await htmlToImage.toPng(element, {
+          cacheBust: true,
+          style: { transform: 'scale(1)', transformOrigin: 'top left' },
+        });
+      }
+    } catch (e) {
+      console.error("Erreur lors de la capture d'écran:", e);
+    }
+
     const payload =
       scoreOrPayload && typeof scoreOrPayload === "object"
         ? scoreOrPayload
@@ -418,6 +437,7 @@ const StudentView = () => {
           completed_at: new Date().toISOString(),
           game_state: payload.game_state || null,
           game_state_summary: payload.game_state_summary || null,
+          screenshot: screenshotBase64,
         }),
       });
     } catch (err) {

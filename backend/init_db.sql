@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS results (
   completed_at TEXT,
   game_state TEXT,
   game_state_summary TEXT,
+  screenshot_path TEXT,
   FOREIGN KEY (student_id) REFERENCES students(id),
   FOREIGN KEY (activity_id) REFERENCES activities(id)
 );

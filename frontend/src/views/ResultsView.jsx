@@ -671,30 +671,40 @@ const ResultsView = () => {
                     const gameStateSummary = String(result?.game_state_summary || "").trim();
 
                     return (
-                    <button
+                    <div
                       id={`results-detail-attempt-${result.id}`}
                       key={result.id}
-                      type="button"
-                      disabled={deletingResultId !== null}
-                      onClick={() => handleDeleteAttempt(result)}
-                      title="Cliquer pour supprimer cette tentative"
-                      className="w-full text-left bg-slate-50 rounded-lg p-3 border border-slate-200 transition-colors hover:bg-red-50 hover:border-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="w-full text-left bg-slate-50 rounded-lg p-3 border border-slate-200"
                     >
                       <div id={`results-detail-attempt-header-${result.id}`} className="flex justify-between items-start mb-1">
-                        <span id={`results-detail-attempt-title-${result.id}`} className="font-medium text-slate-800">Tentative {selectedResult.results.length - idx}</span>
-                        <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded ${getScoreColor(result.score)}`}>
-                          {result.score}
-                        </span>
+                        <div>
+                          <span id={`results-detail-attempt-title-${result.id}`} className="font-medium text-slate-800 block">Tentative {selectedResult.results.length - idx}</span>
+                          <p id={`results-detail-attempt-date-${result.id}`} className="text-xs text-slate-500 mt-0.5">
+                            {new Date(result.completed_at).toLocaleDateString("fr-FR", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded ${getScoreColor(result.score)}`}>
+                            {result.score}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={deletingResultId !== null}
+                            onClick={() => handleDeleteAttempt(result)}
+                            title="Supprimer cette tentative"
+                            className="text-xs text-red-600 hover:text-red-800 hover:underline disabled:opacity-50"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
                       </div>
-                      <p id={`results-detail-attempt-date-${result.id}`} className="text-xs text-slate-500">
-                        {new Date(result.completed_at).toLocaleDateString("fr-FR", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                      
                       {gameStateSummary && (
                         <p
                           id={`results-detail-attempt-game-state-summary-${result.id}`}
@@ -702,7 +712,25 @@ const ResultsView = () => {
                           dangerouslySetInnerHTML={{ __html: gameStateSummary }}
                         />
                       )}
-                    </button>
+
+                      {result.screenshot_path && (
+                        <div id={`results-detail-attempt-screenshot-${result.id}`} className="mt-2">
+                          <a 
+                            href={`${API_URL.replace('/api', '')}/${result.screenshot_path}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="block w-24 h-16 border border-slate-300 rounded overflow-hidden hover:opacity-80 transition-opacity"
+                            title="Cliquez pour agrandir"
+                          >
+                            <img 
+                              src={`${API_URL.replace('/api', '')}/${result.screenshot_path}`} 
+                              alt="Capture du résultat" 
+                              className="w-full h-full object-cover" 
+                            />
+                          </a>
+                        </div>
+                      )}
+                    </div>
                     );
                   })}
               </div>
