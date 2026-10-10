@@ -351,7 +351,11 @@ const ResultsView = () => {
             <select
               id="results-view-class-selector"
               value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
+              onChange={(e) => {
+                setSelectedClassId(e.target.value);
+                setPinnedStudentId(null);
+                setPinnedActivityId(null);
+              }}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Sélectionner une classe</option>
