@@ -56,12 +56,58 @@ export const defaultColumnAdditionActivityContent = {
 };
 
 /* ───────────────────────── colour palette ───────────────────────── */
-// Same palette as CountPencilsByTensActivity
+// Units = Blue (#4749EB), Tens = Red (#E5395E), Hundreds = Green (#179858), Thousands = Yellow (#CA8A04), Carry = Purple (#9333EA)
 const COLORS = {
-  hundreds: { text: "text-[#179858]", border: "border-[#179858]", ring: "ring-[#179858]/30", borderLight: "border-[#179858]/40", hoverBorder: "hover:border-[#179858]", bg: "bg-[#179858]/10", raw: "#179858", animation: "animate-pulse-slow-green" },
-  tens: { text: "text-[#E5395E]", border: "border-[#E5395E]", ring: "ring-[#E5395E]/30", borderLight: "border-[#E5395E]/40", hoverBorder: "hover:border-[#E5395E]", bg: "bg-[#E5395E]/10", raw: "#E5395E", animation: "animate-pulse-slow-red" },
-  units: { text: "text-[#4749EB]", border: "border-[#4749EB]", ring: "ring-[#4749EB]/30", borderLight: "border-[#4749EB]/40", hoverBorder: "hover:border-[#4749EB]", bg: "bg-[#4749EB]/10", raw: "#4749EB", animation: "animate-pulse-slow-blue" },
-  carry: { text: "text-[#E89E45]", border: "border-[#E89E45]", ring: "ring-[#E89E45]/30", borderLight: "border-[#E89E45]/40", hoverBorder: "hover:border-[#E89E45]", bg: "bg-[#E89E45]/10", raw: "#E89E45", animation: "animate-pulse-slow-orange" },
+  thousands: {
+    text: "text-[#CA8A04]",
+    border: "border-[#CA8A04]",
+    ring: "ring-[#CA8A04]/30",
+    borderLight: "border-[#CA8A04]/40",
+    hoverBorder: "hover:border-[#CA8A04]",
+    bg: "bg-[#CA8A04]/10",
+    raw: "#CA8A04",
+    animation: "animate-pulse-slow-yellow",
+  },
+  hundreds: {
+    text: "text-[#179858]",
+    border: "border-[#179858]",
+    ring: "ring-[#179858]/30",
+    borderLight: "border-[#179858]/40",
+    hoverBorder: "hover:border-[#179858]",
+    bg: "bg-[#179858]/10",
+    raw: "#179858",
+    animation: "animate-pulse-slow-green",
+  },
+  tens: {
+    text: "text-[#E5395E]",
+    border: "border-[#E5395E]",
+    ring: "ring-[#E5395E]/30",
+    borderLight: "border-[#E5395E]/40",
+    hoverBorder: "hover:border-[#E5395E]",
+    bg: "bg-[#E5395E]/10",
+    raw: "#E5395E",
+    animation: "animate-pulse-slow-red",
+  },
+  units: {
+    text: "text-[#4749EB]",
+    border: "border-[#4749EB]",
+    ring: "ring-[#4749EB]/30",
+    borderLight: "border-[#4749EB]/40",
+    hoverBorder: "hover:border-[#4749EB]",
+    bg: "bg-[#4749EB]/10",
+    raw: "#4749EB",
+    animation: "animate-pulse-slow-blue",
+  },
+  carry: {
+    text: "text-[#9333EA]",
+    border: "border-[#9333EA]",
+    ring: "ring-[#9333EA]/30",
+    borderLight: "border-[#9333EA]/40",
+    hoverBorder: "hover:border-[#9333EA]",
+    bg: "bg-[#9333EA]/10",
+    raw: "#9333EA",
+    animation: "animate-pulse-slow-purple",
+  },
 };
 
 /* ───────────────────────── helpers ───────────────────────── */
@@ -326,12 +372,9 @@ const ColumnAdditionActivity = ({
     }
     // Carry fields (only where there could be a carry, i.e. not the rightmost column)
     for (let i = 0; i < cols; i++) {
-      if (carries[i] !== 0 || i < cols - 1) {
-        // Always show carry input for columns that could have a carry
-        // But only include in navigation for columns left of rightmost
-        if (i < cols) {
-          fields.push(`carry${i}`);
-        }
+      const posFromRight = cols - 1 - i;
+      if (posFromRight > 0) {
+        fields.push(`carry${i}`);
       }
     }
     // Result row
@@ -467,21 +510,24 @@ const ColumnAdditionActivity = ({
     const posFromRight = cols - 1 - colIndex;
     if (posFromRight === 0) return COLORS.units;
     if (posFromRight === 1) return COLORS.tens;
-    return COLORS.hundreds;
+    if (posFromRight === 2) return COLORS.hundreds;
+    return COLORS.thousands;
   };
 
   const getColumnLabel = (colIndex) => {
     const posFromRight = cols - 1 - colIndex;
     if (posFromRight === 0) return "u";
     if (posFromRight === 1) return "d";
-    return "c";
+    if (posFromRight === 2) return "c";
+    return "m";
   };
 
   const getColumnFullLabel = (colIndex) => {
     const posFromRight = cols - 1 - colIndex;
     if (posFromRight === 0) return "Unités";
     if (posFromRight === 1) return "Dizaines";
-    return "Centaines";
+    if (posFromRight === 2) return "Centaines";
+    return "Milliers";
   };
 
   /* ─── active field label for number pad ─── */
@@ -636,10 +682,10 @@ const ColumnAdditionActivity = ({
             <div className="w-8 sm:w-10" />
             {Array.from({ length: cols }, (_, i) => {
               // Show carry input only for columns that can receive a carry
-              // (i.e. not the rightmost column for 2-digit additions)
+              // (i.e. not the rightmost column)
               const posFromRight = cols - 1 - i;
-              if (posFromRight === 0 && cols <= 3) {
-                // Rightmost column: no carry input (unless result is longer)
+              if (posFromRight === 0) {
+                // Rightmost column: no carry input (always 0)
                 return <div key={`carry-spacer-${i}`} className="w-10 sm:w-12" />;
               }
               return (

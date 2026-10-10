@@ -66,6 +66,26 @@ module.exports = {
             boxShadow: "0 0 0 3px rgba(229, 57, 94, 0.45)",
           },
         },
+        "pulse-slow-yellow": {
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow: "0 0 0 0 rgba(202, 138, 4, 0)",
+          },
+          "50%": {
+            opacity: "0.55",
+            boxShadow: "0 0 0 3px rgba(202, 138, 4, 0.45)",
+          },
+        },
+        "pulse-slow-purple": {
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow: "0 0 0 0 rgba(147, 51, 234, 0)",
+          },
+          "50%": {
+            opacity: "0.55",
+            boxShadow: "0 0 0 3px rgba(147, 51, 234, 0.45)",
+          },
+        },
       },
       animation: {
         "pulse-slow": "pulse-slow 3.2s ease-in-out infinite",
@@ -74,6 +94,8 @@ module.exports = {
         "pulse-slow-blue": "pulse-slow-blue 3.2s ease-in-out infinite",
         "pulse-slow-indigo": "pulse-slow-indigo 3.2s ease-in-out infinite",
         "pulse-slow-red": "pulse-slow-red 3.2s ease-in-out infinite",
+        "pulse-slow-yellow": "pulse-slow-yellow 3.2s ease-in-out infinite",
+        "pulse-slow-purple": "pulse-slow-purple 3.2s ease-in-out infinite",
       },
     },
   },
