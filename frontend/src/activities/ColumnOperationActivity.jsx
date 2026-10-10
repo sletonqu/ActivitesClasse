@@ -14,8 +14,9 @@ import {
 
 /* ───────────────────────── default content ───────────────────────── */
 
-export const defaultColumnAdditionActivityContent = {
+export const defaultColumnOperationActivityContent = {
   title: "Addition posée avec retenues",
+  operation: "addition",
   instruction:
     "Pose l'addition en colonne, complète les retenues si besoin, puis écris le résultat.",
   defaultLevel: "level1",
@@ -54,6 +55,8 @@ export const defaultColumnAdditionActivityContent = {
     },
   },
 };
+
+
 
 /* ───────────────────────── colour palette ───────────────────────── */
 // Units = Blue (#4749EB), Tens = Red (#E5395E), Hundreds = Green (#179858), Thousands = Yellow (#CA8A04), Carry = Purple (#9333EA)
@@ -158,6 +161,18 @@ function hasCarry(a, b) {
   return false;
 }
 
+function hasBorrow(a, b) {
+  const strA = String(a);
+  const strB = String(b);
+  const maxLen = Math.max(strA.length, strB.length);
+  const padA = strA.padStart(maxLen, "0");
+  const padB = strB.padStart(maxLen, "0");
+  for (let i = 0; i < maxLen; i++) {
+    if (Number(padA[i]) < Number(padB[i])) return true;
+  }
+  return false;
+}
+
 /**
  * Returns the number of digits (columns) needed to represent the addition.
  * Equal to the number of digits of the *result* (left + right).
@@ -171,17 +186,29 @@ function digitCount(n) {
  * Generates a pair {left, right} for the given level rule.
  * If `requireCarry` is set, we retry until we find a pair with a carry.
  */
-function generatePair(levelRule) {
+function generatePair(levelRule, operation) {
   const maxAttempts = 200;
   for (let i = 0; i < maxAttempts; i++) {
     const left = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step);
     const right = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step);
-    if (levelRule.requireCarry && !hasCarry(left, right)) continue;
-    return { left, right, result: left + right };
+    
+    if (operation === "soustraction") {
+      if (left <= right) continue;
+      if (hasBorrow(left, right)) continue;
+      return { left, right, result: left - right };
+    } else {
+      if (levelRule.requireCarry && !hasCarry(left, right)) continue;
+      return { left, right, result: left + right };
+    }
   }
-  // Fallback: force a carry
+  // Fallback
   const left = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step);
   const right = getRandomFromRange(levelRule.min, levelRule.max, levelRule.step);
+  if (operation === "soustraction") {
+    const maxVal = Math.max(left, right, 1);
+    const minVal = Math.min(left, right, maxVal - 1);
+    return { left: maxVal, right: minVal, result: maxVal - minVal };
+  }
   return { left, right, result: left + right };
 }
 
@@ -218,7 +245,7 @@ function computeCarries(leftDigits, rightDigits, cols) {
 
 /* ───────────────────────── component ───────────────────────── */
 
-const ColumnAdditionActivity = ({
+const ColumnOperationActivity = ({
   student,
   content,
   onComplete,
@@ -226,7 +253,7 @@ const ColumnAdditionActivity = ({
   onResetStudentRound,
 }) => {
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
-  const defaultLevels = defaultColumnAdditionActivityContent.levels;
+  const defaultLevels = defaultColumnOperationActivityContent.levels;
 
   const allowedLevelKeys = useMemo(() => {
     const allKeys = ["level1", "level2", "level3", "level4"];
@@ -251,17 +278,18 @@ const ColumnAdditionActivity = ({
     ? parsedContent.defaultLevel
     : allowedLevelKeys[0] || "level1";
 
+  const operation = parsedContent?.operation === "soustraction" ? "soustraction" : "addition";
+
   /* ─── state ─── */
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
-  const [problem, setProblem] = useState(() => generatePair(configuredLevels[initialLevel] || configuredLevels.level1));
+  const [problem, setProblem] = useState(() => generatePair(configuredLevels[initialLevel] || configuredLevels.level1, operation));
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
   const [activeInput, setActiveInput] = useState(null);
 
   // Derived sizes
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
-  const resultStr = String(problem.result);
-  const cols = resultStr.length; // number of digit columns (may be one more than operands)
+  const cols = Math.max(String(problem.left).length, String(problem.right).length, String(problem.result).length);
   const leftDigits = toDigitArray(problem.left, cols);
   const rightDigits = toDigitArray(problem.right, cols);
   const resultDigits = toDigitArray(problem.result, cols);
@@ -273,8 +301,7 @@ const ColumnAdditionActivity = ({
 
   // Answers: { leftN: "digit", rightN: "digit", carryN: "digit", resultN: "digit" }
   const buildEmptyAnswers = useCallback((prob, lvlRule) => {
-    const res = String(prob.result);
-    const c = res.length;
+    const c = Math.max(String(prob.left).length, String(prob.right).length, String(prob.result).length);
     const lDigits = toDigitArray(prob.left, c);
     const rDigits = toDigitArray(prob.right, c);
     const ans = {};
@@ -461,7 +488,7 @@ const ColumnAdditionActivity = ({
 
   const resetForLevel = (levelKey) => {
     const lvlRule = configuredLevels[levelKey] || configuredLevels.level1;
-    const nextProblem = generatePair(lvlRule);
+    const nextProblem = generatePair(lvlRule, operation);
     setProblem(nextProblem);
     setAnswers(buildEmptyAnswers(nextProblem, lvlRule));
     setFinished(false);
@@ -648,7 +675,7 @@ const ColumnAdditionActivity = ({
           <span className="activity-number-tile-text text-xl font-bold text-slate-800 sm:text-2xl">
             {problem.left}
           </span>
-          <span className="text-xl font-bold text-slate-400 sm:text-2xl">+</span>
+          <span className="text-xl font-bold text-slate-400 sm:text-2xl">{operation === "soustraction" ? "-" : "+"}</span>
           <span className="activity-number-tile-text text-xl font-bold text-slate-800 sm:text-2xl">
             {problem.right}
           </span>
@@ -678,8 +705,9 @@ const ColumnAdditionActivity = ({
           </div>
 
           {/* Carry row */}
-          <div id="column-addition-carry-row" className="flex items-center justify-end gap-1 sm:gap-1.5 mb-1">
-            <div className="w-8 sm:w-10" />
+          {operation !== "soustraction" && (
+            <div id="column-addition-carry-row" className="flex items-center justify-end gap-1 sm:gap-1.5 mb-1">
+              <div className="w-8 sm:w-10" />
             {Array.from({ length: cols }, (_, i) => {
               // Show carry input only for columns that can receive a carry
               // (i.e. not the rightmost column)
@@ -694,7 +722,8 @@ const ColumnAdditionActivity = ({
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
 
           {/* First operand row */}
           <div id="column-addition-left-operand-row" className="flex items-center justify-end gap-1 sm:gap-1.5 mb-1">
@@ -713,10 +742,10 @@ const ColumnAdditionActivity = ({
             })}
           </div>
 
-          {/* Second operand row with + sign */}
+          {/* Second operand row with operator sign */}
           <div id="column-addition-right-operand-row" className="flex items-center justify-end gap-1 sm:gap-1.5 mb-1">
             <div id="column-addition-plus-sign" className="flex w-8 items-center justify-center text-xl font-bold text-slate-600 sm:w-10 sm:text-2xl">
-              +
+              {operation === "soustraction" ? "-" : "+"}
             </div>
             {Array.from({ length: cols }, (_, i) => {
               const rightActualLen = String(problem.right).length;
@@ -755,7 +784,7 @@ const ColumnAdditionActivity = ({
           title="Activité terminée"
           message={
             score === 20
-              ? "Bravo, l'addition est correctement posée !"
+              ? `Bravo, l'${operation === "soustraction" ? "soustraction" : "addition"} est correctement posée !`
               : "Observe la correction et réessaie."
           }
           score={score}
@@ -806,4 +835,4 @@ const ColumnAdditionActivity = ({
   );
 };
 
-export default ColumnAdditionActivity;
+export default ColumnOperationActivity;

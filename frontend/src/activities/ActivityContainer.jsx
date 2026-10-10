@@ -16,7 +16,7 @@ import VerbEndingCompletionActivity from "./VerbEndingCompletionActivity";
 import EvenOddClassificationActivity from "./EvenOddClassificationActivity";
 import HomophonesActivity from "./HomophonesActivity";
 import NumberLineActivity from "./NumberLineActivity";
-import ColumnAdditionActivity from "./ColumnAdditionActivity";
+import ColumnOperationActivity from "./ColumnOperationActivity";
 
 
 const componentRegistry = {
@@ -71,9 +71,9 @@ const componentRegistry = {
   "src/activities/HomophonesActivity.js": HomophonesActivity,
   "HomophonesActivity": HomophonesActivity,
   "HomophonesActivity.js": HomophonesActivity,
-  "src/activities/ColumnAdditionActivity.js": ColumnAdditionActivity,
-  "ColumnAdditionActivity": ColumnAdditionActivity,
-  "ColumnAdditionActivity.js": ColumnAdditionActivity,
+  "src/activities/ColumnOperationActivity.js": ColumnOperationActivity,
+  "ColumnOperationActivity": ColumnOperationActivity,
+  "ColumnOperationActivity.js": ColumnOperationActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {
