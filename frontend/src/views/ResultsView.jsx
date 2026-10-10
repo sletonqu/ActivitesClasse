@@ -32,6 +32,7 @@ const ResultsView = () => {
 
   const { confirmAction, confirmModalState } = useConfirm();
   const [pinnedStudentId, setPinnedStudentId] = useState(null);
+  const [pinnedActivityId, setPinnedActivityId] = useState(null);
   const tableScrollRef = useRef(null);
   const [tableScrollEdges, setTableScrollEdges] = useState({ left: false, right: false });
 
@@ -196,6 +197,10 @@ const ResultsView = () => {
     });
   }, [activities, results]);
 
+  const visibleActivityColumns = pinnedActivityId
+    ? activityColumns.filter((col) => String(col.activity.id) === String(pinnedActivityId))
+    : activityColumns;
+
   useEffect(() => {
     const scrollContainer = tableScrollRef.current;
     if (!scrollContainer) return undefined;
@@ -218,7 +223,7 @@ const ResultsView = () => {
       scrollContainer.removeEventListener("scroll", updateScrollEdges);
       window.removeEventListener("resize", updateScrollEdges);
     };
-  }, [activityColumns, sortedStudents]);
+  }, [visibleActivityColumns, visibleStudents]);
 
   const scrollResultsTable = (direction) => {
     const scrollContainer = tableScrollRef.current;
@@ -426,7 +431,7 @@ const ResultsView = () => {
               className="overflow-x-auto overscroll-x-contain"
               style={{ WebkitOverflowScrolling: "touch" }}
             >
-              <table id="results-view-table" className="w-full border-collapse">
+              <table id="results-view-table" className={`border-collapse ${pinnedActivityId ? "w-auto" : "w-full"}`}>
               {/* En-tête du tableau */}
               <thead id="results-view-table-head">
                 <tr id="results-view-table-head-main-row" className="bg-slate-100 border-b-2 border-slate-300">
@@ -436,13 +441,37 @@ const ResultsView = () => {
                   </th>
 
                   {/* Colonnes des activités */}
-                  {activityColumns.map((col) => (
+                  {visibleActivityColumns.map((col) => (
                     <th
                       key={col.activity.id}
                       colSpan={col.levels.length}
-                      className="px-4 py-3 text-center font-semibold text-slate-700 border-l border-slate-200 bg-slate-100"
+                      className="px-4 py-3 text-center border-l border-slate-200 bg-slate-100"
                     >
-                      {col.activity.title}
+                      <button
+                          id={`results-activity-name-${col.activity.id}`}
+                          type="button"
+                          aria-pressed={String(pinnedActivityId) === String(col.activity.id)}
+                          title={
+                            String(pinnedActivityId) === String(col.activity.id)
+                              ? "Afficher toutes les activités"
+                              : "Isoler cette activité"
+                          }
+                          onClick={() =>
+                            setPinnedActivityId((currentActivityId) =>
+                              String(currentActivityId) === String(col.activity.id)
+                                ? null
+                                : String(col.activity.id)
+                            )
+                          }
+                          className="inline-flex justify-center items-center gap-1 font-semibold text-slate-700 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 w-full"
+                      >
+                        <span>{col.activity.title}</span>
+                        {String(pinnedActivityId) === String(col.activity.id) && (
+                          <span id={`results-activity-pin-${col.activity.id}`} aria-hidden="true" className="text-base leading-none">
+                            📌
+                          </span>
+                        )}
+                      </button>
                     </th>
                   ))}
                 </tr>
@@ -479,7 +508,7 @@ const ResultsView = () => {
                       </button>
                     </div>
                   </th>
-                  {activityColumns.map((col) =>
+                  {visibleActivityColumns.map((col) =>
                     col.levels.map((level) => {
                       const skillDescription = getActiveSkillDescription(col.content, level);
 
@@ -544,7 +573,7 @@ const ResultsView = () => {
                     </td>
 
                     {/* Cellules de résultats */}
-                    {activityColumns.map((col) =>
+                    {visibleActivityColumns.map((col) =>
                       col.levels.map((level) => {
                         const average = getAverageScore(student.id, col.activity.id, level);
                         const scoreColor = getScoreColor(average);
