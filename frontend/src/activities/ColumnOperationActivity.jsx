@@ -333,8 +333,8 @@ const ColumnOperationActivity = ({
   }, []);
 
   /* ─── derived display texts ─── */
-  const displayTitle = getSafeDisplayText(parsedContent?.title, defaultColumnAdditionActivityContent.title);
-  const displayInstruction = getSafeDisplayText(parsedContent?.instruction, defaultColumnAdditionActivityContent.instruction);
+  const displayTitle = getSafeDisplayText(parsedContent?.title, defaultColumnOperationActivityContent.title);
+  const displayInstruction = getSafeDisplayText(parsedContent?.instruction, defaultColumnOperationActivityContent.instruction);
 
   /* ─── input helpers ─── */
   const updateAnswer = (key, value) => {
