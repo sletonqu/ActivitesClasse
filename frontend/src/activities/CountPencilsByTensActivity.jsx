@@ -223,7 +223,6 @@ const CountPencilsByTensActivity = ({
       const inputEl = document.getElementById(inputId);
       if (inputEl) {
         const rect = inputEl.getBoundingClientRect();
-        // Use a higher estimated height for MyScript to avoid overlapping the active input.
         const modalHeight = inputType === "MyScript" ? 630 : 350;
         const modalWidth = inputType === "MyScript" ? 448 : 350;
         const top = rect.top > modalHeight + 20
@@ -432,7 +431,6 @@ const CountPencilsByTensActivity = ({
 
   const totalExercises = exercises.length;
   const answeredCount = exercises.filter((exercise) => isExerciseAnswered(exercise)).length;
-  const remainingCount = Math.max(0, totalExercises - answeredCount);
   const progressPercent = totalExercises > 0 ? Math.round((answeredCount / totalExercises) * 100) : 0;
   const allAnswered = totalExercises > 0 && answeredCount === totalExercises;
 
@@ -552,6 +550,7 @@ const CountPencilsByTensActivity = ({
                   </div>
 
                   <BaseTenBlocksVisuals
+                    visualType="pencils"
                     idPrefix="count-pencils-by-tens"
                     itemId={exercise.id}
                     cartons={exercise.cartons}

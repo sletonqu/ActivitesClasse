@@ -219,46 +219,62 @@ h1 {
     display: none;
   }
 
-  #count-pencils-by-tens-activity {
+  #count-pencils-by-tens-activity,
+  #base-ten-blocks-activity-root {
     font-size: 11px;
     line-height: 1.2;
   }
 
-  #count-pencils-by-tens-titre {
+  #count-pencils-by-tens-titre,
+  #base-ten-blocks-titre {
     font-size: 16px !important;
     margin-bottom: 4px !important;
   }
 
-  #count-pencils-by-tens-consigne {
+  #count-pencils-by-tens-consigne,
+  #base-ten-blocks-consigne {
     font-size: 11px !important;
     margin-bottom: 8px !important;
   }
 
   #count-pencils-by-tens-niveaux,
   #count-pencils-by-tens-actions,
-  #count-pencils-by-tens-message-resultat {
+  #count-pencils-by-tens-message-resultat,
+  #base-ten-blocks-niveaux,
+  #base-ten-blocks-actions,
+  #base-ten-blocks-message-resultat {
     display: none !important;
   }
 
-  #count-pencils-by-tens-grille {
+  #count-pencils-by-tens-grille,
+  #base-ten-blocks-grid {
     gap: 8px !important;
   }
 
-  [id^="count-pencils-by-tens-case-"] {
+  [id^="count-pencils-by-tens-case-"],
+  [id^="base-ten-blocks-case-"] {
     padding: 8px !important;
     border-radius: 8px !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  [id^="count-pencils-by-tens-case-"] .space-y-3>*+* {
+  [id^="count-pencils-by-tens-case-"] .space-y-3>*+*,
+  [id^="base-ten-blocks-case-"] .space-y-3>*+* {
     margin-top: 4px !important;
   }
 
   [id^="count-pencils-by-tens-case-"] img[src*="pochette_x10_crayons.png"],
-  [id^="count-pencils-by-tens-case-"] img[src*="cartons_x100_crayons.png"] {
+  [id^="count-pencils-by-tens-case-"] img[src*="cartons_x100_crayons.png"],
+  [id^="base-ten-blocks-case-"] img[src*="base10_centaine.png"],
+  [id^="base-ten-blocks-case-"] img[src*="base10_millier.png"] {
     width: 44px !important;
     height: 44px !important;
+  }
+
+  [id^="base-ten-blocks-case-"] img[src*="base10_dizaine.png"] {
+    height: 44px !important;
+    width: auto !important;
   }
 
   [id^="count-pencils-by-tens-case-"] img[src*="Crayons_x1.png"] {
@@ -266,15 +282,23 @@ h1 {
     width: auto !important;
   }
 
-  [id^="count-pencils-by-tens-case-"] .min-h-\[34px\] {
+  [id^="base-ten-blocks-case-"] img[src*="base10_unite.png"] {
+    height: 16px !important;
+    width: 16px !important;
+  }
+
+  [id^="count-pencils-by-tens-case-"] .min-h-\[34px\],
+  [id^="base-ten-blocks-case-"] .min-h-\[34px\] {
     min-height: 22px !important;
   }
 
-  [id^="count-pencils-by-tens-case-"] .text-sm {
+  [id^="count-pencils-by-tens-case-"] .text-sm,
+  [id^="base-ten-blocks-case-"] .text-sm {
     font-size: 10px !important;
   }
 
-  [id^="count-pencils-by-tens-case-"] input {
+  [id^="count-pencils-by-tens-case-"] input,
+  [id^="base-ten-blocks-case-"] input {
     margin-top: 2px !important;
     padding: 2px 4px !important;
     font-size: 10px !important;

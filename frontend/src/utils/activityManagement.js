@@ -16,9 +16,11 @@ import { defaultEvenOddClassificationActivityContent } from "../activities/EvenO
 import { defaultHomophonesActivityContent } from "../activities/HomophonesActivity";
 import { defaultNumberLineActivityContent } from "../activities/NumberLineActivity";
 import { defaultColumnOperationActivityContent } from "../activities/ColumnOperationActivity";
+import { defaultBaseTenBlocksActivityContent } from "../activities/BaseTenBlocksActivity";
 
 
 export const ACTIVITY_FILES = [
+  "src/activities/BaseTenBlocksActivity.js",
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
   "src/activities/CountPencilsByTensActivity.js",
@@ -40,6 +42,7 @@ export const ACTIVITY_FILES = [
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
+  "src/activities/BaseTenBlocksActivity.js": defaultBaseTenBlocksActivityContent,
   "src/activities/SortNumbersActivity.js": defaultSortNumbersActivityContent,
   "src/activities/MatchAdditionsActivity.js": defaultMatchAdditionsActivityContent,
   "src/activities/CountPencilsByTensActivity.js": defaultCountPencilsByTensActivityContent,

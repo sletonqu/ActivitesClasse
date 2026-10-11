@@ -17,9 +17,13 @@ import EvenOddClassificationActivity from "./EvenOddClassificationActivity";
 import HomophonesActivity from "./HomophonesActivity";
 import NumberLineActivity from "./NumberLineActivity";
 import ColumnOperationActivity from "./ColumnOperationActivity";
+import BaseTenBlocksActivity from "./BaseTenBlocksActivity";
 
 
 const componentRegistry = {
+  "src/activities/BaseTenBlocksActivity.js": BaseTenBlocksActivity,
+  "BaseTenBlocksActivity": BaseTenBlocksActivity,
+  "BaseTenBlocksActivity.js": BaseTenBlocksActivity,
   "src/activities/NumberLineActivity.js": NumberLineActivity,
   "NumberLineActivity": NumberLineActivity,
   "NumberLineActivity.js": NumberLineActivity,
