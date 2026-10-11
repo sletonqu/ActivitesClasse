@@ -76,7 +76,7 @@ function findVerbWithEnding(sentence, endings) {
   return null;
 }
 
-function buildVerbRound(sentenceEntry, index, endings) {
+export function buildVerbRound(sentenceEntry, index, endings) {
   const verbInfo = findVerbWithEnding(sentenceEntry, endings);
   
   if (!verbInfo) {
@@ -146,6 +146,7 @@ const VerbEndingCompletionActivity = ({
   const [processedCount, setProcessedCount] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [incorrectCount, setIncorrectCount] = useState(0);
+  const [mistakes, setMistakes] = useState([]);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
   const [selectedEnding, setSelectedEnding] = useState(null);
@@ -199,6 +200,7 @@ const VerbEndingCompletionActivity = ({
     setProcessedCount(0);
     setCorrectCount(0);
     setIncorrectCount(0);
+    setMistakes([]);
     setSelectedEnding(null);
     setRoundFinished(false);
     setIsCorrect(null);
@@ -217,6 +219,7 @@ const VerbEndingCompletionActivity = ({
     setLoadingError("");
     setFinished(false);
     setScore(null);
+    setMistakes([]);
 
     try {
       const params = new URLSearchParams({
@@ -251,6 +254,7 @@ const VerbEndingCompletionActivity = ({
       setProcessedCount(0);
       setCorrectCount(0);
       setIncorrectCount(0);
+      setMistakes([]);
       setSelectedEnding(null);
       setRoundFinished(false);
       setIsCorrect(null);
@@ -316,6 +320,18 @@ const VerbEndingCompletionActivity = ({
     } else {
       setIncorrectCount(nextIncorrectCount);
       setMessage(`Erreur. La bonne réponse était : ${currentSentence.correctEnding}`);
+      setMistakes((prev) => [
+        ...prev,
+        {
+          id: currentSentence.id,
+          sentenceText: currentSentence.sentenceText,
+          selectedEnding: ending,
+          correctEnding: currentSentence.correctEnding,
+          baseForm: currentSentence.baseForm,
+          wordText: currentSentence.wordText,
+          displayTokens: currentSentence.displayTokens,
+        },
+      ]);
     }
 
     setProcessedCount(nextProcessedCount);
@@ -518,7 +534,66 @@ const VerbEndingCompletionActivity = ({
             { key: "incorrect", label: "Erreurs", value: incorrectCount },
             { key: "total", label: "Phrases", value: sentenceRounds.length },
           ]}
-        />
+        >
+          {mistakes.length > 0 && (
+            <div
+              id="verb-ending-summary-errors"
+              className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 sm:p-4 text-left"
+            >
+              <h5
+                id="verb-ending-summary-errors-title"
+                className="mb-2.5 flex items-center gap-2 text-sm font-bold text-rose-800 sm:text-base"
+              >
+                <span aria-hidden="true">⚠️</span>
+                <span>Phrases avec erreurs ({mistakes.length}) :</span>
+              </h5>
+              <ul id="verb-ending-summary-errors-list" className="space-y-2.5">
+                {mistakes.map((mistake, index) => (
+                  <li
+                    key={mistake.id || index}
+                    id={`verb-ending-summary-error-item-${index}`}
+                    className="rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-xs"
+                  >
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-medium text-slate-800 sm:text-base">
+                      <span className="mr-0.5 font-bold text-slate-400">
+                        {index + 1}.
+                      </span>
+                      {Array.isArray(mistake.displayTokens) && mistake.displayTokens.length > 0 ? (
+                        mistake.displayTokens.map((token, tIdx) => {
+                          if (token.isVerb) {
+                            return (
+                              <span
+                                key={token.id || tIdx}
+                                className="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-rose-50 px-2 py-0.5 text-xs font-bold sm:text-sm"
+                              >
+                                <span className="text-rose-600 line-through decoration-2">
+                                  {mistake.baseForm}{mistake.selectedEnding}
+                                </span>
+                                <span className="text-slate-400" aria-hidden="true">
+                                  ➔
+                                </span>
+                                <span className="font-extrabold text-emerald-700">
+                                  {mistake.wordText}
+                                </span>
+                              </span>
+                            );
+                          }
+                          return (
+                            <span key={token.id || tIdx} className="text-slate-800">
+                              {token.text}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span>{mistake.sentenceText}</span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </ActivitySummaryCard>
       )}
 
       <ActivityActionsBar

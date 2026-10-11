@@ -1008,4 +1008,4 @@ Paramètres :
 - `levels.levelX.sentenceCount` : nombre de phrases de la série ;
 - `levels.levelX.endings` : terminaisons proposées.
 
-Les phrases sont chargées depuis la base selon les terminaisons demandées. Le score est enregistré sur 20 avec le niveau courant.
+Les phrases sont chargées depuis la base selon les terminaisons demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
