@@ -99,8 +99,8 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
   const [provider, setProvider] = useState("openai");
   const [schoolLevel, setSchoolLevel] = useState("CE1");
   const [theme, setTheme] = useState("animaux");
-  const [maxWords, setMaxWords] = useState(6);
-  const [phraseCount, setPhraseCount] = useState(3);
+  const [maxWords, setMaxWords] = useState(15);
+  const [phraseCount, setPhraseCount] = useState(5);
   const [customInstruction, setCustomInstruction] = useState("");
   const [generatedResult, setGeneratedResult] = useState(null);
   const [message, setMessage] = useState("");
@@ -280,11 +280,10 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
         {providers.map((item) => (
           <span
             key={item.id}
-            className={`rounded-full px-2.5 py-1 border ${
-              item.configured
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-slate-200 bg-white text-slate-500"
-            }`}
+            className={`rounded-full px-2.5 py-1 border ${item.configured
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-white text-slate-500"
+              }`}
           >
             {item.label} : {item.configured ? "clé détectée" : "clé absente"}
           </span>
@@ -426,9 +425,8 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
       {showMessage && message && (
         <div
           id="ai-sentence-generator-message"
-          className={`mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-            fadeMessage ? "opacity-0" : "opacity-100"
-          }`}
+          className={`mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeMessage ? "opacity-0" : "opacity-100"
+            }`}
         >
           {message}
         </div>
