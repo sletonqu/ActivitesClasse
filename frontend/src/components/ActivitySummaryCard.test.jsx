@@ -27,4 +27,15 @@ describe("ActivitySummaryCard", () => {
 
     expect(html).not.toContain('id="test-summary-confetti"');
   });
+
+  it("rend les éléments enfants passés à la carte", () => {
+    const html = renderToStaticMarkup(
+      <ActivitySummaryCard id="test-summary" score={15}>
+        <div id="test-children-content">Contenu personnalisé</div>
+      </ActivitySummaryCard>
+    );
+
+    expect(html).toContain('id="test-children-content"');
+    expect(html).toContain("Contenu personnalisé");
+  });
 });

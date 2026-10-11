@@ -40,6 +40,7 @@ const ActivitySummaryCard = ({
   className = "",
   valueClassName = "",
   footerClassName = "",
+  children,
 }) => {
   const palette = SUMMARY_TONE_CLASSNAMES[tone] || SUMMARY_TONE_CLASSNAMES.success;
 
@@ -96,6 +97,10 @@ const ActivitySummaryCard = ({
             </div>
           ))}
         </div>
+      ) : null}
+
+      {children ? (
+        <div className="relative z-10 mt-3">{children}</div>
       ) : null}
     </section>
   );

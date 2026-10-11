@@ -715,6 +715,7 @@ Comportement :
 - **Chargement dynamique** : les phrases sont récupérées via l'API `/api/ai/sentences-by-word` en fonction du niveau et des sons demandés ;
 - **Sélection intelligente** : les phrases les moins utilisées sont prioritaires (compteur bas) pour favoriser la diversité ;
 - **Gestion multi-niveaux** : le changement de niveau charge automatiquement de nouvelles phrases ;
+- **Bilan des erreurs** : en cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le mot utilisé par l'élève et la bonne réponse attendue (idéal pour la consultation de la capture d'écran du résultat) ;
 - Score enregistré sur 20 avec renvoi du `levelKey` et du `levelLabel` via `onComplete(...)` ;
 - En mode démo (`student=null`), aucun résultat n'est enregistré et le bouton "Recommencer" reste actif.
 
