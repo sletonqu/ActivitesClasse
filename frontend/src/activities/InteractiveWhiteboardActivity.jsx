@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
 import ConfirmModal from "../components/ConfirmModal";
+import WhiteboardRuler from "../components/WhiteboardRuler";
+import { getRulerEdgeSnapPoint, RULER_DEFAULT_WIDTH } from "../utils/whiteboardRulerSnap";
 
 export const defaultInteractiveWhiteboardActivityContent = {
   defaultTitle: "Tableau",
@@ -841,6 +843,16 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const lastErasePointRef = useRef(null);
   const eraseLivePendingRef = useRef(false);
 
+  const isRulerDrawingRef = useRef(false);
+  const rulerSnapStartPointRef = useRef(null);
+  const rulerRef = useRef({
+    active: false,
+    x: 140,
+    y: 180,
+    width: RULER_DEFAULT_WIDTH,
+    angle: 0,
+  });
+
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [mode, setMode] = useState("draw");
@@ -849,7 +861,39 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
   const [fontFamily, setFontFamily] = useState(configuredFontFamily);
   const [shapeType, setShapeType] = useState("line");
+  const [isRulerActive, setIsRulerActive] = useState(false);
+  const [rulerState, setRulerState] = useState({
+    x: 140,
+    y: 180,
+    width: RULER_DEFAULT_WIDTH,
+    angle: 0,
+  });
+  const [isRulerSnapped, setIsRulerSnapped] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 1.0);
+  const currentZoomRef = useRef(currentZoom);
+  useEffect(() => {
+    currentZoomRef.current = currentZoom;
+  }, [currentZoom]);
+
+  const getSnapThreshold = (brushSizeVal) => {
+    const size = Math.max(1, parseInt(brushSizeVal, 10) || 1);
+    return Math.max(32, Math.min(96, 24 + size * 0.5));
+  };
+
+  const getSceneCoordsFromEvent = (e) => {
+    const frame = canvasFrameRef.current;
+    if (!frame || !e) return null;
+    const rect = frame.getBoundingClientRect();
+    const zoom = Math.max(0.01, Number(currentZoomRef.current) || 1);
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX;
+    const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY;
+    if (clientX === undefined || clientY === undefined) return null;
+    return {
+      x: (clientX - rect.left) / zoom,
+      y: (clientY - rect.top) / zoom,
+    };
+  };
+
   const [title, setTitle] = useState(content?.defaultTitle || "Tableau");
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
@@ -972,7 +1016,24 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     }
 
     const rect = frame.getBoundingClientRect();
-    const zoom = Math.max(0.01, Number(currentZoom) || 1);
+    const zoom = Math.max(0.01, Number(currentZoomRef.current) || 1);
+    let sceneX = (clientX - rect.left) / zoom;
+    let sceneY = (clientY - rect.top) / zoom;
+
+    let snappedToRuler = false;
+    if (isDrawMode && rulerRef.current?.active) {
+      const threshold = isRulerDrawingRef.current
+        ? Math.max(140, getSnapThreshold(brushSizeRef.current) * 2)
+        : getSnapThreshold(brushSizeRef.current);
+      const snap = getRulerEdgeSnapPoint({ x: sceneX, y: sceneY }, rulerRef.current, threshold);
+      if (snap) {
+        sceneX = snap.x;
+        sceneY = snap.y;
+        snappedToRuler = true;
+      }
+    }
+    setIsRulerSnapped(snappedToRuler || isRulerDrawingRef.current);
+
     const diameter = Math.max(6, parseInt(brushSizeRef.current, 10) || 1);
     const strokeColor = colorRef.current || "black";
     const previewFillColor =
@@ -980,10 +1041,18 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
     preview.style.width = `${diameter}px`;
     preview.style.height = `${diameter}px`;
-    preview.style.left = `${(clientX - rect.left) / zoom}px`;
-    preview.style.top = `${(clientY - rect.top) / zoom}px`;
-    preview.style.borderColor = isEraseMode ? "rgba(2, 132, 199, 0.8)" : strokeColor;
-    preview.style.backgroundColor = isEraseMode ? "rgba(125, 211, 252, 0.2)" : previewFillColor;
+    preview.style.left = `${sceneX}px`;
+    preview.style.top = `${sceneY}px`;
+    preview.style.borderColor = isEraseMode
+      ? "rgba(2, 132, 199, 0.8)"
+      : snappedToRuler
+      ? "#0284c7"
+      : strokeColor;
+    preview.style.backgroundColor = isEraseMode
+      ? "rgba(125, 211, 252, 0.2)"
+      : snappedToRuler
+      ? "rgba(2, 132, 199, 0.25)"
+      : previewFillColor;
     preview.style.opacity = "1";
   };
 
@@ -993,6 +1062,19 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
   const handleCanvasFramePointerLeave = () => {
     hideBrushPreview();
+    if (!isRulerDrawingRef.current) {
+      setIsRulerSnapped(false);
+    }
+  };
+
+  const handleToggleRuler = () => {
+    setIsRulerActive((prev) => {
+      const next = !prev;
+      if (next && modeRef.current === "pan") {
+        setMode("draw");
+      }
+      return next;
+    });
   };
 
   const canvasWidth = Number(content?.width) || defaultInteractiveWhiteboardActivityContent.width;
@@ -1021,6 +1103,16 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   useEffect(() => {
     shapeTypeRef.current = shapeType;
   }, [shapeType]);
+
+  useEffect(() => {
+    rulerRef.current = {
+      active: isRulerActive,
+      ...rulerState,
+    };
+    if (fabricCanvasRef.current?.freeDrawingBrush) {
+      attachRulerSnapToBrush(fabricCanvasRef.current.freeDrawingBrush);
+    }
+  }, [isRulerActive, rulerState]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -1175,6 +1267,100 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     renderHistoryStep(historyRef.current[historyStepRef.current]);
   };
 
+  const attachRulerSnapToBrush = (brush) => {
+    if (!brush || brush._rulerSnapAttached) return;
+    brush._rulerSnapAttached = true;
+
+    const originalMouseDown = brush.onMouseDown.bind(brush);
+    const originalMouseMove = brush.onMouseMove.bind(brush);
+    const originalMouseUp = brush.onMouseUp.bind(brush);
+    const originalAddPoint = brush._addPoint.bind(brush);
+
+    // En mode tracé guidé par la règle, on garantit un segment rectiligne le long du bord
+    brush._addPoint = function (point) {
+      if (isRulerDrawingRef.current) {
+        if (this._points.length > 1 && point.eq(this._points[this._points.length - 1])) {
+          return false;
+        }
+        if (this._points.length > 1) {
+          this._hasStraightLine = true;
+          this._points.pop();
+        }
+        this._points.push(point);
+        return true;
+      }
+      return originalAddPoint(point);
+    };
+
+    brush.onMouseDown = (pointer, options) => {
+      const ruler = rulerRef.current;
+      const scenePoint = getSceneCoordsFromEvent(options?.e) || pointer;
+      const threshold = getSnapThreshold(brushSizeRef.current);
+
+      if (ruler?.active && modeRef.current === "draw") {
+        const snap = getRulerEdgeSnapPoint(scenePoint, ruler, threshold);
+        if (snap) {
+          isRulerDrawingRef.current = true;
+          rulerSnapStartPointRef.current = snap;
+          setIsRulerSnapped(true);
+
+          const fabricApi = fabric;
+          const snappedPointer = new fabricApi.Point(snap.x, snap.y);
+
+          // Transmettre les options réelles intactes pour préserver la vérification _isMainEvent
+          const res = originalMouseDown(snappedPointer, options);
+          brush._hasStraightLine = true;
+          brush.drawStraightLine = true;
+
+          if (brushPreviewRef.current) {
+            brushPreviewRef.current.style.left = `${snap.x}px`;
+            brushPreviewRef.current.style.top = `${snap.y}px`;
+          }
+          return res;
+        }
+      }
+
+      isRulerDrawingRef.current = false;
+      rulerSnapStartPointRef.current = null;
+      return originalMouseDown(pointer, options);
+    };
+
+    brush.onMouseMove = (pointer, options) => {
+      if (isRulerDrawingRef.current && rulerRef.current?.active && modeRef.current === "draw") {
+        const ruler = rulerRef.current;
+        const scenePoint = getSceneCoordsFromEvent(options?.e) || pointer;
+        const moveThreshold = Math.max(140, getSnapThreshold(brushSizeRef.current) * 2);
+        const snap = getRulerEdgeSnapPoint(scenePoint, ruler, moveThreshold);
+
+        if (snap) {
+          const fabricApi = fabric;
+          const snappedPointer = new fabricApi.Point(snap.x, snap.y);
+          brush._hasStraightLine = true;
+          brush.drawStraightLine = true;
+
+          if (brushPreviewRef.current) {
+            brushPreviewRef.current.style.left = `${snap.x}px`;
+            brushPreviewRef.current.style.top = `${snap.y}px`;
+          }
+
+          return originalMouseMove(snappedPointer, options);
+        }
+      }
+
+      return originalMouseMove(pointer, options);
+    };
+
+    brush.onMouseUp = (options) => {
+      if (isRulerDrawingRef.current) {
+        isRulerDrawingRef.current = false;
+        rulerSnapStartPointRef.current = null;
+        setIsRulerSnapped(false);
+        brush.drawStraightLine = false;
+      }
+      return originalMouseUp(options);
+    };
+  };
+
   const updateBrush = () => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -1199,6 +1385,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         canvas.freeDrawingBrush = new pencilBrush(canvas);
       }
       canvas.freeDrawingBrush.color = color;
+      attachRulerSnapToBrush(canvas.freeDrawingBrush);
     }
 
     if (canvas.freeDrawingBrush) {
@@ -1315,6 +1502,30 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
         fabricCanvasRef.current = canvas;
 
+        const originalGetScenePoint = canvas.getScenePoint.bind(canvas);
+        canvas.getScenePoint = function (e) {
+          if (!e) {
+            return originalGetScenePoint(e);
+          }
+          if (rulerRef.current?.active && modeRef.current === "draw") {
+            const directPoint = getSceneCoordsFromEvent(e);
+            const rawPoint = directPoint || originalGetScenePoint(e);
+            const threshold = isRulerDrawingRef.current
+              ? Math.max(140, getSnapThreshold(brushSizeRef.current) * 2)
+              : getSnapThreshold(brushSizeRef.current);
+            const snap = getRulerEdgeSnapPoint(rawPoint, rulerRef.current, threshold);
+            if (snap) {
+              return new fabricApi.Point(snap.x, snap.y);
+            }
+            return rawPoint instanceof fabricApi.Point ? rawPoint : new fabricApi.Point(rawPoint.x, rawPoint.y);
+          }
+          return originalGetScenePoint(e);
+        };
+
+        if (canvas.freeDrawingBrush) {
+          attachRulerSnapToBrush(canvas.freeDrawingBrush);
+        }
+
         const addTextAtPointer = (pointer) => {
           const defaulttext = "Bonjour...";
           const brushSize = parseInt(brushSizeRef.current, 10) || 1;
@@ -1407,8 +1618,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
             isDrawingShapeRef.current = true;
             const gridSize = getGridSnapSize(paperStyleRef.current);
-            const startX = snapCoordinate(pointer.x, gridSize);
-            const startY = snapCoordinate(pointer.y, gridSize);
+            let startX = snapCoordinate(pointer.x, gridSize);
+            let startY = snapCoordinate(pointer.y, gridSize);
+
+            if (shapeTypeRef.current === "line" && rulerRef.current?.active) {
+              const snap = getRulerEdgeSnapPoint(pointer, rulerRef.current, 32);
+              if (snap) {
+                startX = snap.x;
+                startY = snap.y;
+              }
+            }
+
             shapeOriginRef.current = { x: startX, y: startY };
 
             const shapeProps = {
@@ -1537,7 +1757,16 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             const type = shapeTypeRef.current;
 
             if (type === "line") {
-              shape.set({ x2: pointerX, y2: pointerY });
+              let targetX = pointerX;
+              let targetY = pointerY;
+              if (rulerRef.current?.active) {
+                const snap = getRulerEdgeSnapPoint(pointer, rulerRef.current, 70);
+                if (snap) {
+                  targetX = snap.x;
+                  targetY = snap.y;
+                }
+              }
+              shape.set({ x2: targetX, y2: targetY });
             } else {
               const deltaX = pointerX - origin.x;
               const deltaY = pointerY - origin.y;
@@ -1636,6 +1865,12 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               saveHistory();
               activeShapeRef.current = null;
             }
+          }
+
+          if (isRulerDrawingRef.current) {
+            isRulerDrawingRef.current = false;
+            rulerSnapStartPointRef.current = null;
+            setIsRulerSnapped(false);
           }
 
           if (isPanningRef.current) {
@@ -2199,7 +2434,18 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           <div
             id="interactive-whiteboard-brush-preview"
             ref={brushPreviewRef}
-            className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-600/80 bg-sky-300/20 opacity-0 transition-opacity duration-100"
+            className="pointer-events-none absolute z-40 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-600/80 bg-sky-300/20 opacity-0 transition-opacity duration-100"
+          />
+          <WhiteboardRuler
+            isActive={isRulerActive}
+            rulerState={rulerState}
+            onUpdate={(updates) => setRulerState((prev) => ({ ...prev, ...updates }))}
+            onClose={() => setIsRulerActive(false)}
+            isSnapped={isRulerSnapped}
+            currentZoom={currentZoom}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            canvasFrameRef={canvasFrameRef}
           />
           <div ref={canvasRef} />
         </div>
@@ -2294,6 +2540,19 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
                     <button type="button" onClick={handlePanButtonClick} title="Déplacer la vue" className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✋</button>
                     <button type="button" onClick={() => setMode("draw")} title="Dessiner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✏️</button>
+                    <button
+                      id="interactive-whiteboard-ruler-button"
+                      type="button"
+                      onClick={handleToggleRuler}
+                      title={isRulerActive ? "Masquer la règle graduée" : "Afficher la règle graduée"}
+                      className={`h-9 rounded-lg border px-3 text-sm font-semibold transition-colors ${
+                        isRulerActive
+                          ? "bg-amber-500 text-white border-amber-600 shadow-inner"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      📏
+                    </button>
                     <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
                     <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
                     <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
