@@ -2169,11 +2169,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             ? { left: toolbarPosition.x, top: toolbarPosition.y, bottom: "auto", transform: "none" }
             : undefined
         }
-        className="fixed bottom-4 right-4 z-50 w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
+        className="pointer-events-none fixed bottom-4 right-4 z-50 w-fit max-w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
       >
         <div
           id="interactive-whiteboard-toolbar-row"
-          className="flex items-start justify-end gap-0"
+          className="pointer-events-none flex items-start justify-end gap-0"
         >
           <button
             id="interactive-whiteboard-toolbar-collapse-button"
@@ -2181,7 +2181,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+            className="pointer-events-auto h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
               {isToolbarCollapsed ? "⌞⌝" : "〢"}
@@ -2189,7 +2189,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           </button>
 
           {!isToolbarCollapsed && (
-            <div id="interactive-whiteboard-toolbar-stack" className="flex flex-col items-center gap-1">
+            <div id="interactive-whiteboard-toolbar-stack" className="pointer-events-auto flex flex-col items-center gap-1">
               <section
                 id="interactive-whiteboard-main-toolbar"
                 className="flex w-full flex-col items-stretch rounded-none border border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur"
