@@ -286,6 +286,21 @@ function alignFabricLayersTopLeft(canvas) {
   });
 }
 
+function optimizeTextObjects(canvas) {
+  if (!canvas) return;
+  canvas.getObjects().forEach((obj) => {
+    if (["i-text", "text", "textbox"].includes(obj?.type)) {
+      obj.set("objectCaching", false);
+      const isCursive = obj.fontFamily === "Cursif" || obj.fontFamily === "Cursive Standard" || !obj.fontFamily;
+      if (isCursive) {
+        obj.set("stroke", obj.fill || "black");
+        obj.set("strokeWidth", 0.25);
+        obj.set("paintFirst", "stroke");
+      }
+    }
+  });
+}
+
 function logWhiteboardFabricDiagnostics(fabric) {
   if (!fabric) {
     console.warn("[Tableau blanc] Fabric.js introuvable au chargement.");
@@ -1141,6 +1156,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       }
       alignFabricLayersTopLeft(canvas);
       applyPaperStyleToCanvas(canvas, paperStyleRef.current, backgroundColor);
+      optimizeTextObjects(canvas);
+      canvas.requestRenderAll();
       historyLockedRef.current = false;
       updateHistoryButtons();
     });
@@ -1230,7 +1247,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       return;
     }
 
-    textObjects.forEach((obj) => obj.set("fontFamily", resolvedFontFamily));
+    const isCursive = resolvedFontFamily === "Cursif" || resolvedFontFamily === "Cursive Standard";
+    textObjects.forEach((obj) => {
+      obj.set("fontFamily", resolvedFontFamily);
+      obj.set("objectCaching", false);
+      obj.set("stroke", isCursive ? (obj.fill || colorRef.current || "black") : undefined);
+      obj.set("strokeWidth", isCursive ? 0.25 : 0);
+      obj.set("paintFirst", "stroke");
+    });
     canvas.requestRenderAll();
     saveHistory();
   };
@@ -1243,6 +1267,19 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         if (disposed || !canvasRef.current) return;
 
         const fabricApi = fabric;
+
+        if (fabricApi.config) {
+          fabricApi.config.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
+        }
+        if (fabricApi.IText?.prototype) {
+          fabricApi.IText.prototype.objectCaching = false;
+        }
+        if (fabricApi.FabricText?.prototype) {
+          fabricApi.FabricText.prototype.objectCaching = false;
+        }
+        if (fabricApi.Textbox?.prototype) {
+          fabricApi.Textbox.prototype.objectCaching = false;
+        }
 
         logWhiteboardFabricDiagnostics(fabricApi);
 
@@ -1261,6 +1298,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           enableRetinaScaling: true,
         });
 
+        canvas.getRetinaScaling = () => Math.max(window.devicePixelRatio || 1, 2);
+
         if (canvas.upperCanvasEl) {
           canvas.upperCanvasEl.style.touchAction = "none";
         }
@@ -1278,27 +1317,28 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
         const addTextAtPointer = (pointer) => {
           const defaulttext = "Bonjour...";
-          const brushSize = parseInt(brushSizeRef.current, 10);
-          const offsetValue = 6 + brushSize * 0.28; // Adjust this until the baseline hits the bottom blue line
+          const brushSize = parseInt(brushSizeRef.current, 10) || 1;
+          const offsetValue = Math.round(6 + brushSize * 0.28);
           const gridSize = getGridSnapSize(paperStyleRef.current);
+          const activeFontFamily = fontFamilyRef.current || DEFAULT_TEXT_FONT_FAMILY;
+          const textColor = colorRef.current || "black";
+          const isCursive = activeFontFamily === "Cursif" || activeFontFamily === "Cursive Standard";
           const text = new fabric.IText(defaulttext, {
             left: snapCoordinate(pointer.x, gridSize),
-            top: snapCoordinate(pointer.y, gridSize),
-            fontFamily: fontFamilyRef.current || DEFAULT_TEXT_FONT_FAMILY,
+            top: snapCoordinate(pointer.y, gridSize) + offsetValue,
+            fontFamily: activeFontFamily,
             fontSize: 22 + brushSize,
-            fill: colorRef.current,
+            fill: textColor,
+            stroke: isCursive ? textColor : undefined,
+            strokeWidth: isCursive ? 0.25 : 0,
+            paintFirst: "stroke",
             textAlign: "left",
             lineHeight: 1.16,
-            fontWeight: 'normal', // 'normal' | 'bold' | 400 | 600 | 800
+            fontWeight: 'normal',
             padding: 20,
             originX: "left",
             originY: "bottom",
-            styles: {
-              0: Array.from(defaulttext).reduce((acc, _, i) => {
-                acc[i] = { deltaY: offsetValue };
-                return acc;
-              }, {})
-            }
+            objectCaching: false,
           });
           canvas.add(text);
           canvas.setActiveObject(text);
@@ -1632,13 +1672,13 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               .then((results) => {
                 const changedCount = results.filter(Boolean).length;
 
-            canvas.remove(createdPath);
-            canvas.discardActiveObject();
-            canvas.requestRenderAll();
+                canvas.remove(createdPath);
+                canvas.discardActiveObject();
+                canvas.requestRenderAll();
 
                 if (changedCount > 0) {
-              saveHistory();
-            }
+                  saveHistory();
+                }
               })
               .catch(() => {
                 canvas.remove(createdPath);
@@ -1690,6 +1730,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               }
               alignFabricLayersTopLeft(canvas);
               applyPaperStyleToCanvas(canvas, savedPaperStyle, backgroundColor);
+              optimizeTextObjects(canvas);
+              canvas.requestRenderAll();
               historyLockedRef.current = false;
               historyRef.current = [JSON.stringify(savedCanvas)];
               historyStepRef.current = 0;
@@ -1725,8 +1767,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         fabricCanvasRef.current.requestRenderAll = () => { };
         try {
           const canvasToDispose = fabricCanvasRef.current;
-          canvasToDispose.clearContext = () => {};
-          canvasToDispose.dispose().catch(() => {});
+          canvasToDispose.clearContext = () => { };
+          canvasToDispose.dispose().catch(() => { });
         } catch (e) {
         }
         fabricCanvasRef.current = null;
@@ -2049,6 +2091,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             parsed?.meta?.paperStyle || paperStyleRef.current,
             backgroundColor
           );
+          optimizeTextObjects(fabricCanvasRef.current);
+          fabricCanvasRef.current.requestRenderAll();
           historyLockedRef.current = false;
           saveHistory();
           window.alert("Tableau chargé avec succès !");
@@ -2208,61 +2252,61 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                 </button>
 
                 <div id="interactive-whiteboard-main-toolbar-content" className="flex flex-wrap items-center justify-center gap-1 px-3 pt-0">
-            <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <select
-                id="interactive-whiteboard-paper-style"
-                value={paperStyle}
-                onChange={(e) => setPaperStyle(e.target.value)}
-                className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
-              >
-                <option value="blank">Blanc</option>
-                <option value="seyes">Lignage Seyès</option>
-                <option value="grid">Carreaux géométrie</option>
-                <option value="millimeter">Papier millimétré</option>
-              </select>
-              <select
-                id="interactive-whiteboard-font-family"
-                value={fontFamily}
-                onChange={(e) => handleFontFamilyChange(e.target.value)}
-                className="h-9 max-w-40 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
-                style={{ fontFamily }}
-                title="Police utilisée pour les textes"
-              >
-                {WHITEBOARD_FONT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} style={{ fontFamily: option.value }}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={handleExportJson} title="Exporter le tableau au format JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >💾</button>
-              <button type="button" onClick={() => inputJsonRef.current?.click()} title="Importer un fichier JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📂</button>
-              <input ref={inputJsonRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
-              <button type="button" onClick={handleExportPng} title="Exporter le tableau au format PNG" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📷</button>
-            </div>
+                  <div id="interactive-whiteboard-file-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
+                    <select
+                      id="interactive-whiteboard-paper-style"
+                      value={paperStyle}
+                      onChange={(e) => setPaperStyle(e.target.value)}
+                      className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                    >
+                      <option value="blank">Blanc</option>
+                      <option value="seyes">Lignage Seyès</option>
+                      <option value="grid">Carreaux géométrie</option>
+                      <option value="millimeter">Papier millimétré</option>
+                    </select>
+                    <select
+                      id="interactive-whiteboard-font-family"
+                      value={fontFamily}
+                      onChange={(e) => handleFontFamilyChange(e.target.value)}
+                      className="h-9 max-w-40 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                      style={{ fontFamily }}
+                      title="Police utilisée pour les textes"
+                    >
+                      {WHITEBOARD_FONT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value} style={{ fontFamily: option.value }}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={handleExportJson} title="Exporter le tableau au format JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >💾</button>
+                    <button type="button" onClick={() => inputJsonRef.current?.click()} title="Importer un fichier JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📂</button>
+                    <input ref={inputJsonRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
+                    <button type="button" onClick={handleExportPng} title="Exporter le tableau au format PNG" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📷</button>
+                  </div>
 
-            <div id="interactive-whiteboard-view-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <button type="button" onClick={handleToggleOrientation} title="Basculer l'orientation" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔃</button>
-              <button type="button" onClick={() => setCurrentZoom((prev) => Math.max(0.2, prev - 0.1))} title="Zoom arrière" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >−</button>
-              <span className="min-w-12 text-center text-sm font-semibold text-slate-500">{Math.round(currentZoom * 100)}%</span>
-              <button type="button" onClick={() => setCurrentZoom((prev) => prev + 0.1)} title="Zoom avant" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >+</button>
-            </div>
+                  <div id="interactive-whiteboard-view-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
+                    <button type="button" onClick={handleToggleOrientation} title="Basculer l'orientation" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔃</button>
+                    <button type="button" onClick={() => setCurrentZoom((prev) => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10))} title="Zoom arrière" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >−</button>
+                    <span className="min-w-12 text-center text-sm font-semibold text-slate-500">{Math.round(currentZoom * 100)}%</span>
+                    <button type="button" onClick={() => setCurrentZoom((prev) => Math.min(3.0, Math.round((prev + 0.1) * 10) / 10))} title="Zoom avant" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >+</button>
+                  </div>
 
-            <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-              <button type="button" onClick={handlePanButtonClick} title="Déplacer la vue" className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✋</button>
-              <button type="button" onClick={() => setMode("draw")} title="Dessiner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✏️</button>
-              <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
-              <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
-              <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
-              <button type="button" onClick={() => inputImageRef.current?.click()} title="Insérer une image" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🖼️</button>
-              <input ref={inputImageRef} type="file" accept="image/*" onChange={handlePrepareImage} className="hidden" />
-              <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
-            </div>
+                  <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
+                    <button type="button" onClick={handlePanButtonClick} title="Déplacer la vue" className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✋</button>
+                    <button type="button" onClick={() => setMode("draw")} title="Dessiner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✏️</button>
+                    <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
+                    <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
+                    <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
+                    <button type="button" onClick={() => inputImageRef.current?.click()} title="Insérer une image" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🖼️</button>
+                    <input ref={inputImageRef} type="file" accept="image/*" onChange={handlePrepareImage} className="hidden" />
+                    <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
+                  </div>
 
-            <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↩️</button>
-              <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
-              <button type="button" onClick={handleClearClick} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
-            </div>
+                  <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↩️</button>
+                    <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
+                    <button type="button" onClick={handleClearClick} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
+                  </div>
                 </div>
               </section>
 
