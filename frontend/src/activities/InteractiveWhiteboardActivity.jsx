@@ -1220,15 +1220,43 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         return;
       }
 
+      if (
+        toolbarDragOffsetRef.current.pointerId !== undefined &&
+        event.pointerId !== undefined &&
+        toolbarDragOffsetRef.current.pointerId !== event.pointerId
+      ) {
+        return;
+      }
+
       const { offsetY } = toolbarDragOffsetRef.current;
       setToolbarPosition({ y: clampToolbarPositionY(event.clientY - offsetY) });
     };
 
-    const stopDraggingToolbar = () => {
+    const stopDraggingToolbar = (event) => {
+      if (!toolbarDragOffsetRef.current) {
+        return;
+      }
+
+      if (
+        toolbarDragOffsetRef.current.pointerId !== undefined &&
+        event?.pointerId !== undefined &&
+        toolbarDragOffsetRef.current.pointerId !== event.pointerId
+      ) {
+        return;
+      }
+
+      try {
+        if (event?.target?.hasPointerCapture?.(event.pointerId)) {
+          event.target.releasePointerCapture(event.pointerId);
+        }
+      } catch {
+        // Ignorer
+      }
+
       toolbarDragOffsetRef.current = null;
     };
 
-    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
     window.addEventListener("pointerup", stopDraggingToolbar);
     window.addEventListener("pointercancel", stopDraggingToolbar);
 
@@ -2469,15 +2497,24 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       return;
     }
 
+    try {
+      event.currentTarget?.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Ignorer si la capture de pointeur n'est pas disponible
+    }
+
     const rect = toolbarDockRef.current?.getBoundingClientRect();
     const startY = toolbarPosition.y ?? rect?.top ?? 8;
 
     toolbarDragOffsetRef.current = {
       offsetY: event.clientY - startY,
+      pointerId: event.pointerId,
     };
 
     setToolbarPosition({ y: clampToolbarPositionY(startY) });
-    event.preventDefault();
+    if (event.cancelable) {
+      event.preventDefault();
+    }
   };
 
   const handleToolbarCollapseToggle = () => {
@@ -2545,14 +2582,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         ref={toolbarDockRef}
         style={
           toolbarPosition.y !== null
-            ? { top: toolbarPosition.y, bottom: "auto", right: 0 }
-            : { right: 0 }
+            ? { top: toolbarPosition.y, bottom: "auto", right: 0, touchAction: "none" }
+            : { right: 0, touchAction: "none" }
         }
-        className="pointer-events-none fixed bottom-4 right-0 z-50 w-fit max-w-[min(1024px,100vw)] pl-2 pr-0 print:hidden"
+        className="pointer-events-none fixed bottom-4 right-0 z-50 w-fit max-w-[min(1024px,100vw)] select-none pl-2 pr-0 touch-none print:hidden"
       >
         <div
           id="interactive-whiteboard-toolbar-row"
-          className="pointer-events-none flex items-start justify-end gap-0"
+          className="pointer-events-none flex items-start justify-end gap-0 select-none touch-none"
         >
           <button
             id="interactive-whiteboard-toolbar-collapse-button"
@@ -2560,7 +2597,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="pointer-events-auto h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-r-0 border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+            className="pointer-events-auto h-[105.33px] min-w-5 select-none rounded-l-2xl rounded-r-none border border-r-0 border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90 touch-none"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
               {isToolbarCollapsed ? "⌞⌝" : "〢"}
@@ -2568,10 +2605,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           </button>
 
           {!isToolbarCollapsed && (
-            <div id="interactive-whiteboard-toolbar-stack" className="pointer-events-auto flex flex-col items-center gap-1">
+            <div
+              id="interactive-whiteboard-toolbar-stack"
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              className="pointer-events-auto flex flex-col items-center gap-1 select-none touch-none"
+            >
               <section
                 id="interactive-whiteboard-main-toolbar"
-                className="flex w-full flex-col items-stretch rounded-none border border-r-0 border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur"
+                className="flex w-full flex-col items-stretch rounded-none border border-r-0 border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur select-none touch-none"
               >
                 <button
                   id="interactive-whiteboard-toolbar-drag-handle"
@@ -2579,7 +2621,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                   onPointerDown={handleToolbarDragStart}
                   title="Déplacer la barre d'outils verticalement"
                   aria-label="Déplacer la barre d'outils verticalement"
-                  className="h-5 w-full cursor-ns-resize border-none bg-slate-50 px-0 text-slate-300 transition hover:bg-slate-100 active:cursor-grabbing"
+                  className="h-6 w-full cursor-ns-resize border-none bg-slate-50 px-0 text-slate-400 transition select-none hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing touch-none"
                 >
                   <span aria-hidden="true" className="block h-full w-full overflow-hidden whitespace-nowrap text-center text-sm leading-none tracking-[-0.02em]">
                     ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
@@ -2659,7 +2701,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               </section>
 
               {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
-                <section id="interactive-whiteboard-secondary-toolbar" className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur">
+                <section
+                  id="interactive-whiteboard-secondary-toolbar"
+                  className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur select-none touch-none"
+                >
                   {(mode === "draw" || mode === "text" || mode === "erase" || mode === "shape") && (
                     <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">
                       {mode !== "erase" && (
