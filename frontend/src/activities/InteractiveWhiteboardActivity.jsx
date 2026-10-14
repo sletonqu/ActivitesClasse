@@ -71,7 +71,7 @@ const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
   value: String(size),
   label: `${size}px`,
 }));
-const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position-v2";
+const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position-v3";
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
 
@@ -904,20 +904,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [showImageHint, setShowImageHint] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [toolbarPosition, setToolbarPosition] = useState({ x: null, y: null });
+  const [toolbarPosition, setToolbarPosition] = useState({ y: null });
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
-  const clampToolbarPosition = (nextX, nextY) => {
-    const toolbarWidth = toolbarDockRef.current?.offsetWidth || 800;
+  const clampToolbarPositionY = (nextY) => {
     const toolbarHeight = toolbarDockRef.current?.offsetHeight || 180;
-    const maxX = Math.max(8, window.innerWidth - toolbarWidth - 8);
     const maxY = Math.max(8, window.innerHeight - toolbarHeight - 8);
-
-    return {
-      x: Math.min(Math.max(8, nextX), maxX),
-      y: Math.min(Math.max(8, nextY), maxY),
-    };
+    return Math.min(Math.max(8, nextY), maxY);
   };
 
   const getExplicitBrushSize = (rawSize) => {
@@ -1204,8 +1198,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       }
 
       const parsedPosition = JSON.parse(savedPosition);
-      if (typeof parsedPosition?.x === "number" && typeof parsedPosition?.y === "number") {
-        setToolbarPosition(parsedPosition);
+      if (typeof parsedPosition?.y === "number") {
+        setToolbarPosition({ y: parsedPosition.y });
       }
     } catch {
       window.sessionStorage.removeItem(WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY);
@@ -1213,7 +1207,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined" || toolbarPosition.x === null || toolbarPosition.y === null) {
+    if (typeof window === "undefined" || toolbarPosition.y === null) {
       return;
     }
 
@@ -1226,8 +1220,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         return;
       }
 
-      const { offsetX, offsetY } = toolbarDragOffsetRef.current;
-      setToolbarPosition(clampToolbarPosition(event.clientX - offsetX, event.clientY - offsetY));
+      const { offsetY } = toolbarDragOffsetRef.current;
+      setToolbarPosition({ y: clampToolbarPositionY(event.clientY - offsetY) });
     };
 
     const stopDraggingToolbar = () => {
@@ -1248,10 +1242,12 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   useEffect(() => {
     const handleWindowResize = () => {
       setToolbarPosition((currentPosition) => {
-        if (currentPosition.x === null || currentPosition.y === null) {
+        if (currentPosition.y === null) {
           return currentPosition;
         }
-        return clampToolbarPosition(currentPosition.x, currentPosition.y);
+        return {
+          y: clampToolbarPositionY(currentPosition.y),
+        };
       });
     };
 
@@ -1259,6 +1255,19 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     return () => {
       window.removeEventListener("resize", handleWindowResize);
     };
+  }, [isToolbarCollapsed]);
+
+  useEffect(() => {
+    if (!isToolbarCollapsed && toolbarPosition.y !== null) {
+      setToolbarPosition((currentPosition) => {
+        if (currentPosition.y === null) {
+          return currentPosition;
+        }
+        return {
+          y: clampToolbarPositionY(currentPosition.y),
+        };
+      });
+    }
   }, [isToolbarCollapsed]);
 
   useEffect(() => {
@@ -2461,15 +2470,13 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     }
 
     const rect = toolbarDockRef.current?.getBoundingClientRect();
-    const startX = toolbarPosition.x ?? rect?.left ?? 8;
     const startY = toolbarPosition.y ?? rect?.top ?? 8;
 
     toolbarDragOffsetRef.current = {
-      offsetX: event.clientX - startX,
       offsetY: event.clientY - startY,
     };
 
-    setToolbarPosition(clampToolbarPosition(startX, startY));
+    setToolbarPosition({ y: clampToolbarPositionY(startY) });
     event.preventDefault();
   };
 
@@ -2537,11 +2544,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         id="interactive-whiteboard-toolbar-dock"
         ref={toolbarDockRef}
         style={
-          toolbarPosition.x !== null && toolbarPosition.y !== null
-            ? { left: toolbarPosition.x, top: toolbarPosition.y, bottom: "auto", transform: "none" }
-            : undefined
+          toolbarPosition.y !== null
+            ? { top: toolbarPosition.y, bottom: "auto", right: 0 }
+            : { right: 0 }
         }
-        className="pointer-events-none fixed bottom-4 right-4 z-50 w-fit max-w-[min(1024px,calc(100vw-1rem))] px-2 print:hidden"
+        className="pointer-events-none fixed bottom-4 right-0 z-50 w-fit max-w-[min(1024px,100vw)] pl-2 pr-0 print:hidden"
       >
         <div
           id="interactive-whiteboard-toolbar-row"
@@ -2553,7 +2560,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="pointer-events-auto h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
+            className="pointer-events-auto h-[105.33px] min-w-5 rounded-l-2xl rounded-r-none border border-r-0 border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
               {isToolbarCollapsed ? "⌞⌝" : "〢"}
@@ -2564,15 +2571,15 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             <div id="interactive-whiteboard-toolbar-stack" className="pointer-events-auto flex flex-col items-center gap-1">
               <section
                 id="interactive-whiteboard-main-toolbar"
-                className="flex w-full flex-col items-stretch rounded-none border border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur"
+                className="flex w-full flex-col items-stretch rounded-none border border-r-0 border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur"
               >
                 <button
                   id="interactive-whiteboard-toolbar-drag-handle"
                   type="button"
                   onPointerDown={handleToolbarDragStart}
-                  title="Déplacer la barre d'outils"
-                  aria-label="Déplacer la barre d'outils"
-                  className="h-5 w-full border-none bg-slate-50 px-0 text-slate-300 transition hover:bg-slate-100 active:cursor-grabbing"
+                  title="Déplacer la barre d'outils verticalement"
+                  aria-label="Déplacer la barre d'outils verticalement"
+                  className="h-5 w-full cursor-ns-resize border-none bg-slate-50 px-0 text-slate-300 transition hover:bg-slate-100 active:cursor-grabbing"
                 >
                   <span aria-hidden="true" className="block h-full w-full overflow-hidden whitespace-nowrap text-center text-sm leading-none tracking-[-0.02em]">
                     ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
