@@ -313,13 +313,24 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 
 Le tableau blanc propose notamment :
 
+- une **règle graduée interactive** optimisée pour TBI :
+  - étalonnage métrique exact ($1\text{ mm} = 5\text{ px}$, $1\text{ cm} = 50\text{ px}$) ;
+  - longueur par défaut de $10\text{ cm}$ ($500\text{ px}$), redimensionnable de $7\text{ cm}$ à $24\text{ cm}$ via la poignée `⇥` ;
+  - positionnement par défaut centré horizontalement et situé juste au-dessus de la barre d'outils (réinitialisé via le bouton `✕`) ;
+  - déplacement direct au toucher ou à la souris sur l'ensemble de la règle ;
+  - poignée gauche `⦿` d'ancrage à $0\text{ cm}$ et poignée droite `⤸` de rotation fluide ($56\text{ px}$) ;
+  - support tactile multi-touch à 2 doigts simultanés sans saccade ;
+  - bascule rapide $0^\circ / 90^\circ$ pivotant autour du milieu de la règle et micro-pas de $\pm 5^\circ$ ;
+  - transparence réglable de façon cyclique ($80\% \to 50\% \to 25\% \to 100\%$) ;
+  - aimantation magnétique automatique du tracé le long du bord supérieur gradué ;
 - une **barre d'outils flottante** en bas de l'écran ;
 - l'**export PNG** avec le nom de l'élève dans l'image et dans le nom du fichier ;
 - l'import / export **JSON** ;
 - un fond configurable :
   - `blank` → fond blanc,
   - `seyes` → lignage Seyès,
-  - `grid` → quadrillage pour géométrie ;
+  - `grid` → carreaux géométrie ($0,5\text{ cm}$ petits carreaux, $3\text{ cm}$ grands carreaux, alignés sur la règle),
+  - `millimeter` → papier millimétré ($1\text{ mm}$, $5\text{ mm}$, $10\text{ mm}$) ;
 - une sauvegarde locale par élève via `localStorage`.
 
 Exemple de configuration JSON :

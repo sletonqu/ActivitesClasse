@@ -1,10 +1,99 @@
-// Échelle calibrée sur le canevas : papier millimétré avec 1 mm = 5 px et 1 cm = 50 px
+/**
+ * Utilitaires géométriques, étalonnage métrique et aimantation pour la règle du tableau blanc interactif.
+ *
+ * Échelle métrique calibrée sur le canevas :
+ * - 1 mm = 5 px
+ * - 0.5 cm = 25 px (petits carreaux du fond "Carreaux géométrie")
+ * - 1 cm = 50 px
+ * - 3 cm = 150 px (grands carreaux du fond "Carreaux géométrie", soit 6 petits carreaux)
+ *
+ * Spécifications de la règle :
+ * - Hauteur fixe : 80 px (1.6 cm)
+ * - Longueur par défaut : 10 cm = 500 px
+ * - Longueur min/max : 7 cm (350 px) à 24 cm (1200 px)
+ * - Position par défaut : x = 370 px (centré horizontalement), y = 420 px (juste au-dessus de la barre d'outils)
+ * - Tolérance d'aimantation par défaut : 15 px
+ */
 export const RULER_CM_PX = 50;
 export const RULER_MM_PX = 5;
 export const RULER_HEIGHT = 80;
-export const RULER_MIN_WIDTH = 300; // 6 cm * 50 = 300 px
+export const RULER_MIN_WIDTH = 350; // 7 cm * 50 = 350 px
 export const RULER_MAX_WIDTH = 1200; // 24 cm * 50 = 1200 px
-export const RULER_DEFAULT_WIDTH = 750; // 15 cm * 50 = 750 px
+export const RULER_DEFAULT_WIDTH = 500; // 10 cm * 50 = 500 px
+export const RULER_DEFAULT_OPACITY = 0.8;
+export const RULER_OPACITY_PRESETS = [0.8, 0.5, 0.25, 1.0];
+
+export const DEFAULT_RULER_STATE = {
+  x: 370,
+  y: 420,
+  width: RULER_DEFAULT_WIDTH,
+  angle: 0,
+  opacity: RULER_DEFAULT_OPACITY,
+};
+
+/**
+ * Détermine le prochain niveau d'opacité dans le cycle (Option A : bouton cyclique).
+ *
+ * @param {number} [currentOpacity=0.8]
+ * @returns {number}
+ */
+export function getNextRulerOpacity(currentOpacity) {
+  const safeOpacity = typeof currentOpacity === "number" ? currentOpacity : RULER_DEFAULT_OPACITY;
+  let closestIndex = 0;
+  let minDiff = Infinity;
+  for (let i = 0; i < RULER_OPACITY_PRESETS.length; i++) {
+    const diff = Math.abs(RULER_OPACITY_PRESETS[i] - safeOpacity);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIndex = i;
+    }
+  }
+  return RULER_OPACITY_PRESETS[(closestIndex + 1) % RULER_OPACITY_PRESETS.length];
+}
+
+/**
+ * Calcule le nouvel état de la règle lors d'un clic sur le bouton de réinitialisation/bascule d'angle :
+ * - Si l'angle est 0° : place verticalement à 90° avec rotation autour du milieu de la règle.
+ * - Si l'angle est 90° : replace horizontalement à 0° avec rotation symétrique autour du milieu de la règle.
+ * - Si l'angle est quelconque (ex: 30°) : réaligne à 0° avec le point 0 cm comme origine (x et y conservés).
+ *
+ * @param {{ x: number, y: number, width?: number, angle?: number }} ruler
+ * @returns {{ x: number, y: number, angle: number }}
+ */
+export function getNextRulerAngleResetState(ruler) {
+  const currentAngle = Math.round(Number(ruler?.angle) || 0);
+  const normalizedAngle = ((currentAngle % 360) + 360) % 360;
+  const x = Number(ruler?.x) || 0;
+  const y = Number(ruler?.y) || 0;
+  const width = Math.max(RULER_MIN_WIDTH, Number(ruler?.width) || RULER_DEFAULT_WIDTH);
+  const height = RULER_HEIGHT;
+
+  if (normalizedAngle === 0) {
+    return {
+      x: Math.round(x + (width + height) / 2),
+      y: Math.round(y + (height - width) / 2),
+      angle: 90,
+      width,
+    };
+  }
+
+  if (normalizedAngle === 90) {
+    return {
+      x: Math.round(x - (width + height) / 2),
+      y: Math.round(y - (height - width) / 2),
+      angle: 0,
+      width,
+    };
+  }
+
+  return {
+    x,
+    y,
+    angle: 0,
+    width,
+  };
+}
+
 
 /**
  * Calcule les caractéristiques géométriques du bord supérieur de la règle.
@@ -37,10 +126,10 @@ export function getRulerGeometry(ruler) {
  *
  * @param {{ x: number, y: number }} point - Coordonnées du point dans le repère du canevas.
  * @param {{ x: number, y: number, width: number, angle: number, active?: boolean }} ruler - État de la règle.
- * @param {number} [snapThreshold=30] - Tolérance de distance perpendiculaire en pixels.
+ * @param {number} [snapThreshold=15] - Tolérance de distance perpendiculaire en pixels.
  * @returns {{ x: number, y: number, isSnapped: boolean, distPerp: number, t: number, distAlong: number } | null}
  */
-export function getRulerEdgeSnapPoint(point, ruler, snapThreshold = 30) {
+export function getRulerEdgeSnapPoint(point, ruler, snapThreshold = 15) {
   if (!ruler || !point) return null;
   if (ruler.active === false) return null;
 

@@ -6,25 +6,37 @@ import {
   RULER_MIN_WIDTH,
   RULER_MAX_WIDTH,
   RULER_DEFAULT_WIDTH,
+  RULER_DEFAULT_OPACITY,
+  getNextRulerOpacity,
+  getNextRulerAngleResetState,
 } from "../utils/whiteboardRulerSnap";
 
 /**
  * Composant de règle graduée interactive optimisé pour TBI (Tableau Blanc Interactif tactile).
- * - Rotation continue ultra-fluide au sous-degré près (sans saccades ni crans de 1° ou 15°).
- * - Double poignée ergonomique (gauche = ancrage / déplacement, droite = pivotement fluide).
- * - Multi-touch à deux doigts en temps réel : un doigt pour l'ancre 0 cm et un doigt pour orienter la règle.
- * - Rafraîchissement optimisé avec requestAnimationFrame (60 FPS+).
+ * - Étalonnage métrique : 1 mm = 5 px, 1 cm = 50 px (calé sur les fonds géométrie et papier millimétré).
+ * - Longueur : 10 cm par défaut (500 px), redimensionnable de 7 cm (350 px) à 24 cm (1200 px) via la poignée droite ⇥.
+ * - Position par défaut : centrée horizontalement sur l'écran et située juste au-dessus de la barre d'outils, réinitialisée via le bouton ✕.
+ * - Déplacement direct : l'ensemble de la surface de la règle est sélectionnable et déplaçable au toucher ou à la souris.
+ * - Double poignée ergonomique épurée (symboles vectoriels) :
+ *   • Poignée gauche (⦿) : point fixe d'ancrage à 0 cm et translation.
+ *   • Poignée droite (⤸, largeur 56 px) : orientation et pivotement libre au sous-degré près.
+ * - Multi-touch 2 doigts TBI : un doigt pour ancrer au point 0 et un second doigt pour orienter la règle en temps réel.
+ * - Ajustements d'angle : pas-à-pas de ±5° et bascule 0°/90° pivotant autour du milieu de la règle.
+ * - Transparence : bouton cyclique ◐ alternant 80% ➔ 50% ➔ 25% ➔ 100% d'opacité pour voir les tracés sous-jacents.
+ * - Aimantation magnétique : le tracé au crayon s'aimante le long du bord supérieur gradué (zone de tolérance de 15 px).
+ * - Rafraîchissement 60 FPS+ optimisé avec requestAnimationFrame sans latence.
  *
  * @param {Object} props
  * @param {boolean} props.isActive - Indique si la règle est affichée.
- * @param {{ x: number, y: number, width: number, angle: number }} props.rulerState - État de position, taille et angle.
- * @param {(updates: Partial<{ x: number, y: number, width: number, angle: number }>) => void} props.onUpdate - Callback de mise à jour.
- * @param {() => void} props.onClose - Callback pour fermer la règle.
+ * @param {{ x: number, y: number, width: number, angle: number, opacity?: number }} props.rulerState - État de la règle.
+ * @param {(updates: Partial<{ x: number, y: number, width: number, angle: number, opacity: number }>) => void} props.onUpdate - Callback de mise à jour.
+ * @param {() => void} props.onClose - Callback pour fermer la règle et réinitialiser sa position.
  * @param {boolean} props.isSnapped - Indique si le tracé au crayon est actuellement aimanté à la règle.
  * @param {number} props.currentZoom - Niveau de zoom actuel du canevas.
  * @param {number} props.canvasWidth - Largeur totale du canevas.
  * @param {number} props.canvasHeight - Hauteur totale du canevas.
  * @param {React.RefObject<HTMLElement>} props.canvasFrameRef - Référence vers le cadre du canevas.
+ * @param {string} props.mode - Mode actuel de l'outil (draw, select, pan...).
  */
 const WhiteboardRuler = ({
   isActive,
@@ -36,6 +48,7 @@ const WhiteboardRuler = ({
   canvasWidth = 1240,
   canvasHeight = 1754,
   canvasFrameRef,
+  mode = "draw",
 }) => {
   // Références stables pour éviter les réattachements d'écouteurs pendant les mouvements
   const rulerStateRef = useRef(rulerState);
@@ -174,8 +187,17 @@ const WhiteboardRuler = ({
   };
 
   const handleResetAngle = () => {
-    const nextAngle = rulerStateRef.current.angle === 0 ? 90 : 0;
-    scheduleUpdate({ angle: nextAngle });
+    const nextState = getNextRulerAngleResetState(rulerStateRef.current);
+    scheduleUpdate(nextState);
+  };
+
+  const handleCycleOpacity = () => {
+    const currentOpacity =
+      typeof rulerStateRef.current.opacity === "number"
+        ? rulerStateRef.current.opacity
+        : RULER_DEFAULT_OPACITY;
+    const nextOpacity = getNextRulerOpacity(currentOpacity);
+    scheduleUpdate({ opacity: nextOpacity });
   };
 
   useEffect(() => {
@@ -204,7 +226,9 @@ const WhiteboardRuler = ({
         if (!p1 || !p2) return;
 
         const currentVectorAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
-        const deltaAngle = currentVectorAngle - interaction.startVectorAngle;
+        let deltaAngle = currentVectorAngle - interaction.startVectorAngle;
+        while (deltaAngle > 180) deltaAngle -= 360;
+        while (deltaAngle < -180) deltaAngle += 360;
 
         let nextAngle = ((interaction.startRulerAngle + deltaAngle) % 360 + 360) % 360;
         // Précision au millième de degré (0.001°) pour une fluidité absolue à l'écran
@@ -243,7 +267,9 @@ const WhiteboardRuler = ({
           // Poignée droite : pivotement continu ultra-fluide au millième de degré (0.001°)
           const currentAngleRad = Math.atan2(coords.y - startRulerY, coords.x - startRulerX);
           const currentAngleDeg = (currentAngleRad * 180) / Math.PI;
-          const deltaAngle = currentAngleDeg - startAngleDeg;
+          let deltaAngle = currentAngleDeg - startAngleDeg;
+          while (deltaAngle > 180) deltaAngle -= 360;
+          while (deltaAngle < -180) deltaAngle += 360;
 
           let nextAngle = ((startRulerAngle + deltaAngle) % 360 + 360) % 360;
           // Précision au millième de degré (0.001°)
@@ -317,6 +343,10 @@ const WhiteboardRuler = ({
   const rulerWidth = Math.max(RULER_MIN_WIDTH, rulerState.width || RULER_DEFAULT_WIDTH);
   const totalMm = Math.floor(rulerWidth / RULER_MM_PX);
   const totalCm = Math.floor(rulerWidth / RULER_CM_PX);
+  const rulerOpacity =
+    typeof rulerState.opacity === "number"
+      ? rulerState.opacity
+      : RULER_DEFAULT_OPACITY;
 
   // Construction optimisée des graduations en un seul tracé vectoriel SVG
   let mmTicksPath = "";
@@ -353,7 +383,7 @@ const WhiteboardRuler = ({
   return (
     <div
       id="interactive-whiteboard-ruler-overlay"
-      className="absolute select-none shadow-2xl rounded-sm border border-amber-400/80 bg-gradient-to-b from-amber-50/95 via-amber-100/90 to-amber-200/85 backdrop-blur-[2px] pointer-events-none"
+      className="absolute select-none shadow-2xl rounded-sm border pointer-events-none"
       style={{
         left: `${rulerState.x}px`,
         top: `${rulerState.y}px`,
@@ -363,9 +393,13 @@ const WhiteboardRuler = ({
         transformOrigin: "0 0",
         zIndex: 35,
         touchAction: "none",
+        background: `linear-gradient(to bottom, rgba(254, 249, 195, ${rulerOpacity}), rgba(253, 230, 138, ${rulerOpacity * 0.92}), rgba(252, 211, 77, ${rulerOpacity * 0.85}))`,
+        borderColor: `rgba(245, 158, 11, ${Math.max(0.35, rulerOpacity * 0.85)})`,
+        backdropFilter: rulerOpacity < 0.9 ? "blur(2px)" : "none",
+        WebkitBackdropFilter: rulerOpacity < 0.9 ? "blur(2px)" : "none",
         boxShadow: isSnapped
           ? "0 0 0 2px #0284c7, 0 10px 25px -5px rgba(2, 132, 199, 0.4)"
-          : "0 8px 20px -4px rgba(0, 0, 0, 0.25)",
+          : `0 8px 20px -4px rgba(0, 0, 0, ${0.15 * rulerOpacity + 0.1})`,
       }}
     >
       {/* Ligne d'aimantation du bord supérieur */}
@@ -405,47 +439,44 @@ const WhiteboardRuler = ({
         </svg>
       </div>
 
-      {/* Zone inférieure : Panneau de contrôle et poignées ergonomiques pour TBI */}
-      <div className="absolute bottom-1 left-2 right-6 h-[38px] flex items-center justify-between gap-1 pointer-events-auto">
+      {/* Surface principale déplaçable de l'ensemble de la règle */}
+      <div
+        id="interactive-whiteboard-ruler-drag-handle"
+        onPointerDown={(e) => handlePointerDown(e, "move")}
+        title="Glisser pour déplacer la règle"
+        className={`absolute left-0 right-6 bottom-0 pointer-events-auto cursor-grab active:cursor-grabbing select-none ${
+          mode === "draw" ? "top-[16px]" : "top-0"
+        }`}
+      />
+
+      {/* Zone inférieure : Panneau de contrôle et poignées ergonomiques épurées pour TBI */}
+      <div className="absolute bottom-1 left-2 right-6 h-[38px] flex items-center justify-between gap-1 pointer-events-none">
         {/* Poignée Extrémité Gauche (Origine 0 cm) : Idéale pour ancrer ou déplacer avec la main gauche */}
         <button
           id="interactive-whiteboard-ruler-handle-left"
           type="button"
           onPointerDown={(e) => handlePointerDown(e, "left")}
-          title="Poignée gauche (0 cm) : Déplacer ou ancrer la règle (maintenable avec un 2e doigt)"
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-xs font-bold shadow-sm border border-amber-400 cursor-grab active:cursor-grabbing transition"
+          title="Point fixe origine (0 cm) : Déplacer ou ancrer la règle (maintenable avec un 2e doigt)"
+          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-sm border border-amber-400 cursor-grab active:cursor-grabbing pointer-events-auto transition"
         >
-          <span className="text-amber-800 text-sm">📍</span>
-          <span>0 cm</span>
-        </button>
-
-        {/* Poignée centrale de déplacement général */}
-        <button
-          id="interactive-whiteboard-ruler-drag-handle"
-          type="button"
-          onPointerDown={(e) => handlePointerDown(e, "move")}
-          title="Glisser pour déplacer l'ensemble de la règle"
-          className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-white/70 hover:bg-white text-slate-700 text-xs font-semibold shadow-sm border border-amber-300 cursor-grab active:cursor-grabbing transition"
-        >
-          <span className="text-amber-700">⠿</span>
-          <span>Glisser</span>
+          <span className="leading-none">⦿</span>
         </button>
 
         {/* Bloc d'angle et micro-ajustements */}
-        <div className="flex items-center gap-1 bg-white/80 rounded-md border border-amber-300 px-1 py-1 shadow-sm">
+        <div className="flex items-center gap-1 bg-amber-600/10 rounded-md border border-amber-400 px-1 py-0.5 shadow-sm h-7 pointer-events-auto">
           <button
             id="interactive-whiteboard-ruler-rotate-minus"
             type="button"
             onClick={() => handleStepRotate(-5)}
             title="Ajuster de -5°"
-            className="px-1 text-slate-600 hover:text-slate-900 text-xs font-bold hover:bg-amber-100 rounded"
+            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded transition"
           >
             ⟲
           </button>
 
           <span
             id="interactive-whiteboard-ruler-angle-badge"
-            className="px-1.5 text-xs font-extrabold text-sky-900 tracking-tight select-none"
+            className="px-1 text-xs font-extrabold text-amber-950 tracking-tight select-none min-w-[28px] text-center"
             title="Angle actuel de la règle"
           >
             {Math.round(rulerState.angle)}°
@@ -456,7 +487,7 @@ const WhiteboardRuler = ({
             type="button"
             onClick={() => handleStepRotate(5)}
             title="Ajuster de +5°"
-            className="px-1 text-slate-600 hover:text-slate-900 text-xs font-bold hover:bg-amber-100 rounded"
+            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded transition"
           >
             ⟳
           </button>
@@ -465,12 +496,28 @@ const WhiteboardRuler = ({
             id="interactive-whiteboard-ruler-angle-reset"
             type="button"
             onClick={handleResetAngle}
-            title="Remettre à l'horizontale (0°)"
-            className="text-[11px] px-1 text-amber-800 hover:bg-amber-100 rounded font-bold ml-0.5 border-l border-amber-200"
+            title={
+              Math.round(rulerState.angle || 0) === 0
+                ? "Pivoter verticalement à 90° (depuis le milieu)"
+                : "Remettre à l'horizontale (0°)"
+            }
+            className="text-[11px] px-1 text-amber-950 hover:bg-amber-600/20 rounded font-bold ml-0.5 border-l border-amber-400/60 h-5 flex items-center justify-center transition"
           >
-            0°
+            {Math.round(rulerState.angle || 0) === 0 ? "90°" : "0°"}
           </button>
         </div>
+
+        {/* Bouton d'ajustement cyclique de la transparence */}
+        <button
+          id="interactive-whiteboard-ruler-opacity-button"
+          type="button"
+          onClick={handleCycleOpacity}
+          title={`Opacité de la règle : ${Math.round(rulerOpacity * 100)}% (cliquer pour alterner 80% ➔ 50% ➔ 25% ➔ 100%)`}
+          className="h-7 w-14 flex items-center justify-center gap-1 rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-xs font-bold shadow-sm border border-amber-400 cursor-pointer active:scale-95 transition select-none flex-shrink-0 pointer-events-auto"
+        >
+          <span className="text-sm leading-none" aria-hidden="true">◐</span>
+          <span className="text-[10px] font-bold">{Math.round(rulerOpacity * 100)}%</span>
+        </button>
 
         {/* Poignée Extrémité Droite : Pour orienter la règle avec la main droite (1 ou 2 doigts simultanés sur TBI) */}
         <button
@@ -478,19 +525,18 @@ const WhiteboardRuler = ({
           type="button"
           onPointerDown={(e) => handlePointerDown(e, "right")}
           title="Poignée droite : Pivoter librement la règle à 1 ou 2 doigts sur le TBI"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-600 text-white hover:bg-sky-700 active:bg-sky-800 text-xs font-bold shadow-md border border-sky-700 cursor-pointer active:cursor-grabbing transition"
+          className="h-7 w-14 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-sm border border-amber-400 cursor-pointer active:cursor-grabbing pointer-events-auto transition flex-shrink-0"
         >
-          <span>🔄</span>
-          <span>Pivoter</span>
+          <span className="leading-none text-lg">⤸</span>
         </button>
 
-        {/* Bouton de suppression / fermeture de la règle */}
+        {/* Bouton de fermeture et réinitialisation de la règle */}
         <button
           id="interactive-whiteboard-ruler-close-button"
           type="button"
           onClick={onClose}
-          title="Fermer la règle"
-          className="h-7 w-7 flex items-center justify-center rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs border border-rose-300 transition"
+          title="Fermer et réinitialiser la position de la règle"
+          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 font-bold text-xs shadow-sm border border-amber-400 cursor-pointer pointer-events-auto transition"
         >
           ✕
         </button>
@@ -501,7 +547,11 @@ const WhiteboardRuler = ({
         id="interactive-whiteboard-ruler-resize-handle"
         onPointerDown={(e) => handlePointerDown(e, "resize")}
         title="Glisser pour allonger ou raccourcir la règle"
-        className="absolute top-0 right-0 bottom-0 w-6 flex items-center justify-center bg-amber-300/70 hover:bg-amber-400 text-amber-950 text-xs font-bold border-l border-amber-400/80 cursor-ew-resize select-none pointer-events-auto transition rounded-r-sm"
+        className="absolute top-0 right-0 bottom-0 w-6 flex items-center justify-center text-amber-950 text-xs font-bold border-l cursor-ew-resize select-none pointer-events-auto transition rounded-r-sm"
+        style={{
+          backgroundColor: `rgba(252, 211, 77, ${Math.max(0.4, rulerOpacity * 0.75)})`,
+          borderColor: `rgba(245, 158, 11, ${Math.max(0.35, rulerOpacity)})`,
+        }}
       >
         <span className="leading-none">⇥</span>
       </div>

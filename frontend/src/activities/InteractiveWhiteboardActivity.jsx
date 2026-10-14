@@ -1,8 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
 import ConfirmModal from "../components/ConfirmModal";
 import WhiteboardRuler from "../components/WhiteboardRuler";
-import { getRulerEdgeSnapPoint, RULER_DEFAULT_WIDTH } from "../utils/whiteboardRulerSnap";
+import {
+  getRulerEdgeSnapPoint,
+  RULER_HEIGHT,
+  RULER_DEFAULT_WIDTH,
+  RULER_DEFAULT_OPACITY,
+  DEFAULT_RULER_STATE,
+} from "../utils/whiteboardRulerSnap";
 
 export const defaultInteractiveWhiteboardActivityContent = {
   defaultTitle: "Tableau",
@@ -190,18 +196,23 @@ function createPaperPatternCanvas(paperStyle, backgroundColor, width = 1240, hei
       context.stroke();
     }
   } else if (paperStyle === "grid") {
-    const cellSize = 24;
-    const majorStep = cellSize * 5;
+    // Carreaux géométrie : petits carreaux de 0.5 cm = 25 px, grands carreaux de 3 cm = 6 petits carreaux = 150 px
+    const cellSize = 25;
+    const majorStep = cellSize * 6; // Grands carreaux de 3 cm (6 petits carreaux = 150 px)
 
     for (let pos = 0; pos <= Math.max(safeWidth, safeHeight); pos += cellSize) {
       const isMajorLine = pos % majorStep === 0;
       context.beginPath();
       context.strokeStyle = isMajorLine ? "#94a3b8" : "#d7dde5";
       context.lineWidth = isMajorLine ? 1.1 : 0.7;
-      context.moveTo(pos + 0.5, 0);
-      context.lineTo(pos + 0.5, safeHeight);
-      context.moveTo(0, pos + 0.5);
-      context.lineTo(safeWidth, pos + 0.5);
+      if (pos <= safeWidth) {
+        context.moveTo(pos + 0.5, 0);
+        context.lineTo(pos + 0.5, safeHeight);
+      }
+      if (pos <= safeHeight) {
+        context.moveTo(0, pos + 0.5);
+        context.lineTo(safeWidth, pos + 0.5);
+      }
       context.stroke();
     }
   } else if (paperStyle === "millimeter") {
@@ -414,7 +425,7 @@ const DropupSelect = ({
 
 const getGridSnapSize = (style) => {
   switch (style) {
-    case "grid": return 24;
+    case "grid": return 25;
     case "seyes": return 8;
     case "millimeter": return 5;
     default: return null;
@@ -845,12 +856,10 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
   const isRulerDrawingRef = useRef(false);
   const rulerSnapStartPointRef = useRef(null);
+  const hasRulerBeenMovedRef = useRef(false);
   const rulerRef = useRef({
     active: false,
-    x: 140,
-    y: 180,
-    width: RULER_DEFAULT_WIDTH,
-    angle: 0,
+    ...DEFAULT_RULER_STATE,
   });
 
   const [isReady, setIsReady] = useState(false);
@@ -863,10 +872,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [shapeType, setShapeType] = useState("line");
   const [isRulerActive, setIsRulerActive] = useState(false);
   const [rulerState, setRulerState] = useState({
-    x: 140,
-    y: 180,
-    width: RULER_DEFAULT_WIDTH,
-    angle: 0,
+    ...DEFAULT_RULER_STATE,
   });
   const [isRulerSnapped, setIsRulerSnapped] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(Number(content?.defaultZoom) || 1.0);
@@ -877,7 +883,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
   const getSnapThreshold = (brushSizeVal) => {
     const size = Math.max(1, parseInt(brushSizeVal, 10) || 1);
-    return Math.max(32, Math.min(96, 24 + size * 0.5));
+    return Math.max(16, Math.min(48, 12 + size * 0.25));
   };
 
   const getSceneCoordsFromEvent = (e) => {
@@ -1023,7 +1029,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     let snappedToRuler = false;
     if (isDrawMode && rulerRef.current?.active) {
       const threshold = isRulerDrawingRef.current
-        ? Math.max(140, getSnapThreshold(brushSizeRef.current) * 2)
+        ? Math.max(70, getSnapThreshold(brushSizeRef.current) * 2)
         : getSnapThreshold(brushSizeRef.current);
       const snap = getRulerEdgeSnapPoint({ x: sceneX, y: sceneY }, rulerRef.current, threshold);
       if (snap) {
@@ -1067,22 +1073,94 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     }
   };
 
-  const handleToggleRuler = () => {
-    setIsRulerActive((prev) => {
-      const next = !prev;
-      if (next && modeRef.current === "pan") {
-        setMode("draw");
-      }
-      return next;
-    });
-  };
-
   const canvasWidth = Number(content?.width) || defaultInteractiveWhiteboardActivityContent.width;
   const canvasHeight = Number(content?.height) || defaultInteractiveWhiteboardActivityContent.height;
   const backgroundColor = content?.backgroundColor || defaultInteractiveWhiteboardActivityContent.backgroundColor;
   const studentFullName = `${student?.firstname || ""} ${student?.name || ""}`.trim() || "Démo";
   const storageKeyBase = content?.storageKey || defaultInteractiveWhiteboardActivityContent.storageKey;
   const storageKey = `${storageKeyBase}_${student?.id || sanitizeFileNamePart(studentFullName)}`;
+
+  /**
+   * Calcule dynamiquement la position par défaut de la règle (10 cm, angle 0°) :
+   * - Centrée horizontalement sur l'écran (viewport visible).
+   * - Positionnée verticalement juste au-dessus de la barre d'outils.
+   */
+  const getCenteredRulerState = useCallback(() => {
+    let x = Math.round((canvasWidth - RULER_DEFAULT_WIDTH) / 2);
+    let y = 420;
+
+    if (canvasFrameRef.current) {
+      const canvasRect = canvasFrameRef.current.getBoundingClientRect();
+      const workspaceEl =
+        canvasFrameRef.current.closest("#interactive-whiteboard-workspace") ||
+        canvasFrameRef.current.parentElement;
+      const viewportRect = workspaceEl
+        ? workspaceEl.getBoundingClientRect()
+        : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+
+      const zoom = currentZoomRef.current || 1;
+
+      // 1. Centrage horizontal sur la zone visible à l'écran
+      if (canvasRect && viewportRect) {
+        const clientCenterX = viewportRect.left + viewportRect.width / 2;
+        const canvasX = (clientCenterX - canvasRect.left) / zoom;
+        x = Math.round(canvasX - RULER_DEFAULT_WIDTH / 2);
+      }
+
+      // 2. Position verticale : juste au-dessus de la barre d'outils
+      if (toolbarDockRef.current && canvasRect) {
+        const toolbarRect = toolbarDockRef.current.getBoundingClientRect();
+        const gap = 16; // Espace entre le bas de la règle et le haut de la barre d'outils
+        const clientRulerTop = toolbarRect.top - gap - RULER_HEIGHT * zoom;
+        y = Math.round((clientRulerTop - canvasRect.top) / zoom);
+      } else if (canvasRect && viewportRect) {
+        // Fallback si la barre d'outils n'est pas encore mesurable
+        const clientRulerTop = viewportRect.bottom - 140 - RULER_HEIGHT * zoom;
+        y = Math.round((clientRulerTop - canvasRect.top) / zoom);
+      }
+
+      // Clamping de sécurité pour s'assurer que la règle reste sur le canevas
+      x = Math.max(10, Math.min(canvasWidth - RULER_DEFAULT_WIDTH - 10, x));
+      y = Math.max(10, Math.min(canvasHeight - RULER_HEIGHT - 10, y));
+    }
+
+    return {
+      x,
+      y,
+      width: RULER_DEFAULT_WIDTH,
+      angle: 0,
+      opacity: RULER_DEFAULT_OPACITY,
+    };
+  }, [canvasFrameRef, canvasWidth, canvasHeight]);
+
+  /**
+   * Bascule l'affichage de la règle via le bouton de la barre d'outils.
+   * Conserve sa position si elle a été déplacée par l'utilisateur, ou la centre si c'est sa 1ère ouverture.
+   */
+  const handleToggleRuler = () => {
+    setIsRulerActive((prev) => {
+      const next = !prev;
+      if (next && modeRef.current === "pan") {
+        setMode("draw");
+      }
+      if (next && !hasRulerBeenMovedRef.current) {
+        setRulerState(getCenteredRulerState());
+      }
+      return next;
+    });
+  };
+
+  /**
+   * Ferme la règle et réinitialise sa position et ses dimensions par défaut (10 cm, centrée sur l'écran).
+   */
+  const handleCloseRuler = () => {
+    setIsRulerActive(false);
+    setIsRulerSnapped(false);
+    isRulerDrawingRef.current = false;
+    rulerSnapStartPointRef.current = null;
+    hasRulerBeenMovedRef.current = false;
+    setRulerState(getCenteredRulerState());
+  };
 
   useEffect(() => {
     modeRef.current = mode;
@@ -1329,7 +1407,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       if (isRulerDrawingRef.current && rulerRef.current?.active && modeRef.current === "draw") {
         const ruler = rulerRef.current;
         const scenePoint = getSceneCoordsFromEvent(options?.e) || pointer;
-        const moveThreshold = Math.max(140, getSnapThreshold(brushSizeRef.current) * 2);
+        const moveThreshold = Math.max(70, getSnapThreshold(brushSizeRef.current) * 2);
         const snap = getRulerEdgeSnapPoint(scenePoint, ruler, moveThreshold);
 
         if (snap) {
@@ -1511,7 +1589,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             const directPoint = getSceneCoordsFromEvent(e);
             const rawPoint = directPoint || originalGetScenePoint(e);
             const threshold = isRulerDrawingRef.current
-              ? Math.max(140, getSnapThreshold(brushSizeRef.current) * 2)
+              ? Math.max(70, getSnapThreshold(brushSizeRef.current) * 2)
               : getSnapThreshold(brushSizeRef.current);
             const snap = getRulerEdgeSnapPoint(rawPoint, rulerRef.current, threshold);
             if (snap) {
@@ -2439,13 +2517,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           <WhiteboardRuler
             isActive={isRulerActive}
             rulerState={rulerState}
-            onUpdate={(updates) => setRulerState((prev) => ({ ...prev, ...updates }))}
-            onClose={() => setIsRulerActive(false)}
+            onUpdate={(updates) => {
+              hasRulerBeenMovedRef.current = true;
+              setRulerState((prev) => ({ ...prev, ...updates }));
+            }}
+            onClose={handleCloseRuler}
             isSnapped={isRulerSnapped}
             currentZoom={currentZoom}
             canvasWidth={canvasWidth}
             canvasHeight={canvasHeight}
             canvasFrameRef={canvasFrameRef}
+            mode={mode}
           />
           <div ref={canvasRef} />
         </div>

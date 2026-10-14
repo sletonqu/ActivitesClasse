@@ -454,13 +454,30 @@ Quatre niveaux (`level1` à `level4`) sont disponibles par défaut.
 
 Fonctions principales :
 
-- dessin libre ;
-- ajout de texte ;
+- dessin libre et formes géométriques ;
+- règle graduée interactive optimisée TBI avec aimantation magnétique du tracé ;
+- ajout de texte et reconnaissance d'écriture cursive ;
 - import d'image ;
 - export JSON ;
 - export PNG avec le nom de l'élève ;
 - barre d'outils flottante ;
-- fond configurable.
+- fond quadrillé/ligné configurable.
+
+#### Règle graduée interactive (`WhiteboardRuler.jsx`)
+
+Le tableau blanc intègre un outil de règle géométrique interactive, conçu pour un usage tactile sur Tableau Blanc Interactif (TBI) :
+
+- **Étalonnage métrique** : échelle calibrée à $1\text{ mm} = 5\text{ px}$ et $1\text{ cm} = 50\text{ px}$.
+- **Dimensions** : longueur initiale de $10\text{ cm}$ ($500\text{ px}$), redimensionnable entre $7\text{ cm}$ ($350\text{ px}$) et $24\text{ cm}$ ($1200\text{ px}$) grâce à la poignée d'extrémité droite `⇥` ; hauteur fixe de $80\text{ px}$.
+- **Positionnement par défaut** : centrée horizontalement sur l'écran et positionnée juste au-dessus de la barre d'outils (au premier affichage ou lors de la fermeture par le bouton `✕`). La règle mémorise sa position si elle est déplacée puis masquée/réaffichée depuis la barre d'outils.
+- **Manipulation tactile & multi-touch** :
+  - Déplacement direct : toute la surface de la règle est saisissable pour la glisser sur le tableau.
+  - Poignée gauche `⦿` : ancrage au point fixe $0\text{ cm}$ pour maintenir ou déplacer d'une main.
+  - Poignée droite `⤸` : poignée élargie ($56\text{ px}$) pour orienter et pivoter la règle au doigt ou au stylet.
+  - Multi-touch à deux doigts simultanés : maintien au point 0 et pivotement fluide en direct sans saccade (rendu 60 FPS+).
+- **Contrôle d'angle** : micro-ajustements pas à pas ($\pm 5^\circ$) et bouton de bascule rapide $0^\circ / 90^\circ$ effectuant une rotation depuis le **milieu de la règle** (le centre reste fixe à l'écran).
+- **Transparence** : bouton cyclique `◐` alternant $80\% \to 50\% \to 25\% \to 100\%$ d'opacité pour observer les tracés ou fonds sous la règle.
+- **Aimantation magnétique** : les tracés au crayon ou au surligneur s'aimantent automatiquement le long du bord supérieur gradué dans une zone de tolérance de $15\text{ px}$.
 
 Exemple de configuration :
 
@@ -479,9 +496,9 @@ Exemple de configuration :
 Valeurs de `paperStyle` :
 
 - `blank` : fond blanc
-- `seyes` : lignage Seyès pour l'écriture
-- `grid` : quadrillage pour géométrie
-- `millimeter` : papier millimétré
+- `seyes` : lignage Seyès pour l'écriture (interlignes de $8\text{ px}$)
+- `grid` : carreaux géométrie, parfaitement alignés avec la graduation de la règle : petits carreaux de $0,5\text{ cm}$ ($25\text{ px}$) et grands carreaux renforcés de $3\text{ cm}$ ($150\text{ px}$, soit 6 petits carreaux)
+- `millimeter` : papier millimétré avec subdivisions à $1\text{ mm}$ ($5\text{ px}$), $5\text{ mm}$ ($25\text{ px}$) et $10\text{ mm}$ ($50\text{ px}$)
 
 Paramètres de contenu :
 
