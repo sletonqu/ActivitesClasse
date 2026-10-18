@@ -46,7 +46,7 @@ const DISCIPLINE_CONFIG = {
     itemSelected: "bg-violet-500 text-white",
   },
 };
-const MAX_ACTIVITY_LIST_HEIGHT = "max-h-96"; // pixels
+const MAX_ACTIVITY_LIST_HEIGHT = "max-h-85"; // pixels
 
 const StudentView = () => {
   const [classes, setClasses] = useState([]);
@@ -559,7 +559,7 @@ const StudentView = () => {
           </button>
         ) : (
           <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 flex flex-col lg:flex-row items-center gap-3 justify-between">
-            
+
             {/* Title Block */}
             <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
               <div id="student-title-block" className="flex flex-col min-w-0 items-start">
@@ -619,15 +619,14 @@ const StudentView = () => {
                         id={`student-discipline-btn-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
                         type="button"
                         onClick={() => setOpenDisciplineDropdown(isOpen ? "" : disc)}
-                        className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all shrink-0 flex items-center gap-1 ${
-                          hasSelectedInDisc || isOpen ? cfg.active : cfg.inactive
-                        }`}
+                        className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all shrink-0 flex items-center gap-1 ${hasSelectedInDisc || isOpen ? cfg.active : cfg.inactive
+                          }`}
                       >
                         {disc}
                         {hasSelectedInDisc && !isOpen && (
                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80 shrink-0" />
                         )}
-                        <svg className={`w-2.5 h-2.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 1l4 4 4-4"/></svg>
+                        <svg className={`w-2.5 h-2.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 1l4 4 4-4" /></svg>
                       </button>
                       {isOpen && (
                         <div
@@ -646,11 +645,10 @@ const StudentView = () => {
                                   setSelectedActivityId(String(activity.id));
                                   setOpenDisciplineDropdown("");
                                 }}
-                                className={`w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${
-                                  String(activity.id) === String(selectedActivityId)
+                                className={`w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${String(activity.id) === String(selectedActivityId)
                                     ? cfg.itemSelected
                                     : cfg.item
-                                }`}
+                                  }`}
                               >
                                 {activity.title}
                               </button>
@@ -676,7 +674,7 @@ const StudentView = () => {
                 <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
                 Mode Démo
               </button>
-              
+
               {/* Logo Button */}
               <button
                 id="student-logo"
