@@ -74,6 +74,7 @@ const WHITEBOARD_BRUSH_SIZE_OPTIONS = FIBONACCI_BRUSH_SIZES.map((size) => ({
 const WHITEBOARD_TOOLBAR_POSITION_STORAGE_KEY = "interactive-whiteboard-toolbar-position-v3";
 const DEFAULT_TEXT_FONT_FAMILY =
   defaultInteractiveWhiteboardActivityContent.fontFamily || WHITEBOARD_FONT_OPTIONS[0].value;
+const DEFAULT_WHITEBOARD_TEXT = "Bonjour...";
 
 let whiteboardFontsPromise = null;
 
@@ -828,6 +829,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const canvasRef = useRef(null);
   const canvasFrameRef = useRef(null);
   const brushPreviewRef = useRef(null);
+  const textPreviewRef = useRef(null);
+  const lastPointerPosRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const clipboardRef = useRef(null);
   const historyRef = useRef([]);
@@ -1001,6 +1004,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     brushPreviewRef.current.style.opacity = "0";
   };
 
+  const hideTextPreview = () => {
+    if (!textPreviewRef.current) return;
+    textPreviewRef.current.style.opacity = "0";
+  };
+
   const showBrushPreviewAt = (clientX, clientY) => {
     const preview = brushPreviewRef.current;
     const frame = canvasFrameRef.current;
@@ -1009,8 +1017,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
     const isEraseMode = modeRef.current === "erase";
     const isDrawMode = modeRef.current === "draw";
+    const isShapeMode = modeRef.current === "shape";
 
-    if (!isEraseMode && !isDrawMode) {
+    if (!isEraseMode && !isDrawMode && !isShapeMode) {
+      hideBrushPreview();
+      return;
+    }
+
+    if (isShapeMode && isDrawingShapeRef.current) {
       hideBrushPreview();
       return;
     }
@@ -1021,7 +1035,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     let sceneY = (clientY - rect.top) / zoom;
 
     let snappedToRuler = false;
-    if (isDrawMode && rulerRef.current?.active) {
+    if ((isDrawMode || (isShapeMode && shapeTypeRef.current === "line")) && rulerRef.current?.active) {
       const threshold = isRulerDrawingRef.current
         ? Math.max(70, getSnapThreshold(brushSizeRef.current) * 2)
         : getSnapThreshold(brushSizeRef.current);
@@ -1056,12 +1070,69 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     preview.style.opacity = "1";
   };
 
+  const showTextPreviewAt = (clientX, clientY, event) => {
+    const preview = textPreviewRef.current;
+    const frame = canvasFrameRef.current;
+
+    if (!preview || !frame) return;
+
+    if (modeRef.current !== "text") {
+      hideTextPreview();
+      return;
+    }
+
+    const rect = frame.getBoundingClientRect();
+    const zoom = Math.max(0.01, Number(currentZoomRef.current) || 1);
+    let sceneX = (clientX - rect.left) / zoom;
+    let sceneY = (clientY - rect.top) / zoom;
+
+    if (fabricCanvasRef.current && event) {
+      try {
+        const pt = fabricCanvasRef.current.getScenePoint(event);
+        if (pt && typeof pt.x === "number" && typeof pt.y === "number") {
+          sceneX = pt.x;
+          sceneY = pt.y;
+        }
+      } catch (err) {
+        // repli sur le calcul géométrique standard
+      }
+    }
+
+    const brushSize = parseInt(brushSizeRef.current, 10) || 1;
+    const offsetValue = Math.round(6 + brushSize * 0.28);
+    const gridSize = getGridSnapSize(paperStyleRef.current);
+    const snapX = snapCoordinate(sceneX, gridSize);
+    const snapY = snapCoordinate(sceneY, gridSize) + offsetValue;
+
+    const activeFontFamily = fontFamilyRef.current || DEFAULT_TEXT_FONT_FAMILY;
+    const textColor = colorRef.current || "black";
+    const fontSize = 22 + brushSize;
+    const isCursive = activeFontFamily === "Cursif" || activeFontFamily === "Cursive Standard";
+
+    preview.style.left = `${snapX}px`;
+    preview.style.top = `${snapY}px`;
+    preview.style.fontFamily = activeFontFamily;
+    preview.style.fontSize = `${fontSize}px`;
+    preview.style.fontWeight = "normal";
+    preview.style.color = textColor;
+    if (isCursive) {
+      preview.style.webkitTextStroke = `0.25px ${textColor}`;
+    } else {
+      preview.style.webkitTextStroke = "0px transparent";
+    }
+    preview.style.opacity = "0.75";
+  };
+
   const handleCanvasFramePointerMove = (event) => {
+    lastPointerPosRef.current = { clientX: event.clientX, clientY: event.clientY };
     showBrushPreviewAt(event.clientX, event.clientY);
+    showTextPreviewAt(event.clientX, event.clientY, event);
   };
 
   const handleCanvasFramePointerLeave = () => {
+    lastPointerPosRef.current = null;
     hideBrushPreview();
+    hideTextPreview();
     if (!isRulerDrawingRef.current) {
       setIsRulerSnapped(false);
     }
@@ -1522,7 +1593,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     if (mode === "pan") {
       canvas.defaultCursor = "grab";
       canvas.hoverCursor = "grab";
-    } else if (mode === "shape") {
+    } else if (mode === "shape" || mode === "text") {
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
     } else {
@@ -1642,7 +1713,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         }
 
         const addTextAtPointer = (pointer) => {
-          const defaulttext = "Bonjour...";
+          hideTextPreview();
+          const defaulttext = DEFAULT_WHITEBOARD_TEXT;
           const brushSize = parseInt(brushSizeRef.current, 10) || 1;
           const offsetValue = Math.round(6 + brushSize * 0.28);
           const gridSize = getGridSnapSize(paperStyleRef.current);
@@ -1734,6 +1806,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
           if (modeRef.current === "text") {
             if (pointer) {
+              hideTextPreview();
               addTextAtPointer(pointer);
             }
           }
@@ -1743,6 +1816,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               return;
             }
 
+            hideBrushPreview();
             isDrawingShapeRef.current = true;
             const gridSize = getGridSnapSize(paperStyleRef.current);
             let startX = snapCoordinate(pointer.x, gridSize);
@@ -1992,6 +2066,9 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               saveHistory();
               activeShapeRef.current = null;
             }
+            if (lastPointerPosRef.current) {
+              showBrushPreviewAt(lastPointerPosRef.current.clientX, lastPointerPosRef.current.clientY);
+            }
           }
 
           if (isRulerDrawingRef.current) {
@@ -2167,8 +2244,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   }, [isReady, mode, color, brushSize]);
 
   useEffect(() => {
-    if (mode !== "erase" && mode !== "draw") {
+    if (mode !== "erase" && mode !== "draw" && mode !== "shape") {
       hideBrushPreview();
+    }
+    if (mode !== "text") {
+      hideTextPreview();
     }
     if (mode !== "select" && imagePendingRef.current) {
       imagePendingRef.current = null;
@@ -2176,6 +2256,13 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       if (inputImageRef.current) inputImageRef.current.value = "";
     }
   }, [mode]);
+
+  useEffect(() => {
+    if (lastPointerPosRef.current) {
+      showBrushPreviewAt(lastPointerPosRef.current.clientX, lastPointerPosRef.current.clientY);
+      showTextPreviewAt(lastPointerPosRef.current.clientX, lastPointerPosRef.current.clientY);
+    }
+  }, [brushSize, color, fontFamily, mode]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -2647,6 +2734,24 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             ref={brushPreviewRef}
             className="pointer-events-none absolute z-40 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-sky-600/80 bg-sky-300/20 opacity-0 transition-opacity duration-100"
           />
+          <div
+            id="interactive-whiteboard-text-preview"
+            ref={textPreviewRef}
+            className="pointer-events-none absolute z-40 opacity-0 select-none whitespace-nowrap rounded-sm transition-opacity duration-75"
+            style={{
+              pointerEvents: "none",
+              transform: "translateY(-100%)",
+              lineHeight: 1.13,
+              padding: 0,
+              margin: 0,
+              border: "none",
+              outline: "1.5px dashed rgba(2, 132, 199, 0.7)",
+              outlineOffset: "2px",
+              backgroundColor: "rgba(224, 242, 254, 0.35)",
+            }}
+          >
+            {DEFAULT_WHITEBOARD_TEXT}
+          </div>
           <WhiteboardRuler
             isActive={isRulerActive}
             rulerState={rulerState}

@@ -91,4 +91,18 @@ describe("InteractiveWhiteboardActivity", () => {
       expect(html).toContain(`id="${id}"`);
     });
   });
+
+  it("intègre les conteneurs de prévisualisation du pointeur pour le pinceau/formes et le texte", () => {
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={{}} onComplete={() => {}} />
+    );
+
+    expect(html).toContain('id="interactive-whiteboard-brush-preview"');
+    expect(html).toContain('id="interactive-whiteboard-text-preview"');
+    expect(html).toContain("Bonjour...");
+    // Le conteneur ne doit pas comporter de padding ni bordure qui décaleraient l'alignement avec Fabric IText
+    expect(html).not.toMatch(/id="interactive-whiteboard-text-preview"[^>]*px-/);
+    expect(html).not.toMatch(/id="interactive-whiteboard-text-preview"[^>]*py-/);
+    expect(html).toContain("outline");
+  });
 });
