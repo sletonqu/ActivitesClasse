@@ -2155,6 +2155,147 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     persistBoardState();
   }, [isReady, title, paperStyle, fontFamily]);
 
+  const handleCopy = async () => {
+    const canvas = fabricCanvasRef.current;
+    const active = canvas?.getActiveObject();
+    if (!active) return;
+    try {
+      const cloned = await active.clone();
+      clipboardRef.current = cloned;
+    } catch (err) {
+      console.error("[Tableau blanc] Erreur lors de la copie :", err);
+    }
+  };
+
+  const handleCut = async () => {
+    const canvas = fabricCanvasRef.current;
+    const active = canvas?.getActiveObject();
+    if (!canvas || !active) return;
+    try {
+      const cloned = await active.clone();
+      clipboardRef.current = cloned;
+      const activeObjects = canvas.getActiveObjects();
+      canvas.discardActiveObject();
+      activeObjects.forEach((obj) => {
+        canvas.remove(obj);
+      });
+      canvas.requestRenderAll();
+      saveHistory();
+    } catch (err) {
+      console.error("[Tableau blanc] Erreur lors de la coupe :", err);
+    }
+  };
+
+  const handlePaste = async () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas || !clipboardRef.current) return;
+
+    try {
+      const clonedObj = await clipboardRef.current.clone();
+      canvas.discardActiveObject();
+
+      clonedObj.set({
+        left: (clonedObj.left || 0) + 20,
+        top: (clonedObj.top || 0) + 20,
+        evented: true,
+      });
+
+      const isMulti =
+        (fabric.ActiveSelection && clonedObj instanceof fabric.ActiveSelection) ||
+        clonedObj.type?.toLowerCase() === "activeselection";
+
+      if (isMulti) {
+        clonedObj.canvas = canvas;
+        clonedObj.forEachObject((obj) => {
+          obj.set({ selectable: true, evented: true });
+          canvas.add(obj);
+        });
+        clonedObj.setCoords();
+      } else {
+        clonedObj.set({ selectable: true, evented: true });
+        canvas.add(clonedObj);
+      }
+
+      clipboardRef.current.top = (clipboardRef.current.top || 0) + 20;
+      clipboardRef.current.left = (clipboardRef.current.left || 0) + 20;
+      canvas.setActiveObject(clonedObj);
+      canvas.requestRenderAll();
+      saveHistory();
+    } catch (err) {
+      console.error("[Tableau blanc] Erreur lors du collage :", err);
+    }
+  };
+
+  const handleDeleteSelection = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const activeObjects = canvas.getActiveObjects();
+    if (!activeObjects || activeObjects.length === 0) return;
+    canvas.discardActiveObject();
+    activeObjects.forEach((obj) => {
+      canvas.remove(obj);
+    });
+    canvas.requestRenderAll();
+    saveHistory();
+  };
+
+  const handleBringForward = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const objects = canvas.getActiveObjects();
+    if (!objects || objects.length === 0) return;
+    [...objects].reverse().forEach((obj) => {
+      if (typeof canvas.bringObjectForward === "function") {
+        canvas.bringObjectForward(obj);
+      } else if (typeof obj.bringForward === "function") {
+        obj.bringForward();
+      }
+    });
+    canvas.requestRenderAll();
+    saveHistory();
+  };
+
+  const handleSendBackward = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const objects = canvas.getActiveObjects();
+    if (!objects || objects.length === 0) return;
+    objects.forEach((obj) => {
+      if (typeof canvas.sendObjectBackwards === "function") {
+        canvas.sendObjectBackwards(obj);
+      } else if (typeof obj.sendBackwards === "function") {
+        obj.sendBackwards();
+      }
+    });
+    canvas.requestRenderAll();
+    saveHistory();
+  };
+
+  const handleToggleLock = () => {
+    const canvas = fabricCanvasRef.current;
+    const objects = canvas?.getActiveObjects() || [];
+    if (!canvas || objects.length === 0) return;
+
+    const nextLocked = !objects[0].lockMovementX;
+    objects.forEach((obj) => {
+      obj.set({
+        lockMovementX: nextLocked,
+        lockMovementY: nextLocked,
+        lockScalingX: nextLocked,
+        lockScalingY: nextLocked,
+        lockRotation: nextLocked,
+        hasControls: !nextLocked,
+      });
+      if (typeof obj.setCoords === "function") {
+        obj.setCoords();
+      }
+    });
+
+    canvas.discardActiveObject();
+    canvas.requestRenderAll();
+    saveHistory();
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       const canvas = fabricCanvasRef.current;
@@ -2175,49 +2316,21 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
         }
         if (key === "c" && !isEditingText) {
           e.preventDefault();
-          if (activeObject) {
-            activeObject.clone((cloned) => {
-              clipboardRef.current = cloned;
-            });
-          }
+          handleCopy();
         }
         if (key === "v" && !isEditingText) {
           e.preventDefault();
-          if (!clipboardRef.current) return;
-          clipboardRef.current.clone((clonedObj) => {
-            canvas.discardActiveObject();
-            clonedObj.set({
-              left: (clonedObj.left || 0) + 20,
-              top: (clonedObj.top || 0) + 20,
-              evented: true,
-            });
-            if (clonedObj.type === "activeSelection") {
-              clonedObj.canvas = canvas;
-              clonedObj.forEachObject((obj) => canvas.add(obj));
-              clonedObj.setCoords();
-            } else {
-              canvas.add(clonedObj);
-            }
-            canvas.setActiveObject(clonedObj);
-            saveHistory();
-          });
+          handlePaste();
         }
-        if (key === "x" && !isEditingText && activeObject) {
+        if (key === "x" && !isEditingText) {
           e.preventDefault();
-          activeObject.clone((cloned) => {
-            clipboardRef.current = cloned;
-            canvas.getActiveObjects().forEach((obj) => canvas.remove(obj));
-            canvas.discardActiveObject();
-            saveHistory();
-          });
+          handleCut();
         }
       }
 
       if ((e.key === "Delete" || e.key === "Backspace") && activeObject && !isEditingText && !canvas.isDrawingMode) {
         e.preventDefault();
-        canvas.getActiveObjects().forEach((obj) => canvas.remove(obj));
-        canvas.discardActiveObject();
-        saveHistory();
+        handleDeleteSelection();
       }
     };
 
@@ -2279,96 +2392,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     setMode("pan");
   };
 
-  const handleCopy = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!active) return;
-    active.clone((cloned) => {
-      clipboardRef.current = cloned;
-    });
-  };
 
-  const handleCut = () => {
-    const canvas = fabricCanvasRef.current;
-    const active = canvas?.getActiveObject();
-    if (!canvas || !active) return;
-    active.clone((cloned) => {
-      clipboardRef.current = cloned;
-      canvas.getActiveObjects().forEach((obj) => canvas.remove(obj));
-      canvas.discardActiveObject();
-      saveHistory();
-    });
-  };
-
-  const handlePaste = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas || !clipboardRef.current) return;
-
-    clipboardRef.current.clone((clonedObj) => {
-      canvas.discardActiveObject();
-      clonedObj.set({
-        left: (clonedObj.left || 0) + 20,
-        top: (clonedObj.top || 0) + 20,
-        evented: true,
-      });
-
-      if (clonedObj.type === "activeSelection") {
-        clonedObj.canvas = canvas;
-        clonedObj.forEachObject((obj) => canvas.add(obj));
-        clonedObj.setCoords();
-      } else {
-        canvas.add(clonedObj);
-      }
-
-      clipboardRef.current.top = (clipboardRef.current.top || 0) + 20;
-      clipboardRef.current.left = (clipboardRef.current.left || 0) + 20;
-      canvas.setActiveObject(clonedObj);
-      saveHistory();
-    });
-  };
-
-  const handleDeleteSelection = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-    canvas.getActiveObjects().forEach((obj) => canvas.remove(obj));
-    canvas.discardActiveObject();
-    saveHistory();
-  };
-
-  const handleBringForward = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-    canvas.getActiveObjects().forEach((obj) => obj.bringForward());
-    saveHistory();
-  };
-
-  const handleSendBackward = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-    canvas.getActiveObjects().forEach((obj) => obj.sendBackwards());
-    saveHistory();
-  };
-
-  const handleToggleLock = () => {
-    const canvas = fabricCanvasRef.current;
-    const objects = canvas?.getActiveObjects() || [];
-    if (objects.length === 0) return;
-
-    const nextLocked = !objects[0].lockMovementX;
-    objects.forEach((obj) => {
-      obj.set({
-        lockMovementX: nextLocked,
-        lockMovementY: nextLocked,
-        lockScalingX: nextLocked,
-        lockScalingY: nextLocked,
-        lockRotation: nextLocked,
-        hasControls: !nextLocked,
-      });
-    });
-
-    canvas.discardActiveObject().renderAll();
-    saveHistory();
-  };
 
   const handlePrepareImage = (event) => {
     const file = event.target.files?.[0];
@@ -2743,13 +2767,69 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
 
                   {mode === "select" && (
                     <div id="interactive-whiteboard-selection-group" className="flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={handleCut} title="Couper la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >✂️</button>
-                      <button type="button" onClick={handleCopy} title="Copier la sélection" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >📋</button>
-                      <button type="button" onClick={handlePaste} title="Coller" className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50" >🗐</button>
-                      <button type="button" onClick={handleDeleteSelection} title="Supprimer la sélection" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >❌</button>
-                      <button type="button" onClick={handleBringForward} title="Avancer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔺</button>
-                      <button type="button" onClick={handleSendBackward} title="Reculer l’objet" className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50" >🔻</button>
-                      <button type="button" onClick={handleToggleLock} title="Verrouiller / Déverrouiller" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔒</button>
+                      <button
+                        id="interactive-whiteboard-cut-button"
+                        type="button"
+                        onClick={handleCut}
+                        title="Couper la sélection"
+                        className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50"
+                      >
+                        ✂️
+                      </button>
+                      <button
+                        id="interactive-whiteboard-copy-button"
+                        type="button"
+                        onClick={handleCopy}
+                        title="Copier la sélection"
+                        className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50"
+                      >
+                        📋
+                      </button>
+                      <button
+                        id="interactive-whiteboard-paste-button"
+                        type="button"
+                        onClick={handlePaste}
+                        title="Coller"
+                        className="h-9 rounded-lg border border-orange-200 bg-white px-3 text-sm text-orange-600 hover:bg-orange-50"
+                      >
+                        🗐
+                      </button>
+                      <button
+                        id="interactive-whiteboard-delete-button"
+                        type="button"
+                        onClick={handleDeleteSelection}
+                        title="Supprimer la sélection"
+                        className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50"
+                      >
+                        ❌
+                      </button>
+                      <button
+                        id="interactive-whiteboard-bring-forward-button"
+                        type="button"
+                        onClick={handleBringForward}
+                        title="Avancer l’objet"
+                        className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50"
+                      >
+                        🔺
+                      </button>
+                      <button
+                        id="interactive-whiteboard-send-backward-button"
+                        type="button"
+                        onClick={handleSendBackward}
+                        title="Reculer l’objet"
+                        className="h-9 rounded-lg border border-violet-200 bg-white px-3 text-sm text-violet-600 hover:bg-violet-50"
+                      >
+                        🔻
+                      </button>
+                      <button
+                        id="interactive-whiteboard-lock-button"
+                        type="button"
+                        onClick={handleToggleLock}
+                        title="Verrouiller / Déverrouiller"
+                        className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                      >
+                        🔒
+                      </button>
                     </div>
                   )}
                 </section>
