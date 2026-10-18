@@ -1541,7 +1541,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     if (!canvas) return;
 
     const selectedObjects = canvas.getActiveObjects().flatMap((obj) =>
-      obj.type === "activeSelection" ? obj.getObjects() : [obj]
+      obj.type?.toLowerCase() === "activeselection" ? obj.getObjects() : [obj]
     );
     const textObjects = selectedObjects.filter((obj) => ["i-text", "text", "textbox"].includes(obj.type));
 
@@ -2010,7 +2010,17 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           const gridSize = getGridSnapSize(paperStyleRef.current);
           if (!gridSize) return;
           const obj = opt.target;
-          const isAlignable = ["i-text", "text", "textbox", "rect", "circle", "triangle", "polygon", "line", "activeSelection"].includes(obj.type);
+          const isAlignable = [
+            "i-text",
+            "text",
+            "textbox",
+            "rect",
+            "circle",
+            "triangle",
+            "polygon",
+            "line",
+            "activeselection",
+          ].includes(obj.type?.toLowerCase());
           if (isAlignable) {
             obj.set({
               left: snapCoordinate(obj.left, gridSize),
@@ -2734,22 +2744,93 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                         </option>
                       ))}
                     </select>
-                    <button type="button" onClick={handleExportJson} title="Exporter le tableau au format JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >💾</button>
-                    <button type="button" onClick={() => inputJsonRef.current?.click()} title="Importer un fichier JSON" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📂</button>
-                    <input ref={inputJsonRef} type="file" accept=".json" onChange={handleImportJson} className="hidden" />
-                    <button type="button" onClick={handleExportPng} title="Exporter le tableau au format PNG" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >📷</button>
+                    <button
+                      id="interactive-whiteboard-export-json-button"
+                      type="button"
+                      onClick={handleExportJson}
+                      title="Exporter le tableau au format JSON"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                    >
+                      💾
+                    </button>
+                    <button
+                      id="interactive-whiteboard-import-json-button"
+                      type="button"
+                      onClick={() => inputJsonRef.current?.click()}
+                      title="Importer un fichier JSON"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                    >
+                      📂
+                    </button>
+                    <input
+                      id="interactive-whiteboard-json-input"
+                      ref={inputJsonRef}
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportJson}
+                      className="hidden"
+                    />
+                    <button
+                      id="interactive-whiteboard-export-png-button"
+                      type="button"
+                      onClick={handleExportPng}
+                      title="Exporter le tableau au format PNG"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                    >
+                      📷
+                    </button>
                   </div>
 
                   <div id="interactive-whiteboard-view-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-                    <button type="button" onClick={handleToggleOrientation} title="Basculer l'orientation" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🔃</button>
-                    <button type="button" onClick={() => setCurrentZoom((prev) => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10))} title="Zoom arrière" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >−</button>
+                    <button
+                      id="interactive-whiteboard-toggle-orientation-button"
+                      type="button"
+                      onClick={handleToggleOrientation}
+                      title="Basculer l'orientation"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                    >
+                      🔃
+                    </button>
+                    <button
+                      id="interactive-whiteboard-zoom-out-button"
+                      type="button"
+                      onClick={() => setCurrentZoom((prev) => Math.max(0.2, Math.round((prev - 0.1) * 10) / 10))}
+                      title="Zoom arrière"
+                      className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50"
+                    >
+                      −
+                    </button>
                     <span className="min-w-12 text-center text-sm font-semibold text-slate-500">{Math.round(currentZoom * 100)}%</span>
-                    <button type="button" onClick={() => setCurrentZoom((prev) => Math.min(3.0, Math.round((prev + 0.1) * 10) / 10))} title="Zoom avant" className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50" >+</button>
+                    <button
+                      id="interactive-whiteboard-zoom-in-button"
+                      type="button"
+                      onClick={() => setCurrentZoom((prev) => Math.min(3.0, Math.round((prev + 0.1) * 10) / 10))}
+                      title="Zoom avant"
+                      className="h-9 rounded-lg border border-amber-200 bg-white px-3 text-sm font-bold text-amber-600 hover:bg-amber-50"
+                    >
+                      +
+                    </button>
                   </div>
 
                   <div id="interactive-whiteboard-tools-group" className="flex flex-wrap items-center gap-2 border-r border-slate-200 pr-3">
-                    <button type="button" onClick={handlePanButtonClick} title="Déplacer la vue" className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✋</button>
-                    <button type="button" onClick={() => setMode("draw")} title="Dessiner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >✏️</button>
+                    <button
+                      id="interactive-whiteboard-pan-button"
+                      type="button"
+                      onClick={handlePanButtonClick}
+                      title="Déplacer la vue"
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "pan" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                    >
+                      ✋
+                    </button>
+                    <button
+                      id="interactive-whiteboard-draw-button"
+                      type="button"
+                      onClick={() => setMode("draw")}
+                      title="Dessiner"
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "draw" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                    >
+                      ✏️
+                    </button>
                     <button
                       id="interactive-whiteboard-ruler-button"
                       type="button"
@@ -2763,9 +2844,33 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                     >
                       📏
                     </button>
-                    <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
-                    <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
-                    <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
+                    <button
+                      id="interactive-whiteboard-shape-button"
+                      type="button"
+                      onClick={() => setMode("shape")}
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                      title="Formes géométriques"
+                    >
+                      {WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}
+                    </button>
+                    <button
+                      id="interactive-whiteboard-text-button"
+                      type="button"
+                      onClick={() => setMode("text")}
+                      title="Texte"
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                    >
+                      T
+                    </button>
+                    <button
+                      id="interactive-whiteboard-erase-button"
+                      type="button"
+                      onClick={() => setMode("erase")}
+                      title="Effacer"
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                    >
+                      🧽
+                    </button>
                     <button
                       id="interactive-whiteboard-insert-image-button"
                       type="button"
@@ -2783,13 +2888,47 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                       onChange={handlePrepareImage}
                       className="hidden"
                     />
-                    <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
+                    <button
+                      id="interactive-whiteboard-select-button"
+                      type="button"
+                      onClick={() => setMode("select")}
+                      title="Sélectionner"
+                      className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`}
+                    >
+                      👇
+                    </button>
                   </div>
 
                   <div id="interactive-whiteboard-history-group" className="flex flex-wrap items-center gap-2">
-                    <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↩️</button>
-                    <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50" >↪️</button>
-                    <button type="button" onClick={handleClearClick} title="Effacer tout le tableau" className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50" >🧹</button>
+                    <button
+                      id="interactive-whiteboard-undo-button"
+                      type="button"
+                      onClick={undo}
+                      disabled={!canUndo}
+                      title="Annuler"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      ↩️
+                    </button>
+                    <button
+                      id="interactive-whiteboard-redo-button"
+                      type="button"
+                      onClick={redo}
+                      disabled={!canRedo}
+                      title="Rétablir"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      ↪️
+                    </button>
+                    <button
+                      id="interactive-whiteboard-clear-button"
+                      type="button"
+                      onClick={handleClearClick}
+                      title="Effacer tout le tableau"
+                      className="h-9 rounded-lg border border-rose-200 bg-white px-3 text-sm text-rose-600 hover:bg-rose-50"
+                    >
+                      🧹
+                    </button>
                   </div>
                 </div>
               </section>

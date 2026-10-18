@@ -61,4 +61,34 @@ describe("InteractiveWhiteboardActivity", () => {
     // On s'assure d'attraper l'erreur d'environnement headless Node si Image HTML n'est pas instanciable
     promise.catch(() => {});
   });
+
+  it("expose des identifiants id conformes et uniques sur tous les boutons de la barre d'outils", () => {
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={{}} onComplete={() => {}} />
+    );
+
+    const expectedButtonIds = [
+      "interactive-whiteboard-export-json-button",
+      "interactive-whiteboard-import-json-button",
+      "interactive-whiteboard-export-png-button",
+      "interactive-whiteboard-toggle-orientation-button",
+      "interactive-whiteboard-zoom-out-button",
+      "interactive-whiteboard-zoom-in-button",
+      "interactive-whiteboard-pan-button",
+      "interactive-whiteboard-draw-button",
+      "interactive-whiteboard-ruler-button",
+      "interactive-whiteboard-shape-button",
+      "interactive-whiteboard-text-button",
+      "interactive-whiteboard-erase-button",
+      "interactive-whiteboard-insert-image-button",
+      "interactive-whiteboard-select-button",
+      "interactive-whiteboard-undo-button",
+      "interactive-whiteboard-redo-button",
+      "interactive-whiteboard-clear-button",
+    ];
+
+    expectedButtonIds.forEach((id) => {
+      expect(html).toContain(`id="${id}"`);
+    });
+  });
 });
