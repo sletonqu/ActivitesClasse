@@ -38,4 +38,27 @@ describe("InteractiveWhiteboardActivity", () => {
     expect(cloned.type.toLowerCase()).toBe("activeselection");
     expect(cloned.getObjects().length).toBe(2);
   });
+
+  it("intègre le bouton d'insertion d'image et le champ de fichier masqué avec les identifiants attendus", () => {
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={{}} onComplete={() => {}} />
+    );
+
+    expect(html).toContain('id="interactive-whiteboard-insert-image-button"');
+    expect(html).toContain('title="Insérer une image"');
+    expect(html).toContain('id="interactive-whiteboard-image-input"');
+    expect(html).toContain('type="file"');
+    expect(html).toContain('accept="image/*"');
+  });
+
+  it("vérifie la conformité de l'API Fabric 7 pour le chargement d'image (fabric.Image.fromURL renvoie une Promise)", () => {
+    expect(typeof fabric.Image.fromURL).toBe("function");
+    expect(typeof fabric.FabricImage.prototype.scaleToWidth).toBe("function");
+
+    // En Fabric 7, fromURL renvoie systématiquement une Promise
+    const promise = fabric.Image.fromURL("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+    expect(promise instanceof Promise).toBe(true);
+    // On s'assure d'attraper l'erreur d'environnement headless Node si Image HTML n'est pas instanciable
+    promise.catch(() => {});
+  });
 });

@@ -1703,20 +1703,32 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               return;
             }
 
-            fabric.Image.fromURL(imagePendingRef.current, (img) => {
-              img.set({
-                left: pointer.x,
-                top: pointer.y,
-                originX: "center",
-                originY: "center",
+            const imgDataUrl = imagePendingRef.current;
+            imagePendingRef.current = null;
+            setShowImageHint(false);
+            if (inputImageRef.current) inputImageRef.current.value = "";
+            canvas.defaultCursor = "default";
+
+            fabric.Image.fromURL(imgDataUrl)
+              .then((img) => {
+                if (!img) return;
+                img.set({
+                  left: pointer.x,
+                  top: pointer.y,
+                  originX: "center",
+                  originY: "center",
+                  selectable: true,
+                  evented: true,
+                });
+                img.scaleToWidth(180);
+                canvas.add(img);
+                canvas.setActiveObject(img);
+                canvas.requestRenderAll();
+                saveHistory();
+              })
+              .catch((err) => {
+                console.error("[Tableau blanc] Erreur lors du chargement de l'image :", err);
               });
-              img.scaleToWidth(180);
-              canvas.add(img);
-              imagePendingRef.current = null;
-              setShowImageHint(false);
-              if (inputImageRef.current) inputImageRef.current.value = "";
-              saveHistory();
-            });
             return;
           }
 
@@ -2148,6 +2160,11 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
     if (mode !== "erase" && mode !== "draw") {
       hideBrushPreview();
     }
+    if (mode !== "select" && imagePendingRef.current) {
+      imagePendingRef.current = null;
+      setShowImageHint(false);
+      if (inputImageRef.current) inputImageRef.current.value = "";
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -2304,6 +2321,18 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       const activeObject = canvas.getActiveObject();
       const isEditingText = activeObject && activeObject.isEditing;
 
+      if (e.key === "Escape") {
+        if (imagePendingRef.current) {
+          e.preventDefault();
+          imagePendingRef.current = null;
+          setShowImageHint(false);
+          if (inputImageRef.current) inputImageRef.current.value = "";
+          canvas.defaultCursor = "default";
+          canvas.requestRenderAll();
+          return;
+        }
+      }
+
       if (e.ctrlKey || e.metaKey) {
         const key = e.key.toLowerCase();
         if (key === "z") {
@@ -2403,8 +2432,14 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       imagePendingRef.current = loadEvent.target?.result;
       setShowImageHint(true);
       setMode("select");
+      if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.isDrawingMode = false;
+        fabricCanvasRef.current.defaultCursor = "crosshair";
+        fabricCanvasRef.current.requestRenderAll();
+      }
     };
     reader.readAsDataURL(file);
+    event.target.value = "";
   };
 
   const handleExportJson = () => {
@@ -2552,8 +2587,28 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   return (
     <div id="interactive-whiteboard-activity" className="relative pb-40">
       {showImageHint && (
-        <div id="interactive-whiteboard-image-hint" className="mb-3 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow inline-block print:hidden">
-          Cliquez sur le canevas pour poser l'image.
+        <div
+          id="interactive-whiteboard-image-hint"
+          className="mb-3 inline-flex items-center gap-3 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow print:hidden"
+        >
+          <span>Cliquez sur le canevas pour poser l'image.</span>
+          <button
+            type="button"
+            id="interactive-whiteboard-cancel-image-button"
+            onClick={() => {
+              imagePendingRef.current = null;
+              setShowImageHint(false);
+              if (inputImageRef.current) inputImageRef.current.value = "";
+              if (fabricCanvasRef.current) {
+                fabricCanvasRef.current.defaultCursor = "default";
+                fabricCanvasRef.current.requestRenderAll();
+              }
+            }}
+            className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-bold text-white hover:bg-white/30 transition-colors"
+            title="Annuler l'insertion de l'image"
+          >
+            ✕ Annuler
+          </button>
         </div>
       )}
 
@@ -2711,8 +2766,23 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                     <button type="button" onClick={() => setMode("shape")} className={`h-9 rounded-lg border px-3 text-sm ${mode === "shape" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} title="Formes géométriques">{WHITEBOARD_SHAPE_OPTIONS.find((o) => o.value === shapeType)?.label.split(" ")[0] || "▭"}</button>
                     <button type="button" onClick={() => setMode("text")} title="Texte" className={`h-9 rounded-lg border px-3 text-sm ${mode === "text" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >T</button>
                     <button type="button" onClick={() => setMode("erase")} title="Effacer" className={`h-9 rounded-lg border px-3 text-sm ${mode === "erase" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >🧽</button>
-                    <button type="button" onClick={() => inputImageRef.current?.click()} title="Insérer une image" className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50" >🖼️</button>
-                    <input ref={inputImageRef} type="file" accept="image/*" onChange={handlePrepareImage} className="hidden" />
+                    <button
+                      id="interactive-whiteboard-insert-image-button"
+                      type="button"
+                      onClick={() => inputImageRef.current?.click()}
+                      title="Insérer une image"
+                      className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50"
+                    >
+                      🖼️
+                    </button>
+                    <input
+                      id="interactive-whiteboard-image-input"
+                      ref={inputImageRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePrepareImage}
+                      className="hidden"
+                    />
                     <button type="button" onClick={() => setMode("select")} title="Sélectionner" className={`h-9 rounded-lg border px-3 text-sm ${mode === "select" ? "bg-sky-600 text-white border-sky-600" : "bg-white border-slate-200 hover:bg-slate-50"}`} >👇</button>
                   </div>
 
