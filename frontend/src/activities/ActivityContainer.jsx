@@ -18,6 +18,7 @@ import HomophonesActivity from "./HomophonesActivity";
 import NumberLineActivity from "./NumberLineActivity";
 import ColumnOperationActivity from "./ColumnOperationActivity";
 import BaseTenBlocksActivity from "./BaseTenBlocksActivity";
+import VerbConjugationActivity from "./VerbConjugationActivity";
 
 
 const componentRegistry = {
@@ -78,6 +79,9 @@ const componentRegistry = {
   "src/activities/ColumnOperationActivity.js": ColumnOperationActivity,
   "ColumnOperationActivity": ColumnOperationActivity,
   "ColumnOperationActivity.js": ColumnOperationActivity,
+  "src/activities/VerbConjugationActivity.js": VerbConjugationActivity,
+  "VerbConjugationActivity": VerbConjugationActivity,
+  "VerbConjugationActivity.js": VerbConjugationActivity,
 };
 
 const resolveActivityComponent = (activityJsFile) => {

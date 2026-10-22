@@ -17,6 +17,7 @@ import { defaultHomophonesActivityContent } from "../activities/HomophonesActivi
 import { defaultNumberLineActivityContent } from "../activities/NumberLineActivity";
 import { defaultColumnOperationActivityContent } from "../activities/ColumnOperationActivity";
 import { defaultBaseTenBlocksActivityContent } from "../activities/BaseTenBlocksActivity";
+import { defaultVerbConjugationActivityContent } from "../activities/VerbConjugationActivity";
 
 
 export const ACTIVITY_FILES = [
@@ -39,6 +40,7 @@ export const ACTIVITY_FILES = [
   "src/activities/HomophonesActivity.js",
   "src/activities/NumberLineActivity.js",
   "src/activities/ColumnOperationActivity.js",
+  "src/activities/VerbConjugationActivity.js",
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
@@ -61,6 +63,7 @@ const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
   "src/activities/HomophonesActivity.js": defaultHomophonesActivityContent,
   "src/activities/NumberLineActivity.js": defaultNumberLineActivityContent,
   "src/activities/ColumnOperationActivity.js": defaultColumnOperationActivityContent,
+  "src/activities/VerbConjugationActivity.js": defaultVerbConjugationActivityContent,
 };
 
 export function getDefaultActivityContentText(jsFile) {

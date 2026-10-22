@@ -1026,3 +1026,79 @@ Paramètres :
 - `levels.levelX.endings` : terminaisons proposées.
 
 Les phrases sont chargées depuis la base selon les terminaisons demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
+
+---
+
+### 18. `VerbConjugationActivity.jsx`
+
+**But** : conjuguer les verbes **être** et **avoir** au présent de l'indicatif en déplaçant des étiquettes ou en écrivant la réponse.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Conjugaison au présent : être et avoir",
+  "instruction": "Complète la conjugaison du verbe avec les bonnes formes.",
+  "verb": "être",
+  "randomOrder": false,
+  "target": "verb",
+  "mode": "drag",
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "verb": "être",
+      "randomOrder": false,
+      "target": "verb",
+      "mode": "drag",
+      "instruction": "Déplace les étiquettes de verbes en rouge pour compléter la conjugaison dans l'ordre."
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "verb": "être",
+      "randomOrder": true,
+      "target": "verb",
+      "mode": "drag",
+      "instruction": "Déplace les étiquettes de verbes en rouge pour compléter la conjugaison dans le désordre."
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "verb": "être",
+      "randomOrder": true,
+      "target": "pronoun",
+      "mode": "drag",
+      "instruction": "Déplace les étiquettes de pronoms en violet devant chaque verbe conjugué."
+    },
+    "level4": {
+      "label": "Niveau 4",
+      "verb": "être",
+      "randomOrder": false,
+      "target": "verb",
+      "mode": "input",
+      "instruction": "Écris au clavier le verbe conjugué qui correspond à chaque pronom."
+    }
+  }
+}
+```
+
+Paramètres :
+
+- `verb` : `'être'` ou `'avoir'` (définit le verbe conjugué par défaut) ;
+- `randomOrder` : `false` (ordre canonique `je, tu, il/elle, nous, vous, ils/elles`) ou `true` (ordre aléatoire des pronoms/verbes) ;
+- `target` : `'verb'` (verbes à placer/écrire) ou `'pronoun'` (pronoms à placer/écrire) ;
+- `mode` : `'drag'` (glisser-déposer ou clic hybride des étiquettes depuis le pool) ou `'input'` (saisie au clavier directement dans les cases) ;
+- `defaultLevel` : niveau sélectionné par défaut (`level1` à `level4`).
+
+Niveaux prédéfinis :
+
+- **Niveau 1** : pronoms dans l'ordre classique, verbes à compléter avec étiquettes rouges pulsantes à droite ;
+- **Niveau 2** : pronoms dans un ordre aléatoire, verbes à compléter avec étiquettes rouges pulsantes à droite ;
+- **Niveau 3** : verbes dans un ordre aléatoire, pronoms à compléter avec étiquettes violettes pulsantes à droite ;
+- **Niveau 4** : verbes à écrire au clavier (cases avec pulsation rouge), pas d'étiquettes à placer.
+
+Code couleur et animations :
+
+- Les pronoms sont affichés en **violet** (`bg-purple-100 text-purple-800` et `animate-pulse-slow-purple`) ;
+- Les verbes sont affichés en **rouge** (`bg-red-100 text-red-700` et `animate-pulse-slow-red`) ;
+- Le choix du verbe (*être* ou *avoir*) est défini directement dans la configuration de chaque niveau (`levels.levelX.verb`).
+
