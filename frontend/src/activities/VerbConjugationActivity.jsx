@@ -13,29 +13,89 @@ import {
   parseActivityContent,
 } from "../utils/activityUtils";
 
+const ETRE_CONJUGATIONS = [
+  { id: "etre-present-1", person: 1, pronoun: "je", verb: "suis" },
+  { id: "etre-present-2", person: 2, pronoun: "tu", verb: "es" },
+  { id: "etre-present-3", person: 3, pronoun: "il / elle", verb: "est" },
+  { id: "etre-present-4", person: 4, pronoun: "nous", verb: "sommes" },
+  { id: "etre-present-5", person: 5, pronoun: "vous", verb: "êtes" },
+  { id: "etre-present-6", person: 6, pronoun: "ils / elles", verb: "sont" },
+];
+ETRE_CONJUGATIONS.present = ETRE_CONJUGATIONS;
+ETRE_CONJUGATIONS.futur = [
+  { id: "etre-futur-1", person: 1, pronoun: "je", verb: "serai" },
+  { id: "etre-futur-2", person: 2, pronoun: "tu", verb: "seras" },
+  { id: "etre-futur-3", person: 3, pronoun: "il / elle", verb: "sera" },
+  { id: "etre-futur-4", person: 4, pronoun: "nous", verb: "serons" },
+  { id: "etre-futur-5", person: 5, pronoun: "vous", verb: "serez" },
+  { id: "etre-futur-6", person: 6, pronoun: "ils / elles", verb: "seront" },
+];
+ETRE_CONJUGATIONS.imparfait = [
+  { id: "etre-imparfait-1", person: 1, pronoun: "j'", verb: "étais" },
+  { id: "etre-imparfait-2", person: 2, pronoun: "tu", verb: "étais" },
+  { id: "etre-imparfait-3", person: 3, pronoun: "il / elle", verb: "était" },
+  { id: "etre-imparfait-4", person: 4, pronoun: "nous", verb: "étions" },
+  { id: "etre-imparfait-5", person: 5, pronoun: "vous", verb: "étiez" },
+  { id: "etre-imparfait-6", person: 6, pronoun: "ils / elles", verb: "étaient" },
+];
+
+const AVOIR_CONJUGATIONS = [
+  { id: "avoir-present-1", person: 1, pronoun: "j'", verb: "ai" },
+  { id: "avoir-present-2", person: 2, pronoun: "tu", verb: "as" },
+  { id: "avoir-present-3", person: 3, pronoun: "il / elle", verb: "a" },
+  { id: "avoir-present-4", person: 4, pronoun: "nous", verb: "avons" },
+  { id: "avoir-present-5", person: 5, pronoun: "vous", verb: "avez" },
+  { id: "avoir-present-6", person: 6, pronoun: "ils / elles", verb: "ont" },
+];
+AVOIR_CONJUGATIONS.present = AVOIR_CONJUGATIONS;
+AVOIR_CONJUGATIONS.futur = [
+  { id: "avoir-futur-1", person: 1, pronoun: "j'", verb: "aurai" },
+  { id: "avoir-futur-2", person: 2, pronoun: "tu", verb: "auras" },
+  { id: "avoir-futur-3", person: 3, pronoun: "il / elle", verb: "aura" },
+  { id: "avoir-futur-4", person: 4, pronoun: "nous", verb: "aurons" },
+  { id: "avoir-futur-5", person: 5, pronoun: "vous", verb: "aurez" },
+  { id: "avoir-futur-6", person: 6, pronoun: "ils / elles", verb: "auront" },
+];
+AVOIR_CONJUGATIONS.imparfait = [
+  { id: "avoir-imparfait-1", person: 1, pronoun: "j'", verb: "avais" },
+  { id: "avoir-imparfait-2", person: 2, pronoun: "tu", verb: "avais" },
+  { id: "avoir-imparfait-3", person: 3, pronoun: "il / elle", verb: "avait" },
+  { id: "avoir-imparfait-4", person: 4, pronoun: "nous", verb: "avions" },
+  { id: "avoir-imparfait-5", person: 5, pronoun: "vous", verb: "aviez" },
+  { id: "avoir-imparfait-6", person: 6, pronoun: "ils / elles", verb: "avaient" },
+];
+
 export const CONJUGATION_TABLE = {
-  être: [
-    { id: "etre-1", person: 1, pronoun: "je", verb: "suis" },
-    { id: "etre-2", person: 2, pronoun: "tu", verb: "es" },
-    { id: "etre-3", person: 3, pronoun: "il / elle", verb: "est" },
-    { id: "etre-4", person: 4, pronoun: "nous", verb: "sommes" },
-    { id: "etre-5", person: 5, pronoun: "vous", verb: "êtes" },
-    { id: "etre-6", person: 6, pronoun: "ils / elles", verb: "sont" },
-  ],
-  avoir: [
-    { id: "avoir-1", person: 1, pronoun: "j'", verb: "ai" },
-    { id: "avoir-2", person: 2, pronoun: "tu", verb: "as" },
-    { id: "avoir-3", person: 3, pronoun: "il / elle", verb: "a" },
-    { id: "avoir-4", person: 4, pronoun: "nous", verb: "avons" },
-    { id: "avoir-5", person: 5, pronoun: "vous", verb: "avez" },
-    { id: "avoir-6", person: 6, pronoun: "ils / elles", verb: "ont" },
-  ],
+  être: ETRE_CONJUGATIONS,
+  avoir: AVOIR_CONJUGATIONS,
+};
+
+export const TENSE_METAS = {
+  present: {
+    key: "present",
+    label: "Présent",
+    full: "Présent de l'indicatif",
+    preposition: "au présent",
+  },
+  futur: {
+    key: "futur",
+    label: "Futur",
+    full: "Futur simple de l'indicatif",
+    preposition: "au futur",
+  },
+  imparfait: {
+    key: "imparfait",
+    label: "Imparfait",
+    full: "Imparfait de l'indicatif",
+    preposition: "à l'imparfait",
+  },
 };
 
 export const defaultVerbConjugationActivityContent = {
-  title: "Conjugaison au présent : être et avoir",
+  title: "Conjugaison : être et avoir",
   instruction: "Complète la conjugaison du verbe avec les bonnes formes.",
   verb: "être",
+  tense: "present",
   randomOrder: false,
   target: "verb",
   mode: "drag",
@@ -44,6 +104,7 @@ export const defaultVerbConjugationActivityContent = {
     level1: {
       label: "Niveau 1",
       verb: "être",
+      tense: "present",
       randomOrder: false,
       target: "verb",
       mode: "drag",
@@ -52,6 +113,7 @@ export const defaultVerbConjugationActivityContent = {
     level2: {
       label: "Niveau 2",
       verb: "être",
+      tense: "present",
       randomOrder: true,
       target: "verb",
       mode: "drag",
@@ -60,6 +122,7 @@ export const defaultVerbConjugationActivityContent = {
     level3: {
       label: "Niveau 3",
       verb: "être",
+      tense: "present",
       randomOrder: true,
       target: "pronoun",
       mode: "drag",
@@ -68,6 +131,7 @@ export const defaultVerbConjugationActivityContent = {
     level4: {
       label: "Niveau 4",
       verb: "être",
+      tense: "present",
       randomOrder: false,
       target: "verb",
       mode: "input",
@@ -86,6 +150,34 @@ export function normalizeVerbKey(rawVerb) {
     .replace(/[\u0300-\u036f]/g, "");
   if (norm === "avoir") return "avoir";
   return "être";
+}
+
+export function normalizeTenseKey(rawTense) {
+  const norm = String(rawTense || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (norm === "futur" || norm === "future") {
+    return "futur";
+  }
+  if (norm === "imparfait" || norm === "imperfect") {
+    return "imparfait";
+  }
+  return "present";
+}
+
+export function getTenseMeta(rawTense) {
+  const key = normalizeTenseKey(rawTense);
+  return TENSE_METAS[key] || TENSE_METAS.present;
+}
+
+export function getConjugationList(rawVerb, rawTense) {
+  const verbKey = normalizeVerbKey(rawVerb);
+  const tenseKey = normalizeTenseKey(rawTense);
+  const verbEntry = CONJUGATION_TABLE[verbKey] || CONJUGATION_TABLE.être;
+  return verbEntry[tenseKey] || verbEntry.present || verbEntry;
 }
 
 export function normalizeTarget(rawTarget) {
@@ -151,7 +243,10 @@ export function isAnswerCorrect(userText, expectedText, target) {
     ) {
       return true;
     }
-    if (normExpected === "j'" && (normUser === "j" || normUser === "je")) {
+    if (normExpected === "j'" && (normUser === "j" || normUser === "je" || normUser === "j'")) {
+      return true;
+    }
+    if (normExpected === "je" && (normUser === "j'" || normUser === "j" || normUser === "je")) {
       return true;
     }
   }
@@ -185,6 +280,15 @@ function normalizeLevelRule(sourceRule, fallbackRule, globalConfig = {}) {
   const fallback = fallbackRule && typeof fallbackRule === "object" ? fallbackRule : {};
 
   const verb = normalizeVerbKey(source.verb || globalConfig.verb || fallback.verb || "être");
+  const tense = normalizeTenseKey(
+    source.tense ||
+      source.temps ||
+      globalConfig.tense ||
+      globalConfig.temps ||
+      fallback.tense ||
+      fallback.temps ||
+      "present"
+  );
   const randomOrder = normalizeBoolean(
     source.randomOrder ?? globalConfig.randomOrder ?? fallback.randomOrder,
     false
@@ -196,6 +300,7 @@ function normalizeLevelRule(sourceRule, fallbackRule, globalConfig = {}) {
     label: getSafeDisplayText(source.label, fallback.label || "Niveau"),
     instruction: getSafeDisplayText(source.instruction, fallback.instruction || ""),
     verb,
+    tense,
     randomOrder,
     target,
     mode,
@@ -203,7 +308,7 @@ function normalizeLevelRule(sourceRule, fallbackRule, globalConfig = {}) {
 }
 
 function buildInitialRound(verbKey, levelRule) {
-  const canonicalList = CONJUGATION_TABLE[verbKey] || CONJUGATION_TABLE.être;
+  const canonicalList = getConjugationList(verbKey, levelRule?.tense);
   return levelRule.randomOrder
     ? shuffleDistinct(canonicalList)
     : [...canonicalList];
@@ -213,7 +318,7 @@ function buildInitialPool(verbKey, levelRule) {
   if (levelRule.mode !== "drag") {
     return [];
   }
-  const canonicalList = CONJUGATION_TABLE[verbKey] || CONJUGATION_TABLE.être;
+  const canonicalList = getConjugationList(verbKey, levelRule?.tense);
   return shuffleArray(
     canonicalList.map((item) => ({
       id: `tile-${item.id}`,
@@ -305,7 +410,7 @@ const VerbConjugationActivity = ({
   // Initialisation ou réinitialisation d'un tour
   const initRound = useCallback(
     (verbKey, levelRule) => {
-      const canonicalList = CONJUGATION_TABLE[verbKey] || CONJUGATION_TABLE.être;
+      const canonicalList = getConjugationList(verbKey, levelRule.tense);
       const roundRows = levelRule.randomOrder
         ? shuffleDistinct(canonicalList)
         : [...canonicalList];
@@ -341,6 +446,7 @@ const VerbConjugationActivity = ({
       JSON.stringify({
         level: currentLevel,
         verb: currentRule.verb,
+        tense: currentRule.tense,
         mode: currentRule.mode,
         target: currentRule.target,
         randomOrder: currentRule.randomOrder,
@@ -348,6 +454,7 @@ const VerbConjugationActivity = ({
     [
       currentLevel,
       currentRule.verb,
+      currentRule.tense,
       currentRule.mode,
       currentRule.target,
       currentRule.randomOrder,
@@ -482,6 +589,7 @@ const VerbConjugationActivity = ({
         levelKey: currentLevel,
         levelLabel: currentRule.label,
         verb: currentRule.verb,
+        tense: currentRule.tense,
       });
     }
   };
@@ -493,9 +601,10 @@ const VerbConjugationActivity = ({
     initRound(currentRule.verb, currentRule);
   };
 
+  const tenseMeta = getTenseMeta(currentRule.tense);
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
-    defaultVerbConjugationActivityContent.title
+    `Conjugaison ${tenseMeta.preposition} : être et avoir`
   );
   const displayInstruction = getSafeDisplayText(
     currentRule.instruction || parsedContent?.instruction,
@@ -519,7 +628,7 @@ const VerbConjugationActivity = ({
           },
           {
             key: "badge-tense",
-            label: "Présent",
+            label: tenseMeta.label,
             className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-sky-100 text-sky-800",
           },
         ]}
@@ -558,8 +667,8 @@ const VerbConjugationActivity = ({
                 >
                   Verbe {currentRule.verb}
                 </h4>
-                <p className="text-sm text-slate-500">
-                  Présent de l'indicatif
+                <p id="verb-conjugation-tense-subtitle" className="text-sm text-slate-500">
+                  {tenseMeta.full}
                 </p>
               </div>
             </div>

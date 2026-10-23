@@ -5,6 +5,8 @@ import VerbConjugationActivity, {
   defaultVerbConjugationActivityContent,
   isAnswerCorrect,
   normalizeVerbKey,
+  normalizeTenseKey,
+  getConjugationList,
   normalizeTarget,
   normalizeMode,
   CONJUGATION_TABLE,
@@ -23,23 +25,52 @@ describe("VerbConjugationActivity", () => {
     expect(html).toContain('id="verb-conjugation-pool-section"');
   });
 
-  it("génère les 6 personnes canoniques pour être et avoir", () => {
+  it("génère les 6 personnes canoniques pour être et avoir au présent, futur et imparfait", () => {
+    // Présent
     expect(CONJUGATION_TABLE.être).toHaveLength(6);
     expect(CONJUGATION_TABLE.avoir).toHaveLength(6);
+    expect(CONJUGATION_TABLE.être.present.map((i) => i.verb)).toEqual([
+      "suis", "es", "est", "sommes", "êtes", "sont",
+    ]);
+    expect(CONJUGATION_TABLE.avoir.present.map((i) => i.verb)).toEqual([
+      "ai", "as", "a", "avons", "avez", "ont",
+    ]);
 
-    const etreVerbs = CONJUGATION_TABLE.être.map((item) => item.verb);
-    expect(etreVerbs).toEqual(["suis", "es", "est", "sommes", "êtes", "sont"]);
+    // Futur
+    expect(CONJUGATION_TABLE.être.futur.map((i) => i.verb)).toEqual([
+      "serai", "seras", "sera", "serons", "serez", "seront",
+    ]);
+    expect(CONJUGATION_TABLE.avoir.futur.map((i) => i.verb)).toEqual([
+      "aurai", "auras", "aura", "aurons", "aurez", "auront",
+    ]);
 
-    const avoirVerbs = CONJUGATION_TABLE.avoir.map((item) => item.verb);
-    expect(avoirVerbs).toEqual(["ai", "as", "a", "avons", "avez", "ont"]);
+    // Imparfait
+    expect(CONJUGATION_TABLE.être.imparfait.map((i) => i.verb)).toEqual([
+      "étais", "étais", "était", "étions", "étiez", "étaient",
+    ]);
+    expect(CONJUGATION_TABLE.avoir.imparfait.map((i) => i.verb)).toEqual([
+      "avais", "avais", "avait", "avions", "aviez", "avaient",
+    ]);
+
+    // Helper getConjugationList
+    expect(getConjugationList("être", "futur")).toHaveLength(6);
+    expect(getConjugationList("avoir", "imparfait")).toHaveLength(6);
   });
 
-  it("normalise correctement les verbes, cibles et modes", () => {
+  it("normalise correctement les verbes, temps, cibles et modes", () => {
     expect(normalizeVerbKey("ETRE")).toBe("être");
     expect(normalizeVerbKey("etre")).toBe("être");
     expect(normalizeVerbKey("avoir")).toBe("avoir");
     expect(normalizeVerbKey("Avoir")).toBe("avoir");
     expect(normalizeVerbKey("inconnu")).toBe("être");
+
+    expect(normalizeTenseKey("present")).toBe("present");
+    expect(normalizeTenseKey("présent")).toBe("present");
+    expect(normalizeTenseKey("futur")).toBe("futur");
+    expect(normalizeTenseKey("future")).toBe("futur");
+    expect(normalizeTenseKey("imparfait")).toBe("imparfait");
+    expect(normalizeTenseKey("imperfect")).toBe("imparfait");
+    expect(normalizeTenseKey("inconnu")).toBe("present");
 
     expect(normalizeTarget("verb")).toBe("verb");
     expect(normalizeTarget("pronoun")).toBe("pronoun");
@@ -179,5 +210,86 @@ describe("VerbConjugationActivity", () => {
 
     expect(html).toContain('id="verb-conjugation-validate-button"');
     expect(onCompleteMock).not.toHaveBeenCalled();
+  });
+
+  it("supporte le futur avec affichage du badge, sous-titre et formes correctes", () => {
+    const htmlFuturEtre = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{
+          tense: "futur",
+          verb: "être",
+          defaultLevel: "level1",
+        }}
+        onComplete={() => {}}
+      />
+    );
+
+    expect(htmlFuturEtre).toContain("Futur");
+    expect(htmlFuturEtre).toContain("Futur simple de l&#x27;indicatif");
+    expect(htmlFuturEtre).toContain("serai");
+    expect(htmlFuturEtre).toContain("serons");
+
+    const htmlFuturAvoir = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{
+          tense: "future",
+          verb: "avoir",
+          defaultLevel: "level1",
+        }}
+        onComplete={() => {}}
+      />
+    );
+
+    expect(htmlFuturAvoir).toContain("aurai");
+    expect(htmlFuturAvoir).toContain("aurons");
+  });
+
+  it("supporte l'imparfait avec affichage du badge, sous-titre et formes correctes", () => {
+    const htmlImparfaitEtre = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{
+          tense: "imparfait",
+          verb: "être",
+          defaultLevel: "level1",
+        }}
+        onComplete={() => {}}
+      />
+    );
+
+    expect(htmlImparfaitEtre).toContain("Imparfait");
+    expect(htmlImparfaitEtre).toContain("Imparfait de l&#x27;indicatif");
+    expect(htmlImparfaitEtre).toContain("étais");
+    expect(htmlImparfaitEtre).toContain("étions");
+
+    const htmlImparfaitAvoir = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{
+          temps: "imparfait",
+          verb: "avoir",
+          defaultLevel: "level1",
+        }}
+        onComplete={() => {}}
+      />
+    );
+
+    expect(htmlImparfaitAvoir).toContain("avais");
+    expect(htmlImparfaitAvoir).toContain("avions");
+  });
+
+  it("supporte la tolérance j' / je et les accents de l'imparfait dans isAnswerCorrect", () => {
+    expect(isAnswerCorrect("je", "j'", "pronoun")).toBe(true);
+    expect(isAnswerCorrect("j'", "je", "pronoun")).toBe(true);
+    expect(isAnswerCorrect("j'", "j'", "pronoun")).toBe(true);
+
+    // Accents pour l'imparfait
+    expect(isAnswerCorrect("etais", "étais", "verb")).toBe(true);
+    expect(isAnswerCorrect("etait", "était", "verb")).toBe(true);
+    expect(isAnswerCorrect("etions", "étions", "verb")).toBe(true);
+    expect(isAnswerCorrect("etiez", "étiez", "verb")).toBe(true);
+    expect(isAnswerCorrect("etaient", "étaient", "verb")).toBe(true);
   });
 });

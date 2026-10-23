@@ -1031,15 +1031,16 @@ Les phrases sont chargées depuis la base selon les terminaisons demandées. Le 
 
 ### 18. `VerbConjugationActivity.jsx`
 
-**But** : conjuguer les verbes **être** et **avoir** au présent de l'indicatif en déplaçant des étiquettes ou en écrivant la réponse.
+**But** : conjuguer les verbes **être** et **avoir** au **présent**, au **futur** ou à **l'imparfait** de l'indicatif en déplaçant des étiquettes ou en écrivant la réponse.
 
 Exemple de configuration :
 
 ```json
 {
-  "title": "Conjugaison au présent : être et avoir",
+  "title": "Conjugaison : être et avoir",
   "instruction": "Complète la conjugaison du verbe avec les bonnes formes.",
   "verb": "être",
+  "tense": "present",
   "randomOrder": false,
   "target": "verb",
   "mode": "drag",
@@ -1048,6 +1049,7 @@ Exemple de configuration :
     "level1": {
       "label": "Niveau 1",
       "verb": "être",
+      "tense": "present",
       "randomOrder": false,
       "target": "verb",
       "mode": "drag",
@@ -1056,6 +1058,7 @@ Exemple de configuration :
     "level2": {
       "label": "Niveau 2",
       "verb": "être",
+      "tense": "present",
       "randomOrder": true,
       "target": "verb",
       "mode": "drag",
@@ -1064,6 +1067,7 @@ Exemple de configuration :
     "level3": {
       "label": "Niveau 3",
       "verb": "être",
+      "tense": "present",
       "randomOrder": true,
       "target": "pronoun",
       "mode": "drag",
@@ -1072,6 +1076,7 @@ Exemple de configuration :
     "level4": {
       "label": "Niveau 4",
       "verb": "être",
+      "tense": "present",
       "randomOrder": false,
       "target": "verb",
       "mode": "input",
@@ -1084,10 +1089,16 @@ Exemple de configuration :
 Paramètres :
 
 - `verb` : `'être'` ou `'avoir'` (définit le verbe conjugué par défaut) ;
+- `tense` (ou `temps`) : `'present'`, `'futur'` ou `'imparfait'` (définit le temps de conjugaison) ;
 - `randomOrder` : `false` (ordre canonique `je, tu, il/elle, nous, vous, ils/elles`) ou `true` (ordre aléatoire des pronoms/verbes) ;
 - `target` : `'verb'` (verbes à placer/écrire) ou `'pronoun'` (pronoms à placer/écrire) ;
 - `mode` : `'drag'` (glisser-déposer ou clic hybride des étiquettes depuis le pool) ou `'input'` (saisie au clavier directement dans les cases) ;
 - `defaultLevel` : niveau sélectionné par défaut (`level1` à `level4`).
+
+Temps supportés :
+- **Présent** : *être* (`suis, es, est, sommes, êtes, sont`) / *avoir* (`ai, as, a, avons, avez, ont`) ;
+- **Futur** : *être* (`serai, seras, sera, serons, serez, seront`) / *avoir* (`aurai, auras, aura, aurons, aurez, auront`) ;
+- **Imparfait** : *être* (`étais, étais, était, étions, étiez, étaient`) / *avoir* (`avais, avais, avait, avions, aviez, avaient`).
 
 Niveaux prédéfinis :
 
@@ -1100,5 +1111,5 @@ Code couleur et animations :
 
 - Les pronoms sont affichés en **violet** (`bg-purple-100 text-purple-800` et `animate-pulse-slow-purple`) ;
 - Les verbes sont affichés en **rouge** (`bg-red-100 text-red-700` et `animate-pulse-slow-red`) ;
-- Le choix du verbe (*être* ou *avoir*) est défini directement dans la configuration de chaque niveau (`levels.levelX.verb`).
+- Le choix du verbe (*être* ou *avoir*) et du temps (*présent*, *futur*, *imparfait*) peut être défini globalement ou par niveau.
 
