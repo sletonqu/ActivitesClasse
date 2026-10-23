@@ -287,6 +287,21 @@ const VerbConjugationActivity = ({
   const isInputMode = currentRule.mode === "input";
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
 
+  // Largeur uniforme des tuiles du pool adaptée au contenu le plus long du tour
+  const poolTileWidth = useMemo(() => {
+    const roundTexts = rows.map((r) => (target === "verb" ? r.verb : r.pronoun));
+    const poolTexts = poolItems.map((item) => item.text);
+    const allTexts = [...roundTexts, ...poolTexts].filter(Boolean);
+    const maxLength = allTexts.length > 0
+      ? Math.max(...allTexts.map((t) => (t || "").length))
+      : 6;
+
+    // Minimum ergonomique de 7rem (~112px).
+    // Progression de 0.6rem par caractère au-delà de 4 caractères pour s'ajuster au mot le plus long.
+    const remWidth = Math.max(7, 4.5 + maxLength * 0.6);
+    return `${remWidth.toFixed(2)}rem`;
+  }, [rows, target, poolItems]);
+
   // Initialisation ou réinitialisation d'un tour
   const initRound = useCallback(
     (verbKey, levelRule) => {
@@ -572,7 +587,7 @@ const VerbConjugationActivity = ({
                       <div
                         key={row.id}
                         id={`verb-conjugation-row-${index}`}
-                        className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 flex-wrap sm:flex-nowrap"
+                        className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap"
                       >
                         {/* CAS 1 : C'est le verbe qu'on complète (Niveaux 1, 2, 4) */}
                         {target === "verb" ? (
@@ -580,7 +595,7 @@ const VerbConjugationActivity = ({
                             {/* Pronom en VIOLET */}
                             <div
                               id={`verb-conjugation-pronoun-${index}`}
-                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 font-bold text-base sm:text-lg text-right flex items-center justify-end select-none shadow-xs"
+                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 font-bold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-xs"
                             >
                               {row.pronoun}
                             </div>
@@ -711,7 +726,7 @@ const VerbConjugationActivity = ({
                             {/* Verbe en ROUGE */}
                             <div
                               id={`verb-conjugation-verb-${index}`}
-                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-red-100 text-red-700 border border-red-200 font-extrabold text-base sm:text-lg text-left flex items-center justify-start select-none shadow-xs"
+                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-red-100 text-red-700 border border-red-200 font-extrabold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-xs"
                             >
                               {row.verb}
                             </div>
@@ -773,7 +788,12 @@ const VerbConjugationActivity = ({
                     className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-3 min-h-[190px] flex items-center justify-center"
                   >
                     {poolItems.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2.5 w-full">
+                      <div
+                        className="grid grid-cols-2 gap-2.5 w-fit max-w-full mx-auto justify-center"
+                        style={{
+                          gridTemplateColumns: `repeat(2, minmax(0, ${poolTileWidth}))`,
+                        }}
+                      >
                         {poolItems.map((item) => {
                           const isSelected = isPoolItemSelected(item);
                           return (
@@ -785,6 +805,7 @@ const VerbConjugationActivity = ({
                               onDragEnd={endDrag}
                               onClick={() => toggleSelectFromPool(item)}
                               isSelected={isSelected}
+                              style={{ width: poolTileWidth, maxWidth: "100%" }}
                               className={`w-full py-2.5 px-3 rounded-xl font-extrabold text-base sm:text-lg text-center shadow-xs transition-transform active:scale-95 cursor-grab active:cursor-grabbing ${target === "verb"
                                 ? "bg-red-50/80 text-red-600 border-2 border-red-300 hover:border-red-400 hover:bg-red-100 animate-pulse-slow-red motion-reduce:animate-none"
                                 : "bg-purple-50/80 text-purple-700 border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-100 animate-pulse-slow-purple motion-reduce:animate-none"
