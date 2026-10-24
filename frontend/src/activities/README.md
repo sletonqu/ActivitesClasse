@@ -1035,7 +1035,7 @@ Exemple de configuration :
 Paramètres :
 
 - `title`, `instruction` et `defaultLevel` ;
-- `infinitiveEnding` *(défaut : `"er"`)* : terminaison du verbe à l'infinitif recherchée dans la base de données (ex: `"er"` pour chercher `manger`, `"ir"` pour chercher `courir`) ;
+- `infinitiveEnding` *(défaut : `""`)* : terminaison du verbe à l'infinitif recherchée dans la base de données (ex: `"er"` pour chercher `manger`, `"ir"` pour chercher `courir`, ou `""` pour accepter tous les verbes) ;
 - `levels.levelX.label` : nom du niveau ;
 - `levels.levelX.sentenceCount` : nombre de phrases de la série ;
 - `levels.levelX.conjugatedEndings` : liste des terminaisons attendues des verbes conjugués proposées à l'élève.

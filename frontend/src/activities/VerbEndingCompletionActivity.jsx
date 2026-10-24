@@ -10,9 +10,9 @@ import { API_URL } from "../config/api";
 const ALLOWED_LEVEL_KEYS = ["level1", "level2", "level3"];
 
 export const defaultVerbEndingCompletionActivityContent = {
-  title: "Verbes finissant par 'er'",
+  title: "Terminaison des verbes",
   instruction: "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
-  infinitiveEnding: "er",
+  infinitiveEnding: "",
   defaultLevel: "level1",
   levels: {
     level1: {
@@ -37,12 +37,12 @@ function cleanEnding(str) {
   return String(str || "").toLowerCase().replace(/^[-'"]+|[-'"]+$/g, "").trim();
 }
 
-function normalizeInfinitiveEnding(value, fallback = "er") {
+function normalizeInfinitiveEnding(value, fallback = "") {
   if (Array.isArray(value)) {
     const first = value.find((v) => typeof v === "string" && v.trim().length > 0);
     return first ? cleanEnding(first) : fallback;
   }
-  if (typeof value === "string" && value.trim().length > 0) {
+  if (typeof value === "string") {
     return cleanEnding(value);
   }
   return fallback;

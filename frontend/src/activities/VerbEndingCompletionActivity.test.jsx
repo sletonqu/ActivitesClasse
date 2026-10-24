@@ -227,4 +227,36 @@ describe("VerbEndingCompletionActivity", () => {
     expect(html).toContain(">es</span>");
     expect(html).toContain(">ent</span>");
   });
+
+  it("accepte tous les verbes par défaut lorsque infinitiveEnding vaut '' et n'affiche pas de badge d'infinitif", () => {
+    const sentenceWithErAndIr = {
+      id: 20,
+      sentence: "Nous mangeons pendant qu'il court.",
+      words: [
+        { word: "Nous", nature: "pronom" },
+        { word: "mangeons", nature: "verbe", infinitif: "manger" },
+        { word: "pendant", nature: "préposition" },
+        { word: "qu'", nature: "conjonction" },
+        { word: "il", nature: "pronom" },
+        { word: "court", nature: "verbe", infinitif: "courir" },
+        { word: ".", nature: "ponctuation" },
+      ],
+    };
+
+    // Avec infinitiveEnding = "", les verbes en 'ir' comme 'court' sont acceptés pour la terminaison 't'
+    const roundIr = buildVerbRound(sentenceWithErAndIr, 0, ["t"], "");
+    expect(roundIr).not.toBeNull();
+    expect(roundIr.wordText).toBe("court");
+
+    // Et les verbes en 'er' comme 'mangeons' sont également acceptés pour la terminaison 'ons'
+    const roundEr = buildVerbRound(sentenceWithErAndIr, 0, ["ons"], "");
+    expect(roundEr).not.toBeNull();
+    expect(roundEr.wordText).toBe("mangeons");
+
+    // Dans le hero par défaut, aucun badge d'infinitif n'est affiché
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={{}} onComplete={() => {}} />
+    );
+    expect(html).not.toContain("Infinitif en -");
+  });
 });
