@@ -1014,7 +1014,7 @@ Ces champs sont facultatifs et reprennent leurs valeurs par défaut s'ils sont a
 
 ### 17. `VerbEndingCompletionActivity.jsx`
 
-**But** : choisir la terminaison correcte d'un verbe en `-er` pour compléter une phrase.
+**But** : choisir la terminaison correcte d'un verbe selon sa terminaison à l'infinitif (ex: verbes en `-er`, en `-ir`) pour compléter une phrase.
 
 Exemple de configuration :
 
@@ -1022,11 +1022,12 @@ Exemple de configuration :
 {
   "title": "Verbes finissant par 'er'",
   "instruction": "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
+  "infinitiveEnding": "er",
   "defaultLevel": "level1",
   "levels": {
-    "level1": { "label": "Niveau 1", "sentenceCount": 4, "endings": ["es", "ent"] },
-    "level2": { "label": "Niveau 2", "sentenceCount": 6, "endings": ["e", "es", "ent"] },
-    "level3": { "label": "Niveau 3", "sentenceCount": 8, "endings": ["e", "es", "ez", "ent"] }
+    "level1": { "label": "Niveau 1", "sentenceCount": 4, "conjugatedEndings": ["es", "ent"] },
+    "level2": { "label": "Niveau 2", "sentenceCount": 6, "conjugatedEndings": ["e", "es", "ent"] },
+    "level3": { "label": "Niveau 3", "sentenceCount": 8, "conjugatedEndings": ["e", "es", "ez", "ent"] }
   }
 }
 ```
@@ -1034,11 +1035,12 @@ Exemple de configuration :
 Paramètres :
 
 - `title`, `instruction` et `defaultLevel` ;
+- `infinitiveEnding` *(défaut : `"er"`)* : terminaison du verbe à l'infinitif recherchée dans la base de données (ex: `"er"` pour chercher `manger`, `"ir"` pour chercher `courir`) ;
 - `levels.levelX.label` : nom du niveau ;
 - `levels.levelX.sentenceCount` : nombre de phrases de la série ;
-- `levels.levelX.endings` : terminaisons proposées.
+- `levels.levelX.conjugatedEndings` : liste des terminaisons attendues des verbes conjugués proposées à l'élève.
 
-Les phrases sont chargées depuis la base selon les terminaisons demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
+Les phrases sont chargées depuis la base selon la terminaison d'infinitif et les terminaisons conjuguées demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
 
 ---
 

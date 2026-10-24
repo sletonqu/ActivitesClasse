@@ -150,4 +150,81 @@ describe("VerbEndingCompletionActivity", () => {
     expect(html).toContain("chantent");
     expect(html).toContain("Phrases avec erreurs (1) :");
   });
+
+  it("filtre selon la terminaison de l'infinitif (infinitiveEnding) quand l'infinitif est présent", () => {
+    const sentenceWithErAndIr = {
+      id: 20,
+      sentence: "Nous mangeons pendant qu'il court.",
+      words: [
+        { word: "Nous", nature: "pronom" },
+        { word: "mangeons", nature: "verbe", infinitif: "manger" },
+        { word: "pendant", nature: "préposition" },
+        { word: "qu'", nature: "conjonction" },
+        { word: "il", nature: "pronom" },
+        { word: "court", nature: "verbe", infinitif: "courir" },
+        { word: ".", nature: "ponctuation" },
+      ],
+    };
+
+    // Cherche les verbes en 'er' avec terminaisons 'e', 'ons'
+    const roundEr = buildVerbRound(sentenceWithErAndIr, 0, ["e", "ons"], "er");
+    expect(roundEr).not.toBeNull();
+    expect(roundEr.wordText).toBe("mangeons");
+    expect(roundEr.correctEnding).toBe("ons");
+    expect(roundEr.baseForm).toBe("mange");
+
+    // Cherche les verbes en 'ir' avec terminaisons 't'
+    const roundIr = buildVerbRound(sentenceWithErAndIr, 0, ["t"], "ir");
+    expect(roundIr).not.toBeNull();
+    expect(roundIr.wordText).toBe("court");
+    expect(roundIr.correctEnding).toBe("t");
+    expect(roundIr.baseForm).toBe("cour");
+
+    // Si on cherche un verbe en 'er' avec seulement terminaison 't' (qui correspond à courir, pas manger) => doit retourner null
+    const roundMismatch = buildVerbRound(sentenceWithErAndIr, 0, ["t"], "er");
+    expect(roundMismatch).toBeNull();
+  });
+
+  it("affiche le badge d'infinitif et les terminaisons de verbes conjugués dans le hero", () => {
+    const content = {
+      infinitiveEnding: "ir",
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 4,
+          conjugatedEndings: ["is", "it"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={content} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("Infinitif en -ir");
+    expect(html).toContain(">is</span>");
+    expect(html).toContain(">it</span>");
+  });
+
+  it("ignore l'ancien paramètre endings et utilise uniquement conjugatedEndings", () => {
+    const content = {
+      infinitiveEnding: "er",
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 4,
+          endings: ["xyz", "abc"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={content} onComplete={() => {}} />
+    );
+
+    expect(html).not.toContain(">xyz</span>");
+    expect(html).not.toContain(">abc</span>");
+    expect(html).toContain(">es</span>");
+    expect(html).toContain(">ent</span>");
+  });
 });

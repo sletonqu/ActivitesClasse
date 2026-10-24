@@ -12,61 +12,90 @@ const ALLOWED_LEVEL_KEYS = ["level1", "level2", "level3"];
 export const defaultVerbEndingCompletionActivityContent = {
   title: "Verbes finissant par 'er'",
   instruction: "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
+  infinitiveEnding: "er",
   defaultLevel: "level1",
   levels: {
     level1: {
       label: "Niveau 1",
       sentenceCount: 4,
-      endings: ["es", "ent"],
+      conjugatedEndings: ["es", "ent"],
     },
     level2: {
       label: "Niveau 2",
       sentenceCount: 6,
-      endings: ["e", "es", "ent"],
+      conjugatedEndings: ["e", "es", "ent"],
     },
     level3: {
       label: "Niveau 3",
       sentenceCount: 8,
-      endings: ["e", "es", "ez", "ent"],
+      conjugatedEndings: ["e", "es", "ez", "ent"],
     },
   },
 };
 
+function cleanEnding(str) {
+  return String(str || "").toLowerCase().replace(/^[-'"]+|[-'"]+$/g, "").trim();
+}
+
+function normalizeInfinitiveEnding(value, fallback = "er") {
+  if (Array.isArray(value)) {
+    const first = value.find((v) => typeof v === "string" && v.trim().length > 0);
+    return first ? cleanEnding(first) : fallback;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return cleanEnding(value);
+  }
+  return fallback;
+}
+
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
   const sentenceCount = Math.max(1, parsePositiveInt(source.sentenceCount, fallbackRule.sentenceCount));
-  const fallbackEndings = Array.isArray(fallbackRule.endings)
-    ? fallbackRule.endings.map((ending) => String(ending || "").toLowerCase()).filter(Boolean)
+  const fallbackEndings = Array.isArray(fallbackRule.conjugatedEndings)
+    ? fallbackRule.conjugatedEndings.map((ending) => cleanEnding(ending)).filter(Boolean)
     : [];
-  const endings = Array.isArray(source.endings)
-    ? source.endings.map((ending) => String(ending || "").toLowerCase()).filter(Boolean)
+
+  const rawEndings = Array.isArray(source.conjugatedEndings) && source.conjugatedEndings.length > 0
+    ? source.conjugatedEndings
     : fallbackEndings;
+
+  const conjugatedEndings = rawEndings.map((ending) => cleanEnding(ending)).filter(Boolean);
+  const resolvedEndings = conjugatedEndings.length > 0 ? conjugatedEndings : fallbackEndings;
 
   return {
     label: getSafeDisplayText(source.label, fallbackRule.label),
     sentenceCount,
-    endings: endings.length > 0 ? endings : fallbackEndings,
+    conjugatedEndings: resolvedEndings,
   };
 }
 
-function findVerbWithEnding(sentence, endings) {
+function findVerbWithEnding(sentence, conjugatedEndings, infinitiveEnding = "") {
   const words = Array.isArray(sentence?.words) ? sentence.words : [];
+  const normalizedInfinitive = cleanEnding(infinitiveEnding);
   
   for (const word of words) {
     const wordStr = String(word?.word || "").toLowerCase();
     const nature = String(word?.nature || "").toLowerCase();
+    const infinitif = cleanEnding(word?.infinitif);
     
     // Vérifier que c'est un verbe ET pas un adverbe
     const isVerb = (nature.includes("verbe")) && !nature.includes("adverbe");
     
     if (isVerb) {
-      for (const ending of endings) {
-        if (wordStr.endsWith(ending)) {
+      // Si l'infinitif est renseigné sur le mot, vérifier qu'il se termine bien par la terminaison d'infinitif attendue
+      const matchesInfinitive = !normalizedInfinitive || (word?.infinitif ? infinitif.endsWith(normalizedInfinitive) : true);
+      if (!matchesInfinitive) {
+        continue;
+      }
+
+      for (const ending of conjugatedEndings) {
+        const cleanEnd = cleanEnding(ending);
+        if (cleanEnd && wordStr.endsWith(cleanEnd)) {
           return {
             word,
             wordText: String(word?.word || ""),
-            ending,
-            baseForm: wordStr.substring(0, wordStr.length - ending.length),
+            ending: cleanEnd,
+            baseForm: wordStr.substring(0, wordStr.length - cleanEnd.length),
           };
         }
       }
@@ -76,8 +105,8 @@ function findVerbWithEnding(sentence, endings) {
   return null;
 }
 
-export function buildVerbRound(sentenceEntry, index, endings) {
-  const verbInfo = findVerbWithEnding(sentenceEntry, endings);
+export function buildVerbRound(sentenceEntry, index, conjugatedEndings, infinitiveEnding = "") {
+  const verbInfo = findVerbWithEnding(sentenceEntry, conjugatedEndings, infinitiveEnding);
   
   if (!verbInfo) {
     return null;
@@ -157,15 +186,24 @@ const VerbEndingCompletionActivity = ({
   const requestIdRef = useRef(0);
   const lastAutoLoadSignatureRef = useRef("");
 
+  const configuredInfinitiveEnding = useMemo(
+    () => normalizeInfinitiveEnding(
+      parsedContent?.infinitiveEnding ?? parsedContent?.infinitiveEndings,
+      defaultVerbEndingCompletionActivityContent.infinitiveEnding
+    ),
+    [parsedContent]
+  );
+
   const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
-  const currentEndings = currentLevelRule.endings;
+  const currentConjugatedEndings = currentLevelRule.conjugatedEndings;
   const currentLoadSignature = useMemo(
     () => JSON.stringify({
       level: currentLevel,
+      infinitiveEnding: configuredInfinitiveEnding,
       sentenceCount: currentLevelRule.sentenceCount,
-      endings: currentEndings,
+      conjugatedEndings: currentConjugatedEndings,
     }),
-    [currentLevel, currentLevelRule.sentenceCount, currentEndings]
+    [currentLevel, configuredInfinitiveEnding, currentLevelRule.sentenceCount, currentConjugatedEndings]
   );
   const currentSentence = sentenceRounds[currentSentenceIndex] || null;
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
@@ -186,9 +224,9 @@ const VerbEndingCompletionActivity = ({
     defaultVerbEndingCompletionActivityContent.instruction
   );
 
-  const resetWithSentences = useCallback((sentences, levelEndings) => {
+  const resetWithSentences = useCallback((sentences, levelConjugatedEndings, infinitiveEnding) => {
     const preparedSentences = sentences
-      .map((sentence, index) => buildVerbRound(sentence, index, levelEndings))
+      .map((sentence, index) => buildVerbRound(sentence, index, levelConjugatedEndings, infinitiveEnding))
       .filter(Boolean);
 
     if (preparedSentences.length === 0) {
@@ -211,7 +249,7 @@ const VerbEndingCompletionActivity = ({
 
   const loadSentencesForLevel = useCallback(async (levelKey) => {
     const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
-    const levelEndings = levelRule.endings;
+    const levelConjugatedEndings = levelRule.conjugatedEndings;
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
 
@@ -224,8 +262,11 @@ const VerbEndingCompletionActivity = ({
     try {
       const params = new URLSearchParams({
         count: String(levelRule.sentenceCount),
-        endings: levelEndings.join(","),
+        conjugatedEndings: levelConjugatedEndings.join(","),
       });
+      if (configuredInfinitiveEnding) {
+        params.set("infinitiveEnding", configuredInfinitiveEnding);
+      }
 
       const response = await fetch(`${API_URL}/ai/verbs-by-ending?${params.toString()}`);
       const data = await response.json();
@@ -243,7 +284,7 @@ const VerbEndingCompletionActivity = ({
         throw new Error("Aucune phrase n'est disponible pour ces terminaisons.");
       }
 
-      resetWithSentences(nextSentences, levelEndings);
+      resetWithSentences(nextSentences, levelConjugatedEndings, configuredInfinitiveEnding);
     } catch (err) {
       if (requestId !== requestIdRef.current) {
         return;
@@ -266,7 +307,7 @@ const VerbEndingCompletionActivity = ({
         setLoadingSentences(false);
       }
     }
-  }, [configuredLevels, resetWithSentences]);
+  }, [configuredLevels, configuredInfinitiveEnding, resetWithSentences]);
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -380,11 +421,18 @@ const VerbEndingCompletionActivity = ({
         instruction={displayInstruction}
         showInstruction={!student}
         showBadges={!student}
-        badges={currentEndings.map((ending) => ({
-          key: `badge-${ending}`,
-          label: ending,
-          className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800",
-        }))}
+        badges={[
+          ...(configuredInfinitiveEnding ? [{
+            key: `badge-infinitive-${configuredInfinitiveEnding}`,
+            label: `Infinitif en -${configuredInfinitiveEnding}`,
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200",
+          }] : []),
+          ...currentConjugatedEndings.map((ending) => ({
+            key: `badge-${ending}`,
+            label: ending,
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800",
+          })),
+        ]}
         badgesId="verb-ending-completion-endings"
         levels={ALLOWED_LEVEL_KEYS.map((levelKey) => ({
           key: levelKey,
@@ -478,7 +526,7 @@ const VerbEndingCompletionActivity = ({
                 id="verb-ending-choice-tiles"
                 className="flex flex-wrap justify-center gap-3 sm:gap-4"
               >
-                {currentEndings.map((ending) => (
+                {currentConjugatedEndings.map((ending) => (
                   <button
                     key={ending}
                     id={`verb-ending-tile-${ending}`}

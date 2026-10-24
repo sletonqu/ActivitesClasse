@@ -1261,12 +1261,14 @@ router.get('/generated-sentences/practice', async (req, res) => {
 
 router.get('/verbs-by-ending', async (req, res) => {
   try {
-    const endingsParam = req.query?.endings || '';
+    const endingsParam = req.query?.conjugatedEndings || '';
+    const rawInfinitiveParam = req.query?.infinitiveEnding || req.query?.infinitive_ending || req.query?.infinitive || '';
+    const infinitiveEndingParam = normalizeText(rawInfinitiveParam).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, '');
     const requestedCountParam = Number(req.query?.count) || 3;
     const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 20);
 
     if (!endingsParam) {
-      return res.status(400).json({ error: 'Les terminaisons doivent être spécifiées (endings parameter)' });
+      return res.status(400).json({ error: 'Les terminaisons doivent être spécifiées (paramètre conjugatedEndings)' });
     }
 
     const endings = Array.isArray(endingsParam)
@@ -1279,7 +1281,7 @@ router.get('/verbs-by-ending', async (req, res) => {
     }
 
     // Fonction pour vérifier si une phrase contient des verbes avec les terminaisons
-    function sentenceContainsVerbWithEnding(sentence, sentenceEndings) {
+    function sentenceContainsVerbWithEnding(sentence, sentenceEndings, infinitiveEnding = '') {
       const words = Array.isArray(sentence?.words) ? sentence.words : [];
       
       // Si le payload a les mots analysés, utiliser ceux-ci
@@ -1287,34 +1289,38 @@ router.get('/verbs-by-ending', async (req, res) => {
         return words.some((word) => {
           const wordStr = normalizeText(word?.word || '').toLowerCase();
           const nature = normalizeText(word?.nature || '').toLowerCase();
+          const infinitif = normalizeText(word?.infinitif || '').toLowerCase();
           
           // Vérifier que c'est un verbe ET pas un adverbe
           const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && 
                          !nature.includes('adverbe');
           
+          const matchesInfinitive = !infinitiveEnding || (infinitif && infinitif.endsWith(infinitiveEnding));
+          
           return (
             isVerb &&
+            matchesInfinitive &&
             sentenceEndings.some((ending) => wordStr.endsWith(ending))
           );
         });
       }
+      return false;
     }
 
-    // Récupérer les 10 phrases les moins utilisées pour chaque terminaison
+    // Récupérer les phrases les moins utilisées et filtrer pour chaque terminaison
     const allSentencesByEnding = new Map();
+    const rows = await allAsync(
+      `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+       FROM generated_sentences
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC
+       LIMIT 500`,
+      []
+    );
+    const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
 
     for (const ending of validEndings) {
-      const rows = await allAsync(
-        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
-         FROM generated_sentences
-         ORDER BY COALESCE(compteur, 0) ASC, id DESC
-         LIMIT 500`,
-        []
-      );
-
-      const eligibleSentences = rows
-        .map((row) => buildGeneratedSentenceFromRow(row))
-        .filter((sentence) => sentenceContainsVerbWithEnding(sentence, [ending]))
+      const eligibleSentences = candidateSentences
+        .filter((sentence) => sentenceContainsVerbWithEnding(sentence, [ending], infinitiveEndingParam))
         .slice(0, 10);
 
       if (eligibleSentences.length > 0) {
@@ -1323,8 +1329,11 @@ router.get('/verbs-by-ending', async (req, res) => {
     }
 
     if (allSentencesByEnding.size === 0) {
+      const errorMsg = infinitiveEndingParam
+        ? `Aucune phrase avec des verbes à l'infinitif en -${infinitiveEndingParam} finissant par ces terminaisons n'a été trouvée`
+        : "Aucune phrase avec des verbes finissant par ces terminaisons n'a été trouvée";
       return res.status(404).json({
-        error: 'Aucune phrase avec des verbes finissant par ces terminaisons n\'a été trouvée',
+        error: errorMsg,
       });
     }
 
