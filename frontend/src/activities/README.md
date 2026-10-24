@@ -1179,4 +1179,48 @@ Options utiles :
 - `levels.levelX.label` : intitulé lisible du niveau.
 - `defaultLevel` : niveau pré-sélectionné à l'ouverture.
 
+---
 
+### 24. `HomophonesActivity.jsx`
+
+**Discipline** : Français  
+**Catégorie** : Orthographe grammaticale  
+**But** : compléter la phrase en sélectionnant le bon homophone grammatical (ex: *a / à*, *est / es / et*, *on / ont*).
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Homophones",
+  "instruction": "Sélectionne le mot correct pour compléter la phrase.",
+  "strict": false,
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "es / est / et",
+      "sentenceCount": 10,
+      "sounds": ["es", "est", "et"]
+    },
+    "level2": {
+      "label": "à / a / as",
+      "sentenceCount": 10,
+      "sounds": ["à", "a", "as"]
+    },
+    "level3": {
+      "label": "on / ont",
+      "sentenceCount": 10,
+      "sounds": ["on", "ont"]
+    }
+  }
+}
+```
+
+Options utiles :
+
+- `strict` ou `strictConstraints` (booléen, optionnel, par défaut `false`) :
+  - `false` (souple) : garantit la présence d'au moins une phrase pour chaque homophone disponible en base de données avec une répartition équilibrée (round-robin), et ne bloque pas si certaines phrases manquent.
+  - `true` (strict) : bloque l'activité avec un message d'erreur explicite si l'un des homophones demandés n'a aucune phrase en base de données (Cas 2) ou si le nombre total de phrases demandées (`sentenceCount`) n'est pas atteint (Cas 3).
+- `levels.levelX.sounds` : liste des homophones à différencier (ex: `["es", "est", "et"]`).
+- `levels.levelX.sentenceCount` : nombre de phrases à proposer dans la manche.
+- `levels.levelX.label` : intitulé lisible du niveau.
+- `defaultLevel` : niveau pré-sélectionné à l'ouverture.

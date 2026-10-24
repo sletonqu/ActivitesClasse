@@ -11,6 +11,8 @@ const {
   normalizeEndingsFilter,
   normalizeWordsFilter,
   normalizeRequiredNatureFilters,
+  selectBalancedSentencesByWord,
+  sentenceContainsWord,
 } = require('./ai');
 
 
@@ -353,5 +355,98 @@ test('sentenceContainsRequiredNatures vérifie la présence de toutes les famill
   assert.equal(sentenceContainsRequiredNatures(sentence, []), true);
 });
 
+test('sentenceContainsWord détecte fidèlement la présence d\'un mot ou homophone', () => {
+  const sentence = {
+    sentence: "Il est là et il mange du pain.",
+    words: [
+      { word: "Il" },
+      { word: "est" },
+      { word: "là" },
+      { word: "et" },
+      { word: "il" },
+      { word: "mange" },
+      { word: "du" },
+      { word: "pain." },
+    ],
+  };
 
+  assert.equal(sentenceContainsWord(sentence, 'est'), true);
+  assert.equal(sentenceContainsWord(sentence, 'et'), true);
+  assert.equal(sentenceContainsWord(sentence, 'pain'), true);
+  assert.equal(sentenceContainsWord(sentence, 'es'), false);
+  assert.equal(sentenceContainsWord(sentence, 'ont'), false);
 
+  // Cas fallback sans tableau words (phrase brute)
+  const rawSentence = { sentence: "Elle a un beau sac à dos !" };
+  assert.equal(sentenceContainsWord(rawSentence, 'a'), true);
+  assert.equal(sentenceContainsWord(rawSentence, 'à'), true);
+  assert.equal(sentenceContainsWord(rawSentence, 'sac'), true);
+  assert.equal(sentenceContainsWord(rawSentence, 'dos'), true);
+  assert.equal(sentenceContainsWord(rawSentence, 'ont'), false);
+});
+
+test('selectBalancedSentencesByWord garantit la présence de chaque homophone demandé et équilibre la sélection', () => {
+  const candidateSentences = [
+    { id: 1, sentence: "Il est tard.", words: [{ word: "est" }], compteur: 0 },
+    { id: 2, sentence: "C'est beau et grand.", words: [{ word: "et" }], compteur: 0 },
+    { id: 3, sentence: "Tu es prêt.", words: [{ word: "es" }], compteur: 0 },
+    { id: 4, sentence: "Il est gentil.", words: [{ word: "est" }], compteur: 1 },
+    { id: 5, sentence: "Toi et moi.", words: [{ word: "et" }], compteur: 1 },
+    { id: 6, sentence: "Tu es grand.", words: [{ word: "es" }], compteur: 1 },
+  ];
+
+  const words = ['a', 'à']; // Non présents
+  const resultMissing = selectBalancedSentencesByWord(candidateSentences, ['est', 'et', 'a'], 3, false);
+  assert.deepEqual(resultMissing.missingWords, ['a']);
+  assert.equal(resultMissing.selectedSentences.length, 3);
+
+  // Test de garantie >= 1 par homophone
+  const resultBalanced = selectBalancedSentencesByWord(candidateSentences, ['est', 'et', 'es'], 6, false);
+  assert.equal(resultBalanced.selectedSentences.length, 6);
+  const estCount = resultBalanced.selectedSentences.filter((s) => s.targetWord === 'est').length;
+  const etCount = resultBalanced.selectedSentences.filter((s) => s.targetWord === 'et').length;
+  const esCount = resultBalanced.selectedSentences.filter((s) => s.targetWord === 'es').length;
+  assert.equal(estCount, 2);
+  assert.equal(etCount, 2);
+  assert.equal(esCount, 2);
+  // Vérifie que targetWord et targetSound sont bien positionnés
+  resultBalanced.selectedSentences.forEach((s) => {
+    assert.ok(s.targetWord, 'Doit avoir targetWord');
+    assert.equal(s.targetWord, s.targetSound);
+  });
+});
+
+test('selectBalancedSentencesByWord en mode strict détecte les homophones manquants (Cas 2)', () => {
+  const candidateSentences = [
+    { id: 1, sentence: "Il est parti.", words: [{ word: "est" }] },
+    { id: 2, sentence: "Pomme et poire.", words: [{ word: "et" }] },
+  ];
+
+  const result = selectBalancedSentencesByWord(candidateSentences, ['est', 'et', 'es'], 3, true);
+  assert.equal(result.missingWords.length, 1);
+  assert.equal(result.missingWords[0], 'es');
+  assert.ok(result.strictErrors.length > 0);
+  assert.match(result.strictErrors[0], /aucune phrase trouvée pour le ou les homophones suivants : « es »/);
+});
+
+test('selectBalancedSentencesByWord en mode strict détecte le manque de phrases (Cas 3)', () => {
+  const candidateSentences = [
+    { id: 1, sentence: "Il est là.", words: [{ word: "est" }] },
+    { id: 2, sentence: "Toi et lui.", words: [{ word: "et" }] },
+  ];
+
+  const result = selectBalancedSentencesByWord(candidateSentences, ['est', 'et'], 5, true);
+  assert.equal(result.selectedSentences.length, 2);
+  assert.ok(result.strictErrors.length > 0);
+  assert.match(result.strictErrors[0], /5 phrases demandées, mais seulement 2 disponibles/);
+});
+
+test('selectBalancedSentencesByWord en mode non-strict ne bloque pas si partiel', () => {
+  const candidateSentences = [
+    { id: 1, sentence: "Il est là.", words: [{ word: "est" }] },
+  ];
+
+  const result = selectBalancedSentencesByWord(candidateSentences, ['est', 'et'], 5, false);
+  assert.equal(result.strictErrors.length, 0);
+  assert.equal(result.selectedSentences.length, 1);
+});

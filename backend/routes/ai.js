@@ -1661,39 +1661,179 @@ router.get('/verbs-by-ending', async (req, res) => {
   }
 });
 
+function sentenceContainsWord(sentence, targetWord) {
+  const normalizedTarget = normalizeText(targetWord)
+    .toLowerCase()
+    .replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, '');
+  if (!normalizedTarget) {
+    return false;
+  }
+  const wordsList = Array.isArray(sentence?.words) ? sentence.words : [];
+  if (wordsList.length > 0) {
+    return wordsList.some((wordObj) => {
+      const wordStr = normalizeText(wordObj?.word || '')
+        .toLowerCase()
+        .replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, '');
+      return wordStr === normalizedTarget;
+    });
+  }
+  const rawWords = String(sentence?.sentence || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w) => w.replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, ''));
+  return rawWords.includes(normalizedTarget);
+}
+
+function selectBalancedSentencesByWord(candidateSentences, validWords, requestedCount, strict = false) {
+  const normalizedWords = Array.from(
+    new Set(
+      (validWords || [])
+        .map((w) => normalizeText(w).toLowerCase().replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, ''))
+        .filter(Boolean)
+    )
+  );
+
+  const poolByWord = new Map();
+  for (const word of normalizedWords) {
+    const eligible = candidateSentences.filter((sentence) => sentenceContainsWord(sentence, word));
+    if (eligible.length > 0) {
+      poolByWord.set(word, eligible);
+    }
+  }
+
+  const missingWords = normalizedWords.filter((w) => !poolByWord.has(w));
+
+  if (poolByWord.size === 0) {
+    return {
+      selectedSentences: [],
+      availableWords: [],
+      missingWords,
+      totalAvailable: 0,
+      strictErrors: strict ? ['Aucune phrase trouvée pour les homophones spécifiés'] : [],
+    };
+  }
+
+  const availableWords = normalizedWords.filter((w) => poolByWord.has(w));
+  const selectedSentences = [];
+  const usedIds = new Set();
+
+  // Pour chaque mot, préparer une file de phrases ordonnée par compteur croissant
+  // avec un léger mélange aléatoire pour départager les égalités
+  const queuesByWord = new Map();
+  for (const word of availableWords) {
+    const pool = poolByWord.get(word);
+    const sorted = [...pool].sort((a, b) => {
+      const countDiff = (Number(a.compteur) || 0) - (Number(b.compteur) || 0);
+      if (countDiff !== 0) return countDiff;
+      return Math.random() - 0.5;
+    });
+    queuesByWord.set(word, sorted);
+  }
+
+  // Étape 1 : Garantir au moins une phrase pour chaque homophone demandé disponible
+  for (const word of availableWords) {
+    if (selectedSentences.length >= requestedCount) {
+      break;
+    }
+    const queue = queuesByWord.get(word);
+    const index = queue.findIndex((sentence) => !usedIds.has(sentence.id));
+    if (index !== -1) {
+      const [sentence] = queue.splice(index, 1);
+      usedIds.add(sentence.id);
+      selectedSentences.push({
+        ...sentence,
+        targetWord: word,
+        targetSound: word,
+      });
+    }
+  }
+
+  // Étape 2 : Compléter jusqu'à requestedCount en alternant équitablement entre les homophones (round-robin)
+  let wordCursor = 0;
+  let consecutiveMisses = 0;
+  while (selectedSentences.length < requestedCount && consecutiveMisses < availableWords.length) {
+    const word = availableWords[wordCursor % availableWords.length];
+    const queue = queuesByWord.get(word);
+    const index = queue.findIndex((sentence) => !usedIds.has(sentence.id));
+
+    if (index !== -1) {
+      const [sentence] = queue.splice(index, 1);
+      usedIds.add(sentence.id);
+      selectedSentences.push({
+        ...sentence,
+        targetWord: word,
+        targetSound: word,
+      });
+      consecutiveMisses = 0;
+    } else {
+      consecutiveMisses += 1;
+    }
+
+    wordCursor += 1;
+  }
+
+  // Étape 3 : Si on n'a toujours pas atteint requestedCount, chercher parmi les phrases restantes
+  if (selectedSentences.length < requestedCount) {
+    for (const word of availableWords) {
+      const queue = queuesByWord.get(word);
+      while (queue.length > 0 && selectedSentences.length < requestedCount) {
+        const sentence = queue.shift();
+        if (!usedIds.has(sentence.id)) {
+          usedIds.add(sentence.id);
+          selectedSentences.push({
+            ...sentence,
+            targetWord: word,
+            targetSound: word,
+          });
+        }
+      }
+    }
+  }
+
+  const strictErrors = [];
+  if (strict) {
+    if (missingWords.length > 0) {
+      strictErrors.push(
+        `aucune phrase trouvée pour le ou les homophones suivants : ${missingWords.map((w) => `« ${w} »`).join(', ')}`
+      );
+    }
+    if (selectedSentences.length < requestedCount) {
+      strictErrors.push(
+        `${requestedCount} phrase${requestedCount > 1 ? 's' : ''} demandée${requestedCount > 1 ? 's' : ''}, mais seulement ${selectedSentences.length} disponible${selectedSentences.length > 1 ? 's' : ''}`
+      );
+    }
+  }
+
+  const finalSentences = [...selectedSentences].sort(() => Math.random() - 0.5);
+  const totalAvailable = Array.from(poolByWord.values()).reduce((sum, list) => sum + list.length, 0);
+
+  return {
+    selectedSentences: finalSentences,
+    availableWords,
+    missingWords,
+    totalAvailable,
+    strictErrors,
+  };
+}
+
 router.get('/sentences-by-word', async (req, res) => {
   try {
-    const wordsParam = req.query?.words || '';
-    const requestedCountParam = Number(req.query?.count) || 3;
-    const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 20);
+    const wordsParam = req.query?.words || req.query?.mots || '';
+    const rawStrictParam = req.query?.strict ?? req.query?.strictConstraints ?? req.query?.strictMode;
+    const isStrict = rawStrictParam === 'true' || rawStrictParam === '1' || rawStrictParam === true;
+    const requestedCountParam = Number(req.query?.count) || 10;
+    const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 50);
 
     if (!wordsParam) {
-      return res.status(400).json({ error: 'Les mots doivent être spécifiés (words parameter)' });
+      return res.status(400).json({ error: 'Les mots doivent être spécifiés (paramètre words)' });
     }
 
     const words = Array.isArray(wordsParam)
-      ? wordsParam.map((w) => String(w || '').toLowerCase()).filter(Boolean)
-      : String(wordsParam).toLowerCase().split(',').map((w) => w.trim()).filter(Boolean);
+      ? wordsParam.map((w) => normalizeText(w).toLowerCase()).filter(Boolean)
+      : String(wordsParam).toLowerCase().split(',').map((w) => normalizeText(w).trim()).filter(Boolean);
 
     if (words.length === 0) {
       return res.status(400).json({ error: 'Aucun mot valide fourni' });
-    }
-
-    // Function to check if a sentence contains all required words
-    function sentenceContainsAllWords(sentence, requiredWords) {
-      const wordsList = Array.isArray(sentence?.words) ? sentence.words : [];
-      
-      if (wordsList.length === 0) {
-        return false;
-      }
-
-      // For each required word, check if it exists in the sentence (case-insensitive match)
-      return requiredWords.every((requiredWord) => {
-        return wordsList.some((wordObj) => {
-          const wordStr = String(wordObj?.word || '').toLowerCase();
-          return wordStr === requiredWord;
-        });
-      });
     }
 
     const rawLevel = normalizeText(req.query?.level).toUpperCase();
@@ -1719,42 +1859,29 @@ router.get('/sentences-by-word', async (req, res) => {
     );
     const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
 
-    // Fetch least-used sentences for each word
-    const allSentencesByWord = new Map();
+    const { selectedSentences, missingWords, totalAvailable, strictErrors } = selectBalancedSentencesByWord(
+      candidateSentences,
+      words,
+      requestedCount,
+      isStrict
+    );
 
-    for (const word of words) {
-      const eligibleSentences = candidateSentences
-        .filter((sentence) => sentenceContainsAllWords(sentence, [word]))
-        .slice(0, 10);
-
-      if (eligibleSentences.length > 0) {
-        allSentencesByWord.set(word, eligibleSentences);
-      }
-    }
-
-    if (allSentencesByWord.size === 0) {
-      return res.status(404).json({
-        error: 'Aucune phrase contenant ces mots n\'a été trouvée',
+    if (isStrict && strictErrors.length > 0) {
+      return res.status(400).json({
+        error: `Mode strict : ${strictErrors.join(' ; ')}.`,
+        missingWords,
+        requestedCount,
+        availableCount: selectedSentences.length,
       });
     }
 
-    // Deduplicate sentences by ID (each word may share sentences)
-    const allSentences = Array.from(allSentencesByWord.values()).flat();
-    const uniqueSentenceMap = new Map();
-    
-    for (const sentence of allSentences) {
-      if (!uniqueSentenceMap.has(sentence.id)) {
-        uniqueSentenceMap.set(sentence.id, sentence);
-      }
+    if (selectedSentences.length === 0) {
+      return res.status(404).json({
+        error: 'Aucune phrase contenant ces homophones n\'a été trouvée',
+      });
     }
 
-    const allUniqueSentences = Array.from(uniqueSentenceMap.values());
-
-    // Shuffle and select requested count
-    const shuffledSentences = allUniqueSentences.sort(() => Math.random() - 0.5);
-    const selectedSentences = shuffledSentences.slice(0, requestedCount);
-
-    // Update compteur for each selected sentence
+    // Mettre à jour le compteur pour chaque phrase sélectionnée
     for (const sentence of selectedSentences) {
       await runAsync(
         'UPDATE generated_sentences SET compteur = COALESCE(compteur, 0) + 1 WHERE id = ?',
@@ -1766,7 +1893,8 @@ router.get('/sentences-by-word', async (req, res) => {
     return res.json({
       requestedCount,
       returnedCount: selectedSentences.length,
-      totalAvailable: allUniqueSentences.length,
+      totalAvailable,
+      missingWords,
       sentences: selectedSentences,
     });
   } catch (err) {
@@ -2306,4 +2434,6 @@ module.exports.sentenceContainsRequiredNatures = sentenceContainsRequiredNatures
 module.exports.normalizeEndingsFilter = normalizeEndingsFilter;
 module.exports.normalizeWordsFilter = normalizeWordsFilter;
 module.exports.normalizeRequiredNatureFilters = normalizeRequiredNatureFilters;
+module.exports.selectBalancedSentencesByWord = selectBalancedSentencesByWord;
+module.exports.sentenceContainsWord = sentenceContainsWord;
 

@@ -12,6 +12,7 @@ const ALLOWED_LEVEL_KEYS = ["level1", "level2", "level3"];
 export const defaultHomophonesActivityContent = {
   title: "Homophones",
   instruction: "Sélectionne le mot correct pour compléter la phrase.",
+  strict: false,
   defaultLevel: "level1",
   levels: {
     level1: {
@@ -32,39 +33,106 @@ export const defaultHomophonesActivityContent = {
   },
 };
 
+export function cleanSound(str) {
+  return String(str || "").toLowerCase().replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, "").trim();
+}
+
+function normalizeBoolean(value, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const clean = value.trim().toLowerCase();
+    if (clean === "true" || clean === "1" || clean === "oui" || clean === "yes") {
+      return true;
+    }
+    if (clean === "false" || clean === "0" || clean === "non" || clean === "no") {
+      return false;
+    }
+  }
+  return fallback;
+}
+
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
   const sentenceCount = Math.max(1, parsePositiveInt(source.sentenceCount, fallbackRule.sentenceCount));
   const fallbackSounds = Array.isArray(fallbackRule.sounds)
-    ? fallbackRule.sounds.map((sound) => String(sound || "").toLowerCase()).filter(Boolean)
+    ? fallbackRule.sounds.map((sound) => cleanSound(sound)).filter(Boolean)
     : [];
   const sounds = Array.isArray(source.sounds)
-    ? source.sounds.map((sound) => String(sound || "").toLowerCase()).filter(Boolean)
+    ? source.sounds.map((sound) => cleanSound(sound)).filter(Boolean)
     : fallbackSounds;
 
   return {
     label: getSafeDisplayText(source.label, fallbackRule.label),
     sentenceCount,
     sounds: sounds.length > 0 ? sounds : fallbackSounds,
+    strict: source.strict !== undefined ? normalizeBoolean(source.strict) : undefined,
   };
 }
 
-function findWordInSentence(sentence, sounds) {
+export function findWordInSentence(sentence, sounds) {
   const words = Array.isArray(sentence?.words) ? sentence.words : [];
-  
-  // Find the first word in the sentence that matches any of the sounds
-  for (const word of words) {
-    const wordStr = String(word?.word || "").toLowerCase();
-    
-    if (sounds.some((sound) => wordStr === sound)) {
+  const normalizedSounds = (sounds || []).map((s) => cleanSound(s)).filter(Boolean);
+  const targetSound = cleanSound(sentence?.targetWord || sentence?.targetSound || sentence?.matchedWord);
+
+  // 1. Si un homophone précis a été assigné par le backend à cette phrase et est autorisé pour ce niveau, le chercher en priorité
+  if (targetSound && normalizedSounds.includes(targetSound)) {
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const wordStr = cleanSound(word?.word);
+      if (wordStr === targetSound) {
+        return {
+          word,
+          wordIndex: i,
+          wordText: String(word?.word || ""),
+          sound: targetSound,
+        };
+      }
+    }
+  }
+
+  // 2. Sinon, chercher avec les homophones autorisés du niveau
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const wordStr = cleanSound(word?.word);
+    if (normalizedSounds.includes(wordStr)) {
       return {
         word,
+        wordIndex: i,
         wordText: String(word?.word || ""),
         sound: wordStr,
       };
     }
   }
-  
+
+  // 3. Fallback si words n'est pas fourni mais sentence texte existe
+  if (words.length === 0 && sentence?.sentence) {
+    const rawWords = String(sentence.sentence).split(/\s+/);
+    if (targetSound && normalizedSounds.includes(targetSound)) {
+      const idx = rawWords.findIndex((w) => cleanSound(w) === targetSound);
+      if (idx !== -1) {
+        return {
+          word: { word: rawWords[idx] },
+          wordIndex: idx,
+          wordText: rawWords[idx],
+          sound: targetSound,
+        };
+      }
+    }
+    for (let i = 0; i < rawWords.length; i++) {
+      const wStr = cleanSound(rawWords[i]);
+      if (normalizedSounds.includes(wStr)) {
+        return {
+          word: { word: rawWords[i] },
+          wordIndex: i,
+          wordText: rawWords[i],
+          sound: wStr,
+        };
+      }
+    }
+  }
+
   return null;
 }
 
@@ -75,16 +143,29 @@ export function buildHomophoneRound(sentenceEntry, index, sounds) {
     return null;
   }
 
-  const words = Array.isArray(sentenceEntry?.words) ? sentenceEntry.words : [];
+  const words = Array.isArray(sentenceEntry?.words) && sentenceEntry.words.length > 0
+    ? sentenceEntry.words
+    : String(sentenceEntry?.sentence || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w, idx) => ({ position: idx + 1, word: w }));
+
+  const targetIndex = wordInfo.wordIndex;
+  let replaced = false;
+
   const displayTokens = words.map((word, wordIndex) => {
     const wordStr = String(word?.word || "");
-    if (wordStr === wordInfo.wordText) {
-      // Only replace the first occurrence
+    const isTarget = targetIndex !== undefined
+      ? wordIndex === targetIndex
+      : (!replaced && cleanSound(wordStr) === wordInfo.sound);
+
+    if (isTarget && !replaced) {
+      replaced = true;
       return {
         id: `${sentenceEntry?.id || `phrase-${index + 1}`}-blank-${wordIndex}`,
         text: "____",
         isBlank: true,
-        originalWord: wordInfo.wordText,
+        originalWord: wordStr,
         correctSound: wordInfo.sound,
       };
     }
@@ -117,18 +198,38 @@ const HomophonesActivity = ({
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultHomophonesActivityContent.levels;
 
+  const configuredLevelKeys = useMemo(() => {
+    const parsedLevels = parsedContent?.levels;
+    if (!parsedLevels || typeof parsedLevels !== "object") {
+      return ALLOWED_LEVEL_KEYS;
+    }
+    const keys = ALLOWED_LEVEL_KEYS.filter((levelKey) => {
+      const levelRule = parsedLevels[levelKey];
+      return levelRule && typeof levelRule === "object";
+    });
+    return keys.length > 0 ? keys : ALLOWED_LEVEL_KEYS;
+  }, [parsedContent]);
+
   const configuredLevels = useMemo(
     () => ({
       level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
       level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
       level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
     }),
+    [parsedContent, defaultLevels]
+  );
+
+  const configuredStrict = useMemo(
+    () => normalizeBoolean(
+      parsedContent?.strict ?? parsedContent?.strictConstraints ?? parsedContent?.strictMode,
+      defaultHomophonesActivityContent.strict
+    ),
     [parsedContent]
   );
 
-  const initialLevel = ALLOWED_LEVEL_KEYS.includes(parsedContent?.defaultLevel)
+  const initialLevel = configuredLevelKeys.includes(parsedContent?.defaultLevel)
     ? parsedContent.defaultLevel
-    : "level1";
+    : configuredLevelKeys[0] || "level1";
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [loadingSentences, setLoadingSentences] = useState(true);
@@ -149,15 +250,19 @@ const HomophonesActivity = ({
   const requestIdRef = useRef(0);
   const lastAutoLoadSignatureRef = useRef("");
 
-  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels[configuredLevelKeys[0]] || defaultLevels.level1;
+  const isCurrentLevelStrict = Boolean(
+    currentLevelRule?.strict ?? currentLevelRule?.strictConstraints ?? currentLevelRule?.strictMode ?? configuredStrict
+  );
   const currentSounds = currentLevelRule.sounds;
   const currentLoadSignature = useMemo(
     () => JSON.stringify({
       level: currentLevel,
       sentenceCount: currentLevelRule.sentenceCount,
       sounds: currentSounds,
+      strict: isCurrentLevelStrict,
     }),
-    [currentLevel, currentLevelRule.sentenceCount, currentSounds]
+    [currentLevel, currentLevelRule.sentenceCount, currentSounds, isCurrentLevelStrict]
   );
   const currentSentence = sentenceRounds[currentSentenceIndex] || null;
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
@@ -178,13 +283,35 @@ const HomophonesActivity = ({
     defaultHomophonesActivityContent.instruction
   );
 
-  const resetWithSentences = useCallback((sentences, levelSounds) => {
+  const resetWithSentences = useCallback((sentences, levelSounds, isStrict = false, requestedSentenceCount = 0) => {
     const preparedSentences = sentences
       .map((sentence, index) => buildHomophoneRound(sentence, index, levelSounds))
       .filter(Boolean);
 
     if (preparedSentences.length === 0) {
       throw new Error("Aucune phrase ne contient les homophones demandés.");
+    }
+
+    if (isStrict) {
+      const coveredSounds = new Set(preparedSentences.map((p) => cleanSound(p.correctSound)));
+      const missingSounds = levelSounds.filter((s) => !coveredSounds.has(cleanSound(s)));
+      const strictErrors = [];
+
+      if (missingSounds.length > 0) {
+        strictErrors.push(
+          `aucune phrase trouvée pour le ou les homophones : ${missingSounds.join(", ")}`
+        );
+      }
+
+      if (requestedSentenceCount > 0 && preparedSentences.length < requestedSentenceCount) {
+        strictErrors.push(
+          `${requestedSentenceCount} phrase${requestedSentenceCount > 1 ? "s" : ""} demandée${requestedSentenceCount > 1 ? "s" : ""}, mais seulement ${preparedSentences.length} disponible${preparedSentences.length > 1 ? "s" : ""}`
+        );
+      }
+
+      if (strictErrors.length > 0) {
+        throw new Error(`Mode strict : ${strictErrors.join(" ; ")}.`);
+      }
     }
 
     setSentenceRounds(preparedSentences);
@@ -204,6 +331,9 @@ const HomophonesActivity = ({
   const loadSentencesForLevel = useCallback(async (levelKey) => {
     const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
     const levelSounds = levelRule.sounds;
+    const isStrict = Boolean(
+      levelRule?.strict ?? levelRule?.strictConstraints ?? levelRule?.strictMode ?? configuredStrict
+    );
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
 
@@ -218,6 +348,9 @@ const HomophonesActivity = ({
         count: String(levelRule.sentenceCount),
         words: levelSounds.join(","),
       });
+      if (isStrict) {
+        params.set("strict", "true");
+      }
 
       const response = await fetch(`${API_URL}/ai/sentences-by-word?${params.toString()}`);
       const data = await response.json();
@@ -235,7 +368,7 @@ const HomophonesActivity = ({
         throw new Error("Aucune phrase n'est disponible pour ces homophones.");
       }
 
-      resetWithSentences(nextSentences, levelSounds);
+      resetWithSentences(nextSentences, levelSounds, isStrict, levelRule.sentenceCount);
     } catch (err) {
       if (requestId !== requestIdRef.current) {
         return;
@@ -258,7 +391,7 @@ const HomophonesActivity = ({
         setLoadingSentences(false);
       }
     }
-  }, [configuredLevels, resetWithSentences]);
+  }, [configuredLevels, configuredStrict, resetWithSentences]);
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -372,13 +505,20 @@ const HomophonesActivity = ({
         instruction={displayInstruction}
         showInstruction={!student}
         showBadges={!student}
-        badges={currentSounds.map((sound) => ({
-          key: `badge-${sound}`,
-          label: sound,
-          className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800",
-        }))}
+        badges={[
+          ...(isCurrentLevelStrict ? [{
+            key: "badge-strict",
+            label: "Contraintes strictes",
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300",
+          }] : []),
+          ...currentSounds.map((sound) => ({
+            key: `badge-${sound}`,
+            label: sound,
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800",
+          })),
+        ]}
         badgesId="homophones-sounds"
-        levels={ALLOWED_LEVEL_KEYS.map((levelKey) => ({
+        levels={configuredLevelKeys.map((levelKey) => ({
           key: levelKey,
           label: configuredLevels[levelKey].label,
           disabled: loadingSentences,

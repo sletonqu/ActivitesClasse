@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import HomophonesActivity, { buildHomophoneRound } from "./HomophonesActivity";
+import HomophonesActivity, { buildHomophoneRound, findWordInSentence, cleanSound } from "./HomophonesActivity";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 
 describe("HomophonesActivity", () => {
@@ -143,5 +143,92 @@ describe("HomophonesActivity", () => {
     expect(html).toContain("Phrases avec erreurs (1) :");
     expect(html).toContain("et");
     expect(html).toContain("est");
+  });
+
+  it("buildHomophoneRound priorise targetWord lorsqu'il est spécifié sur la phrase", () => {
+    const multiHomophoneSentence = {
+      id: 99,
+      sentence: "Tu es là et il est parti.",
+      words: [
+        { word: "Tu" },
+        { word: "es" },
+        { word: "là" },
+        { word: "et" },
+        { word: "il" },
+        { word: "est" },
+        { word: "parti." },
+      ],
+      targetWord: "est",
+    };
+
+    const round = buildHomophoneRound(multiHomophoneSentence, 0, ["es", "est", "et"]);
+    expect(round).not.toBeNull();
+    expect(round.correctSound).toBe("est");
+    expect(round.wordText).toBe("est");
+    // "es" à l'index 1 ne doit PAS être masqué
+    expect(round.displayTokens[1].isBlank).toBe(false);
+    expect(round.displayTokens[1].text).toBe("es");
+    // "est" à l'index 5 doit être masqué
+    expect(round.displayTokens[5].isBlank).toBe(true);
+    expect(round.displayTokens[5].correctSound).toBe("est");
+  });
+
+  it("findWordInSentence nettoie la ponctuation autour des mots pour la correspondance", () => {
+    const punctuatedSentence = {
+      id: 50,
+      sentence: "Il est là, et tout va bien.",
+      words: [
+        { word: "Il" },
+        { word: "est" },
+        { word: "là," },
+        { word: "et," },
+      ],
+      targetWord: "et",
+    };
+
+    const result = findWordInSentence(punctuatedSentence, ["es", "est", "et"]);
+    expect(result).not.toBeNull();
+    expect(result.sound).toBe("et");
+    expect(result.wordText).toBe("et,");
+  });
+
+  it("n'affiche que les niveaux configurés dans le JSON et ignore les niveaux absents", () => {
+    const singleLevelContent = {
+      levels: {
+        level1: {
+          label: "Niveau Unique Homophones",
+          sentenceCount: 5,
+          sounds: ["es", "est"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <HomophonesActivity student={null} content={singleLevelContent} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("homophones-level-level1");
+    expect(html).toContain("Niveau Unique Homophones");
+    expect(html).not.toContain("homophones-level-level2");
+    expect(html).not.toContain("homophones-level-level3");
+  });
+
+  it("affiche le badge 'Contraintes strictes' lorsque strict est activé", () => {
+    const strictContent = {
+      strict: true,
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 4,
+          sounds: ["a", "à"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <HomophonesActivity student={null} content={strictContent} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("Contraintes strictes");
   });
 });
