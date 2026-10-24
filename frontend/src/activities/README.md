@@ -618,6 +618,19 @@ Comportement :
 - classement par glisser-déposer ou par clic, puis passage automatique à la phrase suivante ;
 - bilan final avec score sur 20 et affichage des erreurs par catégorie.
 
+Structure des phrases en base de données (`generated_sentences`) :
+Les phrases chargées depuis la base disposent d'un `payload` JSON détaillé :
+- `sentence` : phrase complète avec ponctuation ;
+- `level` : niveau scolaire (`"CE1"`, `"CE2"`) ;
+- `theme` : thème lexical ;
+- `words[]` : liste ordonnée des tokens analysés :
+  - `position` : index du mot dans la phrase (à partir de 1) ;
+  - `word` : mot ou signe de ponctuation ;
+  - `nature` : nature grammaticale (ex. `verbe`, `nom commun`, `déterminant`, `adjectif qualificatif`) ;
+  - `category` : classification (`mot variable`, `mot invariable`, `ponctuation`) ;
+  - `temps` : *(spécifique aux verbes)* temps verbal identifié (`présent`, `imparfait`, `futur simple`, `passé composé`, `infinitif`) ;
+  - `infinitif` : *(spécifique aux verbes)* forme à l'infinitif en minuscules (ex. `chanter`, `dormir`).
+
 ---
 
 ### 9. `FractionsVisualSelectionActivity.jsx`

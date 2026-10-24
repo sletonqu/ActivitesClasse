@@ -140,3 +140,35 @@ docker compose down -v
 ```
 
 > ⚠️ `docker compose down -v` efface les données locales de l'application.
+
+---
+
+## 10. Scripts de maintenance et utilitaires
+
+Le dossier `scripts/` regroupe plusieurs scripts facilitant l'exploitation et la maintenance du projet :
+
+### `enrich_verb_tenses.ps1` (Enrichissement des verbes par IA)
+
+Analyse par lot les phrases de la base SQLite et enrichit automatiquement chaque verbe avec son temps (`temps`) et son infinitif (`infinitif`) via l'IA.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\enrich_verb_tenses.ps1 [-Provider <gemini|openai|mistral>] [-Batch <20>] [-Limit <0>]
+```
+
+Paramètres :
+- `-Provider` : Fournisseur IA (`gemini` par défaut, `openai` ou `mistral`)
+- `-Batch` : Nombre de phrases traitées par lot (défaut : `20`)
+- `-Limit` : Limite de phrases à traiter (`0` = toutes les phrases éligibles, défaut : `0`)
+
+### `update-application.ps1` (Mise à jour sécurisée)
+
+Sauvegarde la base SQLite locale, effectue un `git pull --ff-only`, reconstruit les conteneurs et redémarre l'application sans perte de données.
+
+### `start-local-updater.ps1` (Service d'écoute pour l'espace Admin)
+
+Lance un serveur local léger sous Windows permettant au bouton « Demander la mise à jour » de l'espace Admin de déclencher `update-application.ps1` hors conteneur.
+
+### `generate_base10_blocks.py` (Générateur d'assets)
+
+Script Python générant les représentations visuelles vectorielles (cubes, barres, plaques) pour l'activité de numération en base 10.
+

@@ -650,6 +650,11 @@ const GeneratedSentencesManagementPanel = () => {
                       <span className="rounded-full bg-slate-200 px-2.5 py-1 font-semibold text-slate-700">
                         {sentence.provider || "source inconnue"}
                       </span>
+                      {Array.isArray(sentence.words) && sentence.words.some((w) => w.temps) && (
+                        <span className="rounded-full bg-purple-100 px-2.5 py-1 font-semibold text-purple-800">
+                          Verbes : {sentence.words.filter((w) => w.temps).map((w) => `${w.word} (${w.temps}${w.infinitif ? ` • ${w.infinitif}` : ""})`).join(", ")}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-slate-500">
                       Ajoutée le {formatDate(sentence.created_at)} • modèle : {sentence.model || "—"}
@@ -729,7 +734,7 @@ const GeneratedSentencesManagementPanel = () => {
                             className="h-48 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
                           />
                           <p className="mt-1 text-xs text-slate-500">
-                            Modifie les natures/catégories dans le JSON puis clique sur « Enregistrer les corrections ».
+                            Modifie les natures/catégories/temps/infinitifs dans le JSON puis clique sur « Enregistrer les corrections ».
                           </p>
                         </div>
                       </>

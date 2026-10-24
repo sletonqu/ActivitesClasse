@@ -425,13 +425,24 @@ function normalizeGeneratedPayload(payload, context) {
       const word = normalizeText(entry?.word || entry?.mot);
       const nature = normalizeText(entry?.nature, "à préciser");
       const category = normalizeText(entry?.category, "autre");
+      const rawTemps = normalizeText(entry?.temps || entry?.tense);
+      const rawInfinitif = normalizeText(entry?.infinitif || entry?.infinitive);
 
-      return {
+      const wordItem = {
         position,
         word: word || "",
         nature,
         category,
       };
+
+      if (rawTemps) {
+        wordItem.temps = rawTemps.toLowerCase();
+      }
+      if (rawInfinitif) {
+        wordItem.infinitif = rawInfinitif.toLowerCase();
+      }
+
+      return wordItem;
     });
   } else {
     const tokens = tokenizeSentence(sentence);
@@ -578,8 +589,9 @@ function buildSentencePrompt({ level, theme, maxWords, customInstruction, phrase
     "Exemples obligatoires : « J'ai » => [\"J'\", \"ai\"] ; « L'artiste » => [\"L'\", \"artiste\"].",
     "Le token avant apostrophe garde l'apostrophe (ex: J', L').",
     "Attribue une nature grammaticale juste pour chaque token séparé (ex: J' = pronom ; L' devant un nom = déterminant ; ai = verbe ; artiste = nom commun).",
+    "Pour chaque token de nature 'verbe', ajoute obligatoirement le champ \"temps\" ('présent', 'imparfait', 'futur simple', 'passé composé', 'infinitif') et le champ \"infinitif\" (ex: \"dormir\"). Pour les autres mots, ne mets pas ces champs.",
     "Réponds uniquement avec un JSON valide, sans Markdown.",
-    'Format attendu : {"sentences":[{"sentence":"Le petit chat dort.","words":[{"position":1,"word":"Le","nature":"déterminant","category":"mot variable"},{"position":2,"word":"petit","nature":"adjectif qualificatif","category":"mot variable"},{"position":3,"word":"chat","nature":"nom commun","category":"mot variable"},{"position":4,"word":"dort","nature":"verbe","category":"mot variable"},{"position":5,"word":".","nature":"ponctuation","category":"ponctuation"}]}]}',
+    'Format attendu : {"sentences":[{"sentence":"Le petit chat dort.","words":[{"position":1,"word":"Le","nature":"déterminant","category":"mot variable"},{"position":2,"word":"petit","nature":"adjectif qualificatif","category":"mot variable"},{"position":3,"word":"chat","nature":"nom commun","category":"mot variable"},{"position":4,"word":"dort","nature":"verbe","category":"mot variable","temps":"présent","infinitif":"dormir"},{"position":5,"word":".","nature":"ponctuation","category":"ponctuation"}]}]}',
     "Chaque entrée de sentences doit suivre exactement l'ordre des mots de la phrase, ponctuation comprise.",
   ]
     .filter(Boolean)
@@ -826,16 +838,23 @@ function buildGeneratedSentenceExportItem(row) {
         words: [],
       };
 
+  const normalized = normalizeGeneratedPayload(payload, {
+    level: row.level || payload.level || "CE1",
+    theme: row.theme || payload.theme || "libre",
+    provider: row.provider || payload.provider || "",
+    model: row.model || payload.model || "",
+  });
+
   return {
     id: row.id,
     sentence: row.sentence,
-    level: row.level || payload.level || "",
-    theme: row.theme || payload.theme || "",
-    provider: row.provider || payload.provider || "",
-    model: row.model || payload.model || "",
+    level: row.level || normalized.level || "",
+    theme: row.theme || normalized.theme || "",
+    provider: row.provider || normalized.provider || "",
+    model: row.model || normalized.model || "",
     compteur: Number(row.compteur || 0),
     created_at: row.created_at || null,
-    payload,
+    payload: normalized,
   };
 }
 
@@ -1542,6 +1561,212 @@ router.post('/generated-sentences/reset-counters', async (req, res) => {
   }
 });
 
+function buildVerbEnrichmentPrompt(batchItems) {
+  return [
+    "Rôle : assistant linguiste et enseignant de français en école élémentaire (cycles 2 et 3).",
+    "Tâche : pour chaque verbe listé dans chaque phrase ci-dessous, détermine son temps grammatical et son infinitif.",
+    "Règles strictes :",
+    "1. Valeurs autorisées pour 'temps' : 'présent', 'imparfait', 'futur simple', 'passé composé', 'infinitif', 'passé simple', 'autre'.",
+    "2. L'infinitif doit être le verbe à l'infinitif en minuscules (ex: 'manger', 'dormir', 'être', 'avoir', 'finir').",
+    "3. Réponds uniquement avec un objet JSON valide, sans Markdown, contenant la clé 'sentences'.",
+    'Format attendu : {"sentences":[{"id":12,"verbs":[{"position":2,"temps":"présent","infinitif":"dormir"}]}]}',
+    "Données à analyser :",
+    JSON.stringify(
+      batchItems.map((item) => ({
+        id: item.id,
+        sentence: item.sentence,
+        verbs: item.verbs.map((v) => ({ position: v.position, word: v.word })),
+      }))
+    ),
+  ].join("\n");
+}
+
+async function enrichVerbTensesForBatch(batchItems, providerId) {
+  const providerSetup = getProviderSetup(providerId);
+  if (!providerSetup.apiKey) {
+    throw new Error(`La clé API pour ${providerSetup.label} n'est pas configurée`);
+  }
+
+  const prompt = buildVerbEnrichmentPrompt(batchItems);
+  const outputTokenLimit = Math.min(Math.max(batchItems.length * 80, 400), 4000);
+
+  let rawContent = "";
+  if (providerId === "gemini") {
+    rawContent = await requestGeminiCompletion(providerSetup, prompt, outputTokenLimit);
+  } else if (providerId === "mistral") {
+    const completion = await requestOpenAiLikeCompletion(
+      providerSetup,
+      prompt,
+      "https://api.mistral.ai/v1/chat/completions",
+      outputTokenLimit
+    );
+    rawContent = completion.content;
+  } else {
+    const completion = await requestOpenAiLikeCompletion(
+      providerSetup,
+      prompt,
+      "https://api.openai.com/v1/chat/completions",
+      outputTokenLimit
+    );
+    rawContent = completion.content;
+  }
+
+  const parsed = extractFirstJsonObject(rawContent);
+  const rawResults = Array.isArray(parsed?.sentences)
+    ? parsed.sentences
+    : Array.isArray(parsed)
+      ? parsed
+      : [];
+
+  return rawResults;
+}
+
+async function processVerbEnrichment({ providerId = "gemini", batchSize = 20, limit = 0, onProgress = null } = {}) {
+  const effectiveProvider = PROVIDERS[providerId] ? providerId : "gemini";
+  const effectiveBatchSize = Math.min(Math.max(Number(batchSize) || 20, 1), 30);
+  const effectiveLimit = Math.max(Number(limit) || 0, 0);
+
+  const rows = await allAsync(
+    `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+     FROM generated_sentences
+     ORDER BY id ASC`
+  );
+
+  const candidateItems = [];
+
+  for (const row of rows) {
+    const parsedPayload = parseJsonSafely(row.payload);
+    const words = Array.isArray(parsedPayload?.words) ? parsedPayload.words : [];
+    const missingVerbTenses = words.filter((w) => {
+      const nature = normalizeNature(w?.nature);
+      return (nature === "verbe" || /\\bverbe\\b/.test(nature)) && !w.temps;
+    });
+
+    if (missingVerbTenses.length > 0) {
+      candidateItems.push({
+        id: row.id,
+        sentence: row.sentence,
+        payload: parsedPayload,
+        verbs: missingVerbTenses.map((w) => ({ position: w.position, word: w.word })),
+      });
+    }
+  }
+
+  if (candidateItems.length === 0) {
+    return {
+      totalFound: 0,
+      processedSentences: 0,
+      enrichedSentences: 0,
+      remainingCount: 0,
+      errors: [],
+      message: "Toutes les phrases contenant des verbes ont déjà leur temps enregistré.",
+    };
+  }
+
+  const itemsToProcess = effectiveLimit > 0
+    ? candidateItems.slice(0, effectiveLimit)
+    : candidateItems;
+
+  let enrichedSentences = 0;
+  const errors = [];
+
+  for (let i = 0; i < itemsToProcess.length; i += effectiveBatchSize) {
+    const batch = itemsToProcess.slice(i, i + effectiveBatchSize);
+
+    try {
+      const analysisResults = await enrichVerbTensesForBatch(batch, effectiveProvider);
+
+      for (const result of analysisResults) {
+        const item = batch.find((b) => Number(b.id) === Number(result?.id));
+        if (!item || !Array.isArray(result?.verbs)) continue;
+
+        let hasChange = false;
+        const updatedWords = (item.payload.words || []).map((w) => {
+          const matchingVerb = result.verbs.find((v) => Number(v.position) === Number(w.position));
+          if (matchingVerb && matchingVerb.temps) {
+            hasChange = true;
+            const updated = {
+              ...w,
+              temps: normalizeText(matchingVerb.temps).toLowerCase(),
+            };
+            if (matchingVerb.infinitif) {
+              updated.infinitif = normalizeText(matchingVerb.infinitif).toLowerCase();
+            }
+            return updated;
+          }
+          return w;
+        });
+
+        if (hasChange) {
+          const updatedPayload = {
+            ...item.payload,
+            words: updatedWords,
+          };
+          await runAsync(
+            `UPDATE generated_sentences SET payload = ? WHERE id = ?`,
+            [JSON.stringify(updatedPayload), item.id]
+          );
+          enrichedSentences += 1;
+        }
+      }
+
+      if (typeof onProgress === "function") {
+        onProgress({
+          processed: Math.min(i + batch.length, itemsToProcess.length),
+          total: itemsToProcess.length,
+          enriched: enrichedSentences,
+        });
+      }
+    } catch (err) {
+      errors.push({
+        batchIndex: Math.floor(i / effectiveBatchSize) + 1,
+        message: err.message,
+      });
+    }
+  }
+
+  const remainingCount = Math.max(0, candidateItems.length - enrichedSentences);
+
+  return {
+    totalFound: candidateItems.length,
+    processedSentences: itemsToProcess.length,
+    enrichedSentences,
+    remainingCount,
+    errors,
+    message: `${enrichedSentences} phrase(s) enrichie(s) avec succès.`,
+  };
+}
+
+router.post('/generated-sentences/enrich-verbs', async (req, res) => {
+  try {
+    const providerId = normalizeText(req.body?.provider || 'gemini').toLowerCase();
+    const batchSize = Number(req.body?.batchSize) || 20;
+    const limit = Number(req.body?.limit) || 0;
+
+    const result = await processVerbEnrichment({ providerId, batchSize, limit });
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || "Erreur lors de l'enrichissement des temps des verbes",
+    });
+  }
+});
+
+router.post('/enrich-verb-tenses', async (req, res) => {
+  try {
+    const providerId = normalizeText(req.body?.provider || 'gemini').toLowerCase();
+    const batchSize = Number(req.body?.batchSize) || 20;
+    const limit = Number(req.body?.limit) || 0;
+
+    const result = await processVerbEnrichment({ providerId, batchSize, limit });
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || "Erreur lors de l'enrichissement des temps des verbes",
+    });
+  }
+});
+
 router.delete('/generated-sentences/:id(\\d+)', async (req, res) => {
   try {
     const sentenceId = Number(req.params.id);
@@ -1750,3 +1975,8 @@ router.post('/debug-tokenization', (req, res) => {
 });
 
 module.exports = router;
+module.exports.processVerbEnrichment = processVerbEnrichment;
+module.exports.normalizeGeneratedPayload = normalizeGeneratedPayload;
+module.exports.buildSentencePrompt = buildSentencePrompt;
+module.exports.buildGeneratedSentenceExportItem = buildGeneratedSentenceExportItem;
+

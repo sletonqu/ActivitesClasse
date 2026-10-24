@@ -190,6 +190,20 @@ UPDATER_TOKEN=change-this-token
 
 Ce mode garde la logique de mise à jour **hors du conteneur** : l'interface admin demande l'opération, mais c'est bien le poste Windows qui exécute le script PowerShell.
 
+### Enrichissement automatique des verbes par IA
+
+Pour qualifier rétroactivement le temps verbal (`temps`) et l'infinitif (`infinitif`) des phrases déjà présentes en base :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\enrich_verb_tenses.ps1 -Provider gemini -Batch 20
+```
+
+ou directement dans le conteneur backend Docker :
+
+```powershell
+docker compose exec backend node scripts/enrich_verb_tenses.js --provider=gemini --batch=20
+```
+
 ### Repartir sur une base propre
 
 Les données SQLite sont stockées dans le volume Docker `db-data`.
@@ -215,7 +229,9 @@ docker compose up --build
 - **Activités** : création, modification, suppression et organisation par **discipline** (ex: Mathématiques) et **catégorie** (ex: Calcul) ;
 - suppression unitaire ou globale des activités ;
 - **Mots** : import du référentiel, recherche et suppression unitaire / globale ;
-- **Phrases** : génération par IA et gestion des phrases générées en base ;
+- **Phrases** : génération par IA (Gemini, ChatGPT / OpenAI, MistralAI) avec segmentation lexicale, détection des natures grammaticales, et qualification automatique du **temps du verbe** (`présent`, `imparfait`, `futur simple`, `passé composé`, `infinitif`) et de l'**infinitif** ;
+- **Enrichissement des verbes par IA** : outil d'enrichissement par lot (batch) pour déterminer automatiquement et rétroactivement le temps et l'infinitif de chaque verbe en base SQLite ;
+- **Import / export JSON des phrases** : export et réimport complets des phrases générées avec préservation des mots, de leurs natures, catégories, temps verbaux et infinitifs ;
 - import / export global CSV des `teachers`, `classes`, `groups`, `students`, `activities` et `results` ;
 - conservation des colonnes de niveau des résultats (`activity_level`, `activity_level_label`) lors des imports/exports globaux.
 
@@ -254,7 +270,7 @@ docker compose up --build
 
 ---
 
-## 📦 Import / export CSV
+## 📦 Import / export de données
 
 ### Import / export élèves d'une classe
 
@@ -282,6 +298,12 @@ Pour les lignes de type `result`, les colonnes suivantes sont désormais support
 - `completed_at`
 - `activity_level`
 - `activity_level_label`
+
+### Import / export JSON des phrases générées
+
+Les phrases issues de la génération par IA peuvent être exportées et réimportées en JSON depuis le panneau d'administration :
+- **Export JSON** : génère un fichier JSON complet avec la métadonnée (`level`, `theme`, `provider`, `model`, `compteur`, `created_at`) et le `payload` normalisé. Pour chaque verbe, le temps (`temps`) et le lemme (`infinitif`) sont exportés.
+- **Import JSON** : analyse le JSON, extrait et normalise l'ensemble des données, vérifie la structure des mots et ignore les doublons stricts pour préserver l'intégrité de la base.
 
 ---
 
