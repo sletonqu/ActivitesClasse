@@ -259,4 +259,122 @@ describe("VerbEndingCompletionActivity", () => {
     );
     expect(html).not.toContain("Infinitif en -");
   });
+
+  it("filtre selon le temps (tense) quand le champ temps est présent", () => {
+    const sentenceWithMultipleTenses = {
+      id: 30,
+      sentence: "Hier nous mangions, aujourd'hui nous mangeons.",
+      words: [
+        { word: "Hier", nature: "adverbe" },
+        { word: "nous", nature: "pronom" },
+        { word: "mangions", nature: "verbe", infinitif: "manger", temps: "imparfait" },
+        { word: ",", nature: "ponctuation" },
+        { word: "aujourd'hui", nature: "adverbe" },
+        { word: "nous", nature: "pronom" },
+        { word: "mangeons", nature: "verbe", infinitif: "manger", temps: "présent" },
+        { word: ".", nature: "ponctuation" },
+      ],
+    };
+
+    // Cherche le verbe au présent
+    const roundPresent = buildVerbRound(sentenceWithMultipleTenses, 0, ["eons", "ons", "ions"], "er", "present");
+    expect(roundPresent).not.toBeNull();
+    expect(roundPresent.wordText).toBe("mangeons");
+
+    // Cherche le verbe à l'imparfait
+    const roundImparfait = buildVerbRound(sentenceWithMultipleTenses, 0, ["ions"], "er", "imparfait");
+    expect(roundImparfait).not.toBeNull();
+    expect(roundImparfait.wordText).toBe("mangions");
+
+    // Cherche un temps inexistant (futur) => doit renvoyer null
+    const roundFutur = buildVerbRound(sentenceWithMultipleTenses, 0, ["ons", "ions"], "er", "futur");
+    expect(roundFutur).toBeNull();
+  });
+
+  it("affiche le badge de temps dans le hero lorsque tense est configuré", () => {
+    const content = {
+      tense: "présent",
+      infinitiveEnding: "er",
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 4,
+          conjugatedEndings: ["e", "ons"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={content} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("Infinitif en -er");
+    expect(html).toContain("Temps : present");
+    expect(html).toContain(">e</span>");
+    expect(html).toContain(">ons</span>");
+  });
+
+  it("n'affiche que les niveaux configurés dans le JSON et ignore les niveaux absents", () => {
+    const singleLevelContent = {
+      levels: {
+        level1: {
+          label: "Niveau Unique",
+          sentenceCount: 5,
+          conjugatedEndings: ["e", "es"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={singleLevelContent} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("verb-ending-completion-level-level1");
+    expect(html).toContain("Niveau Unique");
+    expect(html).not.toContain("verb-ending-completion-level-level2");
+    expect(html).not.toContain("verb-ending-completion-level-level3");
+  });
+
+  it("buildVerbRound priorise targetEnding lorsqu'il est spécifié sur la phrase", () => {
+    const multiVerbSentence = {
+      id: 88,
+      sentence: "Il chante et ils dansent.",
+      words: [
+        { word: "Il", nature: "pronom" },
+        { word: "chante", nature: "verbe" },
+        { word: "et", nature: "conjonction" },
+        { word: "ils", nature: "pronom" },
+        { word: "dansent", nature: "verbe" },
+        { word: ".", nature: "ponctuation" },
+      ],
+      targetEnding: "ent",
+    };
+
+    const round = buildVerbRound(multiVerbSentence, 0, ["e", "ent"]);
+    expect(round).not.toBeNull();
+    expect(round.correctEnding).toBe("ent");
+    expect(round.wordText).toBe("dansent");
+  });
+
+  it("affiche le badge 'Contraintes strictes' lorsque strict est activé", () => {
+    const strictContent = {
+      strict: true,
+      levels: {
+        level1: {
+          label: "Niveau 1",
+          sentenceCount: 4,
+          conjugatedEndings: ["e", "es"],
+        },
+      },
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbEndingCompletionActivity student={null} content={strictContent} onComplete={() => {}} />
+    );
+
+    expect(html).toContain("Contraintes strictes");
+  });
 });
+
+
+

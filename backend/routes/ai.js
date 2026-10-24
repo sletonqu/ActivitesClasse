@@ -1259,11 +1259,196 @@ router.get('/generated-sentences/practice', async (req, res) => {
   }
 });
 
+function cleanTense(value) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function tenseMatches(wordTense, targetTense) {
+  const cleanTarget = cleanTense(targetTense);
+  if (!cleanTarget) {
+    return true;
+  }
+  const cleanWord = cleanTense(wordTense);
+  if (!cleanWord) {
+    return false;
+  }
+  if (cleanWord === cleanTarget) {
+    return true;
+  }
+  if ((cleanTarget === "futur" || cleanTarget === "future") && cleanWord.startsWith("futur")) {
+    return true;
+  }
+  if (cleanTarget === "present" && cleanWord.startsWith("present")) {
+    return true;
+  }
+  if ((cleanTarget === "passe compose" || cleanTarget === "passe-compose") && cleanWord.replace("-", " ") === "passe compose") {
+    return true;
+  }
+  return cleanWord.includes(cleanTarget) || cleanTarget.includes(cleanWord);
+}
+
+function sentenceContainsVerbWithEnding(sentence, sentenceEndings, infinitiveEnding = '', targetTense = '') {
+  const words = Array.isArray(sentence?.words) ? sentence.words : [];
+
+  if (words.length > 0) {
+    return words.some((word) => {
+      const wordStr = normalizeText(word?.word || '').toLowerCase();
+      const nature = normalizeText(word?.nature || '').toLowerCase();
+      const infinitif = normalizeText(word?.infinitif || '').toLowerCase();
+      const wordTemps = normalizeText(word?.temps || '').toLowerCase();
+
+      // Vérifier que c'est un verbe ET pas un adverbe
+      const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && !nature.includes('adverbe');
+      const matchesInfinitive = !infinitiveEnding || (infinitif && infinitif.endsWith(infinitiveEnding));
+      const matchesTense = !targetTense || (wordTemps && tenseMatches(wordTemps, targetTense));
+
+      return (
+        isVerb &&
+        matchesInfinitive &&
+        matchesTense &&
+        sentenceEndings.some((ending) => wordStr.endsWith(ending))
+      );
+    });
+  }
+  return false;
+}
+
+function selectBalancedSentencesByEnding(candidateSentences, validEndings, requestedCount, infinitiveEnding = '', targetTense = '', strict = false) {
+  const poolByEnding = new Map();
+  for (const ending of validEndings) {
+    const eligible = candidateSentences.filter((sentence) =>
+      sentenceContainsVerbWithEnding(sentence, [ending], infinitiveEnding, targetTense)
+    );
+    if (eligible.length > 0) {
+      poolByEnding.set(ending, eligible);
+    }
+  }
+
+  const missingEndings = validEndings.filter((e) => !poolByEnding.has(e));
+
+  if (poolByEnding.size === 0) {
+    return {
+      selectedSentences: [],
+      availableEndings: [],
+      missingEndings,
+      totalAvailable: 0,
+      strictErrors: strict ? ['Aucune phrase trouvée pour les critères spécifiés'] : [],
+    };
+  }
+
+  const availableEndings = validEndings.filter((e) => poolByEnding.has(e));
+  const selectedSentences = [];
+  const usedIds = new Set();
+
+  // Pour chaque terminaison, préparer une file de phrases ordonnée par compteur croissant
+  // avec un léger mélange aléatoire pour départager les égalités
+  const queuesByEnding = new Map();
+  for (const ending of availableEndings) {
+    const pool = poolByEnding.get(ending);
+    const sorted = [...pool].sort((a, b) => {
+      const countDiff = (Number(a.compteur) || 0) - (Number(b.compteur) || 0);
+      if (countDiff !== 0) return countDiff;
+      return Math.random() - 0.5;
+    });
+    queuesByEnding.set(ending, sorted);
+  }
+
+  // Étape 1 : Garantir au moins une phrase pour chaque terminaison demandée disponible
+  for (const ending of availableEndings) {
+    if (selectedSentences.length >= requestedCount) {
+      break;
+    }
+    const queue = queuesByEnding.get(ending);
+    const index = queue.findIndex((sentence) => !usedIds.has(sentence.id));
+    if (index !== -1) {
+      const [sentence] = queue.splice(index, 1);
+      usedIds.add(sentence.id);
+      selectedSentences.push({
+        ...sentence,
+        targetEnding: ending,
+      });
+    }
+  }
+
+  // Étape 2 : Compléter jusqu'à requestedCount en alternant équitablement entre les terminaisons (round-robin)
+  let endingCursor = 0;
+  let consecutiveMisses = 0;
+  while (selectedSentences.length < requestedCount && consecutiveMisses < availableEndings.length) {
+    const ending = availableEndings[endingCursor % availableEndings.length];
+    const queue = queuesByEnding.get(ending);
+    const index = queue.findIndex((sentence) => !usedIds.has(sentence.id));
+
+    if (index !== -1) {
+      const [sentence] = queue.splice(index, 1);
+      usedIds.add(sentence.id);
+      selectedSentences.push({
+        ...sentence,
+        targetEnding: ending,
+      });
+      consecutiveMisses = 0;
+    } else {
+      consecutiveMisses += 1;
+    }
+
+    endingCursor += 1;
+  }
+
+  // Étape 3 : Si on n'a toujours pas atteint requestedCount (ex: pool restreint), chercher parmi les phrases restantes
+  if (selectedSentences.length < requestedCount) {
+    for (const ending of availableEndings) {
+      const queue = queuesByEnding.get(ending);
+      while (queue.length > 0 && selectedSentences.length < requestedCount) {
+        const sentence = queue.shift();
+        if (!usedIds.has(sentence.id)) {
+          usedIds.add(sentence.id);
+          selectedSentences.push({
+            ...sentence,
+            targetEnding: ending,
+          });
+        }
+      }
+    }
+  }
+
+  const strictErrors = [];
+  if (strict) {
+    if (missingEndings.length > 0) {
+      strictErrors.push(
+        `aucune phrase trouvée pour la ou les terminaisons suivantes : ${missingEndings.map((e) => `-${e}`).join(', ')}`
+      );
+    }
+    if (selectedSentences.length < requestedCount) {
+      strictErrors.push(
+        `${requestedCount} phrase${requestedCount > 1 ? 's' : ''} demandée${requestedCount > 1 ? 's' : ''}, mais seulement ${selectedSentences.length} disponible${selectedSentences.length > 1 ? 's' : ''}`
+      );
+    }
+  }
+
+  // Étape 4 : Mélanger l'ordre final pour ne pas avoir un ordre prévisible
+  const finalSentences = [...selectedSentences].sort(() => Math.random() - 0.5);
+  const totalAvailable = Array.from(poolByEnding.values()).reduce((sum, list) => sum + list.length, 0);
+
+  return {
+    selectedSentences: finalSentences,
+    availableEndings,
+    missingEndings,
+    totalAvailable,
+    strictErrors,
+  };
+}
+
 router.get('/verbs-by-ending', async (req, res) => {
   try {
     const endingsParam = req.query?.conjugatedEndings || '';
     const rawInfinitiveParam = req.query?.infinitiveEnding || req.query?.infinitive_ending || req.query?.infinitive || '';
     const infinitiveEndingParam = normalizeText(rawInfinitiveParam).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, '');
+    const rawTenseParam = req.query?.tense || req.query?.temps || '';
+    const tenseParam = normalizeText(rawTenseParam).toLowerCase();
+    const rawStrictParam = req.query?.strict ?? req.query?.strictConstraints ?? req.query?.strictMode;
+    const isStrict = rawStrictParam === 'true' || rawStrictParam === '1' || rawStrictParam === true;
     const requestedCountParam = Number(req.query?.count) || 3;
     const requestedCount = Math.min(Math.max(Math.round(requestedCountParam), 1), 20);
 
@@ -1280,35 +1465,6 @@ router.get('/verbs-by-ending', async (req, res) => {
       return res.status(400).json({ error: 'Aucune terminaison valide fournie' });
     }
 
-    // Fonction pour vérifier si une phrase contient des verbes avec les terminaisons
-    function sentenceContainsVerbWithEnding(sentence, sentenceEndings, infinitiveEnding = '') {
-      const words = Array.isArray(sentence?.words) ? sentence.words : [];
-      
-      // Si le payload a les mots analysés, utiliser ceux-ci
-      if (words.length > 0) {
-        return words.some((word) => {
-          const wordStr = normalizeText(word?.word || '').toLowerCase();
-          const nature = normalizeText(word?.nature || '').toLowerCase();
-          const infinitif = normalizeText(word?.infinitif || '').toLowerCase();
-          
-          // Vérifier que c'est un verbe ET pas un adverbe
-          const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && 
-                         !nature.includes('adverbe');
-          
-          const matchesInfinitive = !infinitiveEnding || (infinitif && infinitif.endsWith(infinitiveEnding));
-          
-          return (
-            isVerb &&
-            matchesInfinitive &&
-            sentenceEndings.some((ending) => wordStr.endsWith(ending))
-          );
-        });
-      }
-      return false;
-    }
-
-    // Récupérer les phrases les moins utilisées et filtrer pour chaque terminaison
-    const allSentencesByEnding = new Map();
     const rows = await allAsync(
       `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
        FROM generated_sentences
@@ -1318,29 +1474,33 @@ router.get('/verbs-by-ending', async (req, res) => {
     );
     const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
 
-    for (const ending of validEndings) {
-      const eligibleSentences = candidateSentences
-        .filter((sentence) => sentenceContainsVerbWithEnding(sentence, [ending], infinitiveEndingParam))
-        .slice(0, 10);
+    const { selectedSentences, missingEndings, totalAvailable, strictErrors } = selectBalancedSentencesByEnding(
+      candidateSentences,
+      validEndings,
+      requestedCount,
+      infinitiveEndingParam,
+      tenseParam,
+      isStrict
+    );
 
-      if (eligibleSentences.length > 0) {
-        allSentencesByEnding.set(ending, eligibleSentences);
-      }
-    }
-
-    if (allSentencesByEnding.size === 0) {
-      const errorMsg = infinitiveEndingParam
-        ? `Aucune phrase avec des verbes à l'infinitif en -${infinitiveEndingParam} finissant par ces terminaisons n'a été trouvée`
-        : "Aucune phrase avec des verbes finissant par ces terminaisons n'a été trouvée";
-      return res.status(404).json({
-        error: errorMsg,
+    if (isStrict && strictErrors.length > 0) {
+      return res.status(400).json({
+        error: `Mode strict : ${strictErrors.join(' ; ')}.`,
+        missingEndings,
+        requestedCount,
+        availableCount: selectedSentences.length,
       });
     }
 
-    // Mélanger toutes les phrases et en sélectionner le nombre demandé
-    const allSentences = Array.from(allSentencesByEnding.values()).flat();
-    const shuffledSentences = allSentences.sort(() => Math.random() - 0.5);
-    const selectedSentences = shuffledSentences.slice(0, requestedCount);
+    if (selectedSentences.length === 0) {
+      const filterDetails = [];
+      if (infinitiveEndingParam) filterDetails.push(`à l'infinitif en -${infinitiveEndingParam}`);
+      if (tenseParam) filterDetails.push(`au temps "${tenseParam}"`);
+      const detailsStr = filterDetails.length > 0 ? ` avec des verbes ${filterDetails.join(' et ')}` : '';
+      return res.status(404).json({
+        error: `Aucune phrase${detailsStr} finissant par ces terminaisons n'a été trouvée`,
+      });
+    }
 
     // Mettre à jour le compteur pour chaque phrase sélectionnée
     for (const sentence of selectedSentences) {
@@ -1354,7 +1514,7 @@ router.get('/verbs-by-ending', async (req, res) => {
     return res.json({
       requestedCount,
       returnedCount: selectedSentences.length,
-      totalAvailable: allSentences.length,
+      totalAvailable,
       sentences: selectedSentences,
     });
   } catch (err) {
@@ -1988,4 +2148,6 @@ module.exports.processVerbEnrichment = processVerbEnrichment;
 module.exports.normalizeGeneratedPayload = normalizeGeneratedPayload;
 module.exports.buildSentencePrompt = buildSentencePrompt;
 module.exports.buildGeneratedSentenceExportItem = buildGeneratedSentenceExportItem;
+module.exports.selectBalancedSentencesByEnding = selectBalancedSentencesByEnding;
+module.exports.sentenceContainsVerbWithEnding = sentenceContainsVerbWithEnding;
 

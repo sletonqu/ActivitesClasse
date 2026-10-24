@@ -1036,11 +1036,12 @@ Paramètres :
 
 - `title`, `instruction` et `defaultLevel` ;
 - `infinitiveEnding` *(défaut : `""`)* : terminaison du verbe à l'infinitif recherchée dans la base de données (ex: `"er"` pour chercher `manger`, `"ir"` pour chercher `courir`, ou `""` pour accepter tous les verbes) ;
+- `tense` *(ou `temps`, défaut : `""`)* : temps du verbe recherché dans la base de données (ex: `"présent"`, `"imparfait"`, `"futur"`, ou `""` pour accepter tous les temps) ;
 - `levels.levelX.label` : nom du niveau ;
 - `levels.levelX.sentenceCount` : nombre de phrases de la série ;
 - `levels.levelX.conjugatedEndings` : liste des terminaisons attendues des verbes conjugués proposées à l'élève.
 
-Les phrases sont chargées depuis la base selon la terminaison d'infinitif et les terminaisons conjuguées demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
+Les phrases sont chargées depuis la base selon la terminaison d'infinitif, le temps du verbe et les terminaisons conjuguées demandées. Le score est enregistré sur 20 avec le niveau courant. En cas d'erreurs, le récapitulatif final liste chaque phrase erronée avec le verbe complété par l'élève et la forme attendue (idéal pour la consultation de la capture d'écran du résultat).
 
 ---
 
@@ -1127,4 +1128,55 @@ Code couleur et animations :
 - Les pronoms sont affichés en **violet** (`bg-purple-100 text-purple-800` et `animate-pulse-slow-purple`) ;
 - Les verbes sont affichés en **rouge** (`bg-red-100 text-red-700` et `animate-pulse-slow-red`) ;
 - Le choix du verbe (*être* ou *avoir*) et du temps (*présent*, *futur*, *imparfait*) peut être défini globalement ou par niveau.
+
+---
+
+### 23. `VerbEndingCompletionActivity.jsx`
+
+**Discipline** : Français  
+**Catégorie** : Conjugaison / Orthographe  
+**But** : compléter la terminaison d'un verbe conjugué dans une phrase en choisissant parmi les terminaisons autorisées.
+
+Exemple de configuration :
+
+```json
+{
+  "title": "Terminaison des verbes",
+  "instruction": "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
+  "infinitiveEnding": "er",
+  "tense": "present",
+  "strict": false,
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "sentenceCount": 4,
+      "conjugatedEndings": ["es", "ent"]
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "sentenceCount": 6,
+      "conjugatedEndings": ["e", "es", "ent"]
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "sentenceCount": 8,
+      "conjugatedEndings": ["e", "es", "ez", "ent"]
+    }
+  }
+}
+```
+
+Options utiles :
+
+- `infinitiveEnding` (global ou par niveau, optionnel, par défaut `""`) : filtre les verbes dont l'infinitif se termine par cette chaîne (ex: `"er"`, `"ir"`). Si vide `""`, accepte tous les verbes.
+- `tense` ou `temps` (global ou par niveau, optionnel, par défaut `""`) : filtre les verbes sur le temps (ex: `"present"`, `"futur"`, `"imparfait"`, `"passe compose"`). Insensible à la casse et aux accents.
+- `strict` ou `strictConstraints` (booléen, optionnel, par défaut `false`) :
+  - `false` (souple) : sélectionne au moins une phrase par terminaison disponible en base de données, adapte le nombre si nécessaire et ne bloque pas l'activité.
+  - `true` (strict) : bloque l'activité avec un message d'erreur explicite si une des terminaisons demandées n'a aucune phrase en base de données ou si le nombre total de phrases demandées (`sentenceCount`) n'est pas atteint.
+- `levels.levelX.conjugatedEndings` (obligatoire par niveau) : liste des terminaisons attendues pour les verbes conjugués (ex: `["es", "ent"]`).
+- `levels.levelX.sentenceCount` : nombre de phrases à proposer dans la manche.
+- `levels.levelX.label` : intitulé lisible du niveau.
+- `defaultLevel` : niveau pré-sélectionné à l'ouverture.
+
 

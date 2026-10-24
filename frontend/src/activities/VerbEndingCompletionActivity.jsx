@@ -13,6 +13,8 @@ export const defaultVerbEndingCompletionActivityContent = {
   title: "Terminaison des verbes",
   instruction: "Sélectionne la terminaison correcte pour compléter le verbe dans la phrase.",
   infinitiveEnding: "",
+  tense: "",
+  strict: false,
   defaultLevel: "level1",
   levels: {
     level1: {
@@ -48,6 +50,61 @@ function normalizeInfinitiveEnding(value, fallback = "") {
   return fallback;
 }
 
+function cleanTense(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function tenseMatches(wordTense, targetTense) {
+  const cleanTarget = cleanTense(targetTense);
+  if (!cleanTarget) {
+    return true;
+  }
+  const cleanWord = cleanTense(wordTense);
+  if (!cleanWord) {
+    return false;
+  }
+  if (cleanWord === cleanTarget) {
+    return true;
+  }
+  if ((cleanTarget === "futur" || cleanTarget === "future") && cleanWord.startsWith("futur")) {
+    return true;
+  }
+  if (cleanTarget === "present" && cleanWord.startsWith("present")) {
+    return true;
+  }
+  if ((cleanTarget === "passe compose" || cleanTarget === "passe-compose") && cleanWord.replace("-", " ") === "passe compose") {
+    return true;
+  }
+  return cleanWord.includes(cleanTarget) || cleanTarget.includes(cleanWord);
+}
+
+function normalizeBoolean(value, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const clean = value.trim().toLowerCase();
+    if (clean === "true" || clean === "1" || clean === "oui" || clean === "yes") {
+      return true;
+    }
+    if (clean === "false" || clean === "0" || clean === "non" || clean === "no") {
+      return false;
+    }
+  }
+  return fallback;
+}
+
+function normalizeTense(value, fallback = "") {
+  if (typeof value === "string") {
+    return cleanTense(value);
+  }
+  return fallback;
+}
+
 function normalizeLevelRule(rule, fallbackRule) {
   const source = rule && typeof rule === "object" ? rule : {};
   const sentenceCount = Math.max(1, parsePositiveInt(source.sentenceCount, fallbackRule.sentenceCount));
@@ -69,44 +126,74 @@ function normalizeLevelRule(rule, fallbackRule) {
   };
 }
 
-function findVerbWithEnding(sentence, conjugatedEndings, infinitiveEnding = "") {
+function findVerbWithEnding(sentence, conjugatedEndings, infinitiveEnding = "", targetTense = "") {
   const words = Array.isArray(sentence?.words) ? sentence.words : [];
   const normalizedInfinitive = cleanEnding(infinitiveEnding);
-  
+  const targetEnding = cleanEnding(sentence?.targetEnding || sentence?.matchedEnding);
+  const normalizedConjugated = conjugatedEndings.map((ending) => cleanEnding(ending)).filter(Boolean);
+
+  const isMatchingVerb = (word) => {
+    const nature = String(word?.nature || "").toLowerCase();
+    const isVerb = nature.includes("verbe") && !nature.includes("adverbe");
+    if (!isVerb) {
+      return false;
+    }
+
+    if (normalizedInfinitive) {
+      const infinitif = cleanEnding(word?.infinitif);
+      if (word?.infinitif && !infinitif.endsWith(normalizedInfinitive)) {
+        return false;
+      }
+    }
+
+    if (targetTense) {
+      const wordTemps = word?.temps;
+      if (wordTemps && !tenseMatches(wordTemps, targetTense)) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // 1. Si une terminaison spécifique a été assignée à cette phrase et est autorisée pour ce niveau, la chercher en priorité
+  if (targetEnding && normalizedConjugated.includes(targetEnding)) {
+    for (const word of words) {
+      const wordStr = String(word?.word || "").toLowerCase();
+      if (isMatchingVerb(word) && wordStr.endsWith(targetEnding)) {
+        return {
+          word,
+          wordText: String(word?.word || ""),
+          ending: targetEnding,
+          baseForm: wordStr.substring(0, wordStr.length - targetEnding.length),
+        };
+      }
+    }
+  }
+
+  // 2. Sinon, chercher avec les terminaisons autorisées du niveau
   for (const word of words) {
     const wordStr = String(word?.word || "").toLowerCase();
-    const nature = String(word?.nature || "").toLowerCase();
-    const infinitif = cleanEnding(word?.infinitif);
-    
-    // Vérifier que c'est un verbe ET pas un adverbe
-    const isVerb = (nature.includes("verbe")) && !nature.includes("adverbe");
-    
-    if (isVerb) {
-      // Si l'infinitif est renseigné sur le mot, vérifier qu'il se termine bien par la terminaison d'infinitif attendue
-      const matchesInfinitive = !normalizedInfinitive || (word?.infinitif ? infinitif.endsWith(normalizedInfinitive) : true);
-      if (!matchesInfinitive) {
-        continue;
-      }
-
-      for (const ending of conjugatedEndings) {
-        const cleanEnd = cleanEnding(ending);
-        if (cleanEnd && wordStr.endsWith(cleanEnd)) {
+    if (isMatchingVerb(word)) {
+      for (const ending of normalizedConjugated) {
+        if (ending && wordStr.endsWith(ending)) {
           return {
             word,
             wordText: String(word?.word || ""),
-            ending: cleanEnd,
-            baseForm: wordStr.substring(0, wordStr.length - cleanEnd.length),
+            ending,
+            baseForm: wordStr.substring(0, wordStr.length - ending.length),
           };
         }
       }
     }
   }
-  
+
   return null;
 }
 
-export function buildVerbRound(sentenceEntry, index, conjugatedEndings, infinitiveEnding = "") {
-  const verbInfo = findVerbWithEnding(sentenceEntry, conjugatedEndings, infinitiveEnding);
+
+export function buildVerbRound(sentenceEntry, index, conjugatedEndings, infinitiveEnding = "", targetTense = "") {
+  const verbInfo = findVerbWithEnding(sentenceEntry, conjugatedEndings, infinitiveEnding, targetTense);
   
   if (!verbInfo) {
     return null;
@@ -154,18 +241,30 @@ const VerbEndingCompletionActivity = ({
   const parsedContent = useMemo(() => parseActivityContent(content), [content]);
   const defaultLevels = defaultVerbEndingCompletionActivityContent.levels;
 
+  const configuredLevelKeys = useMemo(() => {
+    const parsedLevels = parsedContent?.levels;
+    if (!parsedLevels || typeof parsedLevels !== "object") {
+      return ALLOWED_LEVEL_KEYS;
+    }
+    const keys = ALLOWED_LEVEL_KEYS.filter((levelKey) => {
+      const levelRule = parsedLevels[levelKey];
+      return levelRule && typeof levelRule === "object";
+    });
+    return keys.length > 0 ? keys : ALLOWED_LEVEL_KEYS;
+  }, [parsedContent]);
+
   const configuredLevels = useMemo(
     () => ({
       level1: normalizeLevelRule(parsedContent?.levels?.level1, defaultLevels.level1),
       level2: normalizeLevelRule(parsedContent?.levels?.level2, defaultLevels.level2),
       level3: normalizeLevelRule(parsedContent?.levels?.level3, defaultLevels.level3),
     }),
-    [parsedContent]
+    [parsedContent, defaultLevels]
   );
 
-  const initialLevel = ALLOWED_LEVEL_KEYS.includes(parsedContent?.defaultLevel)
+  const initialLevel = configuredLevelKeys.includes(parsedContent?.defaultLevel)
     ? parsedContent.defaultLevel
-    : "level1";
+    : configuredLevelKeys[0] || "level1";
 
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [loadingSentences, setLoadingSentences] = useState(true);
@@ -194,16 +293,37 @@ const VerbEndingCompletionActivity = ({
     [parsedContent]
   );
 
-  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels.level1;
+  const configuredTense = useMemo(
+    () => normalizeTense(
+      parsedContent?.tense ?? parsedContent?.temps,
+      defaultVerbEndingCompletionActivityContent.tense
+    ),
+    [parsedContent]
+  );
+
+  const configuredStrict = useMemo(
+    () => normalizeBoolean(
+      parsedContent?.strict ?? parsedContent?.strictConstraints ?? parsedContent?.strictMode,
+      defaultVerbEndingCompletionActivityContent.strict
+    ),
+    [parsedContent]
+  );
+
+  const currentLevelRule = configuredLevels[currentLevel] || configuredLevels[configuredLevelKeys[0]] || defaultLevels.level1;
+  const isCurrentLevelStrict = Boolean(
+    currentLevelRule?.strict ?? currentLevelRule?.strictConstraints ?? currentLevelRule?.strictMode ?? configuredStrict
+  );
   const currentConjugatedEndings = currentLevelRule.conjugatedEndings;
   const currentLoadSignature = useMemo(
     () => JSON.stringify({
       level: currentLevel,
       infinitiveEnding: configuredInfinitiveEnding,
+      tense: configuredTense,
+      strict: isCurrentLevelStrict,
       sentenceCount: currentLevelRule.sentenceCount,
       conjugatedEndings: currentConjugatedEndings,
     }),
-    [currentLevel, configuredInfinitiveEnding, currentLevelRule.sentenceCount, currentConjugatedEndings]
+    [currentLevel, configuredInfinitiveEnding, configuredTense, isCurrentLevelStrict, currentLevelRule.sentenceCount, currentConjugatedEndings]
   );
   const currentSentence = sentenceRounds[currentSentenceIndex] || null;
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
@@ -224,13 +344,35 @@ const VerbEndingCompletionActivity = ({
     defaultVerbEndingCompletionActivityContent.instruction
   );
 
-  const resetWithSentences = useCallback((sentences, levelConjugatedEndings, infinitiveEnding) => {
+  const resetWithSentences = useCallback((sentences, levelConjugatedEndings, infinitiveEnding, targetTense, isStrict = false, requestedSentenceCount = 0) => {
     const preparedSentences = sentences
-      .map((sentence, index) => buildVerbRound(sentence, index, levelConjugatedEndings, infinitiveEnding))
+      .map((sentence, index) => buildVerbRound(sentence, index, levelConjugatedEndings, infinitiveEnding, targetTense))
       .filter(Boolean);
 
     if (preparedSentences.length === 0) {
       throw new Error("Aucune phrase ne contient de verbes avec les terminaisons demandées.");
+    }
+
+    if (isStrict) {
+      const coveredEndings = new Set(preparedSentences.map((p) => cleanEnding(p.correctEnding)));
+      const missingEndings = levelConjugatedEndings.filter((e) => !coveredEndings.has(cleanEnding(e)));
+      const strictErrors = [];
+
+      if (missingEndings.length > 0) {
+        strictErrors.push(
+          `aucune phrase trouvée pour la ou les terminaisons : ${missingEndings.map((e) => `-${e}`).join(", ")}`
+        );
+      }
+
+      if (requestedSentenceCount > 0 && preparedSentences.length < requestedSentenceCount) {
+        strictErrors.push(
+          `${requestedSentenceCount} phrase${requestedSentenceCount > 1 ? "s" : ""} demandée${requestedSentenceCount > 1 ? "s" : ""}, mais seulement ${preparedSentences.length} disponible${preparedSentences.length > 1 ? "s" : ""}`
+        );
+      }
+
+      if (strictErrors.length > 0) {
+        throw new Error(`Mode strict : ${strictErrors.join(" ; ")}.`);
+      }
     }
 
     setSentenceRounds(preparedSentences);
@@ -250,6 +392,9 @@ const VerbEndingCompletionActivity = ({
   const loadSentencesForLevel = useCallback(async (levelKey) => {
     const levelRule = configuredLevels[levelKey] || configuredLevels.level1;
     const levelConjugatedEndings = levelRule.conjugatedEndings;
+    const isStrict = Boolean(
+      levelRule?.strict ?? levelRule?.strictConstraints ?? levelRule?.strictMode ?? configuredStrict
+    );
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
 
@@ -266,6 +411,12 @@ const VerbEndingCompletionActivity = ({
       });
       if (configuredInfinitiveEnding) {
         params.set("infinitiveEnding", configuredInfinitiveEnding);
+      }
+      if (configuredTense) {
+        params.set("tense", configuredTense);
+      }
+      if (isStrict) {
+        params.set("strict", "true");
       }
 
       const response = await fetch(`${API_URL}/ai/verbs-by-ending?${params.toString()}`);
@@ -284,7 +435,14 @@ const VerbEndingCompletionActivity = ({
         throw new Error("Aucune phrase n'est disponible pour ces terminaisons.");
       }
 
-      resetWithSentences(nextSentences, levelConjugatedEndings, configuredInfinitiveEnding);
+      resetWithSentences(
+        nextSentences,
+        levelConjugatedEndings,
+        configuredInfinitiveEnding,
+        configuredTense,
+        isStrict,
+        levelRule.sentenceCount
+      );
     } catch (err) {
       if (requestId !== requestIdRef.current) {
         return;
@@ -307,7 +465,7 @@ const VerbEndingCompletionActivity = ({
         setLoadingSentences(false);
       }
     }
-  }, [configuredLevels, configuredInfinitiveEnding, resetWithSentences]);
+  }, [configuredLevels, configuredInfinitiveEnding, configuredTense, configuredStrict, resetWithSentences]);
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -397,7 +555,7 @@ const VerbEndingCompletionActivity = ({
   };
 
   const handleSelectLevel = (levelKey) => {
-    if (loadingSentences) {
+    if (loadingSentences || !configuredLevelKeys.includes(levelKey)) {
       return;
     }
 
@@ -427,6 +585,16 @@ const VerbEndingCompletionActivity = ({
             label: `Infinitif en -${configuredInfinitiveEnding}`,
             className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200",
           }] : []),
+          ...(configuredTense ? [{
+            key: `badge-tense-${configuredTense}`,
+            label: `Temps : ${configuredTense}`,
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200",
+          }] : []),
+          ...(isCurrentLevelStrict ? [{
+            key: "badge-strict",
+            label: "Contraintes strictes",
+            className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300",
+          }] : []),
           ...currentConjugatedEndings.map((ending) => ({
             key: `badge-${ending}`,
             label: ending,
@@ -434,7 +602,7 @@ const VerbEndingCompletionActivity = ({
           })),
         ]}
         badgesId="verb-ending-completion-endings"
-        levels={ALLOWED_LEVEL_KEYS.map((levelKey) => ({
+        levels={configuredLevelKeys.map((levelKey) => ({
           key: levelKey,
           label: configuredLevels[levelKey].label,
           disabled: loadingSentences,
