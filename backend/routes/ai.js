@@ -500,14 +500,51 @@ function normalizeGeneratedPayloadList(payload, context, requestedCount) {
 }
 
 function normalizeRequiredNatureFilters(value) {
+  if (Array.isArray(value)) {
+    return Array.from(
+      new Set(
+        value
+          .map((item) => resolveNatureFamily(item))
+          .filter(Boolean)
+      )
+    );
+  }
   return Array.from(
     new Set(
       String(value || "")
-        .split(",")
+        .split(/[,;]+/)
         .map((item) => resolveNatureFamily(item))
         .filter(Boolean)
     )
   );
+}
+
+function normalizeEndingsFilter(value) {
+  if (Array.isArray(value)) {
+    return value.map((e) => normalizeText(e).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, '')).filter(Boolean);
+  }
+  const str = String(value || '').trim();
+  if (!str) {
+    return [];
+  }
+  const tokens = str.includes(',') || str.includes(';') ? str.split(/[,;]+/) : str.split(/\s+/);
+  return tokens
+    .map((e) => normalizeText(e).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, ''))
+    .filter(Boolean);
+}
+
+function normalizeWordsFilter(value) {
+  if (Array.isArray(value)) {
+    return value.map((w) => normalizeText(w).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, '')).filter(Boolean);
+  }
+  const str = String(value || '').trim();
+  if (!str) {
+    return [];
+  }
+  const tokens = str.includes(',') || str.includes(';') ? str.split(/[,;]+/) : str.split(/\s+/);
+  return tokens
+    .map((w) => normalizeText(w).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, ''))
+    .filter(Boolean);
 }
 
 function buildGeneratedSentenceFromRow(row) {
@@ -522,6 +559,7 @@ function buildGeneratedSentenceFromRow(row) {
   return {
     id: row?.id,
     compteur: Number(row?.compteur || 0),
+    created_at: row?.created_at || null,
     createdAt: row?.created_at || null,
     ...normalizeGeneratedPayload(payload, {
       level: row?.level || payload?.level || "CE1",
@@ -1035,9 +1073,63 @@ router.get('/generated-sentences', async (req, res) => {
     const { where, params } = buildGeneratedSentenceFilters(req.query);
     const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
+    const rawTense = req.query?.tense || req.query?.temps || '';
+    const tense = normalizeText(rawTense).toLowerCase();
+    const rawInfinitive = req.query?.infinitiveEnding || req.query?.infinitive_ending || req.query?.infinitive || '';
+    const infinitiveEnding = normalizeText(rawInfinitive).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, '');
+    const conjugatedEndings = normalizeEndingsFilter(req.query?.conjugatedEndings || req.query?.endings || req.query?.ending);
+    const targetWords = normalizeWordsFilter(req.query?.words || req.query?.word || req.query?.mots || req.query?.mot);
+    const requiredNatureKeys = normalizeRequiredNatureFilters(
+      req.query?.requiredNatures || req.query?.required_natures || req.query?.natures || req.query?.nature
+    );
+
+    const hasActivityFilters = Boolean(
+      tense ||
+      infinitiveEnding ||
+      conjugatedEndings.length > 0 ||
+      targetWords.length > 0 ||
+      requiredNatureKeys.length > 0
+    );
+
+    if (hasActivityFilters) {
+      const rows = await allAsync(
+        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+         FROM generated_sentences
+         ${whereClause}
+         ORDER BY COALESCE(compteur, 0) ASC, id DESC`,
+        params
+      );
+
+      const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
+
+      const filteredSentences = candidateSentences.filter((sentence) => {
+        if (tense || infinitiveEnding || conjugatedEndings.length > 0) {
+          if (!sentenceContainsVerbWithEnding(sentence, conjugatedEndings, infinitiveEnding, tense)) {
+            return false;
+          }
+        }
+        if (targetWords.length > 0) {
+          if (!sentenceContainsAnyWord(sentence, targetWords)) {
+            return false;
+          }
+        }
+        if (requiredNatureKeys.length > 0) {
+          if (!sentenceContainsRequiredNatures(sentence, requiredNatureKeys)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      return res.json({
+        total: filteredSentences.length,
+        sentences: filteredSentences.slice(0, limit),
+      });
+    }
+
     const [rows, totalRow] = await Promise.all([
       allAsync(
-        `SELECT id, sentence, level, theme, provider, model, compteur, created_at
+        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
          FROM generated_sentences
          ${whereClause}
          ORDER BY COALESCE(compteur, 0) ASC, id DESC
@@ -1054,7 +1146,7 @@ router.get('/generated-sentences', async (req, res) => {
 
     return res.json({
       total: totalRow?.total ?? rows.length,
-      sentences: rows,
+      sentences: rows.map((row) => buildGeneratedSentenceFromRow(row)),
     });
   } catch (err) {
     return res.status(500).json({
@@ -1290,10 +1382,11 @@ function tenseMatches(wordTense, targetTense) {
   return cleanWord.includes(cleanTarget) || cleanTarget.includes(cleanWord);
 }
 
-function sentenceContainsVerbWithEnding(sentence, sentenceEndings, infinitiveEnding = '', targetTense = '') {
+function sentenceContainsVerbWithEnding(sentence, sentenceEndings = [], infinitiveEnding = '', targetTense = '') {
   const words = Array.isArray(sentence?.words) ? sentence.words : [];
 
   if (words.length > 0) {
+    const hasEndings = Array.isArray(sentenceEndings) && sentenceEndings.length > 0;
     return words.some((word) => {
       const wordStr = normalizeText(word?.word || '').toLowerCase();
       const nature = normalizeText(word?.nature || '').toLowerCase();
@@ -1304,17 +1397,48 @@ function sentenceContainsVerbWithEnding(sentence, sentenceEndings, infinitiveEnd
       const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && !nature.includes('adverbe');
       const matchesInfinitive = !infinitiveEnding || (infinitif && infinitif.endsWith(infinitiveEnding));
       const matchesTense = !targetTense || (wordTemps && tenseMatches(wordTemps, targetTense));
+      const matchesEnding = !hasEndings || sentenceEndings.some((ending) => wordStr.endsWith(ending));
 
       return (
         isVerb &&
         matchesInfinitive &&
         matchesTense &&
-        sentenceEndings.some((ending) => wordStr.endsWith(ending))
+        matchesEnding
       );
     });
   }
   return false;
 }
+
+function sentenceContainsAnyWord(sentence, targetWords = []) {
+  if (!Array.isArray(targetWords) || targetWords.length === 0) {
+    return true;
+  }
+  const wordsList = Array.isArray(sentence?.words) ? sentence.words : [];
+  const normalizedTargets = targetWords
+    .map((w) => normalizeText(w).toLowerCase().replace(/^[-'"]+|[-'"]+$/g, ''))
+    .filter(Boolean);
+
+  if (normalizedTargets.length === 0) {
+    return true;
+  }
+
+  if (wordsList.length > 0) {
+    return wordsList.some((wordObj) => {
+      const wordStr = normalizeText(wordObj?.word || '')
+        .toLowerCase()
+        .replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, '');
+      return normalizedTargets.includes(wordStr);
+    });
+  }
+
+  const rawWords = String(sentence?.sentence || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w) => w.replace(/^[.,!?;:«»"']+|[.,!?;:«»"']+$/g, ''));
+  return rawWords.some((w) => normalizedTargets.includes(w));
+}
+
 
 function selectBalancedSentencesByEnding(candidateSentences, validEndings, requestedCount, infinitiveEnding = '', targetTense = '', strict = false) {
   const poolByEnding = new Map();
@@ -2150,4 +2274,9 @@ module.exports.buildSentencePrompt = buildSentencePrompt;
 module.exports.buildGeneratedSentenceExportItem = buildGeneratedSentenceExportItem;
 module.exports.selectBalancedSentencesByEnding = selectBalancedSentencesByEnding;
 module.exports.sentenceContainsVerbWithEnding = sentenceContainsVerbWithEnding;
+module.exports.sentenceContainsAnyWord = sentenceContainsAnyWord;
+module.exports.sentenceContainsRequiredNatures = sentenceContainsRequiredNatures;
+module.exports.normalizeEndingsFilter = normalizeEndingsFilter;
+module.exports.normalizeWordsFilter = normalizeWordsFilter;
+module.exports.normalizeRequiredNatureFilters = normalizeRequiredNatureFilters;
 

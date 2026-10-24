@@ -230,6 +230,7 @@ docker compose up --build
 - suppression unitaire ou globale des activités ;
 - **Mots** : import du référentiel, recherche et suppression unitaire / globale ;
 - **Phrases** : génération par IA (Gemini, ChatGPT / OpenAI, MistralAI) avec segmentation lexicale, détection des natures grammaticales, et qualification automatique du **temps du verbe** (`présent`, `imparfait`, `futur simple`, `passé composé`, `infinitif`) et de l'**infinitif** ;
+- **Filtres d'activités pour les phrases** : recherche et vérification directe en base des phrases éligibles selon les requêtes utilisées par les activités (temps du verbe, infinitif, terminaisons verbales, homophones / mots ciblés et natures grammaticales) ;
 - **Enrichissement des verbes par IA** : outil d'enrichissement par lot (batch) pour déterminer automatiquement et rétroactivement le temps et l'infinitif de chaque verbe en base SQLite ;
 - **Import / export JSON des phrases** : export et réimport complets des phrases générées avec préservation des mots, de leurs natures, catégories, temps verbaux et infinitifs ;
 - import / export global CSV des `teachers`, `classes`, `groups`, `students`, `activities` et `results` ;

@@ -5,6 +5,14 @@ import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
 const LEVEL_OPTIONS = ["", "CE1", "CE2"];
+const TENSE_OPTIONS = [
+  { value: "", label: "Tous les temps" },
+  { value: "présent", label: "Présent" },
+  { value: "imparfait", label: "Imparfait" },
+  { value: "futur", label: "Futur" },
+  { value: "passé composé", label: "Passé composé" },
+  { value: "passé simple", label: "Passé simple" },
+];
 const SORT_OPTIONS = [
   { value: "least-used", label: "Moins utilisées d'abord" },
   { value: "most-used", label: "Plus utilisées d'abord" },
@@ -58,6 +66,11 @@ const GeneratedSentencesManagementPanel = () => {
   const [searchText, setSearchText] = useState("");
   const [themeFilter, setThemeFilter] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
+  const [tenseFilter, setTenseFilter] = useState("");
+  const [infinitiveEndingFilter, setInfinitiveEndingFilter] = useState("");
+  const [conjugatedEndingsFilter, setConjugatedEndingsFilter] = useState("");
+  const [wordsFilter, setWordsFilter] = useState("");
+  const [naturesFilter, setNaturesFilter] = useState("");
   const [sortOrder, setSortOrder] = useState("least-used");
   const [selectedSentenceId, setSelectedSentenceId] = useState("");
   const [deletingSentenceId, setDeletingSentenceId] = useState("");
@@ -78,6 +91,17 @@ const GeneratedSentencesManagementPanel = () => {
 
   const { confirmAction, confirmModalState } = useConfirm();
 
+  const hasActiveFilters = Boolean(
+    levelFilter ||
+    themeFilter.trim() ||
+    searchText.trim() ||
+    tenseFilter.trim() ||
+    infinitiveEndingFilter.trim() ||
+    conjugatedEndingsFilter.trim() ||
+    wordsFilter.trim() ||
+    naturesFilter.trim()
+  );
+
   const sortedSentences = useMemo(
     () => sortSentencesList(sentences, sortOrder),
     [sentences, sortOrder]
@@ -93,20 +117,47 @@ const GeneratedSentencesManagementPanel = () => {
     [selectedSentenceId, sortedSentences]
   );
 
-  const loadSentences = async () => {
+  const loadSentences = async (filterOverrides = null) => {
     setLoading(true);
     setError("");
 
     try {
+      const activeFilters = {
+        level: levelFilter,
+        theme: themeFilter,
+        search: searchText,
+        tense: tenseFilter,
+        infinitiveEnding: infinitiveEndingFilter,
+        conjugatedEndings: conjugatedEndingsFilter,
+        words: wordsFilter,
+        requiredNatures: naturesFilter,
+        ...filterOverrides,
+      };
+
       const params = new URLSearchParams({ limit: "100" });
-      if (levelFilter) {
-        params.set("level", levelFilter);
+      if (activeFilters.level) {
+        params.set("level", activeFilters.level);
       }
-      if (themeFilter.trim()) {
-        params.set("theme", themeFilter.trim());
+      if (activeFilters.theme?.trim()) {
+        params.set("theme", activeFilters.theme.trim());
       }
-      if (searchText.trim()) {
-        params.set("search", searchText.trim());
+      if (activeFilters.search?.trim()) {
+        params.set("search", activeFilters.search.trim());
+      }
+      if (activeFilters.tense?.trim()) {
+        params.set("tense", activeFilters.tense.trim());
+      }
+      if (activeFilters.infinitiveEnding?.trim()) {
+        params.set("infinitiveEnding", activeFilters.infinitiveEnding.trim());
+      }
+      if (activeFilters.conjugatedEndings?.trim()) {
+        params.set("conjugatedEndings", activeFilters.conjugatedEndings.trim());
+      }
+      if (activeFilters.words?.trim()) {
+        params.set("words", activeFilters.words.trim());
+      }
+      if (activeFilters.requiredNatures?.trim()) {
+        params.set("requiredNatures", activeFilters.requiredNatures.trim());
       }
 
       const response = await fetch(`${API_URL}/ai/generated-sentences?${params.toString()}`);
@@ -344,6 +395,27 @@ const GeneratedSentencesManagementPanel = () => {
     }
   };
 
+  const handleResetFilters = () => {
+    setLevelFilter("");
+    setThemeFilter("");
+    setSearchText("");
+    setTenseFilter("");
+    setInfinitiveEndingFilter("");
+    setConjugatedEndingsFilter("");
+    setWordsFilter("");
+    setNaturesFilter("");
+    void loadSentences({
+      level: "",
+      theme: "",
+      search: "",
+      tense: "",
+      infinitiveEnding: "",
+      conjugatedEndings: "",
+      words: "",
+      requiredNatures: "",
+    });
+  };
+
   const buildFilterQueryString = () => {
     const params = new URLSearchParams();
     if (levelFilter) {
@@ -355,6 +427,21 @@ const GeneratedSentencesManagementPanel = () => {
     if (searchText.trim()) {
       params.set("search", searchText.trim());
     }
+    if (tenseFilter.trim()) {
+      params.set("tense", tenseFilter.trim());
+    }
+    if (infinitiveEndingFilter.trim()) {
+      params.set("infinitiveEnding", infinitiveEndingFilter.trim());
+    }
+    if (conjugatedEndingsFilter.trim()) {
+      params.set("conjugatedEndings", conjugatedEndingsFilter.trim());
+    }
+    if (wordsFilter.trim()) {
+      params.set("words", wordsFilter.trim());
+    }
+    if (naturesFilter.trim()) {
+      params.set("requiredNatures", naturesFilter.trim());
+    }
     return params.toString() ? `?${params.toString()}` : "";
   };
 
@@ -363,10 +450,9 @@ const GeneratedSentencesManagementPanel = () => {
       return;
     }
 
-    const hasFilter = Boolean(levelFilter || themeFilter.trim() || searchText.trim());
     const confirmReset = await confirmAction(
       "Réinitialiser les compteurs",
-      hasFilter
+      hasActiveFilters
         ? "Réinitialiser les compteurs des phrases correspondant aux filtres actuels ?"
         : "Réinitialiser tous les compteurs d'utilisation sans supprimer les phrases ?"
     );
@@ -401,10 +487,9 @@ const GeneratedSentencesManagementPanel = () => {
       return;
     }
 
-    const hasFilter = Boolean(levelFilter || themeFilter.trim() || searchText.trim());
     const confirmDelete = await confirmAction(
       "Suppression de phrases",
-      hasFilter
+      hasActiveFilters
         ? "Supprimer toutes les phrases correspondant aux filtres actuels ?"
         : "Supprimer toutes les phrases générées stockées en base ?"
     );
@@ -460,126 +545,238 @@ const GeneratedSentencesManagementPanel = () => {
         </div>
 
         <div className="min-w-[180px] rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-violet-700">Phrases stockées</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+            {hasActiveFilters ? "Phrases correspondantes" : "Phrases stockées"}
+          </div>
           <div className="text-2xl font-bold text-violet-900">{loading ? "..." : total}</div>
         </div>
       </div>
 
-      <form id="generated-sentences-management-filters" className="grid gap-3 md:grid-cols-5" onSubmit={handleApplyFilters}>
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Niveau</label>
-          <select
-            id="generated-sentences-level-filter"
-            value={levelFilter}
-            onChange={(event) => setLevelFilter(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          >
-            {LEVEL_OPTIONS.map((level) => (
-              <option key={level || "all"} value={level}>
-                {level || "Tous"}
-              </option>
-            ))}
-          </select>
+      <form id="generated-sentences-management-filters" className="space-y-4" onSubmit={handleApplyFilters}>
+        {/* Filtres généraux */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label htmlFor="generated-sentences-level-filter" className="mb-1 block text-sm font-semibold text-slate-700">
+              Niveau
+            </label>
+            <select
+              id="generated-sentences-level-filter"
+              value={levelFilter}
+              onChange={(event) => setLevelFilter(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            >
+              {LEVEL_OPTIONS.map((level) => (
+                <option key={level || "all"} value={level}>
+                  {level || "Tous les niveaux"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="generated-sentences-theme-filter" className="mb-1 block text-sm font-semibold text-slate-700">
+              Thème
+            </label>
+            <input
+              id="generated-sentences-theme-filter"
+              type="text"
+              value={themeFilter}
+              onChange={(event) => setThemeFilter(event.target.value)}
+              placeholder="animaux, école..."
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="generated-sentences-search-filter" className="mb-1 block text-sm font-semibold text-slate-700">
+              Recherche texte
+            </label>
+            <input
+              id="generated-sentences-search-filter"
+              type="text"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder="Mot présent dans la phrase"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="generated-sentences-sort-order" className="mb-1 block text-sm font-semibold text-slate-700">
+              Tri
+            </label>
+            <select
+              id="generated-sentences-sort-order"
+              value={sortOrder}
+              onChange={(event) => setSortOrder(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Thème</label>
-          <input
-            id="generated-sentences-theme-filter"
-            type="text"
-            value={themeFilter}
-            onChange={(event) => setThemeFilter(event.target.value)}
-            placeholder="animaux, école..."
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
+        {/* Filtres de requêtes activités */}
+        <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div>
+              <label htmlFor="generated-sentences-tense-filter" className="mb-1 block text-xs font-semibold text-slate-700">
+                Temps du verbe
+              </label>
+              <select
+                id="generated-sentences-tense-filter"
+                value={tenseFilter}
+                onChange={(event) => setTenseFilter(event.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              >
+                {TENSE_OPTIONS.map((option) => (
+                  <option key={option.value || "all"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="generated-sentences-infinitive-filter" className="mb-1 block text-xs font-semibold text-slate-700">
+                Infinitif en
+              </label>
+              <input
+                id="generated-sentences-infinitive-filter"
+                type="text"
+                value={infinitiveEndingFilter}
+                onChange={(event) => setInfinitiveEndingFilter(event.target.value)}
+                placeholder="ex: er, ir"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="generated-sentences-endings-filter" className="mb-1 block text-xs font-semibold text-slate-700">
+                Terminaisons verbe
+              </label>
+              <input
+                id="generated-sentences-endings-filter"
+                type="text"
+                value={conjugatedEndingsFilter}
+                onChange={(event) => setConjugatedEndingsFilter(event.target.value)}
+                placeholder="ex: e, es, ent"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="generated-sentences-words-filter" className="mb-1 block text-xs font-semibold text-slate-700">
+                Mots / Homophones
+              </label>
+              <input
+                id="generated-sentences-words-filter"
+                type="text"
+                value={wordsFilter}
+                onChange={(event) => setWordsFilter(event.target.value)}
+                placeholder="ex: a, à ou et, est"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="generated-sentences-natures-filter" className="mb-1 block text-xs font-semibold text-slate-700">
+                Natures requises
+              </label>
+              <input
+                id="generated-sentences-natures-filter"
+                type="text"
+                value={naturesFilter}
+                onChange={(event) => setNaturesFilter(event.target.value)}
+                placeholder="ex: verbe, nom"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Recherche</label>
-          <input
-            id="generated-sentences-search-filter"
-            type="text"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            placeholder="Mot présent dans la phrase"
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
-        </div>
+        {/* Boutons d'action */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              id="generated-sentences-apply-filters-button"
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+            >
+              {loading ? "Chargement..." : "Actualiser"}
+            </button>
 
-        <div>
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Tri</label>
-          <select
-            id="generated-sentences-sort-order"
-            value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            <button
+              id="generated-sentences-reset-filters-button"
+              type="button"
+              onClick={handleResetFilters}
+              disabled={loading}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            >
+              Effacer les filtres
+            </button>
 
-        <div className="flex items-end gap-2 md:col-span-2">
-          <button
-            id="generated-sentences-apply-filters-button"
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
-          >
-            {loading ? "Chargement..." : "Actualiser"}
-          </button>
+            {hasActiveFilters && (
+              <span id="generated-sentences-active-filters-badge" className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-800">
+                Filtres actifs
+              </span>
+            )}
+          </div>
 
-          <button
-            id="generated-sentences-reset-counters-button"
-            type="button"
-            onClick={handleResetCounters}
-            disabled={resettingCounters || deletingAll || loading || total === 0}
-            className="rounded-lg bg-amber-500 px-4 py-2 text-white hover:bg-amber-600 disabled:opacity-60"
-          >
-            {resettingCounters ? "Réinitialisation..." : "Réinitialiser les compteurs"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              id="generated-sentences-reset-counters-button"
+              type="button"
+              onClick={handleResetCounters}
+              disabled={resettingCounters || deletingAll || loading || total === 0}
+              className="rounded-lg bg-amber-500 px-4 py-2 text-white hover:bg-amber-600 disabled:opacity-60"
+            >
+              {resettingCounters ? "Réinitialisation..." : "Réinitialiser les compteurs"}
+            </button>
 
-          <button
-            id="generated-sentences-import-json-button"
-            type="button"
-            onClick={handlePickImportJson}
-            disabled={loadingImportJson || deletingAll || resettingCounters || loading}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
-          >
-            {loadingImportJson ? "Import JSON..." : "Importer JSON"}
-          </button>
+            <button
+              id="generated-sentences-import-json-button"
+              type="button"
+              onClick={handlePickImportJson}
+              disabled={loadingImportJson || deletingAll || resettingCounters || loading}
+              className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+            >
+              {loadingImportJson ? "Import JSON..." : "Importer JSON"}
+            </button>
 
-          <button
-            id="generated-sentences-export-json-button"
-            type="button"
-            onClick={handleExportJson}
-            disabled={loadingExportJson || deletingAll || resettingCounters || loading || total === 0}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {loadingExportJson ? "Export JSON..." : "Exporter JSON"}
-          </button>
+            <button
+              id="generated-sentences-export-json-button"
+              type="button"
+              onClick={handleExportJson}
+              disabled={loadingExportJson || deletingAll || resettingCounters || loading || total === 0}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {loadingExportJson ? "Export JSON..." : "Exporter JSON"}
+            </button>
 
-          <button
-            id="generated-sentences-delete-all-button"
-            type="button"
-            onClick={handleDeleteAll}
-            disabled={deletingAll || resettingCounters || loading || total === 0}
-            className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
-          >
-            {deletingAll ? "Suppression..." : "Supprimer Tout"}
-          </button>
+            <button
+              id="generated-sentences-delete-all-button"
+              type="button"
+              onClick={handleDeleteAll}
+              disabled={deletingAll || resettingCounters || loading || total === 0}
+              className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+            >
+              {deletingAll ? "Suppression..." : "Supprimer Tout"}
+            </button>
+          </div>
         </div>
       </form>
 
       {showMessage && message && (
         <div
           id="generated-sentences-management-message"
-          className={`mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-            fadeMessage ? "opacity-0" : "opacity-100"
-          }`}
+          className={`mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeMessage ? "opacity-0" : "opacity-100"
+            }`}
         >
           {message}
         </div>
@@ -628,11 +825,10 @@ const GeneratedSentencesManagementPanel = () => {
                 key={sentence.id}
                 id={`generated-sentences-item-${sentence.id}`}
                 onClick={() => handleSelectSentence(sentence.id)}
-                className={`cursor-pointer rounded-lg border p-4 transition ${
-                  isSelected
+                className={`cursor-pointer rounded-lg border p-4 transition ${isSelected
                     ? "border-violet-300 bg-violet-50 shadow-sm"
                     : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                }`}
+                  }`}
               >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2">
@@ -650,11 +846,15 @@ const GeneratedSentencesManagementPanel = () => {
                       <span className="rounded-full bg-slate-200 px-2.5 py-1 font-semibold text-slate-700">
                         {sentence.provider || "source inconnue"}
                       </span>
-                      {Array.isArray(sentence.words) && sentence.words.some((w) => w.temps) && (
+                      {Array.isArray(sentence.words) && sentence.words.some((w) => w.temps) ? (
                         <span className="rounded-full bg-purple-100 px-2.5 py-1 font-semibold text-purple-800">
                           Verbes : {sentence.words.filter((w) => w.temps).map((w) => `${w.word} (${w.temps}${w.infinitif ? ` • ${w.infinitif}` : ""})`).join(", ")}
                         </span>
-                      )}
+                      ) : Array.isArray(sentence.words) && sentence.words.some((w) => String(w?.nature || "").toLowerCase().includes("verbe") && !String(w?.nature || "").toLowerCase().includes("adverbe")) ? (
+                        <span className="rounded-full bg-purple-100 px-2.5 py-1 font-semibold text-purple-800">
+                          Verbes : {sentence.words.filter((w) => String(w?.nature || "").toLowerCase().includes("verbe") && !String(w?.nature || "").toLowerCase().includes("adverbe")).map((w) => `${w.word}${w.infinitif ? ` (${w.infinitif})` : ""}`).join(", ")}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="text-xs text-slate-500">
                       Ajoutée le {formatDate(sentence.created_at)} • modèle : {sentence.model || "—"}

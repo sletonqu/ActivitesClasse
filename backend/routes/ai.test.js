@@ -5,6 +5,12 @@ const {
   buildSentencePrompt,
   buildGeneratedSentenceExportItem,
   selectBalancedSentencesByEnding,
+  sentenceContainsVerbWithEnding,
+  sentenceContainsAnyWord,
+  sentenceContainsRequiredNatures,
+  normalizeEndingsFilter,
+  normalizeWordsFilter,
+  normalizeRequiredNatureFilters,
 } = require('./ai');
 
 
@@ -258,5 +264,94 @@ test('selectBalancedSentencesByEnding en mode non-strict ne lève pas d\'erreur 
   assert.equal(result.strictErrors.length, 0);
   assert.equal(result.selectedSentences.length, 1);
 });
+
+test('normalizeEndingsFilter normalise correctement les listes et chaînes avec tirets et séparateurs', () => {
+  assert.deepEqual(normalizeEndingsFilter('-e, -es, -ent'), ['e', 'es', 'ent']);
+  assert.deepEqual(normalizeEndingsFilter(['-ons', '-ez']), ['ons', 'ez']);
+  assert.deepEqual(normalizeEndingsFilter('ait; aient'), ['ait', 'aient']);
+  assert.deepEqual(normalizeEndingsFilter(''), []);
+});
+
+test('normalizeWordsFilter normalise les mots et homophones', () => {
+  assert.deepEqual(normalizeWordsFilter('a, à'), ['a', 'à']);
+  assert.deepEqual(normalizeWordsFilter('et; est'), ['et', 'est']);
+  assert.deepEqual(normalizeWordsFilter(['on', 'ont']), ['on', 'ont']);
+  assert.deepEqual(normalizeWordsFilter(''), []);
+});
+
+test('normalizeRequiredNatureFilters normalise les familles de natures', () => {
+  assert.deepEqual(normalizeRequiredNatureFilters('verbe, nom commun, adjectif'), ['verbe', 'nom', 'adjectif']);
+  assert.deepEqual(normalizeRequiredNatureFilters(['verbe', 'nom']), ['verbe', 'nom']);
+  assert.deepEqual(normalizeRequiredNatureFilters(''), []);
+});
+
+test('sentenceContainsVerbWithEnding filtre par temps, infinitif et terminaison de manière flexible', () => {
+  const sentence = {
+    sentence: "Le renard marchait dans la forêt.",
+    words: [
+      { word: "Le", nature: "déterminant" },
+      { word: "renard", nature: "nom" },
+      { word: "marchait", nature: "verbe", temps: "imparfait", infinitif: "marcher" },
+      { word: "dans", nature: "préposition" },
+      { word: "la", nature: "déterminant" },
+      { word: "forêt", nature: "nom" },
+    ],
+  };
+
+  // Temps seul
+  assert.equal(sentenceContainsVerbWithEnding(sentence, [], '', 'imparfait'), true);
+  assert.equal(sentenceContainsVerbWithEnding(sentence, [], '', 'présent'), false);
+
+  // Infinitif seul
+  assert.equal(sentenceContainsVerbWithEnding(sentence, [], 'er', ''), true);
+  assert.equal(sentenceContainsVerbWithEnding(sentence, [], 'ir', ''), false);
+
+  // Terminaison seule
+  assert.equal(sentenceContainsVerbWithEnding(sentence, ['ait'], '', ''), true);
+  assert.equal(sentenceContainsVerbWithEnding(sentence, ['aient', 'ons'], '', ''), false);
+
+  // Combinaison temps + infinitif + terminaison
+  assert.equal(sentenceContainsVerbWithEnding(sentence, ['ait'], 'er', 'imparfait'), true);
+  assert.equal(sentenceContainsVerbWithEnding(sentence, ['ait'], 'ir', 'imparfait'), false);
+});
+
+test('sentenceContainsAnyWord détecte la présence de n\'importe quel mot recherché', () => {
+  const sentence = {
+    sentence: "Il a faim et il mange à la cantine.",
+    words: [
+      { word: "Il", nature: "pronom" },
+      { word: "a", nature: "verbe" },
+      { word: "faim", nature: "nom" },
+      { word: "et", nature: "conjonction" },
+      { word: "il", nature: "pronom" },
+      { word: "mange", nature: "verbe" },
+      { word: "à", nature: "préposition" },
+      { word: "la", nature: "déterminant" },
+      { word: "cantine", nature: "nom" },
+    ],
+  };
+
+  assert.equal(sentenceContainsAnyWord(sentence, ['a', 'à']), true);
+  assert.equal(sentenceContainsAnyWord(sentence, ['ont', 'on']), false);
+  assert.equal(sentenceContainsAnyWord(sentence, []), true);
+});
+
+test('sentenceContainsRequiredNatures vérifie la présence de toutes les familles requises', () => {
+  const sentence = {
+    sentence: "Le petit chat dort.",
+    words: [
+      { word: "Le", nature: "déterminant" },
+      { word: "petit", nature: "adjectif" },
+      { word: "chat", nature: "nom" },
+      { word: "dort", nature: "verbe" },
+    ],
+  };
+
+  assert.equal(sentenceContainsRequiredNatures(sentence, ['nom', 'verbe']), true);
+  assert.equal(sentenceContainsRequiredNatures(sentence, ['nom', 'verbe', 'adjectif']), true);
+  assert.equal(sentenceContainsRequiredNatures(sentence, ['nom', 'verbe', 'adverbe']), false);
+  assert.equal(sentenceContainsRequiredNatures(sentence, []), true);
+});
+
 
 
