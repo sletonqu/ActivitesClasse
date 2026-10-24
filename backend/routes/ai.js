@@ -1313,8 +1313,7 @@ router.get('/generated-sentences/practice', async (req, res) => {
       `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
        FROM generated_sentences
        ${whereClause}
-       ORDER BY COALESCE(compteur, 0) ASC, id DESC
-       LIMIT 500`,
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC`,
       params
     );
 
@@ -1589,12 +1588,26 @@ router.get('/verbs-by-ending', async (req, res) => {
       return res.status(400).json({ error: 'Aucune terminaison valide fournie' });
     }
 
+    const rawLevel = normalizeText(req.query?.level).toUpperCase();
+    const rawTheme = normalizeText(req.query?.theme).toLowerCase();
+    const where = [];
+    const params = [];
+    if (rawLevel) {
+      where.push('UPPER(level) = ?');
+      params.push(rawLevel);
+    }
+    if (rawTheme) {
+      where.push('LOWER(theme) LIKE ?');
+      params.push(`%${rawTheme}%`);
+    }
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
     const rows = await allAsync(
       `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
        FROM generated_sentences
-       ORDER BY COALESCE(compteur, 0) ASC, id DESC
-       LIMIT 500`,
-      []
+       ${whereClause}
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC`,
+      params
     );
     const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
 
@@ -1683,20 +1696,34 @@ router.get('/sentences-by-word', async (req, res) => {
       });
     }
 
+    const rawLevel = normalizeText(req.query?.level).toUpperCase();
+    const rawTheme = normalizeText(req.query?.theme).toLowerCase();
+    const where = [];
+    const params = [];
+    if (rawLevel) {
+      where.push('UPPER(level) = ?');
+      params.push(rawLevel);
+    }
+    if (rawTheme) {
+      where.push('LOWER(theme) LIKE ?');
+      params.push(`%${rawTheme}%`);
+    }
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const rows = await allAsync(
+      `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
+       FROM generated_sentences
+       ${whereClause}
+       ORDER BY COALESCE(compteur, 0) ASC, id DESC`,
+      params
+    );
+    const candidateSentences = rows.map((row) => buildGeneratedSentenceFromRow(row));
+
     // Fetch least-used sentences for each word
     const allSentencesByWord = new Map();
 
     for (const word of words) {
-      const rows = await allAsync(
-        `SELECT id, sentence, level, theme, provider, model, payload, compteur, created_at
-         FROM generated_sentences
-         ORDER BY COALESCE(compteur, 0) ASC, id DESC
-         LIMIT 500`,
-        []
-      );
-
-      const eligibleSentences = rows
-        .map((row) => buildGeneratedSentenceFromRow(row))
+      const eligibleSentences = candidateSentences
         .filter((sentence) => sentenceContainsAllWords(sentence, [word]))
         .slice(0, 10);
 
