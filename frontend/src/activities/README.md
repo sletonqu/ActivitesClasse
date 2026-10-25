@@ -1104,17 +1104,30 @@ Exemple de configuration :
 
 Paramètres :
 
-- `verb` : `'être'` ou `'avoir'` (définit le verbe conjugué par défaut) ;
+- `verb` : `'être'`, `'avoir'`, `'verbe 1er groupe'` (ou un verbe spécifique en `-er` comme `'chanter'`, `'manger'`, `'tracer'`) ;
 - `tense` (ou `temps`) : `'present'`, `'futur'` ou `'imparfait'` (définit le temps de conjugaison) ;
 - `randomOrder` : `false` (ordre canonique `je, tu, il/elle, nous, vous, ils/elles`) ou `true` (ordre aléatoire des pronoms/verbes) ;
 - `target` : `'verb'` (verbes à placer/écrire) ou `'pronoun'` (pronoms à placer/écrire) ;
 - `mode` : `'drag'` (glisser-déposer ou clic hybride des étiquettes depuis le pool) ou `'input'` (saisie au clavier directement dans les cases) ;
 - `defaultLevel` : niveau sélectionné par défaut (`level1` à `level4`).
 
-Temps supportés :
-- **Présent** : *être* (`suis, es, est, sommes, êtes, sont`) / *avoir* (`ai, as, a, avons, avez, ont`) ;
-- **Futur** : *être* (`serai, seras, sera, serons, serez, seront`) / *avoir* (`aurai, auras, aura, aurons, aurez, auront`) ;
-- **Imparfait** : *être* (`étais, étais, était, étions, étiez, étaient`) / *avoir* (`avais, avais, avait, avions, aviez, avaient`).
+Temps et verbes supportés :
+- **Verbes auxiliaires** :
+  - **Présent** : *être* (`suis, es, est, sommes, êtes, sont`) / *avoir* (`ai, as, a, avons, avez, ont`) ;
+  - **Futur** : *être* (`serai, seras, sera, serons, serez, seront`) / *avoir* (`aurai, auras, aura, aurons, aurez, auront`) ;
+  - **Imparfait** : *être* (`étais, étais, était, étions, étiez, étaient`) / *avoir* (`avais, avais, avait, avions, aviez, avaient`).
+- **Verbes du 1er groupe (`verb: "verbe 1er groupe"`) au présent** :
+  - Récupération aléatoire d'un verbe dans la base de données via la route `/api/words?nature=verbe 1er groupe` (avec repli local si hors-ligne) ;
+  - Étiquettes du pool contenant uniquement les terminaisons (`-e, -es, -e, -ons, -ez, -ent` ou `-eons`) sans le radical ;
+  - Une fois l'étiquette placée dans la case de dépôt, affichage du verbe complet combinant le radical légèrement moins gras et la terminaison légèrement plus grasse ;
+  - Affichage du radical avec pointillés (ex: `chant...`) dans la case vide et comme placeholder de saisie ;
+  - **Cas particuliers pris en charge** :
+    - Verbes en `-ger` (ex: *manger*) : ajout du `e` à la 1ère personne du pluriel (`mang[eons]`) ;
+    - Verbes en `-cer` (ex: *tracer*) : remplacement du `c` par `ç` en gras à la 1ère personne du pluriel (`traç[ons]`) ;
+    - Verbes commençant par une voyelle ou h muet (ex: *aimer*) : élision automatique du pronom `j'` (`j'aime`) ;
+    - **Exclusion des verbes pronominaux** : les verbes précédés d'un `s'` (ex: *s'envoler*, *s'amuser*) ou de `se` sont automatiquement ignorés lors de la sélection aléatoire et de la validation ;
+  - Au **Niveau 3** (placement des pronoms), tolérance ergonomique acceptant indifféremment `je` ou `il / elle` sur les deux lignes ayant la même forme verbale (ex: `chante`) ;
+  - Bouton **Recommencer** : tire un nouveau verbe aléatoire dans la base de données à chaque nouvelle partie.
 
 Niveaux prédéfinis :
 
@@ -1126,8 +1139,8 @@ Niveaux prédéfinis :
 Code couleur et animations :
 
 - Les pronoms sont affichés en **violet** (`bg-purple-100 text-purple-800` et `animate-pulse-slow-purple`) ;
-- Les verbes sont affichés en **rouge** (`bg-red-100 text-red-700` et `animate-pulse-slow-red`) ;
-- Le choix du verbe (*être* ou *avoir*) et du temps (*présent*, *futur*, *imparfait*) peut être défini globalement ou par niveau.
+- Les verbes sont affichés en **rouge** (`bg-red-100 text-red-700` et `animate-pulse-slow-red`) avec terminaisons et particularités en gras ;
+- Le choix du verbe (*être*, *avoir*, ou *verbe 1er groupe*) et du temps peut être défini globalement ou par niveau.
 
 ---
 

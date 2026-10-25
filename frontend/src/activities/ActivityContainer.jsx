@@ -105,6 +105,7 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile, activ
         className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white px-1.5 pt-1.5 pb-0 shadow sm:px-2 sm:pt-2 sm:pb-0 print:max-w-[300mm] print:overflow-visible print:p-6"
       >
         <SelectedActivityComponent
+          key={activityProps?.activityId ? `activity-comp-${activityProps.activityId}` : undefined}
           student={student}
           content={content}
           onComplete={onComplete}

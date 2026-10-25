@@ -10,6 +10,15 @@ import VerbConjugationActivity, {
   normalizeTarget,
   normalizeMode,
   CONJUGATION_TABLE,
+  isFirstGroupVerb,
+  isPronominalVerb,
+  pickRandomVerb,
+  clearFirstGroupVerbsCache,
+  generateFirstGroupConjugation,
+  ConjugatedVerbText,
+  FALLBACK_FIRST_GROUP_VERBS,
+  fetchFirstGroupVerbs,
+  buildInitialPool,
 } from "./VerbConjugationActivity";
 
 describe("VerbConjugationActivity", () => {
@@ -22,7 +31,26 @@ describe("VerbConjugationActivity", () => {
     expect(html).toContain('id="verb-conjugation-hero"');
     expect(html).toContain('id="verb-conjugation-board"');
     expect(html).toContain('id="verb-conjugation-section"');
+    expect(html).toContain('id="verb-conjugation-header"');
+    expect(html).toContain('id="verb-conjugation-header-content"');
+    expect(html).toContain('id="verb-conjugation-title-group"');
+    expect(html).toContain('id="verb-conjugation-title-row"');
+    expect(html).toContain('id="verb-conjugation-title"');
+    expect(html).toContain('id="verb-conjugation-active-verb"');
+    expect(html).toContain('id="verb-conjugation-tense-subtitle"');
+    expect(html).toContain('id="verb-conjugation-body"');
+    expect(html).toContain('id="verb-conjugation-rows-panel"');
+    expect(html).toContain('id="verb-conjugation-rows"');
+    expect(html).toContain('id="verb-conjugation-row-0"');
+    expect(html).toContain('id="verb-conjugation-pronoun-0"');
+    expect(html).toContain('id="verb-conjugation-slot-0"');
+    expect(html).toContain('id="verb-conjugation-placeholder-0"');
     expect(html).toContain('id="verb-conjugation-pool-section"');
+    expect(html).toContain('id="verb-conjugation-pool-header"');
+    expect(html).toContain('id="verb-conjugation-pool-title"');
+    expect(html).toContain('id="verb-conjugation-pool-subtitle"');
+    expect(html).toContain('id="verb-conjugation-pool-dropzone"');
+    expect(html).toContain('id="verb-conjugation-pool-tiles-grid"');
   });
 
   it("génère les 6 personnes canoniques pour être et avoir au présent, futur et imparfait", () => {
@@ -137,7 +165,10 @@ describe("VerbConjugationActivity", () => {
       />
     );
 
-    // Verbes en rouge
+    // Verbes en rouge avec ID
+    expect(html).toContain('id="verb-conjugation-verb-0"');
+    expect(html).toContain('id="verb-conjugation-slot-0"');
+    expect(html).toContain('id="verb-conjugation-placeholder-0"');
     expect(html).toContain("text-red-700");
     expect(html).toContain("bg-red-100");
 
@@ -155,7 +186,9 @@ describe("VerbConjugationActivity", () => {
       />
     );
 
-    // Doit contenir des balises input avec pulsation
+    // Doit contenir des balises input avec IDs et pulsation
+    expect(html).toContain('id="verb-conjugation-input-container-0"');
+    expect(html).toContain('id="verb-conjugation-input-0"');
     expect(html).toContain("<input");
     expect(html).toContain("animate-pulse-slow-red");
 
@@ -292,4 +325,335 @@ describe("VerbConjugationActivity", () => {
     expect(isAnswerCorrect("etiez", "étiez", "verb")).toBe(true);
     expect(isAnswerCorrect("etaient", "étaient", "verb")).toBe(true);
   });
+
+  it("identifie correctement les verbes du 1er groupe avec isFirstGroupVerb et normalizeVerbKey", () => {
+    expect(isFirstGroupVerb("verbe 1er groupe")).toBe(true);
+    expect(isFirstGroupVerb("1er groupe")).toBe(true);
+    expect(isFirstGroupVerb("premier groupe")).toBe(true);
+    expect(isFirstGroupVerb("chanter")).toBe(true);
+    expect(isFirstGroupVerb("manger")).toBe(true);
+    expect(isFirstGroupVerb("tracer")).toBe(true);
+    expect(isFirstGroupVerb("être")).toBe(false);
+    expect(isFirstGroupVerb("avoir")).toBe(false);
+    expect(isFirstGroupVerb("aller")).toBe(false); // aller est du 3ème groupe
+
+    // Exclusion des verbes précédés d'un s' (comme s'envoler) ou de se
+    expect(isFirstGroupVerb("s'envoler")).toBe(false);
+    expect(isFirstGroupVerb("s’envoler")).toBe(false);
+    expect(isFirstGroupVerb("s'amuser")).toBe(false);
+    expect(isFirstGroupVerb("se promener")).toBe(false);
+    expect(isFirstGroupVerb("se laver")).toBe(false);
+
+    expect(normalizeVerbKey("verbe 1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("chanter")).toBe("chanter");
+    expect(normalizeVerbKey("manger")).toBe("manger");
+    expect(normalizeVerbKey("s'envoler")).toBe("être");
+    expect(normalizeVerbKey("se promener")).toBe("être");
+  });
+
+  it("génère la conjugaison d'un verbe régulier du 1er groupe au présent (ex: chanter)", () => {
+    const list = generateFirstGroupConjugation("chanter", "present");
+    expect(list).toHaveLength(6);
+
+    expect(list[0]).toEqual({
+      id: "chanter-present-1",
+      person: 1,
+      pronoun: "je",
+      verb: "chante",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "e" },
+    });
+    expect(list[1]).toEqual({
+      id: "chanter-present-2",
+      person: 2,
+      pronoun: "tu",
+      verb: "chantes",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "es" },
+    });
+    expect(list[2]).toEqual({
+      id: "chanter-present-3",
+      person: 3,
+      pronoun: "il / elle",
+      verb: "chante",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "e" },
+    });
+    expect(list[3]).toEqual({
+      id: "chanter-present-4",
+      person: 4,
+      pronoun: "nous",
+      verb: "chantons",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "ons" },
+    });
+    expect(list[4]).toEqual({
+      id: "chanter-present-5",
+      person: 5,
+      pronoun: "vous",
+      verb: "chantez",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "ez" },
+    });
+    expect(list[5]).toEqual({
+      id: "chanter-present-6",
+      person: 6,
+      pronoun: "ils / elles",
+      verb: "chantent",
+      placeholder: "chant...",
+      parts: { stem: "chant", specialChar: "", ending: "ent" },
+    });
+  });
+
+  it("gère le cas particulier des verbes en -ger au présent (ex: manger avec eons pour nous)", () => {
+    const list = generateFirstGroupConjugation("manger", "present");
+    expect(list).toHaveLength(6);
+
+    expect(list[0].verb).toBe("mange");
+    expect(list[0].parts).toEqual({ stem: "mang", specialChar: "", ending: "e" });
+
+    // Avec nous, la terminaison prend un e (mang + eons)
+    expect(list[3].pronoun).toBe("nous");
+    expect(list[3].verb).toBe("mangeons");
+    expect(list[3].placeholder).toBe("mang...");
+    expect(list[3].parts).toEqual({ stem: "mang", specialChar: "", ending: "eons" });
+
+    expect(list[4].verb).toBe("mangez");
+    expect(list[5].verb).toBe("mangent");
+  });
+
+  it("gère le cas particulier des verbes en -cer au présent (ex: tracer avec çons pour nous)", () => {
+    const list = generateFirstGroupConjugation("tracer", "present");
+    expect(list).toHaveLength(6);
+
+    expect(list[0].verb).toBe("trace");
+    expect(list[0].parts).toEqual({ stem: "trac", specialChar: "", ending: "e" });
+
+    // Avec nous, le c devient ç et la terminaison est ons (tra + ç + ons)
+    expect(list[3].pronoun).toBe("nous");
+    expect(list[3].verb).toBe("traçons");
+    expect(list[3].placeholder).toBe("traç...");
+    expect(list[3].parts).toEqual({ stem: "tra", specialChar: "ç", ending: "ons" });
+
+    expect(list[4].verb).toBe("tracez");
+    expect(list[5].verb).toBe("tracent");
+  });
+
+  it("gère l'élision du pronom j' pour les verbes commençant par une voyelle ou h muet (ex: aimer)", () => {
+    const list = generateFirstGroupConjugation("aimer", "present");
+    expect(list[0].pronoun).toBe("j'");
+    expect(list[0].verb).toBe("aime");
+    expect(list[0].placeholder).toBe("aim...");
+  });
+
+  it("ConjugatedVerbText affiche le radical et met la terminaison et le ç en gras", () => {
+    // Cas régulier : chanter
+    const htmlChante = renderToStaticMarkup(
+      <ConjugatedVerbText
+        text="chante"
+        parts={{ stem: "chant", specialChar: "", ending: "e" }}
+      />
+    );
+    expect(htmlChante).toContain("font-medium");
+    expect(htmlChante).toContain("chant");
+    expect(htmlChante).toContain("font-black");
+    expect(htmlChante).toContain("e");
+
+    // Cas -cer avec nous : traçons
+    const htmlTracons = renderToStaticMarkup(
+      <ConjugatedVerbText
+        text="traçons"
+        parts={{ stem: "tra", specialChar: "ç", ending: "ons" }}
+      />
+    );
+    expect(htmlTracons).toContain("tra");
+    expect(htmlTracons).toContain("ç");
+    expect(htmlTracons).toContain("ons");
+    expect(htmlTracons).toContain("underline");
+  });
+
+  it("génère dans le pool uniquement les terminaisons pour le 1er groupe, et le verbe complet pour être et avoir", () => {
+    // Mode verbe 1er groupe régulier : chanter
+    const poolChanter = buildInitialPool(
+      "verbe 1er groupe",
+      { target: "verb", mode: "drag", tense: "present" },
+      "chanter"
+    );
+    const poolChanterTexts = poolChanter.map((t) => t.text).sort();
+    // Les étiquettes ne doivent contenir UNIQUEMENT que les terminaisons
+    expect(poolChanterTexts).toEqual(["e", "e", "ent", "es", "ez", "ons"]);
+    expect(poolChanterTexts).not.toContain("chante");
+    expect(poolChanterTexts).not.toContain("chantons");
+
+    // Mode verbe 1er groupe particulier : manger (-ger)
+    const poolManger = buildInitialPool(
+      "verbe 1er groupe",
+      { target: "verb", mode: "drag", tense: "present" },
+      "manger"
+    );
+    const poolMangerTexts = poolManger.map((t) => t.text).sort();
+    expect(poolMangerTexts).toEqual(["e", "e", "ent", "eons", "es", "ez"]);
+
+    // Mode être : doit conserver les verbes complets
+    const poolEtre = buildInitialPool("être", { target: "verb", mode: "drag", tense: "present" });
+    const poolEtreTexts = poolEtre.map((t) => t.text).sort();
+    expect(poolEtreTexts).toEqual(["es", "est", "sont", "suis", "sommes", "êtes"].sort());
+
+    // Mode avoir : doit conserver les verbes complets
+    const poolAvoir = buildInitialPool("avoir", { target: "verb", mode: "drag", tense: "present" });
+    const poolAvoirTexts = poolAvoir.map((t) => t.text).sort();
+    expect(poolAvoirTexts).toEqual(["a", "ai", "as", "avons", "avez", "ont"].sort());
+  });
+
+  it("rend l'activité avec verb='verbe 1er groupe' au présent avec placeholder et badge adaptés", () => {
+    const html = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{
+          verb: "verbe 1er groupe",
+          tense: "present",
+          defaultLevel: "level1",
+        }}
+        onComplete={() => {}}
+      />
+    );
+
+    expect(html).toContain('id="verb-conjugation-activity-root"');
+    expect(html).toContain("(1er gr.)");
+    expect(html).toContain("Verbe du 1er Groupe");
+    expect(html).toContain('id="verb-conjugation-active-verb"');
+    expect(html).toContain("Présent de l&#x27;indicatif");
+    // La zone de dépôt affiche le placeholder (avec pointillés)
+    expect(html).toContain("...");
+    // Le pool affiche le sous-titre spécifique aux terminaisons
+    expect(html).toContain("Terminaisons en rouge à placer :");
+  });
+
+  it("tolère indifféremment [je] ou [il / elle] sur les deux lignes ayant la même forme verbale au Niveau 3", () => {
+    const optionsSwap = { canSwapFirstThirdSingular: true };
+
+    // Si la ligne attend "je" (forme verbe: chante)
+    expect(isAnswerCorrect("je", "je", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("il / elle", "je", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("il", "je", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("elle", "je", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("tu", "je", "pronoun", optionsSwap)).toBe(false);
+
+    // Si la ligne attend "il / elle" (forme verbe: chante)
+    expect(isAnswerCorrect("il / elle", "il / elle", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("je", "il / elle", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("j'", "il / elle", "pronoun", optionsSwap)).toBe(true);
+    expect(isAnswerCorrect("vous", "il / elle", "pronoun", optionsSwap)).toBe(false);
+  });
+
+  it("valide correctement quand l'élève dépose la terminaison seule (ex: ons) ou le verbe complet", () => {
+    // Cas où l'élève a placé la terminaison seule
+    expect(
+      isAnswerCorrect("ons", "chantons", "verb", {
+        expectedEnding: "ons",
+        expectedVerb: "chantons",
+      })
+    ).toBe(true);
+
+    expect(
+      isAnswerCorrect("eons", "mangeons", "verb", {
+        expectedEnding: "eons",
+        expectedVerb: "mangeons",
+      })
+    ).toBe(true);
+
+    expect(
+      isAnswerCorrect("ez", "chantons", "verb", {
+        expectedEnding: "ons",
+        expectedVerb: "chantons",
+      })
+    ).toBe(false);
+  });
+
+  it("tolère l'absence de cédille (tracons au lieu de traçons) pour jeunes élèves", () => {
+    expect(isAnswerCorrect("tracons", "traçons", "verb")).toBe(true);
+    expect(isAnswerCorrect("traçons", "traçons", "verb")).toBe(true);
+  });
+
+  it("isPronominalVerb détecte les verbes précédés d'un s' ou de se et préserve les verbes réguliers commençant par se-", () => {
+    expect(isPronominalVerb("s'envoler")).toBe(true);
+    expect(isPronominalVerb("s’envoler")).toBe(true);
+    expect(isPronominalVerb("S'ENVOLER")).toBe(true);
+    expect(isPronominalVerb("s'amuser")).toBe(true);
+    expect(isPronominalVerb("s'échapper")).toBe(true);
+    expect(isPronominalVerb("s ' envoler")).toBe(true);
+    expect(isPronominalVerb("se laver")).toBe(true);
+    expect(isPronominalVerb("se promener")).toBe(true);
+
+    // Les verbes réguliers dont la racine commence par "se" sans espace ni apostrophe ne sont pas pronominaux
+    expect(isPronominalVerb("semer")).toBe(false);
+    expect(isPronominalVerb("serrer")).toBe(false);
+    expect(isPronominalVerb("secouer")).toBe(false);
+    expect(isPronominalVerb("sembler")).toBe(false);
+    expect(isPronominalVerb("chanter")).toBe(false);
+    expect(isPronominalVerb("sauter")).toBe(false);
+    expect(isPronominalVerb("")).toBe(false);
+    expect(isPronominalVerb(null)).toBe(false);
+  });
+
+  it("pickRandomVerb ignore les verbes précédés de s' ou se", () => {
+    const listWithPronominal = ["s'envoler", "se promener", "chanter"];
+    // Seul "chanter" doit être sélectionné
+    expect(pickRandomVerb(listWithPronominal)).toBe("chanter");
+  });
+
+  it("fetchFirstGroupVerbs filtre les verbes précédés d'un s' (comme s'envoler) ou de se depuis l'API", async () => {
+    clearFirstGroupVerbsCache();
+    const originalFetch = global.fetch;
+    try {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          { word: "s'envoler", nature: "verbe 1er groupe" },
+          { word: "s’amuser", nature: "verbe 1er groupe" },
+          { word: "chanter", nature: "verbe 1er groupe" },
+          { word: "se promener", nature: "verbe 1er groupe" },
+          { word: "danser", nature: "verbe 1er groupe" },
+          { word: "aller", nature: "verbe 1er groupe" },
+        ],
+      });
+
+      const verbs = await fetchFirstGroupVerbs();
+      expect(verbs).toEqual(["chanter", "danser"]);
+      expect(verbs).not.toContain("s'envoler");
+      expect(verbs).not.toContain("s’amuser");
+      expect(verbs).not.toContain("se promener");
+      expect(verbs).not.toContain("aller");
+    } finally {
+      global.fetch = originalFetch;
+      clearFirstGroupVerbsCache();
+    }
+  });
+
+  it("initialise l'activité avec les paramètres appropriés selon que le verbe est être ou verbe du 1er groupe", () => {
+    const htmlEtre = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{ verb: "être", tense: "present" }}
+        onComplete={() => {}}
+      />
+    );
+    expect(htmlEtre).toContain('id="verb-conjugation-active-verb"');
+    expect(htmlEtre).toContain(">Être<");
+    expect(htmlEtre).not.toContain("Verbe du 1er groupe");
+
+    const html1erGroupe = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{ verb: "verbe 1er groupe", tense: "present" }}
+        onComplete={() => {}}
+      />
+    );
+    expect(html1erGroupe).toContain("Verbe du 1er Groupe");
+    expect(html1erGroupe).not.toContain(">Être<");
+    expect(html1erGroupe).not.toContain(">Avoir<");
+  });
 });
+
+

@@ -59,7 +59,7 @@ const StudentView = () => {
   const disciplineDropdownRef = useRef(null);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [activityContent, setActivityContent] = useState(DEFAULT_ACTIVITY_CONTENT);
+  const [activityContentOverride, setActivityContentOverride] = useState(null);
   const [preferredLevelByActivityId, setPreferredLevelByActivityId] = useState({});
   const [scoresByStudentId, setScoresByStudentId] = useState({});
   const [activityRunToken, setActivityRunToken] = useState(0);
@@ -93,6 +93,32 @@ const StudentView = () => {
   const isFocusedMode = focusedModeParams.hasAny;
 
   const selectedActivity = activities.find((a) => String(a.id) === String(selectedActivityId)) || null;
+
+  const parsedSelectedActivityContent = useMemo(() => {
+    if (!selectedActivity) {
+      return DEFAULT_ACTIVITY_CONTENT;
+    }
+    try {
+      if (typeof selectedActivity.content === "string" && selectedActivity.content.trim() !== "") {
+        return JSON.parse(selectedActivity.content);
+      } else if (selectedActivity.content && typeof selectedActivity.content === "object") {
+        return selectedActivity.content;
+      }
+    } catch {
+      return DEFAULT_ACTIVITY_CONTENT;
+    }
+    return DEFAULT_ACTIVITY_CONTENT;
+  }, [selectedActivity]);
+
+  const currentActivityContent = useMemo(() => {
+    if (
+      activityContentOverride &&
+      String(activityContentOverride.activityId) === String(selectedActivityId)
+    ) {
+      return activityContentOverride.content;
+    }
+    return parsedSelectedActivityContent;
+  }, [activityContentOverride, selectedActivityId, parsedSelectedActivityContent]);
   const selectedClass = classes.find((cls) => String(cls.id) === String(selectedClassId)) || null;
   const selectedGroup = groups.find((group) => String(group.id) === String(selectedGroupId)) || null;
   const focusedClassName =
@@ -327,34 +353,13 @@ const StudentView = () => {
   };
 
   useEffect(() => {
-    if (!selectedActivity) {
-      setActivityContent(DEFAULT_ACTIVITY_CONTENT);
-      if (!isFocusedMode) {
-        setSelectedStudent(null);
-      }
-      setScoresByStudentId({});
-      setActivityRunToken(0);
-      return;
-    }
-
-    let parsedContent = DEFAULT_ACTIVITY_CONTENT;
-    try {
-      if (typeof selectedActivity.content === "string" && selectedActivity.content.trim() !== "") {
-        parsedContent = JSON.parse(selectedActivity.content);
-      } else if (selectedActivity.content && typeof selectedActivity.content === "object") {
-        parsedContent = selectedActivity.content;
-      }
-    } catch {
-      parsedContent = DEFAULT_ACTIVITY_CONTENT;
-    }
-
-    setActivityContent(parsedContent);
+    setActivityContentOverride(null);
     if (!isFocusedMode) {
       setSelectedStudent(null);
     }
     setScoresByStudentId({});
     setActivityRunToken(0);
-  }, [isFocusedMode, selectedActivityId, selectedActivity]);
+  }, [isFocusedMode, selectedActivityId]);
 
   useEffect(() => {
     if (selectedActivityId || isDemoMode || isFocusedMode) {
@@ -451,7 +456,10 @@ const StudentView = () => {
         ? nextContent
         : DEFAULT_ACTIVITY_CONTENT;
 
-    setActivityContent(normalizedNextContent);
+    setActivityContentOverride({
+      activityId: String(selectedActivity?.id || selectedActivityId),
+      content: normalizedNextContent,
+    });
 
     if (!selectedActivity?.id) {
       return;
@@ -494,19 +502,19 @@ const StudentView = () => {
   const effectiveActivityContent = useMemo(() => {
     const preferredLevel = String(preferredLevelByActivityId[selectedActivityId] || "").trim();
     if (!preferredLevel) {
-      return activityContent;
+      return currentActivityContent;
     }
 
     const baseContent =
-      activityContent && typeof activityContent === "object" && !Array.isArray(activityContent)
-        ? activityContent
+      currentActivityContent && typeof currentActivityContent === "object" && !Array.isArray(currentActivityContent)
+        ? currentActivityContent
         : DEFAULT_ACTIVITY_CONTENT;
 
     return {
       ...baseContent,
       defaultLevel: preferredLevel,
     };
-  }, [activityContent, preferredLevelByActivityId, selectedActivityId]);
+  }, [currentActivityContent, preferredLevelByActivityId, selectedActivityId]);
 
   const StudentIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -732,6 +740,7 @@ const StudentView = () => {
                   activityJsFile={selectedActivity?.js_file}
                   onComplete={() => { }}
                   activityProps={{
+                    activityId: Number(selectedActivityId),
                     isFocusedMode,
                     onContentChange: handleActivityContentChange,
                   }}

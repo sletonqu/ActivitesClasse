@@ -7,6 +7,7 @@ import PlacementDropZone from "../components/PlacementDropZone";
 import PlacementTileButton from "../components/PlacementTileButton";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import useSlotPoolPlacement from "../hooks/useSlotPoolPlacement";
+import { API_URL } from "../config/api";
 import {
   getSafeDisplayText,
   handleRoundRestart,
@@ -68,6 +69,190 @@ AVOIR_CONJUGATIONS.imparfait = [
 export const CONJUGATION_TABLE = {
   être: ETRE_CONJUGATIONS,
   avoir: AVOIR_CONJUGATIONS,
+};
+
+export const FALLBACK_FIRST_GROUP_VERBS = [
+  "chanter",
+  "manger",
+  "tracer",
+  "parler",
+  "marcher",
+  "danser",
+  "sauter",
+  "jouer",
+  "aimer",
+  "nager",
+  "placer",
+  "avancer",
+  "plonger",
+  "fermer",
+  "couper",
+  "écouter",
+  "dessiner",
+  "lancer",
+  "changer",
+  "traverser",
+];
+
+export function isPronominalVerb(rawVerb) {
+  const norm = String(rawVerb || "").trim().toLowerCase();
+  // Détecte les verbes précédés d'un s' / s’ ou de se (ex: s'envoler, s’amuser, se promener)
+  return /^(s\s*['’ʼ`´]|se\s+)/i.test(norm);
+}
+
+export function isFirstGroupVerb(rawVerb) {
+  const norm = String(rawVerb || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (
+    norm === "verbe 1er groupe" ||
+    norm === "1er groupe" ||
+    norm === "premier groupe" ||
+    norm === "verbe premier groupe"
+  ) {
+    return true;
+  }
+
+  // Les verbes pronominaux ou précédés de s' (ex: s'envoler) ou se sont ignorés pour ce mode
+  if (isPronominalVerb(rawVerb)) {
+    return false;
+  }
+
+  return norm.endsWith("er") && norm !== "aller";
+}
+
+export function pickRandomVerb(verbList, currentVerb = null) {
+  const safeList = Array.isArray(verbList)
+    ? verbList.filter((v) => !isPronominalVerb(v))
+    : [];
+  if (safeList.length === 0) {
+    return "chanter";
+  }
+  if (safeList.length === 1) {
+    return safeList[0];
+  }
+  const candidates = currentVerb ? safeList.filter((v) => v !== currentVerb) : safeList;
+  const pool = candidates.length > 0 ? candidates : safeList;
+  const randomIndex = Math.floor(Math.random() * pool.length);
+  return pool[randomIndex];
+}
+
+let cachedFirstGroupVerbs = null;
+
+export function clearFirstGroupVerbsCache() {
+  cachedFirstGroupVerbs = null;
+}
+
+export async function fetchFirstGroupVerbs() {
+  try {
+    const res = await fetch(`${API_URL}/words?nature=verbe 1er groupe&limit=200`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const verbs = data
+          .map((item) => String(item.word || "").trim().toLowerCase())
+          .filter((w) => w.endsWith("er") && w !== "aller" && !isPronominalVerb(w));
+        if (verbs.length > 0) {
+          cachedFirstGroupVerbs = verbs;
+          return verbs;
+        }
+      }
+    }
+  } catch (_err) {
+    // Mode hors-ligne ou erreur API : repli sur la liste locale
+  }
+  return FALLBACK_FIRST_GROUP_VERBS;
+}
+
+export function generateFirstGroupConjugation(verb, tense = "present") {
+  const cleanVerb = String(verb || "").trim().toLowerCase();
+  const baseRadical = cleanVerb.endsWith("er") ? cleanVerb.slice(0, -2) : cleanVerb;
+  const isGer = cleanVerb.endsWith("ger");
+  const isCer = cleanVerb.endsWith("cer");
+  const startsWithVowelOrH = /^[aeiouyéèêëàâîïôùûh]/i.test(cleanVerb);
+  const pronoun1 = startsWithVowelOrH ? "j'" : "je";
+
+  const nousStem = isCer ? baseRadical.slice(0, -1) : baseRadical;
+  const nousSpecialChar = isCer ? "ç" : "";
+  const nousEnding = isGer ? "eons" : "ons";
+  const nousVerb = isCer ? `${nousStem}çons` : `${baseRadical}${nousEnding}`;
+  const nousPlaceholder = isCer ? `${nousStem}ç...` : `${baseRadical}...`;
+
+  return [
+    {
+      id: `${cleanVerb}-${tense}-1`,
+      person: 1,
+      pronoun: pronoun1,
+      verb: `${baseRadical}e`,
+      placeholder: `${baseRadical}...`,
+      parts: { stem: baseRadical, specialChar: "", ending: "e" },
+    },
+    {
+      id: `${cleanVerb}-${tense}-2`,
+      person: 2,
+      pronoun: "tu",
+      verb: `${baseRadical}es`,
+      placeholder: `${baseRadical}...`,
+      parts: { stem: baseRadical, specialChar: "", ending: "es" },
+    },
+    {
+      id: `${cleanVerb}-${tense}-3`,
+      person: 3,
+      pronoun: "il / elle",
+      verb: `${baseRadical}e`,
+      placeholder: `${baseRadical}...`,
+      parts: { stem: baseRadical, specialChar: "", ending: "e" },
+    },
+    {
+      id: `${cleanVerb}-${tense}-4`,
+      person: 4,
+      pronoun: "nous",
+      verb: nousVerb,
+      placeholder: nousPlaceholder,
+      parts: { stem: nousStem, specialChar: nousSpecialChar, ending: nousEnding },
+    },
+    {
+      id: `${cleanVerb}-${tense}-5`,
+      person: 5,
+      pronoun: "vous",
+      verb: `${baseRadical}ez`,
+      placeholder: `${baseRadical}...`,
+      parts: { stem: baseRadical, specialChar: "", ending: "ez" },
+    },
+    {
+      id: `${cleanVerb}-${tense}-6`,
+      person: 6,
+      pronoun: "ils / elles",
+      verb: `${baseRadical}ent`,
+      placeholder: `${baseRadical}...`,
+      parts: { stem: baseRadical, specialChar: "", ending: "ent" },
+    },
+  ];
+}
+
+export const ConjugatedVerbText = ({ text, parts, className = "" }) => {
+  if (!parts) {
+    return <span className={className}>{text}</span>;
+  }
+
+  const { stem, specialChar, ending } = parts;
+  return (
+    <span className={`inline-flex items-baseline justify-center tracking-normal ${className}`}>
+      <span className="font-medium text-red-600/90">{stem}</span>
+      {specialChar ? (
+        <span
+          className="font-black text-red-700 underline decoration-2 decoration-red-500 mx-[0.5px]"
+          title="Cas particulier : cédille sous le c devant le o"
+        >
+          {specialChar}
+        </span>
+      ) : null}
+      <span className="font-black text-red-700 ml-[0.5px]">{ending}</span>
+    </span>
+  );
 };
 
 export const TENSE_METAS = {
@@ -149,6 +334,17 @@ export function normalizeVerbKey(rawVerb) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
   if (norm === "avoir") return "avoir";
+  if (
+    norm === "verbe 1er groupe" ||
+    norm === "1er groupe" ||
+    norm === "premier groupe" ||
+    norm === "verbe premier groupe"
+  ) {
+    return "verbe 1er groupe";
+  }
+  if (norm.endsWith("er") && norm !== "aller" && !isPronominalVerb(rawVerb)) {
+    return norm;
+  }
   return "être";
 }
 
@@ -173,9 +369,15 @@ export function getTenseMeta(rawTense) {
   return TENSE_METAS[key] || TENSE_METAS.present;
 }
 
-export function getConjugationList(rawVerb, rawTense) {
+export function getConjugationList(rawVerb, rawTense, activeVerb = null) {
   const verbKey = normalizeVerbKey(rawVerb);
   const tenseKey = normalizeTenseKey(rawTense);
+
+  if (isFirstGroupVerb(verbKey)) {
+    const targetVerb = activeVerb || (verbKey === "verbe 1er groupe" ? "chanter" : verbKey);
+    return generateFirstGroupConjugation(targetVerb, tenseKey);
+  }
+
   const verbEntry = CONJUGATION_TABLE[verbKey] || CONJUGATION_TABLE.être;
   return verbEntry[tenseKey] || verbEntry.present || verbEntry;
 }
@@ -210,7 +412,7 @@ export function normalizeAnswerText(text) {
     .replace(/\s+/g, " ");
 }
 
-export function isAnswerCorrect(userText, expectedText, target) {
+export function isAnswerCorrect(userText, expectedText, target, options = {}) {
   const normUser = normalizeAnswerText(userText);
   const normExpected = normalizeAnswerText(expectedText);
 
@@ -222,15 +424,51 @@ export function isAnswerCorrect(userText, expectedText, target) {
     return true;
   }
 
-  // Tolérance sans accent pour jeunes élèves (ex: etes pour êtes)
+  // Tolérance sans accent pour jeunes élèves (ex: etes pour êtes, tracons pour traçons)
   const strippedUser = normUser.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const strippedExpected = normExpected.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (strippedUser === strippedExpected) {
     return true;
   }
 
+  // Mode verbe 1er groupe : l'élève peut fournir la terminaison seule (ex: 'ons') ou le verbe complet ('chantons')
+  if (target === "verb") {
+    if (options.expectedEnding) {
+      const normEnding = normalizeAnswerText(options.expectedEnding);
+      if (normUser === normEnding) {
+        return true;
+      }
+    }
+    if (options.expectedVerb) {
+      const normVerb = normalizeAnswerText(options.expectedVerb);
+      const strippedVerb = normVerb.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (normUser === normVerb || strippedUser === strippedVerb) {
+        return true;
+      }
+    }
+  }
+
   // Synonymes et formes équivalentes pour pronoms
   if (target === "pronoun") {
+    // Si la forme verbale est identique entre 1ère et 3ème personne du singulier (ex: chante)
+    if (options.canSwapFirstThirdSingular) {
+      const isFirstOrThirdExpected =
+        normExpected === "je" || normExpected === "j'" || normExpected === "il / elle";
+      if (isFirstOrThirdExpected) {
+        const isFirstPersonUser =
+          normUser === "je" || normUser === "j'" || normUser === "j";
+        const isThirdPersonUser =
+          normUser === "il" ||
+          normUser === "elle" ||
+          normUser === "il/elle" ||
+          normUser === "on" ||
+          normUser === "il / elle";
+        if (isFirstPersonUser || isThirdPersonUser) {
+          return true;
+        }
+      }
+    }
+
     if (
       normExpected === "il / elle" &&
       (normUser === "il" || normUser === "elle" || normUser === "il/elle" || normUser === "on")
@@ -307,26 +545,40 @@ function normalizeLevelRule(sourceRule, fallbackRule, globalConfig = {}) {
   };
 }
 
-function buildInitialRound(verbKey, levelRule) {
-  const canonicalList = getConjugationList(verbKey, levelRule?.tense);
+function buildInitialRound(verbKey, levelRule, activeVerb = null) {
+  const canonicalList = getConjugationList(verbKey, levelRule?.tense, activeVerb);
   return levelRule.randomOrder
     ? shuffleDistinct(canonicalList)
     : [...canonicalList];
 }
 
-function buildInitialPool(verbKey, levelRule) {
+export function buildInitialPool(verbKey, levelRule, activeVerb = null) {
   if (levelRule.mode !== "drag") {
     return [];
   }
-  const canonicalList = getConjugationList(verbKey, levelRule?.tense);
+  const canonicalList = getConjugationList(verbKey, levelRule?.tense, activeVerb);
+  const isFirstGroup = isFirstGroupVerb(verbKey);
+
   return shuffleArray(
-    canonicalList.map((item) => ({
-      id: `tile-${item.id}`,
-      runtimeId: `tile-${item.id}`,
-      text: levelRule.target === "verb" ? item.verb : item.pronoun,
-      correctRowId: item.id,
-      target: levelRule.target,
-    }))
+    canonicalList.map((item) => {
+      const isVerbTarget = levelRule.target === "verb";
+      const tileText = isVerbTarget && isFirstGroup && item.parts?.ending
+        ? item.parts.ending
+        : isVerbTarget
+          ? item.verb
+          : item.pronoun;
+
+      return {
+        id: `tile-${item.id}`,
+        runtimeId: `tile-${item.id}`,
+        text: tileText,
+        ending: item.parts?.ending || null,
+        fullVerb: item.verb,
+        parts: isVerbTarget && !isFirstGroup ? item.parts : null,
+        correctRowId: item.id,
+        target: levelRule.target,
+      };
+    })
   );
 }
 
@@ -357,7 +609,41 @@ const VerbConjugationActivity = ({
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const currentRule = configuredLevels[currentLevel] || configuredLevels.level1;
 
-  const [rows, setRows] = useState(() => buildInitialRound(currentRule.verb, currentRule));
+  const [availableVerbs, setAvailableVerbs] = useState(
+    () => cachedFirstGroupVerbs || FALLBACK_FIRST_GROUP_VERBS
+  );
+
+  const initialActiveVerb = useMemo(() => {
+    if (isFirstGroupVerb(currentRule.verb)) {
+      if (currentRule.verb !== "verbe 1er groupe") {
+        return currentRule.verb;
+      }
+      return pickRandomVerb(cachedFirstGroupVerbs || FALLBACK_FIRST_GROUP_VERBS);
+    }
+    return currentRule.verb;
+  }, [currentRule.verb]);
+
+  const [activeVerb, setActiveVerb] = useState(initialActiveVerb);
+
+  // Charger les verbes du 1er groupe depuis l'API backend si besoin
+  useEffect(() => {
+    let isMounted = true;
+    if (!cachedFirstGroupVerbs) {
+      fetchFirstGroupVerbs().then((verbs) => {
+        if (isMounted && verbs && verbs.length > 0) {
+          cachedFirstGroupVerbs = verbs;
+          setAvailableVerbs(verbs);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const [rows, setRows] = useState(() =>
+    buildInitialRound(currentRule.verb, currentRule, initialActiveVerb)
+  );
   const [inputAnswers, setInputAnswers] = useState({});
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(null);
@@ -383,7 +669,7 @@ const VerbConjugationActivity = ({
     isPoolItemSelected,
     isSlotSelected,
   } = useSlotPoolPlacement({
-    initialPoolItems: buildInitialPool(currentRule.verb, currentRule),
+    initialPoolItems: buildInitialPool(currentRule.verb, currentRule, initialActiveVerb),
     initialAssignments: {},
     disabled: finished,
   });
@@ -391,9 +677,29 @@ const VerbConjugationActivity = ({
   const target = currentRule.target;
   const isInputMode = currentRule.mode === "input";
   const restartLocked = Boolean(student) && finished && !allStudentsCompleted;
+  const isFirstGroup = isFirstGroupVerb(currentRule.verb);
+  const displayVerbName =
+    (isFirstGroup
+      ? activeVerb && activeVerb !== "verbe 1er groupe"
+        ? activeVerb
+        : ""
+      : currentRule.verb) || "";
+  const formattedActiveVerb = displayVerbName
+    ? displayVerbName.charAt(0).toUpperCase() + displayVerbName.slice(1)
+    : "";
 
   // Largeur uniforme des tuiles du pool adaptée au contenu le plus long du tour
   const poolTileWidth = useMemo(() => {
+    const isFirstGroupVerbTarget = isFirstGroup && target === "verb";
+    if (isFirstGroupVerbTarget) {
+      const poolTexts = poolItems.map((item) => item.text);
+      const maxLength = poolTexts.length > 0
+        ? Math.max(...poolTexts.map((t) => (t || "").length))
+        : 4;
+      const remWidth = Math.max(5.5, 3.8 + maxLength * 0.5);
+      return `${remWidth.toFixed(2)}rem`;
+    }
+
     const roundTexts = rows.map((r) => (target === "verb" ? r.verb : r.pronoun));
     const poolTexts = poolItems.map((item) => item.text);
     const allTexts = [...roundTexts, ...poolTexts].filter(Boolean);
@@ -405,12 +711,31 @@ const VerbConjugationActivity = ({
     // Progression de 0.6rem par caractère au-delà de 4 caractères pour s'ajuster au mot le plus long.
     const remWidth = Math.max(7, 4.5 + maxLength * 0.6);
     return `${remWidth.toFixed(2)}rem`;
-  }, [rows, target, poolItems]);
+  }, [rows, target, poolItems, isFirstGroup]);
 
   // Initialisation ou réinitialisation d'un tour
   const initRound = useCallback(
-    (verbKey, levelRule) => {
-      const canonicalList = getConjugationList(verbKey, levelRule.tense);
+    (verbKey, levelRule, forcedVerb = null) => {
+      let verbToUse;
+      if (verbKey === "verbe 1er groupe") {
+        if (forcedVerb && isFirstGroupVerb(forcedVerb) && forcedVerb !== "verbe 1er groupe") {
+          verbToUse = forcedVerb;
+        } else if (activeVerb && isFirstGroupVerb(activeVerb) && activeVerb !== "verbe 1er groupe") {
+          verbToUse = activeVerb;
+        } else {
+          verbToUse = pickRandomVerb(availableVerbs);
+        }
+      } else if (isFirstGroupVerb(verbKey)) {
+        verbToUse = verbKey;
+      } else {
+        verbToUse = forcedVerb || verbKey;
+      }
+
+      if (activeVerb !== verbToUse) {
+        setActiveVerb(verbToUse);
+      }
+
+      const canonicalList = getConjugationList(verbKey, levelRule.tense, verbToUse);
       const roundRows = levelRule.randomOrder
         ? shuffleDistinct(canonicalList)
         : [...canonicalList];
@@ -424,44 +749,53 @@ const VerbConjugationActivity = ({
       setMessage("");
 
       if (levelRule.mode === "drag") {
+        const isVerbTarget = levelRule.target === "verb";
+        const isFirstGroupRound = isFirstGroupVerb(verbKey);
         const pool = shuffleArray(
-          canonicalList.map((item) => ({
-            id: `tile-${item.id}`,
-            runtimeId: `tile-${item.id}`,
-            text: levelRule.target === "verb" ? item.verb : item.pronoun,
-            correctRowId: item.id,
-            target: levelRule.target,
-          }))
+          canonicalList.map((item) => {
+            const tileText = isVerbTarget && isFirstGroupRound && item.parts?.ending
+              ? item.parts.ending
+              : isVerbTarget
+                ? item.verb
+                : item.pronoun;
+
+            return {
+              id: `tile-${item.id}`,
+              runtimeId: `tile-${item.id}`,
+              text: tileText,
+              ending: item.parts?.ending || null,
+              fullVerb: item.verb,
+              parts: isVerbTarget && !isFirstGroupRound ? item.parts : null,
+              correctRowId: item.id,
+              target: levelRule.target,
+            };
+          })
         );
         resetPlacement(pool, {});
       } else {
         resetPlacement([], {});
       }
     },
-    [resetPlacement]
+    [activeVerb, availableVerbs, resetPlacement]
   );
 
-  const currentRoundSignature = useMemo(
-    () =>
+  const getRoundSignature = useCallback(
+    (level, rule, verb) =>
       JSON.stringify({
-        level: currentLevel,
-        verb: currentRule.verb,
-        tense: currentRule.tense,
-        mode: currentRule.mode,
-        target: currentRule.target,
-        randomOrder: currentRule.randomOrder,
+        level,
+        verb: rule.verb,
+        activeVerb: isFirstGroupVerb(rule.verb) ? verb : rule.verb,
+        tense: rule.tense,
+        mode: rule.mode,
+        target: rule.target,
+        randomOrder: rule.randomOrder,
       }),
-    [
-      currentLevel,
-      currentRule.verb,
-      currentRule.tense,
-      currentRule.mode,
-      currentRule.target,
-      currentRule.randomOrder,
-    ]
+    []
   );
 
-  const lastLoadedSignatureRef = useRef(currentRoundSignature);
+  const lastLoadedSignatureRef = useRef(
+    getRoundSignature(currentLevel, currentRule, initialActiveVerb)
+  );
 
   useEffect(() => {
     setCurrentLevel(initialLevel);
@@ -469,12 +803,27 @@ const VerbConjugationActivity = ({
 
   // Synchronisation lors du changement réel de niveau ou de configuration du tour
   useEffect(() => {
-    if (lastLoadedSignatureRef.current === currentRoundSignature) {
+    let nextActive = activeVerb;
+    if (currentRule.verb === "verbe 1er groupe") {
+      if (!activeVerb || !isFirstGroupVerb(activeVerb) || activeVerb === "verbe 1er groupe") {
+        nextActive = pickRandomVerb(availableVerbs);
+      }
+    } else {
+      nextActive = currentRule.verb;
+    }
+
+    if (activeVerb !== nextActive) {
+      setActiveVerb(nextActive);
+    }
+
+    const nextSignature = getRoundSignature(currentLevel, currentRule, nextActive);
+
+    if (lastLoadedSignatureRef.current === nextSignature) {
       return;
     }
-    lastLoadedSignatureRef.current = currentRoundSignature;
-    initRound(currentRule.verb, currentRule);
-  }, [currentRoundSignature, currentRule, initRound]);
+    lastLoadedSignatureRef.current = nextSignature;
+    initRound(currentRule.verb, currentRule, nextActive);
+  }, [currentLevel, currentRule, activeVerb, availableVerbs, getRoundSignature, initRound]);
 
   const handleSelectLevel = (levelKey) => {
     if (levelKey === currentLevel) return;
@@ -549,13 +898,25 @@ const VerbConjugationActivity = ({
       let userAnswer = "";
       const expectedAnswer = target === "verb" ? row.verb : row.pronoun;
 
+      const canSwapFirstThird =
+        isFirstGroup &&
+        currentRule.tense === "present" &&
+        (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "il / elle");
+
+      const isFirstGroupVerbTarget = isFirstGroup && target === "verb";
+      const options = {
+        canSwapFirstThirdSingular: canSwapFirstThird,
+        expectedEnding: isFirstGroupVerbTarget ? row.parts?.ending : null,
+        expectedVerb: isFirstGroupVerbTarget ? row.verb : null,
+      };
+
       if (isInputMode) {
         userAnswer = (inputAnswers[row.id] || "").trim();
-        isCorrect = isAnswerCorrect(userAnswer, expectedAnswer, target);
+        isCorrect = isAnswerCorrect(userAnswer, expectedAnswer, target, options);
       } else {
         const assigned = assignments[row.id];
         userAnswer = assigned ? assigned.text : "";
-        isCorrect = isAnswerCorrect(userAnswer, expectedAnswer, target);
+        isCorrect = isAnswerCorrect(userAnswer, expectedAnswer, target, options);
       }
 
       if (isCorrect) {
@@ -565,8 +926,13 @@ const VerbConjugationActivity = ({
           id: row.id,
           pronoun: row.pronoun,
           verb: row.verb,
-          userAnswer: userAnswer || "(vide)",
-          expectedAnswer,
+          target,
+          parts: row.parts,
+          userAnswer:
+            isFirstGroupVerbTarget && userAnswer
+              ? `${row.parts?.stem || ""}${row.parts?.specialChar || ""}${userAnswer}`
+              : userAnswer || "(vide)",
+          expectedAnswer: row.verb,
         });
       }
     });
@@ -588,7 +954,7 @@ const VerbConjugationActivity = ({
       onComplete(finalScore, {
         levelKey: currentLevel,
         levelLabel: currentRule.label,
-        verb: currentRule.verb,
+        verb: isFirstGroup ? activeVerb : currentRule.verb,
         tense: currentRule.tense,
       });
     }
@@ -598,13 +964,22 @@ const VerbConjugationActivity = ({
     if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
       return;
     }
-    initRound(currentRule.verb, currentRule);
+    if (isFirstGroupVerb(currentRule.verb) && currentRule.verb === "verbe 1er groupe") {
+      const nextVerb = pickRandomVerb(availableVerbs, activeVerb);
+      setActiveVerb(nextVerb);
+      lastLoadedSignatureRef.current = getRoundSignature(currentLevel, currentRule, nextVerb);
+      initRound(currentRule.verb, currentRule, nextVerb);
+    } else {
+      initRound(currentRule.verb, currentRule, activeVerb);
+    }
   };
 
   const tenseMeta = getTenseMeta(currentRule.tense);
   const displayTitle = getSafeDisplayText(
     parsedContent?.title,
-    `Conjugaison ${tenseMeta.preposition} : être et avoir`
+    isFirstGroup
+      ? `Conjugaison ${tenseMeta.preposition} : verbes du 1er groupe`
+      : `Conjugaison ${tenseMeta.preposition} : être et avoir`
   );
   const displayInstruction = getSafeDisplayText(
     currentRule.instruction || parsedContent?.instruction,
@@ -623,7 +998,7 @@ const VerbConjugationActivity = ({
         badges={[
           {
             key: "badge-verb",
-            label: `Verbe ${currentRule.verb}`,
+            label: isFirstGroup ? `Verbe ${displayVerbName} (1er gr.)` : `Verbe ${displayVerbName}`,
             className: "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-800",
           },
           {
@@ -658,30 +1033,60 @@ const VerbConjugationActivity = ({
           id="verb-conjugation-section"
           className="rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
-          <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h4
-                  id="verb-conjugation-title"
-                  className="text-lg font-bold text-slate-800 capitalize"
+          <div
+            id="verb-conjugation-header"
+            className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5"
+          >
+            <div
+              id="verb-conjugation-header-content"
+              className="w-full"
+            >
+              <div
+                id="verb-conjugation-title-group"
+                className="flex flex-col gap-0.5 w-full"
+              >
+                <div
+                  id="verb-conjugation-title-row"
+                  className="relative flex items-center justify-between"
                 >
-                  Verbe {currentRule.verb}
-                </h4>
-                <p id="verb-conjugation-tense-subtitle" className="text-sm text-slate-500">
+                  <h4
+                    id="verb-conjugation-title"
+                    className="text-base sm:text-lg font-bold text-slate-800"
+                  >
+                    {isFirstGroup ? "Verbe du 1er Groupe" : "Verbe"}
+                  </h4>
+
+                  <div
+                    id="verb-conjugation-active-verb"
+                    className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
+                  >
+                    <span className="text-base sm:text-lg font-black capitalize text-slate-800 tracking-wide">
+                      {formattedActiveVerb}
+                    </span>
+                  </div>
+                </div>
+
+                <p
+                  id="verb-conjugation-tense-subtitle"
+                  className="text-xs sm:text-sm text-slate-500 text-left"
+                >
                   {tenseMeta.full}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="p-3 sm:p-4">
+          <div id="verb-conjugation-body" className="p-3 sm:p-4">
             <div
               id="verb-conjugation-board"
               className={`grid grid-cols-1 items-start gap-4 ${isInputMode ? "max-w-xl mx-auto" : "md:grid-cols-12"
                 }`}
             >
               {/* Partie Gauche : Liste des conjugaisons à compléter */}
-              <div className={isInputMode ? "w-full" : "md:col-span-7"}>
+              <div
+                id="verb-conjugation-rows-panel"
+                className={isInputMode ? "w-full" : "md:col-span-7"}
+              >
                 <div id="verb-conjugation-rows" className="space-y-2.5 sm:space-y-3">
                   {rows.map((row, index) => {
                     const assigned = assignments[row.id];
@@ -690,7 +1095,18 @@ const VerbConjugationActivity = ({
                     const givenAnswer = isInputMode
                       ? (inputAnswers[row.id] || "").trim()
                       : assigned?.text || "";
-                    const isRowCorrect = finished && isAnswerCorrect(givenAnswer, expectedAnswer, target);
+                    const canSwapFirstThird =
+                      isFirstGroup &&
+                      currentRule.tense === "present" &&
+                      (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "il / elle");
+                    const isFirstGroupVerbTarget = isFirstGroup && target === "verb";
+                    const isRowCorrect =
+                      finished &&
+                      isAnswerCorrect(givenAnswer, expectedAnswer, target, {
+                        canSwapFirstThirdSingular: canSwapFirstThird,
+                        expectedEnding: isFirstGroupVerbTarget ? row.parts?.ending : null,
+                        expectedVerb: isFirstGroupVerbTarget ? row.verb : null,
+                      });
 
                     return (
                       <div
@@ -711,14 +1127,17 @@ const VerbConjugationActivity = ({
 
                             {/* Case à remplir pour le Verbe en ROUGE */}
                             {isInputMode ? (
-                              <div className="relative">
+                              <div
+                                id={`verb-conjugation-input-container-${index}`}
+                                className="relative"
+                              >
                                 <input
                                   id={`verb-conjugation-input-${index}`}
                                   type="text"
                                   disabled={finished}
                                   value={inputAnswers[row.id] || ""}
                                   onChange={(e) => handleInputChange(row.id, e.target.value)}
-                                  placeholder="..."
+                                  placeholder={row.placeholder || "..."}
                                   className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-none ${finished
                                     ? isRowCorrect
                                       ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
@@ -746,12 +1165,30 @@ const VerbConjugationActivity = ({
                                   }`}
                               >
                                 {assigned ? (
-                                  <div className="flex items-center justify-between w-full px-3">
-                                    <span className="flex-1 text-center font-extrabold text-base sm:text-lg text-red-600">
-                                      {assigned.text}
-                                    </span>
+                                  <div
+                                    id={`verb-conjugation-slot-assigned-${index}`}
+                                    className="flex items-center justify-between w-full px-3"
+                                  >
+                                    <div
+                                      id={`verb-conjugation-slot-text-${index}`}
+                                      className="flex-1 text-center text-base sm:text-lg text-red-600"
+                                    >
+                                      {isFirstGroup ? (
+                                        <ConjugatedVerbText
+                                          text={`${row.parts?.stem || ""}${row.parts?.specialChar || ""}${assigned.text}`}
+                                          parts={{
+                                            stem: row.parts?.stem,
+                                            specialChar: row.parts?.specialChar,
+                                            ending: assigned.text,
+                                          }}
+                                        />
+                                      ) : (
+                                        <span className="font-extrabold">{assigned.text}</span>
+                                      )}
+                                    </div>
                                     {!finished && (
                                       <button
+                                        id={`verb-conjugation-slot-remove-${index}`}
                                         type="button"
                                         onClick={(e) => handleRemoveFromSlot(e, row.id)}
                                         className="text-slate-400 hover:text-rose-600 p-0.5 rounded-full ml-1"
@@ -763,8 +1200,11 @@ const VerbConjugationActivity = ({
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="text-lg font-bold text-red-400 select-none">
-                                    ?
+                                  <span
+                                    id={`verb-conjugation-placeholder-${index}`}
+                                    className="text-base sm:text-lg font-semibold text-red-400/80 tracking-wide select-none"
+                                  >
+                                    {row.placeholder || "?"}
                                   </span>
                                 )}
                               </PlacementDropZone>
@@ -775,23 +1215,28 @@ const VerbConjugationActivity = ({
                           <>
                             {/* Case à remplir pour le Pronom en VIOLET */}
                             {isInputMode ? (
-                              <input
-                                id={`verb-conjugation-input-${index}`}
-                                type="text"
-                                disabled={finished}
-                                value={inputAnswers[row.id] || ""}
-                                onChange={(e) => handleInputChange(row.id, e.target.value)}
-                                placeholder="..."
-                                className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-none ${finished
-                                  ? isRowCorrect
-                                    ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
-                                    : "bg-rose-50 border-2 border-rose-400 text-rose-700 line-through"
-                                  : `border-2 border-purple-300 bg-white text-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 shadow-xs ${!inputAnswers[row.id]
-                                    ? "animate-pulse-slow-purple motion-reduce:animate-none"
-                                    : ""
-                                  }`
-                                  }`}
-                              />
+                              <div
+                                id={`verb-conjugation-input-container-${index}`}
+                                className="relative"
+                              >
+                                <input
+                                  id={`verb-conjugation-input-${index}`}
+                                  type="text"
+                                  disabled={finished}
+                                  value={inputAnswers[row.id] || ""}
+                                  onChange={(e) => handleInputChange(row.id, e.target.value)}
+                                  placeholder="..."
+                                  className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-none ${finished
+                                    ? isRowCorrect
+                                      ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
+                                      : "bg-rose-50 border-2 border-rose-400 text-rose-700 line-through"
+                                    : `border-2 border-purple-300 bg-white text-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 shadow-xs ${!inputAnswers[row.id]
+                                      ? "animate-pulse-slow-purple motion-reduce:animate-none"
+                                      : ""
+                                    }`
+                                    }`}
+                                />
+                              </div>
                             ) : (
                               <PlacementDropZone
                                 id={`verb-conjugation-slot-${index}`}
@@ -808,12 +1253,19 @@ const VerbConjugationActivity = ({
                                   }`}
                               >
                                 {assigned ? (
-                                  <div className="flex items-center justify-between w-full px-3">
-                                    <span className="flex-1 text-center font-extrabold text-base sm:text-lg text-purple-700">
+                                  <div
+                                    id={`verb-conjugation-slot-assigned-${index}`}
+                                    className="flex items-center justify-between w-full px-3"
+                                  >
+                                    <span
+                                      id={`verb-conjugation-slot-text-${index}`}
+                                      className="flex-1 text-center font-extrabold text-base sm:text-lg text-purple-700"
+                                    >
                                       {assigned.text}
                                     </span>
                                     {!finished && (
                                       <button
+                                        id={`verb-conjugation-slot-remove-${index}`}
                                         type="button"
                                         onClick={(e) => handleRemoveFromSlot(e, row.id)}
                                         className="text-slate-400 hover:text-rose-600 p-0.5 rounded-full ml-1"
@@ -825,7 +1277,10 @@ const VerbConjugationActivity = ({
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="text-lg font-bold text-purple-400 select-none">
+                                  <span
+                                    id={`verb-conjugation-placeholder-${index}`}
+                                    className="text-lg font-bold text-purple-400 select-none"
+                                  >
                                     ?
                                   </span>
                                 )}
@@ -837,7 +1292,7 @@ const VerbConjugationActivity = ({
                               id={`verb-conjugation-verb-${index}`}
                               className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-red-100 text-red-700 border border-red-200 font-extrabold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-xs"
                             >
-                              {row.verb}
+                              <ConjugatedVerbText text={row.verb} parts={row.parts} />
                             </div>
                           </>
                         )}
@@ -849,16 +1304,35 @@ const VerbConjugationActivity = ({
                             className="ml-2 flex items-center gap-1.5 text-sm font-bold"
                           >
                             {isRowCorrect ? (
-                              <span className="text-emerald-600 text-xl" title="Correct">
+                              <span
+                                id={`verb-conjugation-feedback-correct-${index}`}
+                                className="text-emerald-600 text-xl"
+                                title="Correct"
+                              >
                                 ✓
                               </span>
                             ) : (
-                              <div className="flex items-center gap-1 text-xs sm:text-sm font-bold">
-                                <span className="text-rose-600 text-lg" title="Incorrect">
+                              <div
+                                id={`verb-conjugation-feedback-incorrect-${index}`}
+                                className="flex items-center gap-1 text-xs sm:text-sm font-bold"
+                              >
+                                <span
+                                  id={`verb-conjugation-feedback-cross-${index}`}
+                                  className="text-rose-600 text-lg"
+                                  title="Incorrect"
+                                >
                                   ✗
                                 </span>
-                                <span className="text-emerald-700 font-black">
-                                  ➔ {expectedAnswer}
+                                <span
+                                  id={`verb-conjugation-feedback-correction-${index}`}
+                                  className="text-emerald-700 font-black"
+                                >
+                                  ➔{" "}
+                                  {target === "verb" ? (
+                                    <ConjugatedVerbText text={expectedAnswer} parts={row.parts} />
+                                  ) : (
+                                    expectedAnswer
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -876,16 +1350,21 @@ const VerbConjugationActivity = ({
                   id="verb-conjugation-pool-section"
                   className="md:col-span-5 md:border-l md:border-slate-200 md:pl-4 sm:md:pl-6"
                 >
-                  <div className="border-b border-slate-100 pb-2 mb-3">
+                  <div
+                    id="verb-conjugation-pool-header"
+                    className="border-b border-slate-100 pb-2 mb-3"
+                  >
                     <h5
                       id="verb-conjugation-pool-title"
                       className="text-base font-bold text-slate-800"
                     >
                       étiquettes à placer
                     </h5>
-                    <p className="text-xs text-slate-500">
+                    <p id="verb-conjugation-pool-subtitle" className="text-xs text-slate-500">
                       {target === "verb"
-                        ? "Verbes conjugués en rouge à placer :"
+                        ? isFirstGroup
+                          ? "Terminaisons en rouge à placer :"
+                          : "Verbes conjugués en rouge à placer :"
                         : "Pronoms en violet à placer :"}
                     </p>
                   </div>
@@ -898,6 +1377,7 @@ const VerbConjugationActivity = ({
                   >
                     {poolItems.length > 0 ? (
                       <div
+                        id="verb-conjugation-pool-tiles-grid"
                         className="grid grid-cols-2 gap-2.5 w-fit max-w-full mx-auto justify-center"
                         style={{
                           gridTemplateColumns: `repeat(2, minmax(0, ${poolTileWidth}))`,
@@ -925,13 +1405,24 @@ const VerbConjugationActivity = ({
                                   : "ring-4 ring-purple-400 ring-offset-2 scale-105"
                               }
                             >
-                              {item.text}
+                              {target === "verb" ? (
+                                isFirstGroup ? (
+                                  <span>{item.text}</span>
+                                ) : (
+                                  <ConjugatedVerbText text={item.text} parts={item.parts} />
+                                )
+                              ) : (
+                                item.text
+                              )}
                             </PlacementTileButton>
                           );
                         })}
                       </div>
                     ) : (
-                      <div className="text-center p-3 text-emerald-700 font-bold text-sm">
+                      <div
+                        id="verb-conjugation-pool-empty-message"
+                        className="text-center p-3 text-emerald-700 font-bold text-sm"
+                      >
                         ✨ Toutes les étiquettes ont été placées ! Clique sur Valider.
                       </div>
                     )}
@@ -963,7 +1454,7 @@ const VerbConjugationActivity = ({
           id="verb-conjugation-summary"
           title="Activité terminée"
           score={score}
-          message="Toutes les conjugaisons ont été complétées."
+          message={`Toutes les conjugaisons du verbe ${displayVerbName} ont été complétées.`}
           stats={[
             { key: "correct", label: "Bonnes réponses", value: correctCount },
             { key: "incorrect", label: "Erreurs", value: totalSlots - correctCount },
@@ -999,7 +1490,11 @@ const VerbConjugationActivity = ({
                       ➔
                     </span>
                     <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
-                      {mistake.expectedAnswer}
+                      {mistake.target === "verb" ? (
+                        <ConjugatedVerbText text={mistake.expectedAnswer} parts={mistake.parts} />
+                      ) : (
+                        mistake.expectedAnswer
+                      )}
                     </span>
                   </li>
                 ))}
