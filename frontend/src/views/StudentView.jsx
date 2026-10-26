@@ -11,41 +11,11 @@ import {
 } from "../utils/dataLoaders";
 import StudentPanel from "../components/StudentPanel";
 import LeaderboardPanel from "../components/LeaderboardPanel";
+import { DISCIPLINE_CONFIG, FIXED_DISCIPLINES } from "../utils/activityDiscipline";
+
 const DEFAULT_ACTIVITY_CONTENT = {};
 const HEADER_COLLAPSE_DELAY = 5000;
 const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
-
-const FIXED_DISCIPLINES = ["Français", "Mathématiques", "Outils"];
-const DISCIPLINE_CONFIG = {
-  "Français": {
-    inactive: "bg-sky-50/30 text-sky-600 border-sky-100 hover:bg-sky-100/40",
-    active: "bg-sky-500 text-white border-sky-500 shadow-sm",
-    dropdown: "bg-white border-sky-200",
-    item: "text-sky-600 hover:bg-sky-100/40",
-    itemSelected: "bg-sky-500 text-white",
-  },
-  "Mathématiques": {
-    inactive: "bg-emerald-50/30 text-emerald-600 border-emerald-100 hover:bg-emerald-100/40",
-    active: "bg-emerald-500 text-white border-emerald-500 shadow-sm",
-    dropdown: "bg-white border-emerald-200",
-    item: "text-emerald-600 hover:bg-emerald-100/40",
-    itemSelected: "bg-emerald-500 text-white",
-  },
-  "Outils": {
-    inactive: "bg-amber-50/30 text-amber-600 border-amber-100 hover:bg-amber-100/40",
-    active: "bg-amber-500 text-white border-amber-500 shadow-sm",
-    dropdown: "bg-white border-amber-200",
-    item: "text-amber-600 hover:bg-amber-100/40",
-    itemSelected: "bg-amber-500 text-white",
-  },
-  "Autres": {
-    inactive: "bg-violet-50/30 text-violet-600 border-violet-100 hover:bg-violet-100/40",
-    active: "bg-violet-500 text-white border-violet-500 shadow-sm",
-    dropdown: "bg-white border-violet-200",
-    item: "text-violet-600 hover:bg-violet-100/40",
-    itemSelected: "bg-violet-500 text-white",
-  },
-};
 const MAX_ACTIVITY_LIST_HEIGHT = "max-h-85"; // pixels
 
 const StudentView = () => {

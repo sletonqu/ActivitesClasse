@@ -12,6 +12,12 @@ import {
 } from "../utils/dataLoaders";
 import { getActiveSkillDescription } from "../utils/activitySkills";
 import { parseActivityContent } from "../utils/activityUtils";
+import {
+  getActivityDiscipline,
+  getDisciplineLabel,
+  getDisciplineStyles,
+  sortActivityColumns,
+} from "../utils/activityDiscipline";
 
 const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
@@ -176,9 +182,9 @@ const ResultsView = () => {
     ? sortedStudents.filter((student) => String(student.id) === pinnedStudentId)
     : sortedStudents;
 
-  // Structurer les colonnes d'activités avec leurs niveaux
+  // Structurer les colonnes d'activités avec leurs niveaux, triées par discipline puis par ordre alphabétique
   const activityColumns = useMemo(() => {
-    return activities.map((activity) => {
+    const cols = activities.map((activity) => {
       const activityResults = results.filter(
         (r) => String(r.activity_id) === String(activity.id)
       );
@@ -195,6 +201,8 @@ const ResultsView = () => {
         levels: levels.length > 0 ? levels : [null],
       };
     });
+
+    return sortActivityColumns(cols);
   }, [activities, results]);
 
   const visibleActivityColumns = pinnedActivityId
@@ -445,39 +453,55 @@ const ResultsView = () => {
                   </th>
 
                   {/* Colonnes des activités */}
-                  {visibleActivityColumns.map((col) => (
-                    <th
-                      key={col.activity.id}
-                      colSpan={col.levels.length}
-                      className="px-4 py-3 text-center border-l border-slate-200 bg-slate-100"
-                    >
-                      <button
-                          id={`results-activity-name-${col.activity.id}`}
-                          type="button"
-                          aria-pressed={String(pinnedActivityId) === String(col.activity.id)}
-                          title={
-                            String(pinnedActivityId) === String(col.activity.id)
-                              ? "Afficher toutes les activités"
-                              : "Isoler cette activité"
-                          }
-                          onClick={() =>
-                            setPinnedActivityId((currentActivityId) =>
-                              String(currentActivityId) === String(col.activity.id)
-                                ? null
-                                : String(col.activity.id)
-                            )
-                          }
-                          className="inline-flex justify-center items-center gap-1 font-semibold text-slate-700 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 w-full"
+                  {visibleActivityColumns.map((col) => {
+                    const discipline = getActivityDiscipline(col.activity);
+                    const disciplineStyles = getDisciplineStyles(discipline);
+                    const disciplineLabel = getDisciplineLabel(discipline);
+
+                    return (
+                      <th
+                        key={col.activity.id}
+                        colSpan={col.levels.length}
+                        className={`px-4 py-3 text-center border-l ${disciplineStyles.headerBg}`}
                       >
-                        <span>{col.activity.title}</span>
-                        {String(pinnedActivityId) === String(col.activity.id) && (
-                          <span id={`results-activity-pin-${col.activity.id}`} aria-hidden="true" className="text-base leading-none">
-                            📌
-                          </span>
-                        )}
-                      </button>
-                    </th>
-                  ))}
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          {disciplineLabel && (
+                            <span
+                              id={`results-activity-discipline-${col.activity.id}`}
+                              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${disciplineStyles.badge}`}
+                            >
+                              {disciplineLabel}
+                            </span>
+                          )}
+                          <button
+                            id={`results-activity-name-${col.activity.id}`}
+                            type="button"
+                            aria-pressed={String(pinnedActivityId) === String(col.activity.id)}
+                            title={
+                              String(pinnedActivityId) === String(col.activity.id)
+                                ? "Afficher toutes les activités"
+                                : "Isoler cette activité"
+                            }
+                            onClick={() =>
+                              setPinnedActivityId((currentActivityId) =>
+                                String(currentActivityId) === String(col.activity.id)
+                                  ? null
+                                  : String(col.activity.id)
+                              )
+                            }
+                            className={`inline-flex justify-center items-center gap-1 font-semibold ${disciplineStyles.headerText} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 w-full`}
+                          >
+                            <span>{col.activity.title}</span>
+                            {String(pinnedActivityId) === String(col.activity.id) && (
+                              <span id={`results-activity-pin-${col.activity.id}`} aria-hidden="true" className="text-base leading-none">
+                                📌
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
 
                 {/* Sous-en-tête avec les niveaux */}
@@ -512,21 +536,24 @@ const ResultsView = () => {
                       </button>
                     </div>
                   </th>
-                  {visibleActivityColumns.map((col) =>
-                    col.levels.map((level) => {
+                  {visibleActivityColumns.map((col) => {
+                    const discipline = getActivityDiscipline(col.activity);
+                    const disciplineStyles = getDisciplineStyles(discipline);
+
+                    return col.levels.map((level) => {
                       const skillDescription = getActiveSkillDescription(col.content, level);
 
                       return (
                         <th
                           key={`${col.activity.id}-${level || "all"}`}
                           title={skillDescription || undefined}
-                          className="px-3 py-2 text-center font-medium text-xs text-slate-600 border-l border-slate-200"
+                          className={`px-3 py-2 text-center font-medium text-xs border-l ${disciplineStyles.subHeaderBg}`}
                         >
                           {level ? `${level}` : "-"}
                         </th>
                       );
-                    })
-                  )}
+                    });
+                  })}
                 </tr>
               </thead>
 
@@ -577,8 +604,11 @@ const ResultsView = () => {
                     </td>
 
                     {/* Cellules de résultats */}
-                    {visibleActivityColumns.map((col) =>
-                      col.levels.map((level) => {
+                    {visibleActivityColumns.map((col) => {
+                      const discipline = getActivityDiscipline(col.activity);
+                      const disciplineStyles = getDisciplineStyles(discipline);
+
+                      return col.levels.map((level) => {
                         const average = getAverageScore(student.id, col.activity.id, level);
                         const scoreColor = getScoreColor(average);
 
@@ -586,7 +616,7 @@ const ResultsView = () => {
                           <td
                             id={`results-cell-${student.id}-${col.activity.id}-${level || "all"}`}
                             key={`${student.id}-${col.activity.id}-${level || "all"}`}
-                            className="px-1 py-1 text-center border-l border-slate-200 cursor-pointer"
+                            className={`px-1 py-1 text-center border-l cursor-pointer ${disciplineStyles.cellBg}`}
                             onClick={() =>
                               average !== null &&
                               handleCellClick(student.id, col.activity.id, level)
@@ -604,8 +634,8 @@ const ResultsView = () => {
                             )}
                           </td>
                         );
-                      })
-                    )}
+                      });
+                    })}
                   </tr>
                 ))}
               </tbody>
@@ -652,9 +682,21 @@ const ResultsView = () => {
                 </p>
               )}
               <div id="results-detail-modal-summary" className="mb-4">
-                <h3 id="results-detail-modal-activity" className="font-semibold text-slate-800 text-lg mb-2">
-                  {selectedResult.activity.title}
-                </h3>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <h3 id="results-detail-modal-activity" className="font-semibold text-slate-800 text-lg">
+                    {selectedResult.activity.title}
+                  </h3>
+                  {getActivityDiscipline(selectedResult.activity) && (
+                    <span
+                      id="results-detail-modal-discipline"
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        getDisciplineStyles(getActivityDiscipline(selectedResult.activity)).badge
+                      }`}
+                    >
+                      {getDisciplineLabel(getActivityDiscipline(selectedResult.activity))}
+                    </span>
+                  )}
+                </div>
                 {selectedResult.level && (
                   <p id="results-detail-modal-level" className="text-sm text-slate-600 mb-3">
                     Niveau : <span className="font-medium">{selectedResult.level}</span>
