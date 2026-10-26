@@ -11,6 +11,7 @@ import VerbConjugationActivity, {
   normalizeMode,
   CONJUGATION_TABLE,
   isFirstGroupVerb,
+  isGenericFirstGroupVerb,
   isPronominalVerb,
   pickRandomVerb,
   clearFirstGroupVerbsCache,
@@ -328,6 +329,10 @@ describe("VerbConjugationActivity", () => {
 
   it("identifie correctement les verbes du 1er groupe avec isFirstGroupVerb et normalizeVerbKey", () => {
     expect(isFirstGroupVerb("verbe 1er groupe")).toBe(true);
+    expect(isFirstGroupVerb("verbe du 1er groupe")).toBe(true);
+    expect(isFirstGroupVerb("verbes du 1er groupe")).toBe(true);
+    expect(isFirstGroupVerb("verbe premier groupe")).toBe(true);
+    expect(isFirstGroupVerb("verbe du premier groupe")).toBe(true);
     expect(isFirstGroupVerb("1er groupe")).toBe(true);
     expect(isFirstGroupVerb("premier groupe")).toBe(true);
     expect(isFirstGroupVerb("chanter")).toBe(true);
@@ -337,6 +342,29 @@ describe("VerbConjugationActivity", () => {
     expect(isFirstGroupVerb("avoir")).toBe(false);
     expect(isFirstGroupVerb("aller")).toBe(false); // aller est du 3ème groupe
 
+    // Test de isGenericFirstGroupVerb avec diverses variantes et formats
+    expect(isGenericFirstGroupVerb("verbe du 1er groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbes du 1er groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbe 1er groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbes 1er groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("1er groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("premier groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbe premier groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbe du premier groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbes du premier groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("1er gr")).toBe(true);
+    expect(isGenericFirstGroupVerb("1er gr.")).toBe(true);
+    expect(isGenericFirstGroupVerb("groupe 1")).toBe(true);
+    expect(isGenericFirstGroupVerb("verbe-du-1er-groupe")).toBe(true);
+    expect(isGenericFirstGroupVerb("1er")).toBe(true);
+    expect(isGenericFirstGroupVerb("premier")).toBe(true);
+    expect(isGenericFirstGroupVerb("être")).toBe(false);
+    expect(isGenericFirstGroupVerb("avoir")).toBe(false);
+    expect(isGenericFirstGroupVerb("aller")).toBe(false);
+    expect(isGenericFirstGroupVerb("chanter")).toBe(false);
+    expect(isGenericFirstGroupVerb("")).toBe(false);
+    expect(isGenericFirstGroupVerb(null)).toBe(false);
+
     // Exclusion des verbes précédés d'un s' (comme s'envoler) ou de se
     expect(isFirstGroupVerb("s'envoler")).toBe(false);
     expect(isFirstGroupVerb("s’envoler")).toBe(false);
@@ -345,7 +373,12 @@ describe("VerbConjugationActivity", () => {
     expect(isFirstGroupVerb("se laver")).toBe(false);
 
     expect(normalizeVerbKey("verbe 1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("verbe du 1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("verbes du 1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("verbe premier groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("verbe du premier groupe")).toBe("verbe 1er groupe");
     expect(normalizeVerbKey("1er groupe")).toBe("verbe 1er groupe");
+    expect(normalizeVerbKey("premier groupe")).toBe("verbe 1er groupe");
     expect(normalizeVerbKey("chanter")).toBe("chanter");
     expect(normalizeVerbKey("manger")).toBe("manger");
     expect(normalizeVerbKey("s'envoler")).toBe("être");
@@ -654,6 +687,189 @@ describe("VerbConjugationActivity", () => {
     expect(html1erGroupe).not.toContain(">Être<");
     expect(html1erGroupe).not.toContain(">Avoir<");
   });
+
+  it("génère correctement la conjugaison d'un verbe du 1er groupe à l'imparfait (cas général, -ger, -cer, voyelle)", () => {
+    // Cas régulier : chanter
+    const chanterImparfait = generateFirstGroupConjugation("chanter", "imparfait");
+    expect(chanterImparfait).toHaveLength(6);
+    expect(chanterImparfait.map((r) => r.verb)).toEqual([
+      "chantais", "chantais", "chantait", "chantions", "chantiez", "chantaient",
+    ]);
+    expect(chanterImparfait.map((r) => r.parts.ending)).toEqual([
+      "ais", "ais", "ait", "ions", "iez", "aient",
+    ]);
+    expect(chanterImparfait[0].placeholder).toBe("chant...");
+
+    // Cas en -ger : manger (e muet devant a, mais pas devant i)
+    const mangerImparfait = generateFirstGroupConjugation("manger", "imparfait");
+    expect(mangerImparfait.map((r) => r.verb)).toEqual([
+      "mangeais", "mangeais", "mangeait", "mangions", "mangiez", "mangeaient",
+    ]);
+    expect(mangerImparfait.map((r) => r.parts.ending)).toEqual([
+      "eais", "eais", "eait", "ions", "iez", "eaient",
+    ]);
+    expect(mangerImparfait[3].parts.ending).toBe("ions");
+    expect(mangerImparfait[4].parts.ending).toBe("iez");
+
+    // Cas en -cer : tracer (cédille sous le c devant a, mais pas devant i)
+    const tracerImparfait = generateFirstGroupConjugation("tracer", "imparfait");
+    expect(tracerImparfait.map((r) => r.verb)).toEqual([
+      "traçais", "traçais", "traçait", "tracions", "traciez", "traçaient",
+    ]);
+    expect(tracerImparfait[0].parts.specialChar).toBe("ç");
+    expect(tracerImparfait[0].parts.stem).toBe("tra");
+    expect(tracerImparfait[0].placeholder).toBe("traç...");
+    expect(tracerImparfait[3].parts.specialChar).toBe("");
+    expect(tracerImparfait[3].parts.stem).toBe("trac");
+    expect(tracerImparfait[3].placeholder).toBe("trac...");
+
+    // Élision avec voyelle : aimer
+    const aimerImparfait = generateFirstGroupConjugation("aimer", "imparfait");
+    expect(aimerImparfait[0].pronoun).toBe("j'");
+    expect(aimerImparfait[0].verb).toBe("aimais");
+  });
+
+  it("génère correctement la conjugaison d'un verbe du 1er groupe au futur (radical infinitif complet)", () => {
+    // Cas régulier : chanter
+    const chanterFutur = generateFirstGroupConjugation("chanter", "futur");
+    expect(chanterFutur).toHaveLength(6);
+    expect(chanterFutur.map((r) => r.verb)).toEqual([
+      "chanterai", "chanteras", "chantera", "chanterons", "chanterez", "chanteront",
+    ]);
+    expect(chanterFutur.map((r) => r.parts.ending)).toEqual([
+      "ai", "as", "a", "ons", "ez", "ont",
+    ]);
+    expect(chanterFutur.map((r) => r.parts.stem)).toEqual([
+      "chanter", "chanter", "chanter", "chanter", "chanter", "chanter",
+    ]);
+    expect(chanterFutur[0].placeholder).toBe("chanter...");
+
+    // Cas en -ger et -cer au futur : infinitif complet conservé
+    const mangerFutur = generateFirstGroupConjugation("manger", "futur");
+    expect(mangerFutur.map((r) => r.verb)).toEqual([
+      "mangerai", "mangeras", "mangera", "mangerons", "mangerez", "mangeront",
+    ]);
+    expect(mangerFutur[0].placeholder).toBe("manger...");
+
+    const tracerFutur = generateFirstGroupConjugation("tracer", "futur");
+    expect(tracerFutur.map((r) => r.verb)).toEqual([
+      "tracerai", "traceras", "tracera", "tracerons", "tracerez", "traceront",
+    ]);
+    expect(tracerFutur[0].placeholder).toBe("tracer...");
+
+    // Élision avec voyelle : aimer
+    const aimerFutur = generateFirstGroupConjugation("aimer", "futur");
+    expect(aimerFutur[0].pronoun).toBe("j'");
+    expect(aimerFutur[0].verb).toBe("aimerai");
+  });
+
+  it("génère le pool d'étiquettes approprié pour verbe du 1er groupe à l'imparfait et au futur", () => {
+    // Imparfait
+    const poolImparfait = buildInitialPool(
+      "verbe 1er groupe",
+      { mode: "drag", target: "verb", tense: "imparfait" },
+      "chanter"
+    );
+    expect(poolImparfait).toHaveLength(6);
+    const imparfaitTexts = poolImparfait.map((t) => t.text).sort();
+    expect(imparfaitTexts).toEqual(["aient", "ais", "ais", "ait", "iez", "ions"].sort());
+
+    // Futur
+    const poolFutur = buildInitialPool(
+      "verbe 1er groupe",
+      { mode: "drag", target: "verb", tense: "futur" },
+      "chanter"
+    );
+    expect(poolFutur).toHaveLength(6);
+    const futurTexts = poolFutur.map((t) => t.text).sort();
+    expect(futurTexts).toEqual(["a", "ai", "as", "ez", "ons", "ont"].sort());
+  });
+
+  it("gère les tolérances de validation à l'imparfait et au futur pour verbes du 1er groupe", () => {
+    // Saisie terminaison seule vs verbe entier au futur
+    expect(
+      isAnswerCorrect("ai", "chanterai", "verb", { expectedEnding: "ai", expectedVerb: "chanterai" })
+    ).toBe(true);
+    expect(
+      isAnswerCorrect("chanterai", "chanterai", "verb", { expectedEnding: "ai", expectedVerb: "chanterai" })
+    ).toBe(true);
+
+    // Saisie terminaison seule vs verbe entier à l'imparfait (avec cédille ou sans accent)
+    expect(
+      isAnswerCorrect("ais", "traçais", "verb", { expectedEnding: "ais", expectedVerb: "traçais" })
+    ).toBe(true);
+    expect(
+      isAnswerCorrect("tracais", "traçais", "verb", { expectedEnding: "ais", expectedVerb: "traçais" })
+    ).toBe(true);
+
+    // Swap des pronoms je / tu à l'imparfait quand les formes sont homophones (chantais / chantais)
+    expect(
+      isAnswerCorrect("tu", "je", "pronoun", { canSwapFirstSecondSingular: true })
+    ).toBe(true);
+    expect(
+      isAnswerCorrect("je", "tu", "pronoun", { canSwapFirstSecondSingular: true })
+    ).toBe(true);
+    expect(
+      isAnswerCorrect("j'", "tu", "pronoun", { canSwapFirstSecondSingular: true })
+    ).toBe(true);
+  });
+
+  it("affiche correctement les sous-titres et badges pour les verbes du 1er groupe à l'imparfait et au futur", () => {
+    const htmlImparfait = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{ verb: "verbe 1er groupe", tense: "imparfait" }}
+        onComplete={() => {}}
+      />
+    );
+    expect(htmlImparfait).toContain("Imparfait de l&#x27;indicatif");
+    expect(htmlImparfait).toContain("Verbe du 1er Groupe");
+
+    const htmlFutur = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={{ verb: "verbe 1er groupe", tense: "futur" }}
+        onComplete={() => {}}
+      />
+    );
+    expect(htmlFutur).toContain("Futur simple de l&#x27;indicatif");
+    expect(htmlFutur).toContain("Verbe du 1er Groupe");
+  });
+
+  it("gère les paramètres de l'utilisateur avec 'verbe du 1er groupe' au présent sans basculer sur être", () => {
+    const userContent = {
+      title: "Conjuguer les verbes du 1er groupe au présent",
+      instruction: "Complète la conjugaison du verbe avec les bonnes formes.",
+      verb: "verbe du 1er groupe",
+      tense: "present",
+      randomOrder: false,
+      target: "verb",
+    };
+
+    const html = renderToStaticMarkup(
+      <VerbConjugationActivity
+        student={null}
+        content={userContent}
+        onComplete={() => {}}
+      />
+    );
+
+    // Ne doit absolument pas proposer le verbe être
+    expect(html).not.toContain(">Être<");
+    expect(html).not.toContain("suis");
+    expect(html).not.toContain("sommes");
+    expect(html).not.toContain("êtes");
+    expect(html).not.toContain("Conjugaison : être et avoir");
+
+    // Doit proposer un verbe du 1er groupe
+    expect(html).toContain("Verbe du 1er Groupe");
+    expect(html).toContain("Conjuguer les verbes du 1er groupe au présent");
+    expect(html).toContain("Complète la conjugaison du verbe avec les bonnes formes.");
+    expect(html).toContain("Présent de l&#x27;indicatif");
+    expect(html).toContain("(1er gr.)");
+    expect(html).toContain("Terminaisons en rouge à placer :");
+  });
 });
+
 
 

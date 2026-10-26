@@ -1104,7 +1104,7 @@ Exemple de configuration :
 
 Paramètres :
 
-- `verb` : `'être'`, `'avoir'`, `'verbe 1er groupe'` (ou un verbe spécifique en `-er` comme `'chanter'`, `'manger'`, `'tracer'`) ;
+- `verb` : `'être'`, `'avoir'`, `'verbe 1er groupe'` ou `'verbe du 1er groupe'` (ainsi que les variantes comme `'premier groupe'`, ou un verbe spécifique en `-er` tel que `'chanter'`, `'manger'`, `'tracer'`) ;
 - `tense` (ou `temps`) : `'present'`, `'futur'` ou `'imparfait'` (définit le temps de conjugaison) ;
 - `randomOrder` : `false` (ordre canonique `je, tu, il/elle, nous, vous, ils/elles`) ou `true` (ordre aléatoire des pronoms/verbes) ;
 - `target` : `'verb'` (verbes à placer/écrire) ou `'pronoun'` (pronoms à placer/écrire) ;
@@ -1116,17 +1116,21 @@ Temps et verbes supportés :
   - **Présent** : *être* (`suis, es, est, sommes, êtes, sont`) / *avoir* (`ai, as, a, avons, avez, ont`) ;
   - **Futur** : *être* (`serai, seras, sera, serons, serez, seront`) / *avoir* (`aurai, auras, aura, aurons, aurez, auront`) ;
   - **Imparfait** : *être* (`étais, étais, était, étions, étiez, étaient`) / *avoir* (`avais, avais, avait, avions, aviez, avaient`).
-- **Verbes du 1er groupe (`verb: "verbe 1er groupe"`) au présent** :
+- **Verbes du 1er groupe (`verb: "verbe du 1er groupe"` ou `"verbe 1er groupe"`) aux 3 temps (présent, imparfait, futur)** :
   - Récupération aléatoire d'un verbe dans la base de données via la route `/api/words?nature=verbe 1er groupe` (avec repli local si hors-ligne) ;
-  - Étiquettes du pool contenant uniquement les terminaisons (`-e, -es, -e, -ons, -ez, -ent` ou `-eons`) sans le radical ;
-  - Une fois l'étiquette placée dans la case de dépôt, affichage du verbe complet combinant le radical légèrement moins gras et la terminaison légèrement plus grasse ;
-  - Affichage du radical avec pointillés (ex: `chant...`) dans la case vide et comme placeholder de saisie ;
-  - **Cas particuliers pris en charge** :
-    - Verbes en `-ger` (ex: *manger*) : ajout du `e` à la 1ère personne du pluriel (`mang[eons]`) ;
-    - Verbes en `-cer` (ex: *tracer*) : remplacement du `c` par `ç` en gras à la 1ère personne du pluriel (`traç[ons]`) ;
-    - Verbes commençant par une voyelle ou h muet (ex: *aimer*) : élision automatique du pronom `j'` (`j'aime`) ;
-    - **Exclusion des verbes pronominaux** : les verbes précédés d'un `s'` (ex: *s'envoler*, *s'amuser*) ou de `se` sont automatiquement ignorés lors de la sélection aléatoire et de la validation ;
-  - Au **Niveau 3** (placement des pronoms), tolérance ergonomique acceptant indifféremment `je` ou `il / elle` sur les deux lignes ayant la même forme verbale (ex: `chante`) ;
+  - **Présent** : terminaisons `-e, -es, -e, -ons, -ez, -ent` (ou `-eons` pour les verbes en `-ger`, et `ç` pour les verbes en `-cer` devant le `o` : `tra[ç][ons]`) ;
+  - **Imparfait** : terminaisons `-ais, -ais, -ait, -ions, -iez, -aient` :
+    - Verbes en `-ger` (ex: *manger*) : ajout d'un `e` muet devant `a` (`mang[eais]`, `mang[eais]`, `mang[eait]`, `mang[eaient]`), mais `mang[ions]`, `mang[iez]` devant `i` ;
+    - Verbes en `-cer` (ex: *tracer*) : cédille sous le `c` devant `a` (`tra[ç][ais]`, `tra[ç][ais]`, `tra[ç][ait]`, `tra[ç][aient]`), mais sans cédille devant `i` (`trac[ions]`, `trac[iez]`) ;
+  - **Futur simple** : radical = infinitif entier (`chanter`, `manger`, `tracer`), terminaisons `-ai, -as, -a, -ons, -ez, -ont` (`chanter[ai]`, `manger[ai]`, `tracer[ai]`) ;
+  - Étiquettes du pool contenant uniquement les terminaisons correspondantes sans le radical ;
+  - Une fois l'étiquette placée dans la case de dépôt, affichage du verbe complet combinant le radical légèrement moins gras et la terminaison légèrement plus grasse (avec cédille mise en valeur) ;
+  - Affichage du radical avec pointillés (ex: `chant...`, `manger...`, `traç...`) dans la case vide et comme placeholder de saisie ;
+  - Élision automatique du pronom `j'` devant une voyelle ou un h muet (ex: *aimer*, *écouter*) à tous les temps (`j'aime`, `j'aimais`, `j'aimerai`) ;
+  - **Exclusion des verbes pronominaux** : les verbes précédés d'un `s'` (ex: *s'envoler*, *s'amuser*) ou de `se` sont automatiquement ignorés lors de la sélection aléatoire et de la validation ;
+  - Au **Niveau 3** (placement des pronoms), tolérance ergonomique acceptant indifféremment :
+    - `je` ou `il / elle` au présent pour les verbes du 1er groupe (`chante`) ;
+    - `je` ou `tu` à l'imparfait pour tous les verbes (`chantais`, `étais`, `avais`) ;
   - Bouton **Recommencer** : tire un nouveau verbe aléatoire dans la base de données à chaque nouvelle partie.
 
 Niveaux prédéfinis :

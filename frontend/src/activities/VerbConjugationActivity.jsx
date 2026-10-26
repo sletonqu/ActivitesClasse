@@ -100,6 +100,45 @@ export function isPronominalVerb(rawVerb) {
   return /^(s\s*['’ʼ`´]|se\s+)/i.test(norm);
 }
 
+export function isGenericFirstGroupVerb(rawVerb) {
+  const norm = String(rawVerb || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[._-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!norm) return false;
+
+  if (
+    norm === "verbe 1er groupe" ||
+    norm === "verbes 1er groupe" ||
+    norm === "verbe du 1er groupe" ||
+    norm === "verbes du 1er groupe" ||
+    norm === "verbe premier groupe" ||
+    norm === "verbes premier groupe" ||
+    norm === "verbe du premier groupe" ||
+    norm === "verbes du premier groupe" ||
+    norm === "1er groupe" ||
+    norm === "premier groupe" ||
+    norm === "1er" ||
+    norm === "premier" ||
+    norm === "groupe 1" ||
+    norm === "1er gr" ||
+    norm === "verbe 1er" ||
+    norm === "verbes 1er"
+  ) {
+    return true;
+  }
+
+  return (
+    /^(?:verbes?\s+)?(?:du\s+)?(?:1er|premier)(?:\s+(?:groupe|gr))?$/i.test(norm) ||
+    /^(?:verbes?\s+)?(?:du\s+)?(?:groupe\s+1|1\s+(?:groupe|gr))$/i.test(norm)
+  );
+}
+
 export function isFirstGroupVerb(rawVerb) {
   const norm = String(rawVerb || "")
     .trim()
@@ -107,12 +146,7 @@ export function isFirstGroupVerb(rawVerb) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  if (
-    norm === "verbe 1er groupe" ||
-    norm === "1er groupe" ||
-    norm === "premier groupe" ||
-    norm === "verbe premier groupe"
-  ) {
+  if (isGenericFirstGroupVerb(norm)) {
     return true;
   }
 
@@ -169,12 +203,107 @@ export async function fetchFirstGroupVerbs() {
 
 export function generateFirstGroupConjugation(verb, tense = "present") {
   const cleanVerb = String(verb || "").trim().toLowerCase();
+  const normalizedTense = normalizeTenseKey(tense);
   const baseRadical = cleanVerb.endsWith("er") ? cleanVerb.slice(0, -2) : cleanVerb;
   const isGer = cleanVerb.endsWith("ger");
   const isCer = cleanVerb.endsWith("cer");
   const startsWithVowelOrH = /^[aeiouyéèêëàâîïôùûh]/i.test(cleanVerb);
   const pronoun1 = startsWithVowelOrH ? "j'" : "je";
 
+  if (normalizedTense === "futur") {
+    // Au futur simple de l'indicatif, pour les verbes du 1er groupe :
+    // Radical = infinitif complet (ex: chanter, manger, tracer, aimer)
+    // Terminaisons régulières : -ai, -as, -a, -ons, -ez, -ont
+    const futureStem = cleanVerb;
+    const futurePlaceholder = `${futureStem}...`;
+    const futureEndings = ["ai", "as", "a", "ons", "ez", "ont"];
+    const pronouns = [pronoun1, "tu", "il / elle", "nous", "vous", "ils / elles"];
+
+    return futureEndings.map((ending, index) => ({
+      id: `${cleanVerb}-futur-${index + 1}`,
+      person: index + 1,
+      pronoun: pronouns[index],
+      verb: `${futureStem}${ending}`,
+      placeholder: futurePlaceholder,
+      parts: { stem: futureStem, specialChar: "", ending },
+    }));
+  }
+
+  if (normalizedTense === "imparfait") {
+    // À l'imparfait de l'indicatif, terminaisons régulières : -ais, -ais, -ait, -ions, -iez, -aient
+    // Verbes en -cer : cédille 'ç' devant 'a' (1, 2, 3, 6 : traçais, traçait, traçaient), pas de cédille devant 'i' (4, 5 : tracions, traciez)
+    // Verbes en -ger : ajout d'un 'e' muet devant 'a' (1, 2, 3, 6 : mangeais, mangeait, mangeaient), pas de 'e' devant 'i' (4, 5 : mangions, mangiez)
+    const cerStem = isCer ? baseRadical.slice(0, -1) : baseRadical;
+    const cerPlaceholder = `${cerStem}ç...`;
+    const defaultPlaceholder = `${baseRadical}...`;
+
+    const configByPerson = [
+      {
+        person: 1,
+        pronoun: pronoun1,
+        stem: isCer ? cerStem : baseRadical,
+        specialChar: isCer ? "ç" : "",
+        ending: isGer ? "eais" : "ais",
+        placeholder: isCer ? cerPlaceholder : defaultPlaceholder,
+      },
+      {
+        person: 2,
+        pronoun: "tu",
+        stem: isCer ? cerStem : baseRadical,
+        specialChar: isCer ? "ç" : "",
+        ending: isGer ? "eais" : "ais",
+        placeholder: isCer ? cerPlaceholder : defaultPlaceholder,
+      },
+      {
+        person: 3,
+        pronoun: "il / elle",
+        stem: isCer ? cerStem : baseRadical,
+        specialChar: isCer ? "ç" : "",
+        ending: isGer ? "eait" : "ait",
+        placeholder: isCer ? cerPlaceholder : defaultPlaceholder,
+      },
+      {
+        person: 4,
+        pronoun: "nous",
+        stem: baseRadical,
+        specialChar: "",
+        ending: "ions",
+        placeholder: defaultPlaceholder,
+      },
+      {
+        person: 5,
+        pronoun: "vous",
+        stem: baseRadical,
+        specialChar: "",
+        ending: "iez",
+        placeholder: defaultPlaceholder,
+      },
+      {
+        person: 6,
+        pronoun: "ils / elles",
+        stem: isCer ? cerStem : baseRadical,
+        specialChar: isCer ? "ç" : "",
+        ending: isGer ? "eaient" : "aient",
+        placeholder: isCer ? cerPlaceholder : defaultPlaceholder,
+      },
+    ];
+
+    return configByPerson.map((cfg) => {
+      const verbForm = cfg.specialChar
+        ? `${cfg.stem}${cfg.specialChar}${cfg.ending}`
+        : `${cfg.stem}${cfg.ending}`;
+      return {
+        id: `${cleanVerb}-imparfait-${cfg.person}`,
+        person: cfg.person,
+        pronoun: cfg.pronoun,
+        verb: verbForm,
+        placeholder: cfg.placeholder,
+        parts: { stem: cfg.stem, specialChar: cfg.specialChar, ending: cfg.ending },
+      };
+    });
+  }
+
+  // Présent de l'indicatif (par défaut)
   const nousStem = isCer ? baseRadical.slice(0, -1) : baseRadical;
   const nousSpecialChar = isCer ? "ç" : "";
   const nousEnding = isGer ? "eons" : "ons";
@@ -183,7 +312,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
 
   return [
     {
-      id: `${cleanVerb}-${tense}-1`,
+      id: `${cleanVerb}-present-1`,
       person: 1,
       pronoun: pronoun1,
       verb: `${baseRadical}e`,
@@ -191,7 +320,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
       parts: { stem: baseRadical, specialChar: "", ending: "e" },
     },
     {
-      id: `${cleanVerb}-${tense}-2`,
+      id: `${cleanVerb}-present-2`,
       person: 2,
       pronoun: "tu",
       verb: `${baseRadical}es`,
@@ -199,7 +328,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
       parts: { stem: baseRadical, specialChar: "", ending: "es" },
     },
     {
-      id: `${cleanVerb}-${tense}-3`,
+      id: `${cleanVerb}-present-3`,
       person: 3,
       pronoun: "il / elle",
       verb: `${baseRadical}e`,
@@ -207,7 +336,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
       parts: { stem: baseRadical, specialChar: "", ending: "e" },
     },
     {
-      id: `${cleanVerb}-${tense}-4`,
+      id: `${cleanVerb}-present-4`,
       person: 4,
       pronoun: "nous",
       verb: nousVerb,
@@ -215,7 +344,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
       parts: { stem: nousStem, specialChar: nousSpecialChar, ending: nousEnding },
     },
     {
-      id: `${cleanVerb}-${tense}-5`,
+      id: `${cleanVerb}-present-5`,
       person: 5,
       pronoun: "vous",
       verb: `${baseRadical}ez`,
@@ -223,7 +352,7 @@ export function generateFirstGroupConjugation(verb, tense = "present") {
       parts: { stem: baseRadical, specialChar: "", ending: "ez" },
     },
     {
-      id: `${cleanVerb}-${tense}-6`,
+      id: `${cleanVerb}-present-6`,
       person: 6,
       pronoun: "ils / elles",
       verb: `${baseRadical}ent`,
@@ -245,7 +374,7 @@ export const ConjugatedVerbText = ({ text, parts, className = "" }) => {
       {specialChar ? (
         <span
           className="font-black text-red-700 underline decoration-2 decoration-red-500 mx-[0.5px]"
-          title="Cas particulier : cédille sous le c devant le o"
+          title="Cas particulier : cédille sous le c devant le a ou le o"
         >
           {specialChar}
         </span>
@@ -334,12 +463,7 @@ export function normalizeVerbKey(rawVerb) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
   if (norm === "avoir") return "avoir";
-  if (
-    norm === "verbe 1er groupe" ||
-    norm === "1er groupe" ||
-    norm === "premier groupe" ||
-    norm === "verbe premier groupe"
-  ) {
+  if (isGenericFirstGroupVerb(norm)) {
     return "verbe 1er groupe";
   }
   if (norm.endsWith("er") && norm !== "aller" && !isPronominalVerb(rawVerb)) {
@@ -374,7 +498,11 @@ export function getConjugationList(rawVerb, rawTense, activeVerb = null) {
   const tenseKey = normalizeTenseKey(rawTense);
 
   if (isFirstGroupVerb(verbKey)) {
-    const targetVerb = activeVerb || (verbKey === "verbe 1er groupe" ? "chanter" : verbKey);
+    const targetVerb =
+      activeVerb ||
+      (verbKey === "verbe 1er groupe" || isGenericFirstGroupVerb(verbKey)
+        ? "chanter"
+        : verbKey);
     return generateFirstGroupConjugation(targetVerb, tenseKey);
   }
 
@@ -450,7 +578,7 @@ export function isAnswerCorrect(userText, expectedText, target, options = {}) {
 
   // Synonymes et formes équivalentes pour pronoms
   if (target === "pronoun") {
-    // Si la forme verbale est identique entre 1ère et 3ème personne du singulier (ex: chante)
+    // Si la forme verbale est identique entre 1ère et 3ème personne du singulier au présent (ex: chante)
     if (options.canSwapFirstThirdSingular) {
       const isFirstOrThirdExpected =
         normExpected === "je" || normExpected === "j'" || normExpected === "il / elle";
@@ -464,6 +592,22 @@ export function isAnswerCorrect(userText, expectedText, target, options = {}) {
           normUser === "on" ||
           normUser === "il / elle";
         if (isFirstPersonUser || isThirdPersonUser) {
+          return true;
+        }
+      }
+    }
+
+    // Si la forme verbale est identique entre 1ère et 2ème personne du singulier à l'imparfait (ex: chantais, étais, avais)
+    if (options.canSwapFirstSecondSingular) {
+      const isFirstOrSecondExpected =
+        normExpected === "je" || normExpected === "j'" || normExpected === "tu";
+      if (isFirstOrSecondExpected) {
+        const isFirstOrSecondUser =
+          normUser === "je" ||
+          normUser === "j'" ||
+          normUser === "j" ||
+          normUser === "tu";
+        if (isFirstOrSecondUser) {
           return true;
         }
       }
@@ -536,7 +680,10 @@ function normalizeLevelRule(sourceRule, fallbackRule, globalConfig = {}) {
 
   return {
     label: getSafeDisplayText(source.label, fallback.label || "Niveau"),
-    instruction: getSafeDisplayText(source.instruction, fallback.instruction || ""),
+    instruction: getSafeDisplayText(
+      source.instruction || globalConfig.instruction,
+      fallback.instruction || ""
+    ),
     verb,
     tense,
     randomOrder,
@@ -615,7 +762,7 @@ const VerbConjugationActivity = ({
 
   const initialActiveVerb = useMemo(() => {
     if (isFirstGroupVerb(currentRule.verb)) {
-      if (currentRule.verb !== "verbe 1er groupe") {
+      if (currentRule.verb !== "verbe 1er groupe" && !isGenericFirstGroupVerb(currentRule.verb)) {
         return currentRule.verb;
       }
       return pickRandomVerb(cachedFirstGroupVerbs || FALLBACK_FIRST_GROUP_VERBS);
@@ -680,7 +827,7 @@ const VerbConjugationActivity = ({
   const isFirstGroup = isFirstGroupVerb(currentRule.verb);
   const displayVerbName =
     (isFirstGroup
-      ? activeVerb && activeVerb !== "verbe 1er groupe"
+      ? activeVerb && activeVerb !== "verbe 1er groupe" && !isGenericFirstGroupVerb(activeVerb)
         ? activeVerb
         : ""
       : currentRule.verb) || "";
@@ -717,10 +864,18 @@ const VerbConjugationActivity = ({
   const initRound = useCallback(
     (verbKey, levelRule, forcedVerb = null) => {
       let verbToUse;
-      if (verbKey === "verbe 1er groupe") {
-        if (forcedVerb && isFirstGroupVerb(forcedVerb) && forcedVerb !== "verbe 1er groupe") {
+      if (verbKey === "verbe 1er groupe" || isGenericFirstGroupVerb(verbKey)) {
+        if (
+          forcedVerb &&
+          isFirstGroupVerb(forcedVerb) &&
+          !isGenericFirstGroupVerb(forcedVerb)
+        ) {
           verbToUse = forcedVerb;
-        } else if (activeVerb && isFirstGroupVerb(activeVerb) && activeVerb !== "verbe 1er groupe") {
+        } else if (
+          activeVerb &&
+          isFirstGroupVerb(activeVerb) &&
+          !isGenericFirstGroupVerb(activeVerb)
+        ) {
           verbToUse = activeVerb;
         } else {
           verbToUse = pickRandomVerb(availableVerbs);
@@ -804,8 +959,8 @@ const VerbConjugationActivity = ({
   // Synchronisation lors du changement réel de niveau ou de configuration du tour
   useEffect(() => {
     let nextActive = activeVerb;
-    if (currentRule.verb === "verbe 1er groupe") {
-      if (!activeVerb || !isFirstGroupVerb(activeVerb) || activeVerb === "verbe 1er groupe") {
+    if (currentRule.verb === "verbe 1er groupe" || isGenericFirstGroupVerb(currentRule.verb)) {
+      if (!activeVerb || !isFirstGroupVerb(activeVerb) || isGenericFirstGroupVerb(activeVerb)) {
         nextActive = pickRandomVerb(availableVerbs);
       }
     } else {
@@ -903,9 +1058,14 @@ const VerbConjugationActivity = ({
         currentRule.tense === "present" &&
         (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "il / elle");
 
+      const canSwapFirstSecond =
+        currentRule.tense === "imparfait" &&
+        (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "tu");
+
       const isFirstGroupVerbTarget = isFirstGroup && target === "verb";
       const options = {
         canSwapFirstThirdSingular: canSwapFirstThird,
+        canSwapFirstSecondSingular: canSwapFirstSecond,
         expectedEnding: isFirstGroupVerbTarget ? row.parts?.ending : null,
         expectedVerb: isFirstGroupVerbTarget ? row.verb : null,
       };
@@ -964,7 +1124,10 @@ const VerbConjugationActivity = ({
     if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
       return;
     }
-    if (isFirstGroupVerb(currentRule.verb) && currentRule.verb === "verbe 1er groupe") {
+    if (
+      isFirstGroupVerb(currentRule.verb) &&
+      (currentRule.verb === "verbe 1er groupe" || isGenericFirstGroupVerb(currentRule.verb))
+    ) {
       const nextVerb = pickRandomVerb(availableVerbs, activeVerb);
       setActiveVerb(nextVerb);
       lastLoadedSignatureRef.current = getRoundSignature(currentLevel, currentRule, nextVerb);
@@ -1099,11 +1262,15 @@ const VerbConjugationActivity = ({
                       isFirstGroup &&
                       currentRule.tense === "present" &&
                       (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "il / elle");
+                    const canSwapFirstSecond =
+                      currentRule.tense === "imparfait" &&
+                      (row.pronoun === "je" || row.pronoun === "j'" || row.pronoun === "tu");
                     const isFirstGroupVerbTarget = isFirstGroup && target === "verb";
                     const isRowCorrect =
                       finished &&
                       isAnswerCorrect(givenAnswer, expectedAnswer, target, {
                         canSwapFirstThirdSingular: canSwapFirstThird,
+                        canSwapFirstSecondSingular: canSwapFirstSecond,
                         expectedEnding: isFirstGroupVerbTarget ? row.parts?.ending : null,
                         expectedVerb: isFirstGroupVerbTarget ? row.verb : null,
                       });
