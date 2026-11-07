@@ -74,7 +74,7 @@ const GlobalImportExportPanel = ({ hideTitle = false }) => {
   };
 
   return (
-    <section id="global-import-export-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
+    <section id="global-import-export-section" className="w-full bg-white rounded-xl shadow-sm p-6 mb-6">
       {!hideTitle && (
         <h3 id="global-import-export-title" className="text-xl font-bold text-slate-800 mb-4">Import / Export global (Enseignants, Classes, Groupes, Élèves, Activités, Résultats)</h3>
       )}

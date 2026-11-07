@@ -342,9 +342,9 @@ const ResultsView = () => {
   const selectedClass = classes.find((c) => String(c.id) === String(selectedClassId));
 
   return (
-    <div id="results-view" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="w-full h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
+    <div id="results-view" style={{ "--view-background-icon": `url(${VIEW_BACKGROUND_ICON})` }} className="w-full h-screen bg-linear-to-br from-slate-50 to-slate-100 flex flex-col">
       {/* En-tête */}
-      <header id="results-view-header" className="bg-white shadow-sm border-b border-slate-200 px-6 py-1">
+      <header id="results-view-header" className="bg-white shadow-xs border-b border-slate-200 px-6 py-1">
         <div id="results-view-header-content" className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
           <div id="results-view-title-block">
             <h1 id="results-view-title" className="text-2xl font-bold text-slate-800">Résultats de la Classe</h1>
@@ -364,7 +364,7 @@ const ResultsView = () => {
                 setPinnedStudentId(null);
                 setPinnedActivityId(null);
               }}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Sélectionner une classe</option>
               {classes.map((cls) => (
@@ -489,7 +489,7 @@ const ResultsView = () => {
                                   : String(col.activity.id)
                               )
                             }
-                            className={`inline-flex justify-center items-center gap-1 font-semibold ${disciplineStyles.headerText} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 w-full`}
+                            className={`inline-flex justify-center items-center gap-1 font-semibold ${disciplineStyles.headerText} focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 w-full`}
                           >
                             <span>{col.activity.title}</span>
                             {String(pinnedActivityId) === String(col.activity.id) && (
@@ -586,7 +586,7 @@ const ResultsView = () => {
                                 : String(student.id)
                             )
                           }
-                          className="inline-flex items-center gap-1 self-start text-left font-semibold hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                          className="inline-flex items-center gap-1 self-start text-left font-semibold hover:text-indigo-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
                         >
                           {student.firstname} {student.name}
                           {String(pinnedStudentId) === String(student.id) && (
@@ -657,7 +657,7 @@ const ResultsView = () => {
             className="bg-white rounded-lg shadow-2xl max-w-md w-full max-h-[80vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div id="results-detail-modal-header" className="sticky top-0 bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white flex justify-between items-center">
+            <div id="results-detail-modal-header" className="sticky top-0 bg-linear-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white flex justify-between items-center">
               <div id="results-detail-modal-title-block">
                 <h2 id="results-detail-modal-title" className="text-xl font-bold">Détails des résultats</h2>
                 <p id="results-detail-modal-student" className="text-sm text-indigo-100 mt-1">
@@ -736,7 +736,7 @@ const ResultsView = () => {
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded ${getScoreColor(result.score)}`}>
+                          <span id={`results-detail-attempt-score-${result.id}`} className={`text-sm font-semibold px-2 py-1 rounded-sm ${getScoreColor(result.score)}`}>
                             {result.score}
                           </span>
                           <button
@@ -765,7 +765,7 @@ const ResultsView = () => {
                             href={`${API_URL.replace('/api', '')}/${result.screenshot_path}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="block w-24 h-16 border border-slate-300 rounded overflow-hidden hover:opacity-80 transition-opacity"
+                            className="block w-24 h-16 border border-slate-300 rounded-sm overflow-hidden hover:opacity-80 transition-opacity"
                             title="Cliquez pour agrandir"
                           >
                             <img 

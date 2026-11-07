@@ -73,7 +73,7 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
   };
 
   return (
-    <section id="students-import-export-section" className="w-full bg-white rounded-xl shadow p-6">
+    <section id="students-import-export-section" className="w-full bg-white rounded-xl shadow-sm p-6">
       {!hideTitle && (
         <h3 id="students-import-export-title" className="text-xl font-bold text-slate-800 mb-4">{title}</h3>
       )}
@@ -94,7 +94,7 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
         id="students-import-export-textarea"
         value={csvText}
         onChange={(e) => setCsvText(e.target.value)}
-        className="w-full h-40 border border-slate-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-sky-400"
+        className="w-full h-40 border border-slate-300 rounded-lg p-3 text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-sky-400"
       />
 
       <div id="students-import-export-actions" className="flex flex-wrap gap-3 mt-4">

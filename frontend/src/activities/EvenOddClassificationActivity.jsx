@@ -56,7 +56,7 @@ const TILE_ROTATION_MAX_DEGREES = 10;
 const DEFAULT_CATEGORY_THEME = {
   badge: "bg-slate-100 text-slate-800",
   panel: "border-slate-200 bg-slate-50",
-  activePanel: "border-slate-400 bg-slate-100 shadow-sm",
+  activePanel: "border-slate-400 bg-slate-100 shadow-xs",
   title: "text-slate-900",
 };
 
@@ -64,13 +64,13 @@ const CATEGORY_THEME_BY_KEY = {
   pair: {
     badge: "bg-indigo-100 text-indigo-800",
     panel: "border-indigo-200 bg-indigo-50/70",
-    activePanel: "border-indigo-400 bg-indigo-50 shadow-sm",
+    activePanel: "border-indigo-400 bg-indigo-50 shadow-xs",
     title: "text-indigo-900",
   },
   impair: {
     badge: "bg-amber-100 text-amber-800",
     panel: "border-amber-200 bg-amber-50/70",
-    activePanel: "border-amber-400 bg-amber-50 shadow-sm",
+    activePanel: "border-amber-400 bg-amber-50 shadow-xs",
     title: "text-amber-900",
   },
 };
@@ -397,7 +397,7 @@ const EvenOddClassificationActivity = ({
       ) : (
         <>
           {!finished && (
-            <section id="even-odd-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section id="even-odd-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-xs">
               <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
                 <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -437,7 +437,7 @@ const EvenOddClassificationActivity = ({
                         onDragStart={() => startDrag(numTile.id)}
                         onDragEnd={endDrag}
                         onClick={() => toggleSelection(numTile.id)}
-                        className={`min-w-[90px] rounded-2xl border px-2.5 py-1.5 text-center shadow-sm select-none transition-all sm:min-w-[108px] sm:px-3.5 sm:py-2.5 ${
+                        className={`min-w-[90px] rounded-2xl border px-2.5 py-1.5 text-center shadow-xs select-none transition-all sm:min-w-[108px] sm:px-3.5 sm:py-2.5 ${
                           isSelected
                             ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                             : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
@@ -494,7 +494,7 @@ const EvenOddClassificationActivity = ({
                     <div className="flex min-w-0 justify-center text-center w-full">
                       <span
                         title={formattedCategoryLabel}
-                        className={`inline-flex max-w-full flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 overflow-hidden rounded-xl sm:rounded-full px-2 py-2 sm:px-6 sm:py-3 text-lg font-bold shadow-sm sm:text-2xl lg:text-3xl ${theme.badge} ${theme.title} w-full`}
+                        className={`inline-flex max-w-full flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 overflow-hidden rounded-xl sm:rounded-full px-2 py-2 sm:px-6 sm:py-3 text-lg font-bold shadow-xs sm:text-2xl lg:text-3xl ${theme.badge} ${theme.title} w-full`}
                       >
                         <span className="truncate w-full text-center">{formattedCategoryLabel}</span>
                       </span>
@@ -507,7 +507,7 @@ const EvenOddClassificationActivity = ({
                         {mistakes.map((item) => (
                           <li
                             key={item.id}
-                            className="rounded-xl bg-white border border-rose-200 px-3 py-2 text-rose-800 shadow-sm"
+                            className="rounded-xl bg-white border border-rose-200 px-3 py-2 text-rose-800 shadow-xs"
                           >
                             <span className="font-semibold text-lg">{formatNumberWithThousandsSpace(item.value)}</span>
                             <span className="block text-xs mt-1 text-slate-500">Catégorie attendue : {item.expectedCategory}</span>

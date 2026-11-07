@@ -534,7 +534,7 @@ const AlphabeticalSortActivity = ({
           {!finished && (
             <section
               id="alphabetical-sort-pool-section"
-              className="-mt-1 rounded-2xl border border-slate-200 bg-white shadow-sm"
+              className="-mt-1 rounded-2xl border border-slate-200 bg-white shadow-xs"
             >
               <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -578,7 +578,7 @@ const AlphabeticalSortActivity = ({
                       onClick={() => toggleSelectFromPool(tile)}
                       isSelected={isPoolItemSelected(tile)}
                       selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                      className={`min-h-[36px] rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 disabled:cursor-default sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-1.5 ${
+                      className={`min-h-[36px] rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center shadow-xs transition-all hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 disabled:cursor-default sm:min-h-[44px] sm:rounded-xl sm:px-4 sm:py-1.5 ${
                         !activePlacement
                           ? "animate-pulse-slow motion-reduce:animate-none"
                           : ""
@@ -598,7 +598,7 @@ const AlphabeticalSortActivity = ({
           {/* Zone de classement */}
           <section
             id="alphabetical-sort-slots"
-            className="rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm sm:p-2"
+            className="rounded-xl border border-slate-200 bg-white p-1.5 shadow-xs sm:p-2"
           >
             <div id="alphabetical-sort-drop-zone" className="flex flex-col gap-0.5">
               {Array.from({ length: totalSlots }, (_, slotIndex) => {
@@ -656,7 +656,7 @@ const AlphabeticalSortActivity = ({
                             onClick={() => toggleSelectFromSlot(slotIndex)}
                             isSelected={isSlotSelected(slotIndex)}
                             selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                            className={`rounded-lg border px-2.5 py-0.5 text-center font-bold shadow-sm transition-all ${!finished
+                            className={`rounded-lg border px-2.5 py-0.5 text-center font-bold shadow-xs transition-all ${!finished
                               ? "cursor-move border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
                               : "cursor-default border-transparent bg-transparent"
                             }`}

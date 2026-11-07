@@ -45,7 +45,7 @@ const ActivitySummaryCard = ({
   const palette = SUMMARY_TONE_CLASSNAMES[tone] || SUMMARY_TONE_CLASSNAMES.success;
 
   return (
-    <section id={id} className={`relative overflow-hidden rounded-2xl border p-3 shadow-sm sm:p-4 ${palette.wrapper} ${className}`}>
+    <section id={id} className={`relative overflow-hidden rounded-2xl border p-3 shadow-xs sm:p-4 ${palette.wrapper} ${className}`}>
       {score === 20 && scoreMax === 20 ? (
         <div
           id={id ? `${id}-confetti` : undefined}
@@ -77,7 +77,7 @@ const ActivitySummaryCard = ({
         </div>
 
         {score !== null && score !== undefined ? (
-          <div className={`rounded-2xl border px-3 py-2.5 text-center shadow-sm ${palette.card}`}>
+          <div className={`rounded-2xl border px-3 py-2.5 text-center shadow-xs ${palette.card}`}>
             <p className={`text-xs uppercase tracking-wide ${palette.label}`}>{scoreLabel}</p>
             <p className={`text-2xl font-bold ${valueClassName}`}>{score} / {scoreMax}</p>
           </div>
@@ -85,7 +85,7 @@ const ActivitySummaryCard = ({
       </div>
 
       {footer ? (
-        <div className={`relative z-10 mt-3 rounded-xl border p-3 text-sm shadow-sm ${palette.card} ${footerClassName}`}>{footer}</div>
+        <div className={`relative z-10 mt-3 rounded-xl border p-3 text-sm shadow-xs ${palette.card} ${footerClassName}`}>{footer}</div>
       ) : null}
 
       {stats.length > 0 ? (

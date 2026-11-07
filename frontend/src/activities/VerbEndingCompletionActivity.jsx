@@ -633,7 +633,7 @@ const VerbEndingCompletionActivity = ({
       ) : (
         <>
           {!finished && currentSentence && (
-            <section id="verb-ending-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section id="verb-ending-section" className="rounded-2xl border border-slate-200 bg-white shadow-xs">
               <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -685,7 +685,7 @@ const VerbEndingCompletionActivity = ({
           )}
 
           {!finished && currentSentence && (
-            <section id="verb-endings-tiles" className="rounded-2xl border border-slate-200 bg-white shadow-sm p-3 sm:p-4">
+            <section id="verb-endings-tiles" className="rounded-2xl border border-slate-200 bg-white shadow-xs p-3 sm:p-4">
               <h4 className="text-lg font-bold text-slate-800 mb-3">Choisis la bonne terminaison</h4>
               <p id="verb-ending-tile-instruction" className="mb-3 text-sm text-slate-600">
                 Clique une première fois pour essayer, puis clique une deuxième fois sur la même terminaison pour valider ta réponse.
@@ -709,7 +709,7 @@ const VerbEndingCompletionActivity = ({
                             ? "border-rose-400 bg-rose-100 text-rose-900"
                             : "border-slate-200 bg-white text-slate-800"
                         : selectedEnding === ending
-                          ? "border-blue-400 bg-blue-100 text-blue-900 shadow-sm"
+                          ? "border-blue-400 bg-blue-100 text-blue-900 shadow-xs"
                           : "border-slate-300 bg-white text-slate-800 hover:border-blue-300"
                     } ${roundFinished ? "cursor-default" : "cursor-pointer"} ${
                       !selectedEnding && !roundFinished && !loadingSentences && !finished
@@ -768,7 +768,7 @@ const VerbEndingCompletionActivity = ({
                   <li
                     key={mistake.id || index}
                     id={`verb-ending-summary-error-item-${index}`}
-                    className="rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-xs"
+                    className="rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-2xs"
                   >
                     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-medium text-slate-800 sm:text-base">
                       <span className="mr-0.5 font-bold text-slate-400">

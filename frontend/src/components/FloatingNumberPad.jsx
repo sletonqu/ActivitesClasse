@@ -140,7 +140,7 @@ const FloatingNumberPad = ({
         ref={panelRef}
         aria-label="Pavé numérique flottant"
         style={position.x !== null && position.y !== null ? { left: position.x, top: position.y } : undefined}
-        className={`pointer-events-auto w-full max-w-[12rem] rounded-lg border border-slate-200 bg-white p-2 shadow-2xl ${
+        className={`pointer-events-auto w-full max-w-48 rounded-lg border border-slate-200 bg-white p-2 shadow-2xl ${
           position.x !== null && position.y !== null ? "fixed" : ""
         }`}
       >
@@ -178,7 +178,7 @@ const FloatingNumberPad = ({
                   id={`floating-number-pad-key-${keyValue === "=" ? "equal" : keyValue === "<" ? "lt" : keyValue === ">" ? "gt" : keyValue === "," ? "comma" : keyValue}`}
                   type="button"
                   onClick={() => onKeyPress?.(keyValue)}
-                  className={`inline-flex min-h-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-base font-bold text-slate-800 shadow-sm transition hover:bg-indigo-100 sm:min-h-9 sm:text-lg ${keyValue === "=" ? "col-span-3" : ""}`}
+                  className={`inline-flex min-h-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-base font-bold text-slate-800 shadow-xs transition hover:bg-indigo-100 sm:min-h-9 sm:text-lg ${keyValue === "=" ? "col-span-3" : ""}`}
                 >
                   {keyValue}
                 </button>
@@ -191,7 +191,7 @@ const FloatingNumberPad = ({
             id="floating-number-pad-backspace-button"
             type="button"
             onClick={onBackspace}
-            className="inline-flex items-center justify-center rounded-md bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-sm transition hover:bg-amber-200"
+            className="inline-flex items-center justify-center rounded-md bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900 shadow-xs transition hover:bg-amber-200"
           >
             ⌫ Retour
           </button>
@@ -199,7 +199,7 @@ const FloatingNumberPad = ({
             id="floating-number-pad-close-button"
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-md bg-slate-700 px-2 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-slate-800"
+            className="inline-flex items-center justify-center rounded-md bg-slate-700 px-2 py-1 text-[11px] font-semibold text-white shadow-xs transition hover:bg-slate-800"
           >
             Fermer
           </button>

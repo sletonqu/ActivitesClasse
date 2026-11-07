@@ -53,7 +53,7 @@ const SORT_ORDER_SYMBOLS = {
 const SLOT_THEME = {
   badge: "bg-indigo-100 text-indigo-800",
   panel: "border-slate-200 bg-slate-50",
-  activePanel: "border-sky-400 bg-sky-50 shadow-sm",
+  activePanel: "border-sky-400 bg-sky-50 shadow-xs",
 };
 
 function shuffle(array) {
@@ -346,7 +346,7 @@ const SortNumbersActivity = ({
       {!finished && (
         <section
           id="sort-numbers-word-pool-section"
-          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="rounded-2xl border border-slate-200 bg-white shadow-xs"
         >
           <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -390,7 +390,7 @@ const SortNumbersActivity = ({
                   onClick={() => toggleSelectFromPool(tile)}
                   isSelected={isPoolItemSelected(tile)}
                   selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                  className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
+                  className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-xs transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 disabled:cursor-default sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
                     !activePlacement
                       ? "animate-pulse-slow motion-reduce:animate-none"
                       : ""
@@ -409,7 +409,7 @@ const SortNumbersActivity = ({
 
       <section
         id="sort-numbers-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4"
+        className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xs sm:p-4"
       >
         <div
           id="sort-numbers-drop-zone-row"
@@ -423,7 +423,7 @@ const SortNumbersActivity = ({
               <React.Fragment key={`sort-slot-${slotIndex}`}>
                 <PlacementDropZone
                   id={`sort-numbers-drop-zone-${slotIndex}`}
-                  className={`flex min-h-[54px] min-w-[54px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[88px] sm:min-w-[88px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
+                  className={`flex min-h-[54px] min-w-[54px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-xs transition-all sm:min-h-[88px] sm:min-w-[88px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
                     finished
                       ? isCorrect
                         ? "border-emerald-400 bg-emerald-50 text-emerald-700"

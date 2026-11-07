@@ -591,7 +591,7 @@ const StudentView = () => {
                       setSelectedClassId(e.target.value);
                       setSelectedGroupId("");
                     }}
-                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
                   >
                     <option value="">Classe</option>
                     {classes.map((cls) => (
@@ -606,7 +606,7 @@ const StudentView = () => {
                     value={selectedGroupId}
                     onChange={(e) => setSelectedGroupId(e.target.value)}
                     disabled={!selectedClassId || loadingGroups}
-                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
+                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
                   >
                     <option value="">Groupes</option>
                     {groups.map((group) => (
@@ -641,7 +641,7 @@ const StudentView = () => {
                       {isOpen && (
                         <div
                           id={`student-discipline-dropdown-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
-                          className={`absolute right-0 top-full mt-1.5 z-[200] rounded-xl shadow-xl min-w-[250px] ${MAX_ACTIVITY_LIST_HEIGHT} overflow-y-auto py-1 ${cfg.dropdown}`}
+                          className={`absolute right-0 top-full mt-1.5 z-200 rounded-xl shadow-xl min-w-[250px] ${MAX_ACTIVITY_LIST_HEIGHT} overflow-y-auto py-1 ${cfg.dropdown}`}
                         >
                           {discActivities.length === 0 ? (
                             <p className="px-3 py-2 text-xs text-slate-400 italic">Aucune activité</p>
@@ -677,7 +677,7 @@ const StudentView = () => {
                 type="button"
                 onClick={() => setIsDemoMode(!isDemoMode)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${isDemoMode
-                  ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-sm"
+                  ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-xs"
                   : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
                   }`}
               >
@@ -726,11 +726,11 @@ const StudentView = () => {
             className={`w-full min-w-0 ${isFocusedMode && !focusedActivityCompleted ? "focused-mode-hide-restart" : ""}`}
           >
             {isFocusedMode && focusedModeError ? (
-              <div id="student-focused-mode-error" className="rounded-xl bg-red-50 p-4 text-red-700 shadow border border-red-200">
+              <div id="student-focused-mode-error" className="rounded-xl bg-red-50 p-4 text-red-700 shadow-sm border border-red-200">
                 {focusedModeError}
               </div>
             ) : !selectedActivityId ? (
-              <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
+              <div className="rounded-xl bg-white p-4 text-gray-500 shadow-sm">
                 Sélectionnez une activité active pour commencer.
               </div>
             ) : isDemoMode ? (
@@ -766,7 +766,7 @@ const StudentView = () => {
                 />
               </div>
             ) : (
-              <div className="rounded-xl bg-white p-4 text-gray-500 shadow">
+              <div className="rounded-xl bg-white p-4 text-gray-500 shadow-sm">
                 {isFocusedMode
                   ? "Chargement de l'élève ciblé..."
                   : "Sélectionnez un élève pour commencer l'activité."}

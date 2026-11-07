@@ -1194,7 +1194,7 @@ const VerbConjugationActivity = ({
       {!finished && (
         <section
           id="verb-conjugation-section"
-          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="rounded-2xl border border-slate-200 bg-white shadow-xs"
         >
           <div
             id="verb-conjugation-header"
@@ -1287,7 +1287,7 @@ const VerbConjugationActivity = ({
                             {/* Pronom en VIOLET */}
                             <div
                               id={`verb-conjugation-pronoun-${index}`}
-                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 font-bold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-xs"
+                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 font-bold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-2xs"
                             >
                               {row.pronoun}
                             </div>
@@ -1305,11 +1305,11 @@ const VerbConjugationActivity = ({
                                   value={inputAnswers[row.id] || ""}
                                   onChange={(e) => handleInputChange(row.id, e.target.value)}
                                   placeholder={row.placeholder || "..."}
-                                  className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-none ${finished
+                                  className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-hidden ${finished
                                     ? isRowCorrect
                                       ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
                                       : "bg-rose-50 border-2 border-rose-400 text-rose-700 line-through"
-                                    : `border-2 border-red-300 bg-white text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-200 shadow-xs ${!inputAnswers[row.id]
+                                    : `border-2 border-red-300 bg-white text-red-600 focus:border-red-500 focus:ring-2 focus:ring-red-200 shadow-2xs ${!inputAnswers[row.id]
                                       ? "animate-pulse-slow-red motion-reduce:animate-none"
                                       : ""
                                     }`
@@ -1327,7 +1327,7 @@ const VerbConjugationActivity = ({
                                       ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
                                       : "bg-rose-50 border-2 border-rose-400 text-rose-700"
                                     : assigned
-                                      ? "bg-red-50 border-2 border-red-400 text-red-600 font-extrabold shadow-xs"
+                                      ? "bg-red-50 border-2 border-red-400 text-red-600 font-extrabold shadow-2xs"
                                       : "border-2 border-dashed border-red-300 bg-red-50/20 hover:bg-red-50/40 text-red-400 cursor-pointer"
                                   }`}
                               >
@@ -1393,11 +1393,11 @@ const VerbConjugationActivity = ({
                                   value={inputAnswers[row.id] || ""}
                                   onChange={(e) => handleInputChange(row.id, e.target.value)}
                                   placeholder="..."
-                                  className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-none ${finished
+                                  className={`w-36 sm:w-44 h-11 sm:h-12 rounded-xl text-center font-extrabold text-base sm:text-lg transition-all outline-hidden ${finished
                                     ? isRowCorrect
                                       ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
                                       : "bg-rose-50 border-2 border-rose-400 text-rose-700 line-through"
-                                    : `border-2 border-purple-300 bg-white text-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 shadow-xs ${!inputAnswers[row.id]
+                                    : `border-2 border-purple-300 bg-white text-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 shadow-2xs ${!inputAnswers[row.id]
                                       ? "animate-pulse-slow-purple motion-reduce:animate-none"
                                       : ""
                                     }`
@@ -1415,7 +1415,7 @@ const VerbConjugationActivity = ({
                                       ? "bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-bold"
                                       : "bg-rose-50 border-2 border-rose-400 text-rose-700"
                                     : assigned
-                                      ? "bg-purple-50 border-2 border-purple-400 text-purple-700 font-extrabold shadow-xs"
+                                      ? "bg-purple-50 border-2 border-purple-400 text-purple-700 font-extrabold shadow-2xs"
                                       : "border-2 border-dashed border-purple-300 bg-purple-50/20 hover:bg-purple-50/40 text-purple-400 cursor-pointer"
                                   }`}
                               >
@@ -1457,7 +1457,7 @@ const VerbConjugationActivity = ({
                             {/* Verbe en ROUGE */}
                             <div
                               id={`verb-conjugation-verb-${index}`}
-                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-red-100 text-red-700 border border-red-200 font-extrabold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-xs"
+                              className="w-28 sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-red-100 text-red-700 border border-red-200 font-extrabold text-base sm:text-lg text-center flex items-center justify-center select-none shadow-2xs"
                             >
                               <ConjugatedVerbText text={row.verb} parts={row.parts} />
                             </div>
@@ -1562,7 +1562,7 @@ const VerbConjugationActivity = ({
                               onClick={() => toggleSelectFromPool(item)}
                               isSelected={isSelected}
                               style={{ width: poolTileWidth, maxWidth: "100%" }}
-                              className={`w-full py-2.5 px-3 rounded-xl font-extrabold text-base sm:text-lg text-center shadow-xs transition-transform active:scale-95 cursor-grab active:cursor-grabbing ${target === "verb"
+                              className={`w-full py-2.5 px-3 rounded-xl font-extrabold text-base sm:text-lg text-center shadow-2xs transition-transform active:scale-95 cursor-grab active:cursor-grabbing ${target === "verb"
                                 ? "bg-red-50/80 text-red-600 border-2 border-red-300 hover:border-red-400 hover:bg-red-100 animate-pulse-slow-red motion-reduce:animate-none"
                                 : "bg-purple-50/80 text-purple-700 border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-100 animate-pulse-slow-purple motion-reduce:animate-none"
                                 }`}
@@ -1645,7 +1645,7 @@ const VerbConjugationActivity = ({
                   <li
                     key={mistake.id || idx}
                     id={`verb-conjugation-summary-error-item-${idx}`}
-                    className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-xs text-sm sm:text-base"
+                    className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-2xs text-sm sm:text-base"
                   >
                     <span className="font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200">
                       {mistake.pronoun}

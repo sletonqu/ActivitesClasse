@@ -39,7 +39,7 @@ const ResultsManagementPanel = ({
 
   return (
     <div id="results-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
-      <section id="results-panel-filter-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+      <section id="results-panel-filter-section" className="w-full bg-white rounded-xl shadow-sm p-6 lg:w-1/2">
         {!hideTitle && (
           <h3 id="results-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des Résultats</h3>
         )}
@@ -59,7 +59,7 @@ const ResultsManagementPanel = ({
                   onSelectResultGroupId(e.target.value);
                   // Optional: Reset student if not in group
                 }}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="">Tous les groupes</option>
                 {groups.map((group) => (
@@ -76,7 +76,7 @@ const ResultsManagementPanel = ({
               <select
                 value={selectedResultStudentId}
                 onChange={(e) => onSelectResultStudent(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="">Sélectionner un élève</option>
                 {filteredStudents.map((student) => (
@@ -93,7 +93,7 @@ const ResultsManagementPanel = ({
               <select
                 value={selectedResultActivityId}
                 onChange={(e) => onSelectResultActivityId(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="">Toutes les activités</option>
                 {activities.map((activity) => (
@@ -119,7 +119,7 @@ const ResultsManagementPanel = ({
         )}
       </section>
 
-      <section id="results-panel-list-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/2">
+      <section id="results-panel-list-section" className="w-full bg-white rounded-xl shadow-sm p-6 lg:w-1/2">
         <h3 id="results-panel-list-title" className="text-xl font-bold text-slate-800 mb-4">Résultats de l'élève</h3>
 
         {!selectedClassId ? (
@@ -148,7 +148,7 @@ const ResultsManagementPanel = ({
                 type="button"
                 onClick={onDeleteAllResults}
                 disabled={deletingAllResults || filteredResults.length === 0}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
               >
                 {deletingAllResults ? "Suppression..." : "Supprimer Tout"}
               </button>
@@ -182,7 +182,7 @@ const ResultsManagementPanel = ({
                             deletingResultId === String(result.id) ||
                             deletingAllResults
                           }
-                          className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-60"
+                          className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-sm hover:bg-amber-700 disabled:opacity-60"
                         >
                           {calculatingAverageResultId === String(result.id)
                             ? "Calcul..."
@@ -199,7 +199,7 @@ const ResultsManagementPanel = ({
                             deletingAllResults ||
                             calculatingAverageResultId === String(result.id)
                           }
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
                           {deletingResultId === String(result.id) ? "Suppression..." : "Supprimer"}
                         </button>

@@ -42,7 +42,7 @@ const ClassesManagementPanel = ({
     <div id="classes-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
         id="classes-panel-form-section"
-        className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+        className={`w-full shrink-0 bg-white rounded-xl shadow-sm p-6 ${formSectionClassName}`}
       >
         {!hideTitle && (
           <h3 id="classes-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des classes</h3>
@@ -55,7 +55,7 @@ const ClassesManagementPanel = ({
               type="text"
               value={className}
               onChange={(e) => onClassNameChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: CM1 A"
             />
           </div>
@@ -65,7 +65,7 @@ const ClassesManagementPanel = ({
             <select
               value={classTeacherId}
               onChange={(e) => onClassTeacherIdChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             >
               <option value="">Aucun</option>
               {teachers.map((teacher) => (
@@ -114,14 +114,14 @@ const ClassesManagementPanel = ({
       </section>
 
       {showClassesList && (
-        <section id="classes-panel-list-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}>
+        <section id="classes-panel-list-section" className={`w-full grow bg-white rounded-xl shadow-sm p-6 ${listSectionClassName}`}>
           <div id="classes-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="classes-panel-list-title" className="text-xl font-bold text-slate-800">Liste des classes</h3>
             <button
               type="button"
               onClick={onDeleteAllClasses}
               disabled={classes.length === 0 || deletingAllClasses}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
               {deletingAllClasses ? "Suppression..." : "Supprimer Tout"}
             </button>
@@ -169,7 +169,7 @@ const ClassesManagementPanel = ({
                             onDeleteClass(cls);
                           }}
                           disabled={deletingClassId === String(cls.id) || deletingAllClasses}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
                           {deletingClassId === String(cls.id) ? "Suppression..." : "Supprimer"}
                         </button>
@@ -184,7 +184,7 @@ const ClassesManagementPanel = ({
       )}
 
       {shouldRenderEditSection && (
-        <section id="classes-panel-edit-section" className="w-full grow bg-white rounded-xl shadow p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
+        <section id="classes-panel-edit-section" className="w-full grow bg-white rounded-xl shadow-sm p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
           <h3 id="classes-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier la classe</h3>
 
           <form id="classes-panel-edit-form" onSubmit={onUpdateClass} className="space-y-4">
@@ -194,7 +194,7 @@ const ClassesManagementPanel = ({
                 type="text"
                 value={editClassName}
                 onChange={(e) => onEditClassNameChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: CM1 A"
               />
             </div>
@@ -204,7 +204,7 @@ const ClassesManagementPanel = ({
               <select
                 value={editClassTeacherId}
                 onChange={(e) => onEditClassTeacherIdChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="">Aucun (null)</option>
                 {teachers.map((teacher) => (

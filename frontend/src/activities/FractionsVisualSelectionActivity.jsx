@@ -270,7 +270,7 @@ function FractionChoiceTile({
       type="button"
       disabled={disabled}
       onClick={onSelect}
-      className={`mx-auto flex aspect-square min-h-[59px] w-full max-w-[69px] items-center justify-center rounded-2xl border px-1.5 py-1.5 text-xl font-bold shadow-sm transition-all sm:min-h-[66px] sm:max-w-[78px] ${className} ${pulsing ? "animate-pulse-slow motion-reduce:animate-none" : ""} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
+      className={`mx-auto flex aspect-square min-h-[59px] w-full max-w-[69px] items-center justify-center rounded-2xl border px-1.5 py-1.5 text-xl font-bold shadow-xs transition-all sm:min-h-[66px] sm:max-w-[78px] ${className} ${pulsing ? "animate-pulse-slow motion-reduce:animate-none" : ""} ${disabled ? "disabled:cursor-not-allowed disabled:opacity-70" : ""}`}
       style={{ transform: `rotate(${fraction.rotation || 0}deg)` }}
       aria-pressed={selected}
       aria-label={`Choisir ${formatFraction(fraction)}`}
@@ -532,7 +532,7 @@ const FractionsVisualSelectionActivity = ({
       >
         <section
           id="fractions-selection-visual-section"
-          className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+          className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xs sm:p-4"
         >
           <div className="mb-3 border-b border-slate-100 pb-3">
             <h4 className="text-lg font-bold text-slate-800">Observe la fraction</h4>
@@ -560,7 +560,7 @@ const FractionsVisualSelectionActivity = ({
 
         <section
           id="fractions-selection-answers-section"
-          className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+          className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xs sm:p-4"
         >
           <div className="mb-3 border-b border-slate-100 pb-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

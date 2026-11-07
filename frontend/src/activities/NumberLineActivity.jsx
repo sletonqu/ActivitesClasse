@@ -362,7 +362,7 @@ const NumberLineActivity = ({
 
       <section
         id="number-line-board-section"
-        className="rounded-2xl border border-slate-200 bg-white p-1 shadow-sm sm:p-2"
+        className="rounded-2xl border border-slate-200 bg-white p-1 shadow-xs sm:p-2"
       >
         <div className="border-b border-slate-100 pb-1 mb-1">
           <h4 className="text-lg font-bold text-slate-800">Nombres à placer sur la droite graduée</h4>
@@ -376,7 +376,7 @@ const NumberLineActivity = ({
           <div id="number-line-scroll-container" className="w-full overflow-x-auto rounded-xl bg-slate-50/50 p-1 sm:p-1 select-none scrollbar-thin">
             <div id="number-line-canvas" className="relative w-full min-w-[850px] h-60 my-2">
               {/* Le trait de la droite graduée */}
-              <div className="absolute left-10 right-10 top-24 h-1.5 bg-slate-900 rounded-full shadow-sm" />
+              <div className="absolute left-10 right-10 top-24 h-1.5 bg-slate-900 rounded-full shadow-xs" />
 
               {/* Les graduations et repères */}
               {roundData.ticks.map((val, i) => {
@@ -395,7 +395,7 @@ const NumberLineActivity = ({
                     {/* Trait de graduation */}
                     <div
                       className={`rounded-full transition-all duration-300 ${isMarked
-                        ? "w-[3px] h-6 bg-slate-900 shadow-sm"
+                        ? "w-[3px] h-6 bg-slate-900 shadow-xs"
                         : "w-[2px] h-4 bg-slate-400"
                         }`}
                     />
@@ -403,7 +403,7 @@ const NumberLineActivity = ({
                     {/* Repère déjà placé (au-dessus) */}
                     {isReadonly && (
                       <div id={`number-line-readonly-label-${i}`} className="absolute bottom-6 flex flex-col items-center animate-fade-in">
-                        <span id={`number-line-readonly-value-${i}`} className="text-sm font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg shadow-sm whitespace-nowrap">
+                        <span id={`number-line-readonly-value-${i}`} className="text-sm font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg shadow-xs whitespace-nowrap">
                           {formatNumberWithThousandsSpace(val)}
                         </span>
                         <div id={`number-line-readonly-dot-${i}`} className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1" />
@@ -419,7 +419,7 @@ const NumberLineActivity = ({
                           type="button"
                           disabled={finished}
                           onClick={() => openNumberPad(i)}
-                          className={`w-14 h-10 flex items-center justify-center border-2 rounded-xl text-lg font-bold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 ${activeInputIndex === i
+                          className={`w-14 h-10 flex items-center justify-center border-2 rounded-xl text-lg font-bold shadow-xs transition-all focus:outline-hidden focus:ring-2 focus:ring-offset-1 ${activeInputIndex === i
                             ? "border-indigo-600 ring-4 ring-indigo-100 bg-indigo-50 text-indigo-700 font-extrabold scale-105"
                             : finished
                               ? answers[i] === String(val)
@@ -435,7 +435,7 @@ const NumberLineActivity = ({
 
                         {/* Correction en dessous si incorrect et validé */}
                         {finished && answers[i] !== String(val) && (
-                          <span id={`number-line-correction-${i}`} className="mt-1.5 text-xs font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap animate-fade-in">
+                          <span id={`number-line-correction-${i}`} className="mt-1.5 text-xs font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-sm shadow-xs whitespace-nowrap animate-fade-in">
                             {formatNumberWithThousandsSpace(val)}
                           </span>
                         )}

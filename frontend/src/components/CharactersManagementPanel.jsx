@@ -40,7 +40,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
   const previewCode = `<CharacterSprite\n  id=\"${spriteId || "character-sprite"}\"\n  src=\"${resolvedSrc}\"\n  position={${safePosition}}\n  columns={${safeColumns}}\n  rows={${safeRows}}\n  size={${safeSize}}\n  alt=\"${spriteAlt || "Personnage grammatical"}\"\n  className=\"${spriteClassName}\"\n/>`;
 
   return (
-    <section id="characters-management-section" className="w-full rounded-xl bg-white p-6 shadow mb-6">
+    <section id="characters-management-section" className="w-full rounded-xl bg-white p-6 shadow-sm mb-6">
       <div id="characters-management-header" className="mb-4 flex flex-col gap-2">
         {!hideTitle && (
           <h3 id="characters-management-title" className="text-xl font-bold text-slate-800">
@@ -62,7 +62,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               id="characters-management-character-select"
               value={selectedCharacterKey}
               onChange={(event) => setSelectedCharacterKey(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             >
               {CHARACTER_OPTIONS.map((option) => (
                 <option key={option.key} value={option.key}>
@@ -99,7 +99,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               max={12}
               value={safeColumns}
               onChange={(event) => setColumns(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -114,7 +114,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               max={12}
               value={safeRows}
               onChange={(event) => setRows(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -129,7 +129,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               max={320}
               value={safeSize}
               onChange={(event) => setSize(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -142,7 +142,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               type="text"
               value={spriteId}
               onChange={(event) => setSpriteId(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -155,7 +155,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               type="text"
               value={spriteAlt}
               onChange={(event) => setSpriteAlt(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -168,7 +168,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               type="text"
               value={spriteClassName}
               onChange={(event) => setSpriteClassName(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
 
@@ -182,7 +182,7 @@ const CharactersManagementPanel = ({ hideTitle = false }) => {
               placeholder="/images/MonPersonnage.png"
               value={customSrc}
               onChange={(event) => setCustomSrc(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             />
           </div>
         </div>

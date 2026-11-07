@@ -521,7 +521,7 @@ const GeneratedSentencesManagementPanel = () => {
   };
 
   return (
-    <section id="generated-sentences-management-section" className="w-full rounded-xl bg-white p-6 shadow mb-6">
+    <section id="generated-sentences-management-section" className="w-full rounded-xl bg-white p-6 shadow-sm mb-6">
       <input
         id="generated-sentences-import-json-input"
         ref={importFileRef}
@@ -563,7 +563,7 @@ const GeneratedSentencesManagementPanel = () => {
               id="generated-sentences-level-filter"
               value={levelFilter}
               onChange={(event) => setLevelFilter(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
             >
               {LEVEL_OPTIONS.map((level) => (
                 <option key={level || "all"} value={level}>
@@ -583,7 +583,7 @@ const GeneratedSentencesManagementPanel = () => {
               value={themeFilter}
               onChange={(event) => setThemeFilter(event.target.value)}
               placeholder="animaux, école..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
             />
           </div>
 
@@ -597,7 +597,7 @@ const GeneratedSentencesManagementPanel = () => {
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               placeholder="Mot présent dans la phrase"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
             />
           </div>
 
@@ -609,7 +609,7 @@ const GeneratedSentencesManagementPanel = () => {
               id="generated-sentences-sort-order"
               value={sortOrder}
               onChange={(event) => setSortOrder(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -631,7 +631,7 @@ const GeneratedSentencesManagementPanel = () => {
                 id="generated-sentences-tense-filter"
                 value={tenseFilter}
                 onChange={(event) => setTenseFilter(event.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
               >
                 {TENSE_OPTIONS.map((option) => (
                   <option key={option.value || "all"} value={option.value}>
@@ -651,7 +651,7 @@ const GeneratedSentencesManagementPanel = () => {
                 value={infinitiveEndingFilter}
                 onChange={(event) => setInfinitiveEndingFilter(event.target.value)}
                 placeholder="ex: er, ir"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
               />
             </div>
 
@@ -665,7 +665,7 @@ const GeneratedSentencesManagementPanel = () => {
                 value={conjugatedEndingsFilter}
                 onChange={(event) => setConjugatedEndingsFilter(event.target.value)}
                 placeholder="ex: e, es, ent"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
               />
             </div>
 
@@ -679,7 +679,7 @@ const GeneratedSentencesManagementPanel = () => {
                 value={wordsFilter}
                 onChange={(event) => setWordsFilter(event.target.value)}
                 placeholder="ex: a, à ou et, est"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
               />
             </div>
 
@@ -693,7 +693,7 @@ const GeneratedSentencesManagementPanel = () => {
                 value={naturesFilter}
                 onChange={(event) => setNaturesFilter(event.target.value)}
                 placeholder="ex: verbe, nom"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
               />
             </div>
           </div>
@@ -826,7 +826,7 @@ const GeneratedSentencesManagementPanel = () => {
                 id={`generated-sentences-item-${sentence.id}`}
                 onClick={() => handleSelectSentence(sentence.id)}
                 className={`cursor-pointer rounded-lg border p-4 transition ${isSelected
-                    ? "border-violet-300 bg-violet-50 shadow-sm"
+                    ? "border-violet-300 bg-violet-50 shadow-xs"
                     : "border-slate-200 bg-slate-50 hover:border-slate-300"
                   }`}
               >
@@ -919,7 +919,7 @@ const GeneratedSentencesManagementPanel = () => {
                             type="text"
                             value={sentenceEditorText}
                             onChange={(event) => setSentenceEditorText(event.target.value)}
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
                           />
                         </div>
 
@@ -931,7 +931,7 @@ const GeneratedSentencesManagementPanel = () => {
                             id={`generated-sentences-editor-words-${sentence.id}`}
                             value={wordsEditorText}
                             onChange={(event) => setWordsEditorText(event.target.value)}
-                            className="h-48 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                            className="h-48 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-violet-400"
                           />
                           <p className="mt-1 text-xs text-slate-500">
                             Modifie les natures/catégories/temps/infinitifs dans le JSON puis clique sur « Enregistrer les corrections ».

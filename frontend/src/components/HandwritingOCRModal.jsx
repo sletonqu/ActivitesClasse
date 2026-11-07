@@ -122,7 +122,7 @@ const HandwritingOCRModal = ({
   return (
     <div
       id="ocr-modal-overlay"
-      className={`fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 ${overlayClass}`}
+      className={`fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 p-4 ${overlayClass}`}
     >
       <div
         id="ocr-modal-container"
@@ -191,7 +191,7 @@ const HandwritingOCRModal = ({
           />
 
           {isProcessing && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-xs">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
               {!isMinimal && (
                 <>

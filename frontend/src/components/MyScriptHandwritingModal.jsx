@@ -195,7 +195,7 @@ const MyScriptHandwritingModal = ({
   return (
     <div
       id="myscript-modal-overlay"
-      className={`fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 ${overlayClass}`}
+      className={`fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 p-4 ${overlayClass}`}
     >
       <div
         id="myscript-modal-container"

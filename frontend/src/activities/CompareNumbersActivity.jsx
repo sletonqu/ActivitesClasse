@@ -302,7 +302,7 @@ function ComparisonValueCard({ id, rotation = 0, value, displayParts = null, siz
   return (
     <div
       id={id}
-      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white text-center shadow-sm ${
+      className={`flex items-center justify-center rounded-xl border border-slate-200 bg-white text-center shadow-xs ${
         isCompact ? "px-2.5 py-2 sm:px-3 sm:py-3" : "px-3 py-3 sm:px-4 sm:py-4"
       } ${
         hasDecomposedDisplay
@@ -569,7 +569,7 @@ const CompareNumbersActivity = ({
       {!finished && (
         <section
           id="compare-numbers-sign-pool-section"
-          className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="rounded-2xl border border-slate-200 bg-white shadow-xs"
         >
           <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
@@ -606,7 +606,7 @@ const CompareNumbersActivity = ({
                   disabled={finished}
                   onClick={() => setSelectedSign(sign)}
                   aria-label={`Choisir le signe ${SIGN_LABELS[sign]}`}
-                  className={`min-h-[45px] min-w-[58px] rounded-2xl border px-2.5 py-1.5 text-center text-lg font-bold shadow-sm transition-all sm:min-h-[51px] sm:min-w-[70px] sm:px-3 sm:py-2 sm:text-xl ${
+                  className={`min-h-[45px] min-w-[58px] rounded-2xl border px-2.5 py-1.5 text-center text-lg font-bold shadow-xs transition-all sm:min-h-[51px] sm:min-w-[70px] sm:px-3 sm:py-2 sm:text-xl ${
                     isSelected
                       ? "border-indigo-600 bg-indigo-600 text-white"
                       : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
@@ -626,7 +626,7 @@ const CompareNumbersActivity = ({
 
       <section
         id="compare-numbers-categories"
-        className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-2.5"
+        className="rounded-2xl border border-slate-200 bg-white p-2 shadow-xs sm:p-2.5"
       >
         <div
           id="compare-numbers-exercise-area"
@@ -645,7 +645,7 @@ const CompareNumbersActivity = ({
 
           <div
             id="compare-numbers-answer-slot"
-            className={`mx-auto flex min-h-[39px] min-w-[39px] items-center justify-center rounded-2xl border-2 px-1.5 py-1 text-2xl font-bold shadow-sm transition-all sm:min-h-[57px] sm:min-w-[57px] sm:px-2 sm:py-1.5 sm:text-3xl ${
+            className={`mx-auto flex min-h-[39px] min-w-[39px] items-center justify-center rounded-2xl border-2 px-1.5 py-1 text-2xl font-bold shadow-xs transition-all sm:min-h-[57px] sm:min-w-[57px] sm:px-2 sm:py-1.5 sm:text-3xl ${
               finished
                 ? isCorrect
                   ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -673,7 +673,7 @@ const CompareNumbersActivity = ({
 
       <section
         id="compare-numbers-help-section"
-        className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${showHelp ? "p-3 sm:p-4" : "p-1.5 sm:p-2"}`}
+        className={`rounded-2xl border border-slate-200 bg-white shadow-xs ${showHelp ? "p-3 sm:p-4" : "p-1.5 sm:p-2"}`}
       >
         {!showHelp ? (
           <div className="flex flex-col items-center justify-center gap-1 text-center">
@@ -681,7 +681,7 @@ const CompareNumbersActivity = ({
               id="compare-numbers-help-button"
               type="button"
               onClick={() => setShowHelp(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-300 bg-amber-50 text-lg shadow-sm transition hover:bg-amber-100"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-300 bg-amber-50 text-lg shadow-xs transition hover:bg-amber-100"
               aria-label="Afficher une aide"
               title="Afficher une aide"
             >

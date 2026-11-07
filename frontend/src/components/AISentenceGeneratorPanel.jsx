@@ -297,7 +297,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             value={provider}
             onChange={(event) => setProvider(event.target.value)}
             disabled={loadingProviders || configuredProviders.length === 0}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:opacity-60"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-violet-400 disabled:opacity-60"
           >
             {providers.map((item) => (
               <option key={item.id} value={item.id} disabled={!item.configured}>
@@ -312,7 +312,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
           <select
             value={schoolLevel}
             onChange={(event) => setSchoolLevel(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-violet-400"
           >
             {SCHOOL_LEVEL_OPTIONS.map((level) => (
               <option key={level} value={level}>
@@ -328,7 +328,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             type="text"
             value={theme}
             onChange={(event) => setTheme(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-violet-400"
             placeholder="animaux, école, nature..."
           />
         </div>
@@ -341,7 +341,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             max="10"
             value={maxWords}
             onChange={(event) => setMaxWords(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-violet-400"
           />
         </div>
 
@@ -353,7 +353,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             max="12"
             value={phraseCount}
             onChange={(event) => setPhraseCount(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-violet-400"
           />
         </div>
       </div>
@@ -365,7 +365,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
         <textarea
           value={customInstruction}
           onChange={(event) => setCustomInstruction(event.target.value)}
-          className="h-24 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+          className="h-24 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-violet-400"
           placeholder="Ex : utiliser un verbe au présent et un adjectif simple."
         />
       </div>
@@ -447,7 +447,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
               <textarea
                 readOnly
                 value={providerErrorContent}
-                className="h-40 w-full rounded-lg border border-rose-200 bg-white px-3 py-2 font-mono text-sm text-slate-700 focus:outline-none"
+                className="h-40 w-full rounded-lg border border-rose-200 bg-white px-3 py-2 font-mono text-sm text-slate-700 focus:outline-hidden"
               />
             </div>
           )}
@@ -461,7 +461,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
               <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Phrases générées</div>
               <div className="space-y-2 text-sm text-slate-800">
                 {generatedSentences.map((sentence, index) => (
-                  <div key={sentence.id || `${index}-${sentence.sentence}`} className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                  <div key={sentence.id || `${index}-${sentence.sentence}`} className="rounded-lg bg-white px-3 py-2 shadow-xs">
                     <span className="mr-2 font-semibold text-violet-700">#{index + 1}</span>
                     {sentence.sentence}
                     <span className="ml-2 text-xs text-slate-500">(compteur : {sentence.compteur ?? 0})</span>
@@ -501,7 +501,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
             <textarea
               readOnly
               value={generatedJsonText}
-              className="h-72 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm focus:outline-none"
+              className="h-72 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm focus:outline-hidden"
             />
           </div>
         </div>

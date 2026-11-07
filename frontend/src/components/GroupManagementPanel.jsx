@@ -37,7 +37,7 @@ const GroupManagementPanel = ({
     <div id="groups-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
         id="groups-panel-form-section"
-        className={`w-full ${showGroupsList && selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+        className={`w-full ${showGroupsList && selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow-sm p-6`}
       >
         {!hideTitle && (
           <h3 id="groups-panel-title" className="text-xl font-bold text-slate-800 mb-4">
@@ -52,7 +52,7 @@ const GroupManagementPanel = ({
               type="text"
               value={groupName}
               onChange={(e) => onGroupNameChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: Groupe A"
             />
           </div>
@@ -100,7 +100,7 @@ const GroupManagementPanel = ({
       {showGroupsList && (
         <section
           id="groups-panel-list-section"
-          className={`w-full ${selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow p-6`}
+          className={`w-full ${selectedGroupId ? "lg:w-1/3" : "lg:w-1/2"} bg-white rounded-xl shadow-sm p-6`}
         >
           <div id="groups-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="groups-panel-list-title" className="text-xl font-bold text-slate-800">
@@ -110,7 +110,7 @@ const GroupManagementPanel = ({
               type="button"
               onClick={onDeleteAllGroups}
               disabled={!selectedClassId || groups.length === 0 || deletingAllGroups}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
               {deletingAllGroups ? "Suppression..." : "Supprimer Tout"}
             </button>
@@ -158,7 +158,7 @@ const GroupManagementPanel = ({
                           onDeleteGroup(group);
                         }}
                         disabled={deletingGroupId === String(group.id) || deletingAllGroups}
-                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                       >
                         {deletingGroupId === String(group.id) ? "Suppression..." : "Supprimer"}
                       </button>
@@ -172,7 +172,7 @@ const GroupManagementPanel = ({
       )}
 
       {showGroupsList && selectedGroup && (
-        <section id="groups-panel-students-section" className="w-full bg-white rounded-xl shadow p-6 lg:w-1/3">
+        <section id="groups-panel-students-section" className="w-full bg-white rounded-xl shadow-sm p-6 lg:w-1/3">
           <div id="groups-panel-students-header" className="flex items-center justify-between mb-4 gap-3">
             <div>
               <h3 id="groups-panel-students-title" className="text-xl font-bold text-slate-800">
@@ -184,7 +184,7 @@ const GroupManagementPanel = ({
               type="button"
               onClick={onRemoveAllStudentsFromGroup}
               disabled={groupStudents.length === 0 || removingAllGroupStudents}
-              className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-sm hover:bg-amber-700 disabled:opacity-60"
             >
               {removingAllGroupStudents ? "Retrait..." : "Retirer Tout"}
             </button>
@@ -196,7 +196,7 @@ const GroupManagementPanel = ({
               <select
                 value={selectedAvailableStudentId}
                 onChange={(e) => onSelectedAvailableStudentChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="">Sélectionner un élève</option>
                 {availableStudents.map((student) => (
@@ -234,7 +234,7 @@ const GroupManagementPanel = ({
                       type="button"
                       onClick={() => onRemoveStudentFromGroup(student)}
                       disabled={removingGroupStudentId === String(student.id) || removingAllGroupStudents}
-                      className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                      className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                     >
                       {removingGroupStudentId === String(student.id) ? "Retrait..." : "Retirer"}
                     </button>

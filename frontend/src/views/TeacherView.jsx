@@ -980,7 +980,7 @@ const TeacherView = () => {
               id="teacher-view-activities-button"
               type="button"
               onClick={handleOpenActivitiesView}
-              className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-emerald-700 sm:flex-none sm:px-4"
+              className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 sm:flex-none sm:px-4"
             >
               Ouvrir les activités
             </button>
@@ -988,19 +988,19 @@ const TeacherView = () => {
               id="teacher-view-results-button"
               type="button"
               onClick={handleOpenResultsView}
-              className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow transition-colors hover:bg-indigo-700 sm:flex-none sm:px-4"
+              className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 sm:flex-none sm:px-4"
             >
               Tableau des résultats
             </button>
           </div>
           </div>
 
-        <div id="bloc-classe-active" className="w-full bg-white rounded-xl shadow p-6 mb-6">
+        <div id="bloc-classe-active" className="w-full bg-white rounded-xl shadow-sm p-6 mb-6">
           <label className="block text-sm font-semibold text-slate-700 mb-2">Classe ciblée</label>
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
           >
             <option value="">Sélectionner une classe</option>
             {classes.map((cls) => (

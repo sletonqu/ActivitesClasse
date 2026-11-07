@@ -100,7 +100,7 @@ describe("HomophonesActivity", () => {
               <li
                 key={mistake.id || index}
                 id={`homophones-summary-error-item-${index}`}
-                className="rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-xs"
+                className="rounded-xl border border-rose-200 bg-white p-2.5 sm:p-3 shadow-2xs"
               >
                 <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-medium text-slate-800 sm:text-base">
                   <span className="mr-0.5 font-bold text-slate-400">{index + 1}.</span>

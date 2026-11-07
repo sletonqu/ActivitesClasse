@@ -48,7 +48,7 @@ const TeachersManagementPanel = ({
     <div id="teachers-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
         id="teachers-panel-form-section"
-        className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+        className={`w-full shrink-0 bg-white rounded-xl shadow-sm p-6 ${formSectionClassName}`}
       >
         {!hideTitle && (
           <h3 id="teachers-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des enseignants</h3>
@@ -61,7 +61,7 @@ const TeachersManagementPanel = ({
               type="text"
               value={teacherName}
               onChange={(e) => onTeacherNameChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: Mme Martin"
             />
           </div>
@@ -72,7 +72,7 @@ const TeachersManagementPanel = ({
               type="email"
               value={teacherEmail}
               onChange={(e) => onTeacherEmailChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: martin@ecole.local"
             />
           </div>
@@ -83,7 +83,7 @@ const TeachersManagementPanel = ({
               type="password"
               value={teacherPassword}
               onChange={(e) => onTeacherPasswordChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Mot de passe"
             />
           </div>
@@ -93,7 +93,7 @@ const TeachersManagementPanel = ({
             <select
               value={teacherSelectedClassId}
               onChange={(e) => onTeacherSelectedClassIdChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
             >
               <option value="">Aucune</option>
               {classes.map((cls) => (
@@ -142,14 +142,14 @@ const TeachersManagementPanel = ({
       </section>
 
       {showTeachersList && (
-        <section id="teachers-panel-list-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}>
+        <section id="teachers-panel-list-section" className={`w-full grow bg-white rounded-xl shadow-sm p-6 ${listSectionClassName}`}>
           <div id="teachers-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="teachers-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Enseignants</h3>
             <button
               type="button"
               onClick={onDeleteAllTeachers}
               disabled={teachers.length === 0 || deletingAllTeachers}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
               {deletingAllTeachers ? "Suppression..." : "Supprimer Tout"}
             </button>
@@ -200,7 +200,7 @@ const TeachersManagementPanel = ({
                             onDeleteTeacher(teacher);
                           }}
                           disabled={deletingTeacherId === String(teacher.id) || deletingAllTeachers}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
                           {deletingTeacherId === String(teacher.id) ? "Suppression..." : "Supprimer"}
                         </button>
@@ -215,7 +215,7 @@ const TeachersManagementPanel = ({
       )}
 
       {shouldRenderEditSection && (
-        <section id="teachers-panel-edit-section" className="w-full grow bg-white rounded-xl shadow p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
+        <section id="teachers-panel-edit-section" className="w-full grow bg-white rounded-xl shadow-sm p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
           <h3 id="teachers-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'enseignant</h3>
 
           <form id="teachers-panel-edit-form" onSubmit={onUpdateTeacher} className="space-y-4">
@@ -225,7 +225,7 @@ const TeachersManagementPanel = ({
                 type="text"
                 value={editTeacherName}
                 onChange={(e) => onEditTeacherNameChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: Mme Martin"
               />
             </div>
@@ -236,7 +236,7 @@ const TeachersManagementPanel = ({
                 type="email"
                 value={editTeacherEmail}
                 onChange={(e) => onEditTeacherEmailChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: martin@ecole.local"
               />
             </div>
@@ -247,7 +247,7 @@ const TeachersManagementPanel = ({
                 type="password"
                 value={editTeacherPassword}
                 onChange={(e) => onEditTeacherPasswordChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Laisser vide pour conserver"
               />
             </div>

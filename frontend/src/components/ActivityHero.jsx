@@ -2,7 +2,7 @@ import React from "react";
 import { getActiveSkillDescription } from "../utils/activitySkills";
 
 const DEFAULT_INSTRUCTION_CLASSNAME =
-  "block min-h-[1.25rem] w-full text-sm text-slate-800 sm:text-base";
+  "block min-h-5 w-full text-sm text-slate-800 sm:text-base";
 
 const DEFAULT_LEVEL_BUTTON_CLASSNAME =
   "rounded-full px-3 py-1.5 text-sm font-semibold transition";
@@ -45,11 +45,11 @@ const ActivityHero = ({
   return (
     <section
       id={`${idPrefix}-hero`}
-      className="rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 p-[1px]"
+      className="rounded-2xl bg-linear-to-r from-sky-500 via-indigo-500 to-violet-500 p-px"
     >
       <div className="rounded-2xl bg-white p-3 sm:p-4">
         <div className="w-full min-w-0">
-          <h3 id={`${idPrefix}-title`} className="mb-1 block w-full break-words text-lg font-bold text-slate-800 sm:text-2xl">
+          <h3 id={`${idPrefix}-title`} className="mb-1 block w-full wrap-break-word text-lg font-bold text-slate-800 sm:text-2xl">
             {title}
           </h3>
           {showInstruction && instruction && (
@@ -87,7 +87,7 @@ const ActivityHero = ({
                   onClick={() => onSelectLevel?.(levelKey)}
                   className={`${DEFAULT_LEVEL_BUTTON_CLASSNAME} ${
                     currentLevel === levelKey
-                      ? "bg-indigo-600 text-white shadow"
+                      ? "bg-indigo-600 text-white shadow-sm"
                       : "bg-slate-100 text-slate-800 hover:bg-slate-200"
                   } ${isDisabled ? "disabled:cursor-not-allowed disabled:opacity-60" : ""}`}
                 >

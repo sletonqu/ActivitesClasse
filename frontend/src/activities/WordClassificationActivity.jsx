@@ -54,7 +54,7 @@ const TILE_ROTATION_MAX_DEGREES = 10;
 const DEFAULT_CATEGORY_THEME = {
   badge: "bg-slate-100 text-slate-800",
   panel: "border-slate-200 bg-slate-50",
-  activePanel: "border-slate-400 bg-slate-100 shadow-sm",
+  activePanel: "border-slate-400 bg-slate-100 shadow-xs",
   title: "text-slate-900",
 };
 
@@ -62,43 +62,43 @@ const CATEGORY_THEME_BY_KEY = {
   nom: {
     badge: "bg-indigo-100 text-indigo-800",
     panel: "border-indigo-200 bg-indigo-50/70",
-    activePanel: "border-indigo-400 bg-indigo-50 shadow-sm",
+    activePanel: "border-indigo-400 bg-indigo-50 shadow-xs",
     title: "text-indigo-900",
   },
   verbe: {
     badge: "bg-red-100 text-red-800",
     panel: "border-red-200 bg-red-50/70",
-    activePanel: "border-red-400 bg-red-50 shadow-sm",
+    activePanel: "border-red-400 bg-red-50 shadow-xs",
     title: "text-red-900",
   },
   adverbe: {
     badge: "bg-[rgb(255,69,0)]/15 text-[rgb(255,69,0)]",
     panel: "border-[rgb(255,69,0)]/30 bg-[rgb(255,69,0)]/10",
-    activePanel: "border-[rgb(255,69,0)] bg-[rgb(255,69,0)]/15 shadow-sm",
+    activePanel: "border-[rgb(255,69,0)] bg-[rgb(255,69,0)]/15 shadow-xs",
     title: "text-[rgb(255,69,0)]",
   },
   adjectif: {
     badge: "bg-amber-100 text-amber-800",
     panel: "border-amber-200 bg-amber-50/70",
-    activePanel: "border-amber-400 bg-amber-50 shadow-sm",
+    activePanel: "border-amber-400 bg-amber-50 shadow-xs",
     title: "text-amber-900",
   },
   pronom: {
     badge: "bg-fuchsia-100 text-fuchsia-800",
     panel: "border-fuchsia-200 bg-fuchsia-50/70",
-    activePanel: "border-fuchsia-400 bg-fuchsia-50 shadow-sm",
+    activePanel: "border-fuchsia-400 bg-fuchsia-50 shadow-xs",
     title: "text-fuchsia-900",
   },
   determinant: {
     badge: "bg-emerald-100 text-emerald-800",
     panel: "border-emerald-200 bg-emerald-50/70",
-    activePanel: "border-emerald-400 bg-emerald-50 shadow-sm",
+    activePanel: "border-emerald-400 bg-emerald-50 shadow-xs",
     title: "text-emerald-900",
   },
   autres: {
     badge: "bg-slate-100 text-slate-800",
     panel: "border-slate-200 bg-slate-50",
-    activePanel: "border-slate-400 bg-slate-100 shadow-sm",
+    activePanel: "border-slate-400 bg-slate-100 shadow-xs",
     title: "text-slate-900",
   },
 };
@@ -568,7 +568,7 @@ const WordClassificationActivity = ({
       ) : (
         <>
           {!finished && (
-            <section id="word-classification-word-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section id="word-classification-word-pool-section" className="rounded-2xl border border-slate-200 bg-white shadow-xs">
               <div className="border-b border-slate-100 px-3 py-2 sm:px-4 sm:py-2.5">
                 <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -608,7 +608,7 @@ const WordClassificationActivity = ({
                         onDragStart={() => startDrag(word.runtimeId)}
                         onDragEnd={endDrag}
                         onClick={() => toggleSelection(word.runtimeId)}
-                        className={`min-w-[90px] rounded-2xl border px-2.5 py-1.5 text-center shadow-sm select-none transition-all sm:min-w-[108px] sm:px-3.5 sm:py-2.5 ${
+                        className={`min-w-[90px] rounded-2xl border px-2.5 py-1.5 text-center shadow-xs select-none transition-all sm:min-w-[108px] sm:px-3.5 sm:py-2.5 ${
                           isSelected
                             ? "border-amber-400 bg-amber-100 ring-4 ring-amber-200"
                             : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50"
@@ -664,7 +664,7 @@ const WordClassificationActivity = ({
                     <div className="flex min-w-0 justify-center text-center w-full">
                       <span
                         title={formattedCategoryLabel}
-                        className={`inline-flex max-w-full flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 overflow-hidden rounded-xl sm:rounded-full px-2 py-2 sm:px-6 sm:py-3 text-lg font-bold shadow-sm sm:text-2xl lg:text-3xl ${theme.badge} ${theme.title} w-full`}
+                        className={`inline-flex max-w-full flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 overflow-hidden rounded-xl sm:rounded-full px-2 py-2 sm:px-6 sm:py-3 text-lg font-bold shadow-xs sm:text-2xl lg:text-3xl ${theme.badge} ${theme.title} w-full`}
                       >
                         {spriteImage && (
                           <CharacterSprite
@@ -675,7 +675,7 @@ const WordClassificationActivity = ({
                             rows={3}
                             size={60}
                             alt={`Personnage ${formattedCategoryLabel}`}
-                            className="shrink-0 !w-10 !h-10 sm:!w-[50px] sm:!h-[50px] lg:!w-[60px] lg:!h-[60px]"
+                            className="shrink-0 w-10! h-10! sm:w-[50px]! sm:h-[50px]! lg:w-[60px]! lg:h-[60px]!"
                           />
                         )}
                         <span className="truncate w-full text-center">{formattedCategoryLabel}</span>
@@ -689,7 +689,7 @@ const WordClassificationActivity = ({
                         {mistakes.map((item) => (
                           <li
                             key={item.id}
-                            className="rounded-xl bg-white border border-rose-200 px-3 py-2 text-rose-800 shadow-sm"
+                            className="rounded-xl bg-white border border-rose-200 px-3 py-2 text-rose-800 shadow-xs"
                           >
                             <span className="font-semibold">{item.word}</span>
                             <span className="block text-xs mt-1">Catégorie attendue : {item.expectedCategory}</span>

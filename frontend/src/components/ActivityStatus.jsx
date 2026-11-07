@@ -20,7 +20,7 @@ const ActivityStatus = ({
   return (
     <section
       id={id}
-      className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-3"
+      className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xs sm:p-3"
       aria-label={label}
     >
       <span className="sr-only">{label} : {safeProgressPercent}%</span>
@@ -32,7 +32,7 @@ const ActivityStatus = ({
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={safeProgressPercent}
-          className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-all duration-300"
+          className="h-full rounded-full bg-linear-to-r from-sky-500 to-indigo-600 transition-all duration-300"
           style={{ width: `${safeProgressPercent}%` }}
         />
       </div>

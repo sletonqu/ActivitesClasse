@@ -487,7 +487,7 @@ const CountPencilsByTensActivity = ({
 
       <section
         id="count-pencils-by-tens-word-pool-section"
-        className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white shadow-xs"
       >
         <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
@@ -519,7 +519,7 @@ const CountPencilsByTensActivity = ({
                 <div
                   key={exercise.id}
                   id={`count-pencils-by-tens-case-${exercise.id}`}
-                  className={`rounded-2xl border p-3 shadow-sm sm:p-4 ${!finished
+                  className={`rounded-2xl border p-3 shadow-xs sm:p-4 ${!finished
                     ? "border-slate-200 bg-white"
                     : correct
                       ? "border-emerald-300 bg-emerald-50"

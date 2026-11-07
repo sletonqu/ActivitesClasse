@@ -98,7 +98,7 @@ const ActivitiesManagementPanel = ({
       {shouldRenderFormSection && (
         <section
           id="activities-panel-form-section"
-          className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+          className={`w-full shrink-0 bg-white rounded-xl shadow-sm p-6 ${formSectionClassName}`}
         >
           {!hideTitle && (
             <h3 id="activities-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des activités</h3>
@@ -134,7 +134,7 @@ const ActivitiesManagementPanel = ({
                 type="text"
                 value={activityTitle}
                 onChange={(e) => onActivityTitleChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: Nombres croissants"
               />
             </div>
@@ -145,7 +145,7 @@ const ActivitiesManagementPanel = ({
                 type="text"
                 value={activityDescription}
                 onChange={(e) => onActivityDescriptionChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Description de l'activité"
               />
             </div>
@@ -157,7 +157,7 @@ const ActivitiesManagementPanel = ({
                   type="text"
                   value={activityDiscipline}
                   onChange={(e) => onActivityDisciplineChange(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                   placeholder="Ex: Mathématiques"
                   autoComplete="on"
                   list="disciplines-list"
@@ -170,7 +170,7 @@ const ActivitiesManagementPanel = ({
                   type="text"
                   value={activityCategory}
                   onChange={(e) => onActivityCategoryChange(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                   placeholder="Ex: Calcul"
                   autoComplete="on"
                   list="categories-list"
@@ -199,7 +199,7 @@ const ActivitiesManagementPanel = ({
               <select
                 value={activityStatus}
                 onChange={(e) => onActivityStatusChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -211,7 +211,7 @@ const ActivitiesManagementPanel = ({
               <select
                 value={activityJsFile}
                 onChange={(e) => onActivityJsFileChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 {ACTIVITY_FILES.map((file) => (
                   <option key={file} value={file}>
@@ -226,7 +226,7 @@ const ActivitiesManagementPanel = ({
               <button
                 type="button"
                 onClick={() => openJsonEditor(activityContentText, (nextValue) => onActivityContentChange?.(nextValue))}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-sky-400 hover:bg-sky-50"
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-xs transition hover:border-sky-400 hover:bg-sky-50"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">Éditer le JSON</span>
@@ -255,7 +255,7 @@ const ActivitiesManagementPanel = ({
       {showActivitiesList && (
         <section
           id="activities-panel-list-section"
-          className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}
+          className={`w-full grow bg-white rounded-xl shadow-sm p-6 ${listSectionClassName}`}
         >
           <div id="activities-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="activities-panel-list-title" className="text-xl font-bold text-slate-800">Liste des activités</h3>
@@ -265,7 +265,7 @@ const ActivitiesManagementPanel = ({
                 type="button"
                 onClick={onDeleteAllActivities}
                 disabled={loadingActivities || activities.length === 0 || deletingAllActivities}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
               >
                 {deletingAllActivities ? "Suppression..." : "Supprimer Tout"}
               </button>
@@ -316,7 +316,7 @@ const ActivitiesManagementPanel = ({
                           onDeleteActivity(activity);
                         }}
                         disabled={deletingActivityId === String(activity.id) || deletingAllActivities}
-                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                       >
                         {deletingActivityId === String(activity.id) ? "Suppression..." : "Supprimer"}
                       </button>
@@ -342,7 +342,7 @@ const ActivitiesManagementPanel = ({
       )}
 
       {shouldRenderEditSection && (
-        <section id="activities-panel-edit-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${editSectionClassName}`}>
+        <section id="activities-panel-edit-section" className={`w-full grow bg-white rounded-xl shadow-sm p-6 ${editSectionClassName}`}>
           <h3 id="activities-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'activité</h3>
 
           <form id="activities-panel-edit-form" onSubmit={onUpdateActivity} className="space-y-4">
@@ -352,7 +352,7 @@ const ActivitiesManagementPanel = ({
                 type="text"
                 value={editActivityTitle}
                 onChange={(e) => onEditTitleChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               />
             </div>
 
@@ -362,7 +362,7 @@ const ActivitiesManagementPanel = ({
                 type="text"
                 value={editActivityDescription}
                 onChange={(e) => onEditDescriptionChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               />
             </div>
 
@@ -373,7 +373,7 @@ const ActivitiesManagementPanel = ({
                   type="text"
                   value={editActivityDiscipline}
                   onChange={(e) => onEditDisciplineChange(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                   list="disciplines-list"
                 />
               </div>
@@ -384,7 +384,7 @@ const ActivitiesManagementPanel = ({
                   type="text"
                   value={editActivityCategory}
                   onChange={(e) => onEditCategoryChange(e.target.value)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                   list="categories-list"
                 />
               </div>
@@ -395,7 +395,7 @@ const ActivitiesManagementPanel = ({
               <select
                 value={editActivityStatus}
                 onChange={(e) => onEditStatusChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -407,7 +407,7 @@ const ActivitiesManagementPanel = ({
               <select
                 value={editActivityJsFile}
                 onChange={(e) => onEditJsFileChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 {ACTIVITY_FILES.map((file) => (
                   <option key={file} value={file}>
@@ -422,7 +422,7 @@ const ActivitiesManagementPanel = ({
               <button
                 type="button"
                 onClick={() => openJsonEditor(editActivityContentText, (nextValue) => onEditContentChange?.(nextValue))}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-sm transition hover:border-sky-400 hover:bg-sky-50"
+                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-xs transition hover:border-sky-400 hover:bg-sky-50"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">Éditer le JSON</span>

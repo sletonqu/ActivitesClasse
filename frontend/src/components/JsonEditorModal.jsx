@@ -58,7 +58,7 @@ const JsonEditorModal = ({
   };
 
   return (
-    <div id="json-editor-modal-backdrop" className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/70 px-4 py-4">
+    <div id="json-editor-modal-backdrop" className="fixed inset-0 z-1000 flex items-center justify-center bg-slate-950/70 px-4 py-4">
       <div
         id="json-editor-modal-dialog"
         role="dialog"
@@ -101,7 +101,7 @@ const JsonEditorModal = ({
               onWheel={handleWheelScroll}
               onMouseEnter={(event) => event.currentTarget.focus()}
               spellCheck={false}
-              className="h-full min-h-[220px] w-full resize-none overflow-auto bg-transparent p-3 font-mono text-sm text-slate-100 outline-none"
+              className="h-full min-h-[220px] w-full resize-none overflow-auto bg-transparent p-3 font-mono text-sm text-slate-100 outline-hidden"
             />
           </div>
         </div>

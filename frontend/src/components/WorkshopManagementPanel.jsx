@@ -113,7 +113,7 @@ const WorkshopManagementPanel = ({
               value={selectedGroupId}
               onChange={(event) => onSelectGroupId(event.target.value)}
               disabled={!selectedClass?.id}
-              className="w-full border border-slate-300 bg-white/80 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+              className="w-full border border-slate-300 bg-white/80 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
             >
               <option value="">Sélectionner un groupe</option>
               {groups.map((group) => (
@@ -133,7 +133,7 @@ const WorkshopManagementPanel = ({
               value={selectedActivityId}
               onChange={(event) => onSelectActivityId(event.target.value)}
               disabled={!selectedClass?.id}
-              className="w-full border border-slate-300 bg-white/80 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+              className="w-full border border-slate-300 bg-white/80 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
             >
               <option value="">Sélectionner une activité</option>
               {activeActivities.map((activity) => (
@@ -182,7 +182,7 @@ const WorkshopManagementPanel = ({
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate rounded border border-slate-200 bg-white px-2 py-1 text-[11px] sm:text-xs text-slate-600 hover:border-indigo-300 hover:text-indigo-700"
+                    className="truncate rounded-sm border border-slate-200 bg-white px-2 py-1 text-[11px] sm:text-xs text-slate-600 hover:border-indigo-300 hover:text-indigo-700"
                     title={url}
                   >
                     {url}

@@ -502,7 +502,7 @@ const MatchAdditionsActivity = ({
       >
         <section
           id="match-additions-categories"
-          className="min-w-0 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4"
+          className="min-w-0 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xs sm:p-4"
         >
           <div id="match-additions-challenge-list" className="grid gap-2.5 sm:gap-3">
             {challenges.map((challenge) => {
@@ -517,7 +517,7 @@ const MatchAdditionsActivity = ({
                 >
                   <div
                     id={`match-additions-operation-${challenge.id}`}
-                    className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-sm sm:px-4 sm:py-3 sm:text-2xl flex items-center justify-center gap-1.5"
+                    className="activity-number-tile-text rounded-xl bg-white px-2.5 py-1.5 text-center text-lg font-bold text-slate-800 shadow-xs sm:px-4 sm:py-3 sm:text-2xl flex items-center justify-center gap-1.5"
                   >
                     {currentLevelRule.mode === "moitie" ? (
                       `la moitié de ${formatNumberWithThousandsSpace(challenge.left)}`
@@ -534,7 +534,7 @@ const MatchAdditionsActivity = ({
                               else newHints.add(challenge.id);
                               setToggledHints(newHints);
                             }}
-                            className="hover:bg-indigo-50 rounded px-1.5 py-0.5 transition-colors text-indigo-700 cursor-pointer select-none"
+                            className="hover:bg-indigo-50 rounded-sm px-1.5 py-0.5 transition-colors text-indigo-700 cursor-pointer select-none"
                             title="Afficher l'astuce"
                           >
                             {toggledHints.has(challenge.id) ? (
@@ -563,7 +563,7 @@ const MatchAdditionsActivity = ({
 
                   <PlacementDropZone
                     id={`match-additions-drop-zone-${challenge.id}`}
-                    className={`flex min-h-[54px] min-w-[64px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-sm transition-all sm:min-h-[72px] sm:min-w-[90px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
+                    className={`flex min-h-[54px] min-w-[64px] items-center justify-center rounded-xl border-2 border-dashed px-2 py-1 text-lg font-bold shadow-xs transition-all sm:min-h-[72px] sm:min-w-[90px] sm:rounded-2xl sm:px-3 sm:py-2 sm:text-2xl ${
                       finished
                         ? isCorrect
                           ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -589,7 +589,7 @@ const MatchAdditionsActivity = ({
                         onClick={() => toggleSelectFromSlot(challenge.id)}
                         isSelected={isSlotSelected(challenge.id)}
                         selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                        className={`min-h-[44px] min-w-[84px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-sm select-none transition-all sm:min-h-[56px] sm:min-w-[108px] sm:rounded-2xl sm:px-4 sm:py-2 ${
+                        className={`min-h-[44px] min-w-[84px] rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-center shadow-xs select-none transition-all sm:min-h-[56px] sm:min-w-[108px] sm:rounded-2xl sm:px-4 sm:py-2 ${
                           finished ? "cursor-default" : "cursor-move hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50"
                         }`}
                         style={{ transform: `rotate(${assignedTile.rotation}deg)` }}
@@ -611,7 +611,7 @@ const MatchAdditionsActivity = ({
         {!finished && (
           <section
             id="match-additions-word-pool-section"
-            className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm"
+            className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-xs"
           >
             <div className="border-b border-slate-100 px-2.5 py-2 sm:px-3 sm:py-2.5">
               <div className="flex flex-col gap-1 sm:items-start sm:justify-between">
@@ -655,7 +655,7 @@ const MatchAdditionsActivity = ({
                     onClick={() => toggleSelectFromPool(answerTile)}
                     isSelected={isPoolItemSelected(answerTile)}
                     selectedClassName="border-amber-400 bg-amber-100 ring-4 ring-amber-200"
-                    className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-sm select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
+                    className={`min-h-[50px] min-w-[64px] rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-center shadow-xs select-none transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 sm:min-h-[64px] sm:min-w-[88px] sm:rounded-2xl sm:px-4 sm:py-3 ${
                       finished
                         ? "cursor-default"
                         : activePlacement

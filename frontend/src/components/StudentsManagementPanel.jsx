@@ -43,7 +43,7 @@ const StudentsManagementPanel = ({
     <div id="students-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
         id="students-panel-form-section"
-        className={`w-full shrink-0 bg-white rounded-xl shadow p-6 ${formSectionClassName}`}
+        className={`w-full shrink-0 bg-white rounded-xl shadow-sm p-6 ${formSectionClassName}`}
       >
         {!hideTitle && (
           <h3 id="students-panel-title" className="text-xl font-bold text-slate-800 mb-4">Gestion des élèves</h3>
@@ -56,7 +56,7 @@ const StudentsManagementPanel = ({
               type="text"
               value={studentName}
               onChange={(e) => onStudentNameChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: Dupont"
             />
           </div>
@@ -67,7 +67,7 @@ const StudentsManagementPanel = ({
               type="text"
               value={studentFirstname}
               onChange={(e) => onStudentFirstnameChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               placeholder="Ex: Alice"
             />
           </div>
@@ -110,14 +110,14 @@ const StudentsManagementPanel = ({
       </section>
 
       {showStudentsList && (
-        <section id="students-panel-list-section" className={`w-full grow bg-white rounded-xl shadow p-6 ${listSectionClassName}`}>
+        <section id="students-panel-list-section" className={`w-full grow bg-white rounded-xl shadow-sm p-6 ${listSectionClassName}`}>
           <div id="students-panel-list-header" className="flex items-center justify-between mb-4 gap-3">
             <h3 id="students-panel-list-title" className="text-xl font-bold text-slate-800">Liste des Élèves</h3>
             <button
               type="button"
               onClick={onDeleteAllStudents}
               disabled={!selectedClassId || students.length === 0 || deletingAllStudents}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
               {deletingAllStudents ? "Suppression..." : "Supprimer Tout"}
             </button>
@@ -170,7 +170,7 @@ const StudentsManagementPanel = ({
                             onDeleteStudent(student);
                           }}
                           disabled={deletingStudentId === String(student.id) || deletingAllStudents || editingStudentId === String(student.id)}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded hover:bg-rose-700 disabled:opacity-60"
+                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
                           {deletingStudentId === String(student.id) ? "Suppression..." : "Supprimer"}
                         </button>
@@ -185,7 +185,7 @@ const StudentsManagementPanel = ({
       )}
 
       {shouldRenderEditSection && (
-        <section id="students-panel-edit-section" className="w-full grow bg-white rounded-xl shadow p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
+        <section id="students-panel-edit-section" className="w-full grow bg-white rounded-xl shadow-sm p-6 lg:basis-1/3 lg:max-w-[33.333333%]">
           <h3 id="students-panel-edit-title" className="text-xl font-bold text-slate-800 mb-4">Modifier l'élève</h3>
 
           <form id="students-panel-edit-form" onSubmit={onUpdateStudent} className="space-y-4">
@@ -195,7 +195,7 @@ const StudentsManagementPanel = ({
                 type="text"
                 value={editStudentName}
                 onChange={(e) => onEditStudentNameChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: Dupont"
               />
             </div>
@@ -206,7 +206,7 @@ const StudentsManagementPanel = ({
                 type="text"
                 value={editStudentFirstname}
                 onChange={(e) => onEditStudentFirstnameChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                 placeholder="Ex: Alice"
               />
             </div>

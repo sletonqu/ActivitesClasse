@@ -62,7 +62,7 @@ const MoneyCoin = ({ value, label, isCent, onClick, className = "" }) => {
   const is1 = value === 1 && !isCent;
   const is2 = value === 2 && !isCent;
 
-  let styles = "rounded-full shadow-sm flex items-center justify-center font-bold font-sans cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ";
+  let styles = "rounded-full shadow-xs flex items-center justify-center font-bold font-sans cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ";
   
   if (is1) {
     styles += "w-10 h-10 sm:w-12 sm:h-12 text-slate-800 bg-yellow-300 border-[3px] border-slate-300";
@@ -103,7 +103,7 @@ const MoneyBill = ({ value, label, onClick, className = "" }) => {
     <button
       type="button"
       onClick={onClick}
-      className={`w-[4.5rem] h-10 sm:w-24 sm:h-14 rounded shadow-md border-2 flex items-center justify-center font-bold text-base sm:text-xl cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ${bgColors} ${className}`}
+      className={`w-18 h-10 sm:w-24 sm:h-14 rounded-sm shadow-md border-2 flex items-center justify-center font-bold text-base sm:text-xl cursor-pointer transition-transform hover:scale-110 active:scale-95 select-none ${bgColors} ${className}`}
     >
       {label}
     </button>
@@ -448,7 +448,7 @@ const MakeChangeActivity = ({
       <div id="make-change-content" className="flex flex-col gap-4">
         {/* En-tête */}
         {!isCalculateMode && (
-          <div id="make-change-target-amount" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-sm border-2 border-indigo-200 flex flex-col items-center justify-center">
+          <div id="make-change-target-amount" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-xs border-2 border-indigo-200 flex flex-col items-center justify-center">
             <span className="text-slate-500 text-sm sm:text-base font-medium mb-1">Montant à préparer :</span>
             <span className="activity-number-tile-text text-3xl sm:text-4xl font-extrabold text-indigo-700 bg-indigo-50 px-6 py-2 rounded-full border border-indigo-100">
               {formatCurrency(targetAmountCents)}
@@ -480,7 +480,7 @@ const MakeChangeActivity = ({
         </div>
 
         {isCalculateMode && (
-          <div id="make-change-calculate-input-zone" className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border-2 border-indigo-200 flex flex-col gap-3 items-center justify-center">
+          <div id="make-change-calculate-input-zone" className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xs border-2 border-indigo-200 flex flex-col gap-3 items-center justify-center">
             <span className="text-slate-500 text-sm sm:text-base font-medium">Calcule la somme déposée :</span>
             <div id="make-change-calculate-input-wrapper" className="w-full max-w-xs">
               <label htmlFor="make-change-calculate-input" className="sr-only">Somme calculée</label>
@@ -496,7 +496,7 @@ const MakeChangeActivity = ({
                 disabled={finished}
                 placeholder={useCents ? "Exemple : 12,35" : "Exemple : 12"}
                 aria-label="Saisir la somme calculée"
-                className="activity-number-tile-text w-full rounded-xl border border-slate-300 px-3 py-3 text-center text-2xl font-extrabold text-indigo-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="activity-number-tile-text w-full rounded-xl border border-slate-300 px-3 py-3 text-center text-2xl font-extrabold text-indigo-700 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
               />
               <p id="make-change-calculate-input-help" className="mt-2 text-center text-xs text-slate-500">
                 Touche la case pour ouvrir le pavé numérique.
@@ -507,7 +507,7 @@ const MakeChangeActivity = ({
 
         {/* Réserve d'Argent */}
         {!finished && !isCalculateMode && (
-          <div id="make-change-reserve-zone" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-sm flex flex-col gap-2 sm:gap-3">
+          <div id="make-change-reserve-zone" className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-xs flex flex-col gap-2 sm:gap-3">
             <div id="make-change-reserve-label" className="text-slate-600 font-semibold text-center uppercase tracking-wide text-xs sm:text-sm">
               Réserve (Clique pour ajouter)
             </div>

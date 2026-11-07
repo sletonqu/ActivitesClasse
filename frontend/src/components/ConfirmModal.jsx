@@ -13,7 +13,7 @@ const ConfirmModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/70 px-4 py-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-slate-950/70 px-4 py-4 backdrop-blur-xs">
       <div
         role="dialog"
         aria-modal="true"

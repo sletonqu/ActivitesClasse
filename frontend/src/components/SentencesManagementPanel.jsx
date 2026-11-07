@@ -4,7 +4,7 @@ import GeneratedSentencesManagementPanel from "./GeneratedSentencesManagementPan
 
 const SentencesManagementPanel = ({ onUseAsActivityTemplate = null, hideTitle = false }) => {
   return (
-    <section id="sentences-management-section" className="w-full rounded-xl bg-white p-6 shadow mb-6">
+    <section id="sentences-management-section" className="w-full rounded-xl bg-white p-6 shadow-sm mb-6">
       <div
         id="sentences-management-header"
         className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"

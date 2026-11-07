@@ -665,7 +665,7 @@ const ColumnOperationActivity = ({
       {/* ─── Operation section ─── */}
       <section
         id="column-addition-operation-section"
-        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5"
+        className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xs sm:p-5"
       >
         {/* Inline display: left + right = ? */}
         <div

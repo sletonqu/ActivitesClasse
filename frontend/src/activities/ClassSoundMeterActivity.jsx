@@ -737,7 +737,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
         id="class-sound-meter-config-button"
         type="button"
         onClick={() => setIsConfigOpen(true)}
-        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-lg border border-white/25 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur hover:bg-slate-900/80"
+        className="absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-lg border border-white/25 bg-slate-900/60 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm hover:bg-slate-900/80"
       >
         <span aria-hidden="true">⚙</span>
       </button>
@@ -756,16 +756,16 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
 
           {isFinished && sessionStats.count > 0 && (
             <div id="class-sound-meter-session-summary" className="flex flex-col items-center gap-2">
-              <div id="class-sound-meter-average" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-lg font-semibold text-white backdrop-blur">
+              <div id="class-sound-meter-average" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-lg font-semibold text-white backdrop-blur-sm">
                 Niveau moyen&nbsp;: {Math.round(displayAverageLevel * 100)}&nbsp;%
               </div>
-              <div id="class-sound-meter-maximum" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-base font-semibold text-white backdrop-blur">
+              <div id="class-sound-meter-maximum" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-2 text-base font-semibold text-white backdrop-blur-sm">
                 Niveau maximum&nbsp;: {Math.round(displayMaxLevel * 100)}&nbsp;%
               </div>
             </div>
           )}
 
-          <div id="class-sound-meter-timer" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-3 text-3xl font-black tracking-wider backdrop-blur">
+          <div id="class-sound-meter-timer" className="rounded-full border border-white/30 bg-slate-900/45 px-6 py-3 text-3xl font-black tracking-wider backdrop-blur-sm">
             {formatSeconds(remainingSeconds)}
           </div>
 
@@ -775,7 +775,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
               type="button"
               onClick={handlePlayPause}
               disabled={isFinished || audioState === "requesting"}
-              className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-slate-900/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-slate-900/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span aria-hidden="true">{isRunning ? "❚❚" : "▶"}</span>
               {audioState === "requesting" ? "Demande micro..." : ""}
@@ -784,7 +784,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
               id="class-sound-meter-reset"
               type="button"
               onClick={handleReset}
-              className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
+              className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25"
             >
               <span aria-hidden="true">↻</span>
             </button>
@@ -809,7 +809,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
 
       {isConfigOpen && (
         <div id="class-sound-meter-config-modal" className="absolute inset-0 z-30 flex items-start justify-center bg-slate-950/70 p-4 sm:p-8">
-          <section className="w-full max-w-2xl rounded-xl border border-slate-200/20 bg-slate-900/95 p-5 text-white shadow-2xl backdrop-blur">
+          <section className="w-full max-w-2xl rounded-xl border border-slate-200/20 bg-slate-900/95 p-5 text-white shadow-2xl backdrop-blur-sm">
             <div className="mb-2 flex items-center justify-between gap-3">
               <h2 className="text-xl font-black">Configuration du Sonomètre</h2>
               <button
@@ -825,7 +825,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
             <div id="class-sound-meter-config-fields" className="space-y-5">
               <div
                 id="class-sound-meter-live-indicator"
-                className="rounded-2xl border border-white/20 bg-slate-900/40 px-6 py-4 backdrop-blur"
+                className="rounded-2xl border border-white/20 bg-slate-900/40 px-6 py-4 backdrop-blur-sm"
                 style={{ transition: `transform ${transitionMs}ms ease, box-shadow ${transitionMs}ms ease` }}
               >
                 <p className="text-xs uppercase tracking-[0.16em] text-slate-100/80">Niveau sonore instantané</p>
@@ -990,7 +990,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
                   type="button"
                   onClick={handlePlayPause}
                   disabled={isFinished || audioState === "requesting"}
-                  className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-slate-900/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-slate-900/90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span aria-hidden="true">{isRunning ? "❚❚" : "▶"}</span>
                   {audioState === "requesting" ? "Demande micro..." : isRunning ? "Pause" : "Play"}
@@ -999,7 +999,7 @@ const ClassSoundMeterActivity = ({ content, onContentChange }) => {
                   id="class-sound-meter-config-reset"
                   type="button"
                   onClick={handleReset}
-                  className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
+                  className="inline-flex min-w-[170px] items-center justify-center gap-2 rounded-lg border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25"
                 >
                   <span aria-hidden="true">↻</span>
                   Réinitialiser

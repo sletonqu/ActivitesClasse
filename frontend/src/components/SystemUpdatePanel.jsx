@@ -105,7 +105,7 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
         : "Aucune nouvelle release détectée pour la version installée.";
 
   return (
-    <section id="system-update-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
+    <section id="system-update-section" className="w-full bg-white rounded-xl shadow-sm p-6 mb-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
           {!hideTitle && (

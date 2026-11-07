@@ -415,7 +415,7 @@ const DropupSelect = ({
         title={title}
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={selectedOption?.label || title}
-        className={`inline-flex h-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-none ${triggerClassName}`}
+        className={`inline-flex h-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 px-2 text-sm font-semibold text-sky-700 focus:outline-hidden ${triggerClassName}`}
       >
         <span>{renderSelectedOption ? renderSelectedOption(selectedOption) : selectedOption?.label}</span>
         <span className="ml-1 text-[10px]">▲</span>
@@ -2686,7 +2686,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
       {showImageHint && (
         <div
           id="interactive-whiteboard-image-hint"
-          className="mb-3 inline-flex items-center gap-3 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow print:hidden"
+          className="mb-3 inline-flex items-center gap-3 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm print:hidden"
         >
           <span>Cliquez sur le canevas pour poser l'image.</span>
           <button
@@ -2737,7 +2737,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           <div
             id="interactive-whiteboard-text-preview"
             ref={textPreviewRef}
-            className="pointer-events-none absolute z-40 opacity-0 select-none whitespace-nowrap rounded-sm transition-opacity duration-75"
+            className="pointer-events-none absolute z-40 opacity-0 select-none whitespace-nowrap rounded-xs transition-opacity duration-75"
             style={{
               pointerEvents: "none",
               transform: "translateY(-100%)",
@@ -2791,7 +2791,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             onClick={handleToolbarCollapseToggle}
             title={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
             aria-label={isToolbarCollapsed ? "Déplier les barres d'outils" : "Replier les barres d'outils"}
-            className="pointer-events-auto h-[105.33px] min-w-5 select-none rounded-l-2xl rounded-r-none border border-r-0 border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur transition hover:bg-slate-600/90 touch-none"
+            className="pointer-events-auto h-[105.33px] min-w-5 select-none rounded-l-2xl rounded-r-none border border-r-0 border-white/90 bg-slate-800/90 px-0.5 text-white shadow-xl backdrop-blur-sm transition hover:bg-slate-600/90 touch-none"
           >
             <span aria-hidden="true" className="block text-sm leading-none tracking-tight">
               {isToolbarCollapsed ? "⌞⌝" : "〢"}
@@ -2807,7 +2807,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
             >
               <section
                 id="interactive-whiteboard-main-toolbar"
-                className="flex w-full flex-col items-stretch rounded-none border border-r-0 border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur select-none touch-none"
+                className="flex w-full flex-col items-stretch rounded-none border border-r-0 border-white/40 bg-white/90 pb-2 pt-0 shadow-xl backdrop-blur-sm select-none touch-none"
               >
                 <button
                   id="interactive-whiteboard-toolbar-drag-handle"
@@ -2828,7 +2828,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                       id="interactive-whiteboard-paper-style"
                       value={paperStyle}
                       onChange={(e) => setPaperStyle(e.target.value)}
-                      className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                      className="h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-hidden"
                     >
                       <option value="blank">Blanc</option>
                       <option value="seyes">Lignage Seyès</option>
@@ -2839,7 +2839,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
                       id="interactive-whiteboard-font-family"
                       value={fontFamily}
                       onChange={(e) => handleFontFamilyChange(e.target.value)}
-                      className="h-9 max-w-40 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-none"
+                      className="h-9 max-w-40 rounded-lg border border-slate-200 bg-slate-50 px-2 text-sm font-semibold text-slate-700 focus:outline-hidden"
                       style={{ fontFamily }}
                       title="Police utilisée pour les textes"
                     >
@@ -3041,7 +3041,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
               {(mode === "draw" || mode === "text" || mode === "erase" || mode === "select" || mode === "shape") && (
                 <section
                   id="interactive-whiteboard-secondary-toolbar"
-                  className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur select-none touch-none"
+                  className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm select-none touch-none"
                 >
                   {(mode === "draw" || mode === "text" || mode === "erase" || mode === "shape") && (
                     <div id="interactive-whiteboard-style-group" className="flex items-center gap-2 border-r border-slate-200 pr-3">

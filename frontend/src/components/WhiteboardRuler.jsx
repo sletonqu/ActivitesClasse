@@ -383,7 +383,7 @@ const WhiteboardRuler = ({
   return (
     <div
       id="interactive-whiteboard-ruler-overlay"
-      className="absolute select-none shadow-2xl rounded-sm border pointer-events-none"
+      className="absolute select-none shadow-2xl rounded-xs border pointer-events-none"
       style={{
         left: `${rulerState.x}px`,
         top: `${rulerState.y}px`,
@@ -457,19 +457,19 @@ const WhiteboardRuler = ({
           type="button"
           onPointerDown={(e) => handlePointerDown(e, "left")}
           title="Point fixe origine (0 cm) : Déplacer ou ancrer la règle (maintenable avec un 2e doigt)"
-          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-sm border border-amber-400 cursor-grab active:cursor-grabbing pointer-events-auto transition"
+          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-xs border border-amber-400 cursor-grab active:cursor-grabbing pointer-events-auto transition"
         >
           <span className="leading-none">⦿</span>
         </button>
 
         {/* Bloc d'angle et micro-ajustements */}
-        <div className="flex items-center gap-1 bg-amber-600/10 rounded-md border border-amber-400 px-1 py-0.5 shadow-sm h-7 pointer-events-auto">
+        <div className="flex items-center gap-1 bg-amber-600/10 rounded-md border border-amber-400 px-1 py-0.5 shadow-xs h-7 pointer-events-auto">
           <button
             id="interactive-whiteboard-ruler-rotate-minus"
             type="button"
             onClick={() => handleStepRotate(-5)}
             title="Ajuster de -5°"
-            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded transition"
+            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded-sm transition"
           >
             ⟲
           </button>
@@ -487,7 +487,7 @@ const WhiteboardRuler = ({
             type="button"
             onClick={() => handleStepRotate(5)}
             title="Ajuster de +5°"
-            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded transition"
+            className="w-5 h-5 flex items-center justify-center text-amber-950 hover:bg-amber-600/20 text-xs font-bold rounded-sm transition"
           >
             ⟳
           </button>
@@ -501,7 +501,7 @@ const WhiteboardRuler = ({
                 ? "Pivoter verticalement à 90° (depuis le milieu)"
                 : "Remettre à l'horizontale (0°)"
             }
-            className="text-[11px] px-1 text-amber-950 hover:bg-amber-600/20 rounded font-bold ml-0.5 border-l border-amber-400/60 h-5 flex items-center justify-center transition"
+            className="text-[11px] px-1 text-amber-950 hover:bg-amber-600/20 rounded-sm font-bold ml-0.5 border-l border-amber-400/60 h-5 flex items-center justify-center transition"
           >
             {Math.round(rulerState.angle || 0) === 0 ? "90°" : "0°"}
           </button>
@@ -513,7 +513,7 @@ const WhiteboardRuler = ({
           type="button"
           onClick={handleCycleOpacity}
           title={`Opacité de la règle : ${Math.round(rulerOpacity * 100)}% (cliquer pour alterner 80% ➔ 50% ➔ 25% ➔ 100%)`}
-          className="h-7 w-14 flex items-center justify-center gap-1 rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-xs font-bold shadow-sm border border-amber-400 cursor-pointer active:scale-95 transition select-none flex-shrink-0 pointer-events-auto"
+          className="h-7 w-14 flex items-center justify-center gap-1 rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-xs font-bold shadow-xs border border-amber-400 cursor-pointer active:scale-95 transition select-none shrink-0 pointer-events-auto"
         >
           <span className="text-sm leading-none" aria-hidden="true">◐</span>
           <span className="text-[10px] font-bold">{Math.round(rulerOpacity * 100)}%</span>
@@ -525,7 +525,7 @@ const WhiteboardRuler = ({
           type="button"
           onPointerDown={(e) => handlePointerDown(e, "right")}
           title="Poignée droite : Pivoter librement la règle à 1 ou 2 doigts sur le TBI"
-          className="h-7 w-14 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-sm border border-amber-400 cursor-pointer active:cursor-grabbing pointer-events-auto transition flex-shrink-0"
+          className="h-7 w-14 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 text-base font-bold shadow-xs border border-amber-400 cursor-pointer active:cursor-grabbing pointer-events-auto transition shrink-0"
         >
           <span className="leading-none text-lg">⤸</span>
         </button>
@@ -536,7 +536,7 @@ const WhiteboardRuler = ({
           type="button"
           onClick={onClose}
           title="Fermer et réinitialiser la position de la règle"
-          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 font-bold text-xs shadow-sm border border-amber-400 cursor-pointer pointer-events-auto transition"
+          className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-600/10 hover:bg-amber-600/20 active:bg-amber-600/30 text-amber-950 font-bold text-xs shadow-xs border border-amber-400 cursor-pointer pointer-events-auto transition"
         >
           ✕
         </button>

@@ -323,7 +323,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
   }, [searchedWords, selectedWordId]);
 
   return (
-    <section id="words-management-section" className="w-full bg-white rounded-xl shadow p-6 mb-6">
+    <section id="words-management-section" className="w-full bg-white rounded-xl shadow-sm p-6 mb-6">
       <div id="words-management-header" className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
         <div>
           {!hideTitle && (
@@ -399,7 +399,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             placeholder="Exemple : chat"
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
           />
         </div>
 
@@ -513,7 +513,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           type="text"
                           value={selectedWordDraft.word}
                           onChange={(event) => handleDraftChange("word", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                       <div>
@@ -524,7 +524,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           min="0"
                           value={selectedWordDraft.echelon_db}
                           onChange={(event) => handleDraftChange("echelon_db", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                       <div>
@@ -534,7 +534,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           type="text"
                           value={selectedWordDraft.nature}
                           onChange={(event) => handleDraftChange("nature", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                       <div>
@@ -544,7 +544,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           type="text"
                           value={selectedWordDraft.category}
                           onChange={(event) => handleDraftChange("category", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                       <div>
@@ -554,7 +554,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           type="text"
                           value={selectedWordDraft.school_class}
                           onChange={(event) => handleDraftChange("school_class", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                       <div>
@@ -565,7 +565,7 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                           min="0"
                           value={selectedWordDraft.level}
                           onChange={(event) => handleDraftChange("level", event.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-400"
                         />
                       </div>
                     </div>

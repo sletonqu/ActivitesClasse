@@ -123,7 +123,7 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isF
       {/* Main Content Area */}
       <div
         id="code-junior-content-area"
-        className="flex-1 w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative"
+        className="flex-1 w-full bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden relative"
         style={{ minHeight: isDemoMode || isFocusedMode ? "565px" : "408px" }}
       >
         {iframeReady ? (
@@ -140,7 +140,7 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isF
         )}
 
         {completed && (
-          <div id="code-junior-completed-overlay" className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 transition-all duration-500">
+          <div id="code-junior-completed-overlay" className="absolute inset-0 bg-white/80 backdrop-blur-xs flex flex-col items-center justify-center z-10 transition-all duration-500">
             <div className="transform scale-150 text-green-500 mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -168,7 +168,7 @@ const CodeJuniorActivity = ({ student, content = {}, onComplete, activityId, isF
           <button
             id="code-junior-validation-btn"
             onClick={handleComplete}
-            className="group relative inline-flex items-center justify-center px-8 py-1 font-bold text-white transition-all duration-200 bg-green-500 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 hover:bg-green-600 active:scale-95 shadow-md hover:shadow-lg"
+            className="group relative inline-flex items-center justify-center px-8 py-1 font-bold text-white transition-all duration-200 bg-green-500 font-pj rounded-xl focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-600 hover:bg-green-600 active:scale-95 shadow-md hover:shadow-lg"
           >
             <svg className="mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>

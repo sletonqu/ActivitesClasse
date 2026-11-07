@@ -164,7 +164,7 @@ const ReadNumbersActivity = ({
 
       <section
         id="read-numbers-pool-section"
-        className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white shadow-xs"
       >
         <div className="border-b border-slate-100 px-3 py-2.5 sm:px-4 sm:py-3">
           <h4 className="text-lg font-bold text-slate-800">Nombre à lire</h4>
@@ -177,7 +177,7 @@ const ReadNumbersActivity = ({
           <div
             key={currentTile.id}
             id="read-numbers-current-tile"
-            className="flex min-h-[72px] min-w-[110px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm sm:min-h-[88px] sm:min-w-[140px] sm:px-6 sm:py-5"
+            className="flex min-h-[72px] min-w-[110px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-xs sm:min-h-[88px] sm:min-w-[140px] sm:px-6 sm:py-5"
             style={{ transform: `rotate(${currentTile.rotation}deg)` }}
           >
             <span className="activity-number-tile-text block text-2xl text-slate-800 sm:text-4xl">
