@@ -44,7 +44,15 @@ if (!fs.existsSync(screenshotsDir)) {
 function saveScreenshot(base64Data) {
   if (!base64Data) return null;
   try {
-    // Remove header like "data:image/png;base64,"
+    // Handle SVG data URLs (from fallback capture)
+    if (base64Data.startsWith('data:image/svg+xml')) {
+      const svgContent = decodeURIComponent(base64Data.split(',').slice(1).join(','));
+      const fileName = crypto.randomUUID() + '.svg';
+      const filePath = path.join(screenshotsDir, fileName);
+      fs.writeFileSync(filePath, svgContent, { encoding: 'utf-8' });
+      return 'screenshots/' + fileName;
+    }
+    // Handle base64-encoded images (PNG, JPEG, etc.)
     const base64Image = base64Data.split(';base64,').pop();
     const fileName = crypto.randomUUID() + '.png';
     const filePath = path.join(screenshotsDir, fileName);

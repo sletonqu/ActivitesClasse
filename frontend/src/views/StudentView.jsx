@@ -365,14 +365,46 @@ const StudentView = () => {
     try {
       const element = document.getElementById("activity-container");
       if (element) {
-        // Use html-to-image to bypass html2canvas layout calculation bugs
-        screenshotBase64 = await htmlToImage.toPng(element, {
+        // html-to-image uses SVG foreignObject which is sensitive to CORS.
+        // We configure it to skip external resources and retry on failure.
+        const captureOptions = {
           cacheBust: true,
           style: { transform: 'scale(1)', transformOrigin: 'top left' },
-        });
+          // Ignore cross-origin images/resources that taint the canvas
+          filter: (node) => {
+            // Skip external link[rel=stylesheet] (Google Fonts, etc.)
+            if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && !node.href.startsWith(window.location.origin)) {
+              return false;
+            }
+            return true;
+          },
+          // Skip images that fail to load (CORS errors)
+          imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+        };
+
+        // First attempt
+        screenshotBase64 = await htmlToImage.toPng(element, captureOptions);
+
+        // html-to-image sometimes returns an empty/blank image on first call
+        // due to lazy-loaded fonts; retry once if the result is suspiciously small
+        if (screenshotBase64 && screenshotBase64.length < 1000) {
+          await new Promise((r) => setTimeout(r, 200));
+          screenshotBase64 = await htmlToImage.toPng(element, captureOptions);
+        }
       }
     } catch (e) {
       console.error("Erreur lors de la capture d'écran:", e);
+      // Fallback: if toPng fails entirely (CORS tainted canvas), try toSvg
+      try {
+        const element = document.getElementById("activity-container");
+        if (element) {
+          screenshotBase64 = await htmlToImage.toSvg(element, {
+            style: { transform: 'scale(1)', transformOrigin: 'top left' },
+          });
+        }
+      } catch (e2) {
+        console.error("Erreur lors de la capture d'écran (fallback SVG):", e2);
+      }
     }
 
     const payload =
