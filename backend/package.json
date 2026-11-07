@@ -1,6 +1,6 @@
 {
   "name": "activites-backend",
-  "version": "v1.0.3",
+  "version": "v1.0.4",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
