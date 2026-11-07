@@ -20,17 +20,33 @@ const FloatingNumberPad = ({
 }) => {
   const [position, setPosition] = useState({ x: null, y: null });
   const panelRef = useRef(null);
-  const dragOffsetRef = useRef(null);
+  const dragBoundsRef = useRef(null);
+  const rafRef = useRef(null);
+
+  const getMinY = () => {
+    if (typeof document === "undefined") {
+      return 8;
+    }
+
+    const headerElement = document.getElementById("student-header");
+    if (!headerElement) {
+      return 8;
+    }
+
+    const rect = headerElement.getBoundingClientRect();
+    return Math.max(8, Math.ceil(rect.bottom) + 8);
+  };
 
   const clampPosition = (nextX, nextY) => {
     const panelWidth = panelRef.current?.offsetWidth || 240;
     const panelHeight = panelRef.current?.offsetHeight || 210;
+    const minY = getMinY();
     const maxX = Math.max(8, window.innerWidth - panelWidth - 8);
-    const maxY = Math.max(8, window.innerHeight - panelHeight - 8);
+    const maxY = Math.max(minY, window.innerHeight - panelHeight - 8);
 
     return {
       x: Math.min(Math.max(8, nextX), maxX),
-      y: Math.min(Math.max(8, nextY), maxY),
+      y: Math.min(Math.max(minY, nextY), maxY),
     };
   };
 
@@ -64,7 +80,10 @@ const FloatingNumberPad = ({
 
   useEffect(() => {
     if (!isOpen) {
-      dragOffsetRef.current = null;
+      dragBoundsRef.current = null;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     }
   }, [isOpen]);
 
@@ -78,16 +97,31 @@ const FloatingNumberPad = ({
     }
 
     const handlePointerMove = (event) => {
-      if (!dragOffsetRef.current) {
+      const bounds = dragBoundsRef.current;
+      if (!bounds) {
         return;
       }
 
-      const { offsetX, offsetY } = dragOffsetRef.current;
-      setPosition(clampPosition(event.clientX - offsetX, event.clientY - offsetY));
+      const rawX = event.clientX - bounds.offsetX;
+      const rawY = event.clientY - bounds.offsetY;
+
+      const nextX = Math.min(Math.max(8, rawX), bounds.maxX);
+      const nextY = Math.min(Math.max(bounds.minY, rawY), bounds.maxY);
+
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        setPosition({ x: nextX, y: nextY });
+      });
     };
 
     const stopDragging = () => {
-      dragOffsetRef.current = null;
+      dragBoundsRef.current = null;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -98,6 +132,9 @@ const FloatingNumberPad = ({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", stopDragging);
       window.removeEventListener("pointercancel", stopDragging);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [isOpen]);
 
@@ -118,12 +155,26 @@ const FloatingNumberPad = ({
 
   const handleDragStart = (event) => {
     const rect = panelRef.current?.getBoundingClientRect();
+    const panelWidth = rect?.width || panelRef.current?.offsetWidth || 240;
+    const panelHeight = rect?.height || panelRef.current?.offsetHeight || 210;
+
     const startX = position.x ?? rect?.left ?? 8;
     const startY = position.y ?? rect?.top ?? 8;
 
-    dragOffsetRef.current = {
+    const headerElement = document.getElementById("student-header");
+    const headerBottom = headerElement
+      ? Math.ceil(headerElement.getBoundingClientRect().bottom)
+      : 0;
+    const minY = Math.max(8, headerBottom + 8);
+    const maxX = Math.max(8, window.innerWidth - panelWidth - 8);
+    const maxY = Math.max(minY, window.innerHeight - panelHeight - 8);
+
+    dragBoundsRef.current = {
       offsetX: event.clientX - startX,
       offsetY: event.clientY - startY,
+      minY,
+      maxX,
+      maxY,
     };
 
     setPosition(clampPosition(startX, startY));
@@ -133,14 +184,14 @@ const FloatingNumberPad = ({
   return (
     <div
       id="floating-number-pad-wrapper"
-      className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center p-1.5 sm:justify-end"
+      className="pointer-events-none fixed inset-0 z-[100] flex items-end justify-center p-1.5 sm:justify-end"
     >
       <section
         id="floating-number-pad"
         ref={panelRef}
         aria-label="Pavé numérique flottant"
         style={position.x !== null && position.y !== null ? { left: position.x, top: position.y } : undefined}
-        className={`pointer-events-auto w-full max-w-48 rounded-lg border border-slate-200 bg-white p-2 shadow-2xl ${
+        className={`pointer-events-auto z-[100] w-full max-w-48 rounded-lg border border-slate-200 bg-white p-2 shadow-2xl ${
           position.x !== null && position.y !== null ? "fixed" : ""
         }`}
       >
