@@ -557,7 +557,7 @@ const WriteFractionsActivity = ({
   return (
     <div
       id="write-fractions-activity-root"
-      className="mx-auto flex w-full max-w-5xl flex-col gap-5 p-3 sm:p-5"
+      className="mx-auto flex w-full max-w-5xl flex-col gap-2 p-1.5 sm:gap-2.5 sm:p-2.5"
     >
       {/* 1. Titre, consigne, badges et niveaux intégrés dans ActivityHero */}
       <ActivityHero
@@ -597,18 +597,20 @@ const WriteFractionsActivity = ({
 
       {/* 2. Barre de progression */}
       {!submitted && (
-        <ActivityStatus
-          id="write-fractions-status-panel"
-          progressBarId="write-fractions-progress-bar"
-          progressPercent={progressPercent}
-          label="Progression de l'exercice"
-        />
+        <div className="-mb-1.5 sm:-mb-2">
+          <ActivityStatus
+            id="write-fractions-status-panel"
+            progressBarId="write-fractions-progress-bar"
+            progressPercent={progressPercent}
+            label="Progression de l'exercice"
+          />
+        </div>
       )}
 
       {/* 3. Grille de cartes (façon exercice 1 de la fiche) */}
       <div
         id="write-fractions-grid"
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5"
       >
         {cards.map((card, index) => {
           const cardResult = results.cardResults[index];
@@ -632,9 +634,9 @@ const WriteFractionsActivity = ({
             <div
               key={card.id}
               id={`write-fractions-card-${index + 1}`}
-              className={`flex items-center justify-between rounded-3xl border-2 p-3 sm:p-4 transition-all hover:border-slate-300 ${cardBorderClass}`}
+              className={`flex items-center justify-between rounded-2xl border-2 p-2.5 sm:p-3 transition-all hover:border-slate-300 ${cardBorderClass}`}
             >
-              {/* Dessin du disque fractionné avec parts contiguës aléatoires */}
+              {/* Dessin du disque fractionné avec parts contiguës aléatoires (taille d'origine 105) */}
               <div
                 id={`write-fractions-visual-${index + 1}`}
                 className="flex items-center justify-center p-1"
@@ -655,7 +657,7 @@ const WriteFractionsActivity = ({
                 👉
               </div>
 
-              {/* Zone d'écriture de la fraction */}
+              {/* Zone d'écriture de la fraction (taille d'origine) */}
               <div
                 id={`write-fractions-inputs-${index + 1}`}
                 className="flex flex-col items-center justify-center gap-1.5"
@@ -779,7 +781,7 @@ const WriteFractionsActivity = ({
       {/* 5. Barre d'actions (toujours en bas) */}
       <ActivityActionsBar
         id="write-fractions-actions"
-        className="flex flex-wrap justify-center gap-3"
+        className="flex flex-wrap justify-center gap-2 pt-1"
         actions={[
           {
             id: "write-fractions-validate-button",
