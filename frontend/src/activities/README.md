@@ -1241,3 +1241,89 @@ Options utiles :
 - `levels.levelX.sentenceCount` : nombre de phrases à proposer dans la manche.
 - `levels.levelX.label` : intitulé lisible du niveau.
 - `defaultLevel` : niveau pré-sélectionné à l'ouverture.
+
+---
+
+### 25. `WriteFractionsActivity.jsx`
+
+**Discipline** : Mathématiques  
+**Catégorie** : Nombres et calculs / Fractions  
+**But** : observer des disques fractionnés en parts égales et écrire la fraction correspondante (nombre de parts coloriées au numérateur, nombre total de parts au dénominateur).
+
+Exemple de configuration JSON :
+
+```json
+{
+  "title": "Écris les fractions",
+  "instruction": "Écris la fraction qui correspond à chaque dessin (le nombre de parts coloriées en haut, le nombre total de parts en bas).",
+  "skill": "Écrire une fraction et identifier le numérateur et le dénominateur",
+  "defaultLevel": "level2",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "skill": "Identifier le numérateur d'une fraction",
+      "cardCount": 6,
+      "prefillDenominator": true,
+      "fractions": [
+        { "numerator": 1, "denominator": 2, "color": "#0ea5e9" },
+        { "numerator": 2, "denominator": 3, "color": "#8b5cf6" },
+        { "numerator": 3, "denominator": 4, "color": "#22c55e" },
+        { "numerator": 2, "denominator": 5, "color": "#f97316" },
+        { "numerator": 4, "denominator": 6, "color": "#ec4899" },
+        { "numerator": 1, "denominator": 4, "color": "#ef4444" }
+      ]
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "skill": "Écrire une fraction (numérateur et dénominateur)",
+      "cardCount": 9,
+      "prefillDenominator": false,
+      "fractions": [
+        { "numerator": 4, "denominator": 5, "color": "#8b5cf6" },
+        { "numerator": 3, "denominator": 6, "color": "#f97316" },
+        { "numerator": 2, "denominator": 6, "color": "#ec4899" },
+        { "numerator": 3, "denominator": 6, "color": "#22c55e" },
+        { "numerator": 2, "denominator": 3, "color": "#0ea5e9" },
+        { "numerator": 6, "denominator": 10, "color": "#be185d" },
+        { "numerator": 2, "denominator": 4, "color": "#ef4444" },
+        { "numerator": 2, "denominator": 8, "color": "#eab308" },
+        { "numerator": 1, "denominator": 6, "color": "#b45309" }
+      ]
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "skill": "Identifier et écrire des fractions variées",
+      "cardCount": 9,
+      "prefillDenominator": false,
+      "minDenominator": 3,
+      "maxDenominator": 12,
+      "fractions": []
+    }
+  }
+}
+```
+
+#### Options de configuration utiles :
+
+- `title` : Titre de l'activité affiché dans le bandeau `ActivityHero`.
+- `instruction` : Consigne textuelle pour l'élève.
+- `skill` (global ou par niveau) : Compétence pédagogique affichée dans le badge vert de réglages (mode démo).
+- `defaultLevel` : Clé du niveau sélectionné par défaut (`"level1"`, `"level2"`, `"level3"`).
+- `levels.levelX.label` : Nom lisible du niveau (ex: `"Niveau 1"`, `"Débutant"`, etc.).
+- `levels.levelX.cardCount` : Nombre de cartes/figures affichées dans la grille (ex: 6 ou 9).
+- `levels.levelX.prefillDenominator` : Si `true`, le dénominateur est déjà pré-rempli et grisé (l'élève n'a que le numérateur à dénombrer). Idéal pour un apprentissage progressif.
+- `levels.levelX.fractions[]` : Liste fixe de fractions composées de :
+  - `numerator` : nombre de parts coloriées ;
+  - `denominator` : nombre total de parts du disque ;
+  - `color` (optionnel) : code hexadécimal de la couleur des parts coloriées.
+- `levels.levelX.minDenominator` et `maxDenominator` : bornes pour la génération aléatoire automatique de fractions (utilisé si `fractions` est vide).
+
+#### Fonctionnalités & ergonomie :
+
+- **Rendu vectoriel des disques** : Dessin SVG dynamique avec quartiers contigus, point de départ aléatoire sur le cercle et sens de remplissage horaire ou anti-horaire aléatoire.
+- **Paramètres visuels centralisés (`PIE_STYLE`)** : Séparations sombres nettes (`#334155`), fond blanc pour les parts non coloriées et contour extérieur précis pour un dénombrement aisé par les enfants.
+- **Pavé numérique tactile flottant (`FloatingNumberPad`)** : S'ouvre automatiquement au clic/focus sur une case de numérateur ou dénominateur pour faciliter la saisie sur tablette, avec navigation avant/arrière (`<`, `>`, `=`).
+- **Barre de progression dynamique (`ActivityStatus`)** : Positionnée sous l'en-tête, elle avance en temps réel à chaque case complétée.
+- **Notation scolaire sur 20** : Calcul du score normalisé sur 20 ($\text{correctCount} / \text{total} \times 20$), détails des fractions réussies et erreurs, célébration de confettis en cas de score parfait (20/20).
+- **Mode Démo (`student = null`)** : Aucun appel réseau d'enregistrement, affichage des badges pédagogiques et boutons de niveaux, bouton « Recommencer » toujours actif.
+

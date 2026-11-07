@@ -77,13 +77,44 @@ if (student) {
 
 ### Structure visuelle conventionnelle
 
-Le rendu doit suivre l'ordre :
+Le rendu doit suivre strictement cet ordre vertical :
 
-1. **`<ActivityHero>`** — Titre + consigne
-2. **Contenu manipulable** — Zone interactive de l'exercice
-3. **`<ActivityStatus>`** — Feedback de réussite/erreur
-4. **`<ActivityActionsBar>`** — Boutons d'action (Recommencer, Valider…)
-5. **`<ActivitySummaryCard>`** — Résumé final (optionnel)
+1. **`<ActivityHero>`** — Titre + consigne + badges de compétence + boutons de niveaux
+2. **`<ActivityStatus>`** — Barre de progression (affichée sous le Hero tant que l'exercice n'est pas soumis)
+3. **Contenu manipulable** — Zone interactive principale de l'exercice
+4. **`<ActivitySummaryCard>`** — Résumé final et score (affiché après soumission/validation)
+5. **`<ActivityActionsBar>`** — **Toujours en dernier tout en bas** (Boutons d'action : Valider, Recommencer…)
+
+> [!IMPORTANT]
+> `ActivityActionsBar` doit toujours être le **dernier élément interactif** en bas du conteneur principal. Il prend un tableau `actions` :
+> ```jsx
+> <ActivityActionsBar
+>   id="mon-activite-actions"
+>   className="flex flex-wrap justify-center gap-3"
+>   actions={[
+>     {
+>       id: "mon-activite-validate-button",
+>       onClick: handleValidate,
+>       disabled: finished || !allAnswered,
+>       ariaLabel: "Valider",
+>       title: "Valider",
+>       icon: "✓",
+>       srText: "Valider",
+>       variant: "validate",
+>     },
+>     {
+>       id: "mon-activite-restart-button",
+>       onClick: handleRestart,
+>       disabled: restartLocked || (Boolean(student) && !finished),
+>       ariaLabel: "Recommencer",
+>       title: "Recommencer",
+>       icon: "↻",
+>       srText: "Recommencer",
+>       variant: allStudentsCompleted ? "warning" : "restart",
+>     },
+>   ]}
+> />
+> ```
 
 ### Composants et hooks réutilisables disponibles
 
@@ -158,24 +189,41 @@ import { default<NomActivite>ActivityContent } from "../activities/<NomActivite>
 "src/activities/<NomActivite>Activity.js": default<NomActivite>ActivityContent,
 ```
 
+4. **Déclarer la discipline** dans [`frontend/src/utils/activityDiscipline.js`](file:///h:/ProjetsCODE/ActivitesClasse/frontend/src/utils/activityDiscipline.js) :
+Ajouter l'activité dans l'objet `KNOWN_ACTIVITY_DISCIPLINES` sous sa matière (`"Français"`, `"Mathématiques"` ou `"Outils"`) :
+
+```jsx
+<NomActivite>Activity: "Mathématiques",
+```
+
 ---
 
-## Étape 4 — Vérification
+## Étape 4 — Documentation
 
-### 4.1 Vérifier la cohérence des enregistrements
+Mettre à jour la documentation du projet :
+
+1. Ajouter une section détaillée dans [`frontend/src/activities/README.md`](file:///h:/ProjetsCODE/ActivitesClasse/frontend/src/activities/README.md) (description, format JSON, options, capture/règles).
+2. Ajouter l'activité dans le tableau récapitulatif du [`README.md`](file:///h:/ProjetsCODE/ActivitesClasse/README.md) principal.
+
+---
+
+## Étape 5 — Vérification
+
+### 5.1 Vérifier la cohérence des enregistrements
 
 ```powershell
 rtk powershell -Command "Select-String -Path 'frontend/src/activities/ActivityContainer.jsx' -Pattern '<NomActivite>'"
 rtk powershell -Command "Select-String -Path 'frontend/src/utils/activityManagement.js' -Pattern '<NomActivite>'"
+rtk powershell -Command "Select-String -Path 'frontend/src/utils/activityDiscipline.js' -Pattern '<NomActivite>'"
 ```
 
 Confirmer que :
-- L'import est présent dans les deux fichiers.
+- L'import est présent dans les fichiers requis.
 - Les 3 clés du `componentRegistry` existent dans `ActivityContainer.jsx`.
-- L'entrée dans `ACTIVITY_FILES` et le mapping dans
-  `DEFAULT_ACTIVITY_CONTENT_BY_FILE` existent dans `activityManagement.js`.
+- L'entrée dans `ACTIVITY_FILES` et le mapping dans `DEFAULT_ACTIVITY_CONTENT_BY_FILE` existent dans `activityManagement.js`.
+- La discipline est bien déclarée dans `activityDiscipline.js`.
 
-### 4.2 Tester le build
+### 5.2 Tester le build
 
 ```powershell
 rtk docker compose up -d --build
@@ -183,7 +231,7 @@ rtk docker compose up -d --build
 
 Vérifier dans les logs que le frontend compile sans erreur.
 
-### 4.3 Créer un test unitaire (recommandé)
+### 5.3 Créer un test unitaire (recommandé)
 
 Créer `frontend/src/activities/<NomActivite>Activity.test.jsx` couvrant
 au minimum :
@@ -198,12 +246,15 @@ au minimum :
 - [ ] Composant créé dans `frontend/src/activities/`
 - [ ] Export nommé `default<NomActivite>ActivityContent` présent
 - [ ] Export par défaut du composant présent
+- [ ] Ordre des sections respecté (`Hero` -> `Progression` -> `Manipulable` -> `Résumé` -> `Actions en dernier`)
 - [ ] `content = {}` ne cause aucune erreur
-- [ ] Mode démo (`student === null`) fonctionne sans appel réseau
+- [ ] Mode démo (`student === null`) fonctionne sans appel réseau et avec Recommencer toujours actif
 - [ ] Textes en français, vocabulaire adapté aux enfants
 - [ ] Attributs `id` sur les éléments de structure
 - [ ] Import + 3 clés dans `ActivityContainer.jsx`
 - [ ] Import + entrée `ACTIVITY_FILES` + mapping dans `activityManagement.js`
+- [ ] Discipline déclarée dans `activityDiscipline.js`
+- [ ] Documentation ajoutée dans `frontend/src/activities/README.md` et `README.md`
 - [ ] Build Docker réussi
-- [ ] Test unitaire créé
+- [ ] Test unitaire créé et exécuté avec succès
 

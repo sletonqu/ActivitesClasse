@@ -25,6 +25,7 @@ export const KNOWN_ACTIVITY_DISCIPLINES = {
   EvenOddClassificationActivity: "Mathématiques",
   NumberLineActivity: "Mathématiques",
   ColumnOperationActivity: "Mathématiques",
+  WriteFractionsActivity: "Mathématiques",
 
   // Outils
   InteractiveWhiteboardActivity: "Outils",

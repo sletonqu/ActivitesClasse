@@ -19,9 +19,13 @@ import NumberLineActivity from "./NumberLineActivity";
 import ColumnOperationActivity from "./ColumnOperationActivity";
 import BaseTenBlocksActivity from "./BaseTenBlocksActivity";
 import VerbConjugationActivity from "./VerbConjugationActivity";
+import WriteFractionsActivity from "./WriteFractionsActivity";
 
 
 const componentRegistry = {
+  "src/activities/WriteFractionsActivity.js": WriteFractionsActivity,
+  "WriteFractionsActivity": WriteFractionsActivity,
+  "WriteFractionsActivity.js": WriteFractionsActivity,
   "src/activities/BaseTenBlocksActivity.js": BaseTenBlocksActivity,
   "BaseTenBlocksActivity": BaseTenBlocksActivity,
   "BaseTenBlocksActivity.js": BaseTenBlocksActivity,

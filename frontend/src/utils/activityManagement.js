@@ -18,9 +18,11 @@ import { defaultNumberLineActivityContent } from "../activities/NumberLineActivi
 import { defaultColumnOperationActivityContent } from "../activities/ColumnOperationActivity";
 import { defaultBaseTenBlocksActivityContent } from "../activities/BaseTenBlocksActivity";
 import { defaultVerbConjugationActivityContent } from "../activities/VerbConjugationActivity";
+import { defaultWriteFractionsActivityContent } from "../activities/WriteFractionsActivity";
 
 
 export const ACTIVITY_FILES = [
+  "src/activities/WriteFractionsActivity.js",
   "src/activities/BaseTenBlocksActivity.js",
   "src/activities/SortNumbersActivity.js",
   "src/activities/MatchAdditionsActivity.js",
@@ -44,6 +46,7 @@ export const ACTIVITY_FILES = [
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
+  "src/activities/WriteFractionsActivity.js": defaultWriteFractionsActivityContent,
   "src/activities/BaseTenBlocksActivity.js": defaultBaseTenBlocksActivityContent,
   "src/activities/SortNumbersActivity.js": defaultSortNumbersActivityContent,
   "src/activities/MatchAdditionsActivity.js": defaultMatchAdditionsActivityContent,

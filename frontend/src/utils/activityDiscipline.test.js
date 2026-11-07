@@ -72,6 +72,9 @@ describe("activityDiscipline utils", () => {
       const mathActivity = { id: 1, js_file: "src/activities/SortNumbersActivity.js" };
       expect(getActivityDiscipline(mathActivity)).toBe("Mathématiques");
 
+      const fractionActivity = { id: 10, js_file: "src/activities/WriteFractionsActivity.js" };
+      expect(getActivityDiscipline(fractionActivity)).toBe("Mathématiques");
+
       const frenchActivity = { id: 2, js_file: "src/activities/VerbConjugationActivity.js" };
       expect(getActivityDiscipline(frenchActivity)).toBe("Français");
 

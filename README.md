@@ -319,6 +319,7 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 | Dizaines et unités | `frontend/src/activities/CountPencilsByTensActivity.jsx` | Représenter et dénombrer des quantités en unités, dizaines et centaines à l'aide de crayons groupés. |
 | Comparaison de nombres | `frontend/src/activities/CompareNumbersActivity.jsx` | Comparer deux nombres avec les signes `<`, `=` ou `>` et, selon le niveau, leur décomposition. |
 | Fractions visuelles | `frontend/src/activities/FractionsVisualSelectionActivity.jsx` | Lire une fraction représentée par une figure partagée en parts égales et choisir la fraction correspondante. |
+| Écriture de fractions | `frontend/src/activities/WriteFractionsActivity.jsx` | Observer des figures circulaires partagées en parts égales et écrire la fraction correspondante (numérateur et dénominateur). |
 | Tableau blanc interactif | `frontend/src/activities/InteractiveWhiteboardActivity.jsx` | Écrire, dessiner et insérer des images sur un tableau, puis exporter son travail. |
 | Classification de mots | `frontend/src/activities/WordClassificationActivity.jsx` | Classer des mots selon leur catégorie grammaticale. |
 | Classification des mots d'une phrase | `frontend/src/activities/SentenceWordClassificationActivity.jsx` | Repérer les mots demandés dans une phrase et les classer selon leur nature grammaticale. |
