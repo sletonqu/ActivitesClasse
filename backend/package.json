@@ -7,9 +7,9 @@
     "test": "node --test"
   },
   "dependencies": {
-    "body-parser": "^2.2.2",
+    "body-parser": "^2.4.0",
     "cors": "^2.8.6",
-    "express": "^4.22.2",
+    "express": "^4.22.3",
     "better-sqlite3": "^13.0.3"
   }
 }
