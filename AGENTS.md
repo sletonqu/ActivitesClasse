@@ -22,10 +22,7 @@ Lorsque la tâche concerne la création ou la modification d'une activité dans 
   - Le bouton de réinitialisation (`Recommencer`) doit rester actif même après une réussite.
 - **Gestion des Niveaux** : Si l'activité est nivelée, garantir que l'appel `onComplete` renverra bien la clé du niveau (`levelKey`) et le label lisible (`levelLabel`).
 - **Structure visuelle** : Maintenir le découpage conventionnel : Titre > Consigne > Contenu Manipulable > Feedback > Boutons d'action.
-- **Workflow d'ajout (Checklist)** : L'agent créant une NOUVELLE activité doit :
-  1. Créer le composant et sa configuration explicite.
-  2. L'importer et l'enregistrer dans `ActivityContainer.js`.
-  3. L'ajouter formellement dans le registre `frontend/src/utils/activityManagement.js`.
+- **Création d'une nouvelle activité** : Suivre le skill `creation-activite` (`.agents/skills/creation-activite/SKILL.md`) qui détaille le workflow complet : composant, enregistrement, tests et vérification.
 
 ## 4. Règles Métier : Backend & Bases de Données
 - **Validation** : Valider rigoureusement les entrées API avant de les inscrire en base.
@@ -40,6 +37,7 @@ Lorsque la tâche concerne la création ou la modification d'une activité dans 
 - Le système tourne sur Docker. En cas d'ajouts de dépendance logicielle côté Nodejs/React :
   - Les modifications doivent s'accompagner du redémarrage effectif en buildant (`docker compose up -d --build`).
 - Côté production "classe", les mises à jour se font par écrasement Git (`git pull --ff-only` ou script powershell). Éviter absolument de modifier/corrompre sans l'accord de l'utilisateur le volume de base de données (`db-data`).
+- **Préparation et publication de version** : Suivre le skill `release-preparation` (`.github/skills/release-preparation/SKILL.md`) pour analyser les changements depuis le dernier tag, mettre à jour les métadonnées de version, créer le tag annoté et publier la release GitHub après validation des notes.
 
 ## 6. Améliorations continues
 - **Refactoring** : Si une partie du code semble ancienne ou peu claire, propose une amélioration en expliquant ton raisonnement.
