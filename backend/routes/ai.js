@@ -1179,8 +1179,11 @@ router.get('/generated-sentences/export', async (req, res) => {
   }
 });
 
-router.get('/generated-sentences/:id(\\d+)', async (req, res) => {
+router.get('/generated-sentences/:id', async (req, res, next) => {
   try {
+    if (!/^\d+$/.test(req.params.id)) {
+      return next();
+    }
     const sentenceId = Number(req.params.id);
     if (Number.isNaN(sentenceId)) {
       return res.status(400).json({ error: 'Identifiant de phrase invalide' });
@@ -1201,8 +1204,11 @@ router.get('/generated-sentences/:id(\\d+)', async (req, res) => {
   }
 });
 
-router.put('/generated-sentences/:id(\\d+)', async (req, res) => {
+router.put('/generated-sentences/:id', async (req, res, next) => {
   try {
+    if (!/^\d+$/.test(req.params.id)) {
+      return next();
+    }
     const sentenceId = Number(req.params.id);
     if (Number.isNaN(sentenceId)) {
       return res.status(400).json({ error: 'Identifiant de phrase invalide' });
@@ -2215,8 +2221,11 @@ router.post('/enrich-verb-tenses', async (req, res) => {
   }
 });
 
-router.delete('/generated-sentences/:id(\\d+)', async (req, res) => {
+router.delete('/generated-sentences/:id', async (req, res, next) => {
   try {
+    if (!/^\d+$/.test(req.params.id)) {
+      return next();
+    }
     const sentenceId = Number(req.params.id);
     if (Number.isNaN(sentenceId)) {
       return res.status(400).json({ error: 'Identifiant de phrase invalide' });
