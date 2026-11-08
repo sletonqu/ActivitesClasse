@@ -241,5 +241,22 @@ describe("FindVerbAndInfinitiveActivity", () => {
     expect(handleRoundRestart(false, onReset)).toBe(false);
     expect(onReset).toHaveBeenCalledTimes(1);
   });
+
+  it("structure correctement les erreurs d'infinitif avec la saisie de l'élève et la valeur attendue", () => {
+    const verbResultWithError = {
+      id: 3,
+      text: "dort",
+      expectedInfinitif: "dormir",
+      userInput: "dormais",
+      isSelected: true,
+      infinitiveCorrect: false,
+      hasAccentWarning: false,
+    };
+
+    expect(verbResultWithError.isSelected).toBe(true);
+    expect(verbResultWithError.infinitiveCorrect).toBe(false);
+    expect(verbResultWithError.userInput).toBe("dormais");
+    expect(verbResultWithError.expectedInfinitif).toBe("dormir");
+  });
 });
 

@@ -1063,14 +1063,36 @@ const FindVerbAndInfinitiveActivity = ({
                         .map((v, vIdx) => (
                           <span
                             key={vIdx}
-                            className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-amber-900"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-2 py-1 text-amber-950"
                           >
                             {!v.isSelected ? (
-                              <span>Verbe manqué : <strong>{v.text}</strong></span>
+                              <span>
+                                Verbe manqué : <strong>{v.text}</strong>
+                                {v.expectedInfinitif ? (
+                                  <span className="text-amber-800 font-normal">
+                                    {" "}
+                                    (infinitif : <em>{v.expectedInfinitif}</em>)
+                                  </span>
+                                ) : null}
+                              </span>
                             ) : (
                               <span>
-                                Infinitif pour <strong>{v.text}</strong> : attendu «{" "}
-                                <strong>{v.expectedInfinitif}</strong> »
+                                Infinitif pour <strong>{v.text}</strong> :{" "}
+                                {v.userInput ? (
+                                  <span className="line-through text-rose-600 decoration-rose-500 font-semibold">
+                                    « {v.userInput} »
+                                  </span>
+                                ) : (
+                                  <span className="italic text-rose-600">(non renseigné)</span>
+                                )}{" "}
+                                <span aria-hidden="true" className="text-slate-400 font-bold">
+                                  ➔
+                                </span>{" "}
+                                attendu «{" "}
+                                <strong className="text-emerald-700 font-bold">
+                                  {v.expectedInfinitif}
+                                </strong>{" "}
+                                »
                               </span>
                             )}
                           </span>
@@ -1078,7 +1100,7 @@ const FindVerbAndInfinitiveActivity = ({
                       {mistake.distractors.map((d, dIdx) => (
                         <span
                           key={dIdx}
-                          className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-rose-900"
+                          className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-1 text-rose-900"
                         >
                           « {d.text} » n&apos;est pas un verbe
                         </span>
