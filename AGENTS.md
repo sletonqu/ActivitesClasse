@@ -17,9 +17,12 @@ Lors d'une modification des interfaces de gestion (`*ManagementPanel.js`) :
 ## 3. Règles Métier : Activités Interactives
 Lorsque la tâche concerne la création ou la modification d'une activité dans `frontend/src/activities/` :
 - **Contrat de robustesse** : Toute activité doit savoir se charger et utiliser des valeurs par défaut si sa prop configuration (`content`) est vide (`{}`).
-- **Mode Démo** : Si la prop `student` vaut `null`, l'activité est en "mode démo". Dans ce mode :
-  - L'agent ne doit tenter **aucun appel d'enregistrement** de résultat.
-  - Le bouton de réinitialisation (`Recommencer`) doit rester actif même après une réussite.
+- **Comportement des boutons selon les 3 modes d'exécution** :
+  - **Mode Démo** (`!student`) : Pour donner toute liberté à l'enseignant, les boutons de niveaux et le bouton `Recommencer` sont activables à tout moment (sauf chargement). Aucun enregistrement de résultat n'est tenté.
+  - **Mode Élève Groupe** (`student && !isFocusedMode`) : Les boutons de niveaux et `Recommencer` sont verrouillés dès qu'un niveau est démarré (`isLevelStarted`), et **restent verrouillés** lorsque le résultat s'affiche (`finished`), en attente du passage de l'élève suivant (sauf si `allStudentsCompleted === true` pour réinitialiser le groupe). Protéger impérativement les `useEffect` pour que l'écran de score ne soit pas écrasé par un rechargement automatique.
+  - **Mode Focus** (`isFocusedMode`) : Niveaux et `Recommencer` sont verrouillés pendant le déroulement du niveau, mais **réactivés en fin d'activité** (`finished`) pour permettre à l'élève de recommencer ou de changer de niveau à volonté.
+  - **Bouton Valider** : Actif uniquement lorsqu'un niveau est en cours et qu'une réponse valide est prête (`isAnswerReady`), dans tous les modes.
+  - **Redémarrage** : Toujours appeler `handleRoundRestart(allStudentsCompleted, onResetStudentRound)` avec ses 2 arguments positionnels avant de tenter un rechargement local.
 - **Gestion des Niveaux** : Si l'activité est nivelée, garantir que l'appel `onComplete` renverra bien la clé du niveau (`levelKey`) et le label lisible (`levelLabel`).
 - **Structure visuelle** : Maintenir le découpage conventionnel : Titre > Consigne > Contenu Manipulable > Feedback > Boutons d'action.
 - **Création d'une nouvelle activité** : Suivre le skill `creation-activite` (`.agents/skills/creation-activite/SKILL.md`) qui détaille le workflow complet : composant, enregistrement, tests et vérification.

@@ -58,22 +58,115 @@ export default <NomActivite>Activity;
 - Ajouter des attributs `id` clairs sur les éléments de structure pour faciliter
   le débogage et les tests.
 
-### Mode Démo (student === null)
+### Comportement des boutons (niveaux et actions) selon les 3 modes
 
-- Ne tenter **aucun appel** d'enregistrement de résultat.
-- Le bouton « Recommencer » reste actif même après une réussite.
-- Condition type :
+L'application prend en charge 3 modes d'exécution qui déterminent les règles d'activation des boutons de niveaux, du bouton **Valider** et du bouton **Recommencer** :
 
+| Mode | Condition | Boutons Niveaux | Bouton Recommencer | Bouton Valider | Enregistrement score |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Mode Démo** (Enseignant) | `!student` | Toujours actifs | Toujours actif | Actif quand réponse prête (`isAnswerReady`) | Aucun (mode démo sans persistance) |
+| **Mode Élève Groupe** | `Boolean(student) && !isFocusedMode` | Actifs au début. Désactivés dès le démarrage (`isLevelStarted`) et **restent désactivés à la fin** (`finished`) en attente de l'élève suivant. | Désactivé au départ et pendant l'activité. Reste désactivé en fin de tour sauf si `allStudentsCompleted === true` (réinitialisation globale du groupe). | Actif quand niveau démarré et réponse prête (`isAnswerReady`). | Oui (`onComplete` lors de la fin de l'activité). |
+| **Mode Focus** (Élève individuel) | `Boolean(isFocusedMode)` | Actifs au début. Désactivés pendant le niveau (`isLevelStarted && !finished`). **Réactivés à la fin** pour rejouer ou changer de niveau. | Désactivé pendant le niveau. **Réactivé à la fin** (`finished`) pour recommencer à volonté. | Actif quand niveau démarré et réponse prête (`isAnswerReady`). | Oui (`onComplete` lors de la fin de l'activité). |
+
+#### 1. Props requises sur le composant
+L'activité doit déclarer et recevoir ces props :
 ```jsx
-if (student) {
-  onComplete({ success: true, score, details });
-}
+const MonActiviteActivity = ({
+  student,
+  content,
+  onComplete,
+  allStudentsCompleted = false,
+  onResetStudentRound,
+  isFocusedMode = false,
+}) => {
 ```
 
-### Gestion des niveaux (si applicable)
+#### 2. Variables de mode et de verrouillage recommandées
+```jsx
+const isDemoMode = !student;
+const isFocusMode = Boolean(isFocusedMode);
+const isGroupStudentMode = Boolean(student) && !isFocusMode;
 
+// Indique si le niveau actuel a débuté (au moins une interaction ou progression)
+const isLevelStarted = currentStepIndex > 0 || hasInteracted || finished;
+
+// Verrouillage des boutons de sélection de niveau
+const isLevelLocked = isDemoMode
+  ? false
+  : isGroupStudentMode
+    ? isLevelStarted || finished  // En mode groupe : verrouillé dès qu'on a commencé ET à la fin
+    : !finished && isLevelStarted; // En mode focus : verrouillé uniquement pendant le cours du niveau
+
+// Verrouillage du bouton Recommencer
+let isRestartDisabled = false;
+if (loading) {
+  isRestartDisabled = true;
+} else if (isDemoMode) {
+  isRestartDisabled = false; // L'enseignant a toute liberté
+} else if (isGroupStudentMode) {
+  isRestartDisabled = !allStudentsCompleted; // Verrouillé jusqu'à ce que tous les élèves aient fini
+} else if (isFocusMode) {
+  isRestartDisabled = !finished; // L'élève peut recommencer une fois la série achevée
+}
+
+// Titre / infobulle du bouton Recommencer
+const restartTitle = isGroupStudentMode && finished && !allStudentsCompleted
+  ? "En attente que tous les élèves terminent..."
+  : allStudentsCompleted && student
+    ? "Recommencer et réinitialiser la liste des élèves"
+    : "Recommencer avec d'autres exercices";
+```
+
+#### 3. Logique du bouton Recommencer (`handleRestart`)
+La fonction utilitaire `handleRoundRestart` attend **deux arguments positionnels** `(allStudentsCompleted, onResetStudentRound)`. Ne jamais lui passer d'objet d'options :
+```jsx
+const handleRestart = () => {
+  if (isRestartDisabled) {
+    return;
+  }
+  // Si tous les élèves ont terminé leur tour en mode groupe, réinitialiser la ronde globale
+  if (handleRoundRestart(allStudentsCompleted, onResetStudentRound)) {
+    return;
+  }
+  // Sinon, recharger localement l'exercice pour le niveau courant
+  loadExerciseForLevel(currentLevel);
+};
+```
+
+#### 4. Protection contre le rechargement intempestif en fin d'activité
+En mode groupe, l'appel de `onComplete` met à jour les scores dans le parent (`StudentView`), ce qui modifie la référence de la prop `content`. Pour éviter que cette mise à jour ne recharge l'activité et n'efface prématurément le score de l'élève :
+- Vérifier `if (finished) return;` dans vos `useEffect` de chargement / réinitialisation.
+- Utiliser une référence de signature (`useRef` ou `useMemo`) pour ne recharger que si la configuration change réellement hors de l'état `finished`.
+```jsx
+useEffect(() => {
+  if (finished) {
+    return; // Conserver l'affichage du résumé / score final tant que l'élève suivant n'est pas sélectionné
+  }
+  if (lastLoadSignatureRef.current === currentLoadSignature) {
+    return;
+  }
+  lastLoadSignatureRef.current = currentLoadSignature;
+  loadExerciseForLevel(currentLevel);
+}, [currentLevel, currentLoadSignature, loadExerciseForLevel, finished]);
+```
+
+#### 5. Mode Démo (student === null)
+- Ne tenter **aucun appel d'enregistrement** de résultat (`onComplete` ne doit être appelé qu'avec `student`).
+- Les scores ne sont pas sauvegardés en base.
+
+#### 6. Gestion des niveaux (si applicable)
 - Définir les niveaux dans la configuration par défaut sous une clé `levels`.
-- Garantir que `onComplete` renvoie `levelKey` et `levelLabel`.
+- Garantir que `onComplete` renvoie bien `levelKey` et `levelLabel` :
+```jsx
+if (student) {
+  onComplete({
+    success: calculatedScore >= passingScore,
+    score: calculatedScore,
+    levelKey: currentLevel,
+    levelLabel: currentLevelRule.label,
+  });
+}
+```
 
 ### Structure visuelle conventionnelle
 
