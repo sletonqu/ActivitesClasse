@@ -1327,3 +1327,63 @@ Exemple de configuration JSON :
 - **Notation scolaire sur 20** : Calcul du score normalisé sur 20 ($\text{correctCount} / \text{total} \times 20$), détails des fractions réussies et erreurs, célébration de confettis en cas de score parfait (20/20).
 - **Mode Démo (`student = null`)** : Aucun appel réseau d'enregistrement, affichage des badges pédagogiques et boutons de niveaux, bouton « Recommencer » toujours actif.
 
+---
+
+### 26. `FindVerbAndInfinitiveActivity.jsx`
+
+Activité interactive de grammaire permettant d'identifier le ou les verbes conjugués dans des phrases et, selon le niveau, d'écrire leur forme à l'infinitif. Les phrases proviennent de la base de données (`/api/ai/generated-sentences/practice`).
+
+#### Objectifs pédagogiques :
+- Identifier la fonction et la nature du verbe au sein de la phrase.
+- Associer un verbe conjugué à son infinitif.
+- Développer la précision orthographique (avec tolérance pédagogique sur les accents, tout en rappelant la graphie exacte).
+
+#### Niveaux proposés :
+1. **Niveau 1** : L'élève clique sur le verbe dans la phrase (la phrase ne contient qu'un seul verbe). Aucun infinitif n'est demandé.
+2. **Niveau 2** : La phrase ne contient qu'un seul verbe. L'élève identifie le verbe en cliquant dessus, puis saisit son infinitif dans la case qui apparaît sous le mot. Les erreurs d'accents sont tolérées pour l'attribution des points, tout en signalant la correction exacte.
+3. **Niveau 3** : Les phrases peuvent contenir plusieurs verbes, mais ce n'est pas obligatoire pour toutes les phrases (au moins 20%, soit 2 sur 10 dans une série de 10 phrases, contiennent au moins deux verbes). L'élève identifie chaque verbe et saisit son infinitif.
+
+#### Configuration JSON type :
+
+```json
+{
+  "title": "Trouver le verbe et son infinitif",
+  "instruction": "Trouve le ou les verbes dans chaque phrase et écris leur infinitif.",
+  "sentenceCount": 10,
+  "defaultLevel": "level1",
+  "levels": {
+    "level1": {
+      "label": "Niveau 1",
+      "sentenceCount": 10,
+      "verbCount": "single",
+      "askInfinitive": false,
+      "instruction": "Clique sur le verbe dans chaque phrase pour le sélectionner, puis valide."
+    },
+    "level2": {
+      "label": "Niveau 2",
+      "sentenceCount": 10,
+      "verbCount": "single",
+      "askInfinitive": true,
+      "instruction": "Clique sur le verbe et écris son infinitif dans la case sous le mot, puis valide."
+    },
+    "level3": {
+      "label": "Niveau 3",
+      "sentenceCount": 10,
+      "verbCount": "multiple",
+      "minMultiVerbsRatio": 0.2,
+      "askInfinitive": true,
+      "instruction": "Trouve le ou les verbes de chaque phrase et écris leur infinitif dans chaque case, puis valide."
+    }
+  }
+}
+```
+
+#### Fonctionnalités & ergonomie :
+- **Sélection interactive et validation rapide** : Chaque mot de la phrase est un bouton cliquable. Les ponctuations sont automatiquement ignorées. Un premier clic sélectionne le verbe, et un **second clic sur le verbe sélectionné valide immédiatement la réponse** (similaire au raccourci clavier Entrée), ce qui permet aux élèves de répondre rapidement.
+- **Champ d'infinitif contextuel** : Aux niveaux 2 et 3, le champ de saisie apparaît sous le mot dès qu'il est sélectionné par l'élève.
+- **Validation étape par étape** : L'élève valide chaque phrase (par second clic, Entrée ou bouton « Valider »), observe la correction détaillée (verbes trouvés, verbes oubliés, mots non-verbes sélectionnés à tort, corrections d'infinitif et rappels d'accents), puis clique sur « Suivant » pour continuer.
+- **Score normalisé sur 20** : Calculé proportionnellement au nombre total de points possibles ($\text{score} = \text{round}((\text{pointsObtenus} / \text{pointsPossibles}) \times 20)$). Chaque verbe trouvé vaut 1 point, et chaque infinitif correct (même avec accent manquant) vaut 1 point.
+- **Résumé et rappels d'accents** : En fin d'activité, affichage du score sur 20, des statistiques, de la liste des erreurs éventuelles et d'un bloc récapitulatif bienveillant rappelant l'orthographe exacte des infinitifs où un accent manquait.
+- **Mode Démo (`student = null`)** : Aucun résultat envoyé au backend, bouton « Recommencer » disponible à tout moment.
+
+

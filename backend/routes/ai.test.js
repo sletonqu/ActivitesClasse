@@ -13,6 +13,7 @@ const {
   normalizeRequiredNatureFilters,
   selectBalancedSentencesByWord,
   sentenceContainsWord,
+  getSentenceVerbsCount,
 } = require('./ai');
 
 
@@ -449,4 +450,21 @@ test('selectBalancedSentencesByWord en mode non-strict ne bloque pas si partiel'
   const result = selectBalancedSentencesByWord(candidateSentences, ['est', 'et'], 5, false);
   assert.equal(result.strictErrors.length, 0);
   assert.equal(result.selectedSentences.length, 1);
+});
+
+test('getSentenceVerbsCount compte correctement les verbes avec ou sans infinitif', () => {
+  const sentence = {
+    words: [
+      { word: "Le", nature: "déterminant" },
+      { word: "chat", nature: "nom" },
+      { word: "dort", nature: "verbe", infinitif: "dormir" },
+      { word: "et", nature: "conjonction" },
+      { word: "ronronne", nature: "verbe", infinitif: "ronronner" },
+      { word: "profondément", nature: "adverbe" },
+      { word: "mange", nature: "verbe" }, // pas d'infinitif
+    ],
+  };
+
+  assert.equal(getSentenceVerbsCount(sentence, true), 2);
+  assert.equal(getSentenceVerbsCount(sentence, false), 3);
 });

@@ -12,6 +12,7 @@ export const KNOWN_ACTIVITY_DISCIPLINES = {
   VerbEndingCompletionActivity: "Français",
   HomophonesActivity: "Français",
   VerbConjugationActivity: "Français",
+  FindVerbAndInfinitiveActivity: "Français",
 
   // Mathématiques
   BaseTenBlocksActivity: "Mathématiques",

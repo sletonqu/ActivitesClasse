@@ -587,6 +587,15 @@ function sentenceContainsRequiredNatures(sentence, requiredNatureKeys) {
   });
 }
 
+function getSentenceVerbsCount(sentence, requireInfinitive = true) {
+  const words = Array.isArray(sentence?.words) ? sentence.words : [];
+  return words.filter((word) => {
+    const nature = normalizeText(word?.nature || '').toLowerCase();
+    const isVerb = (nature === 'verbe' || /\bverbe\b/.test(nature)) && !nature.includes('adverbe');
+    return isVerb && (!requireInfinitive || Boolean(word?.infinitif));
+  }).length;
+}
+
 function selectPracticeSentences(sentences, requestedCount) {
   const groupedByCounter = new Map();
 
@@ -1296,6 +1305,10 @@ router.get('/generated-sentences/practice', async (req, res) => {
     const requiredNatureKeys = normalizeRequiredNatureFilters(
       req.query?.requiredNatures || req.query?.required_natures
     );
+    const minVerbsParam = req.query?.minVerbs ?? req.query?.min_verbs;
+    const maxVerbsParam = req.query?.maxVerbs ?? req.query?.max_verbs;
+    const minVerbs = minVerbsParam !== undefined && minVerbsParam !== '' ? Number(minVerbsParam) : null;
+    const maxVerbs = maxVerbsParam !== undefined && maxVerbsParam !== '' ? Number(maxVerbsParam) : null;
 
     if (level && !ALLOWED_LEVELS.has(level)) {
       return res.status(400).json({ error: 'Le niveau doit être CE1 ou CE2' });
@@ -1325,7 +1338,22 @@ router.get('/generated-sentences/practice', async (req, res) => {
 
     const eligibleSentences = rows
       .map((row) => buildGeneratedSentenceFromRow(row))
-      .filter((sentence) => sentenceContainsRequiredNatures(sentence, requiredNatureKeys));
+      .filter((sentence) => {
+        if (!sentenceContainsRequiredNatures(sentence, requiredNatureKeys)) {
+          return false;
+        }
+        if (minVerbs !== null && !Number.isNaN(minVerbs)) {
+          if (getSentenceVerbsCount(sentence, true) < minVerbs) {
+            return false;
+          }
+        }
+        if (maxVerbs !== null && !Number.isNaN(maxVerbs)) {
+          if (getSentenceVerbsCount(sentence, true) > maxVerbs) {
+            return false;
+          }
+        }
+        return true;
+      });
 
     if (eligibleSentences.length === 0) {
       return res.status(404).json({
@@ -2440,6 +2468,7 @@ module.exports.selectBalancedSentencesByEnding = selectBalancedSentencesByEnding
 module.exports.sentenceContainsVerbWithEnding = sentenceContainsVerbWithEnding;
 module.exports.sentenceContainsAnyWord = sentenceContainsAnyWord;
 module.exports.sentenceContainsRequiredNatures = sentenceContainsRequiredNatures;
+module.exports.getSentenceVerbsCount = getSentenceVerbsCount;
 module.exports.normalizeEndingsFilter = normalizeEndingsFilter;
 module.exports.normalizeWordsFilter = normalizeWordsFilter;
 module.exports.normalizeRequiredNatureFilters = normalizeRequiredNatureFilters;

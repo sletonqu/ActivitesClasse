@@ -20,9 +20,13 @@ import ColumnOperationActivity from "./ColumnOperationActivity";
 import BaseTenBlocksActivity from "./BaseTenBlocksActivity";
 import VerbConjugationActivity from "./VerbConjugationActivity";
 import WriteFractionsActivity from "./WriteFractionsActivity";
+import FindVerbAndInfinitiveActivity from "./FindVerbAndInfinitiveActivity";
 
 
 const componentRegistry = {
+  "src/activities/FindVerbAndInfinitiveActivity.js": FindVerbAndInfinitiveActivity,
+  "FindVerbAndInfinitiveActivity": FindVerbAndInfinitiveActivity,
+  "FindVerbAndInfinitiveActivity.js": FindVerbAndInfinitiveActivity,
   "src/activities/WriteFractionsActivity.js": WriteFractionsActivity,
   "WriteFractionsActivity": WriteFractionsActivity,
   "WriteFractionsActivity.js": WriteFractionsActivity,
