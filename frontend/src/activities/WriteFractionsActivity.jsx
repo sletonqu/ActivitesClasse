@@ -361,60 +361,10 @@ const WriteFractionsActivity = ({
     [submitted]
   );
 
-  // Navigation vers le champ suivant
-  const moveToNextField = useCallback(
-    (current) => {
-      if (!current) return;
-      const cardIndex = cards.findIndex((c) => c.id === current.cardId);
-      if (cardIndex === -1) return;
-
-      const currentCard = cards[cardIndex];
-      if (current.field === "num" && !currentCard.prefilledDenominator) {
-        setActiveInput({ cardId: currentCard.id, field: "den" });
-      } else {
-        const nextIndex = (cardIndex + 1) % cards.length;
-        setActiveInput({ cardId: cards[nextIndex].id, field: "num" });
-      }
-    },
-    [cards]
-  );
-
-  // Navigation vers le champ précédent
-  const moveToPrevField = useCallback(
-    (current) => {
-      if (!current) return;
-      const cardIndex = cards.findIndex((c) => c.id === current.cardId);
-      if (cardIndex === -1) return;
-
-      const currentCard = cards[cardIndex];
-      if (current.field === "den") {
-        setActiveInput({ cardId: currentCard.id, field: "num" });
-      } else {
-        const prevIndex = (cardIndex - 1 + cards.length) % cards.length;
-        const prevCard = cards[prevIndex];
-        if (prevCard.prefilledDenominator) {
-          setActiveInput({ cardId: prevCard.id, field: "num" });
-        } else {
-          setActiveInput({ cardId: prevCard.id, field: "den" });
-        }
-      }
-    },
-    [cards]
-  );
-
-  // Gestion du FloatingNumberPad
+  // Gestion du FloatingNumberPad (chiffres uniquement)
   const handleNumberPadKey = useCallback(
     (keyValue) => {
       if (!activeInput || submitted) return;
-
-      if (keyValue === "=" || keyValue === ">") {
-        moveToNextField(activeInput);
-        return;
-      }
-      if (keyValue === "<") {
-        moveToPrevField(activeInput);
-        return;
-      }
 
       const targetCard = cards.find((c) => c.id === activeInput.cardId);
       if (!targetCard) return;
@@ -429,7 +379,7 @@ const WriteFractionsActivity = ({
         handleInputChange(activeInput.cardId, activeInput.field, nextVal);
       }
     },
-    [activeInput, cards, handleInputChange, submitted, moveToNextField, moveToPrevField]
+    [activeInput, cards, handleInputChange, submitted]
   );
 
   const handleNumberPadBackspace = useCallback(() => {
@@ -815,6 +765,7 @@ const WriteFractionsActivity = ({
         onKeyPress={handleNumberPadKey}
         onBackspace={handleNumberPadBackspace}
         onClose={() => setActiveInput(null)}
+        disabledKeys={["<", "=", ">"]}
       />
     </div>
   );

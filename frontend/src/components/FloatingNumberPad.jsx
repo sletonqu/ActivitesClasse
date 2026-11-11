@@ -229,7 +229,13 @@ const FloatingNumberPad = ({
                   id={`floating-number-pad-key-${keyValue === "=" ? "equal" : keyValue === "<" ? "lt" : keyValue === ">" ? "gt" : keyValue === "," ? "comma" : keyValue}`}
                   type="button"
                   onClick={() => onKeyPress?.(keyValue)}
-                  className={`inline-flex min-h-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-base font-bold text-slate-800 shadow-xs transition hover:bg-indigo-100 sm:min-h-9 sm:text-lg ${keyValue === "=" ? "col-span-3" : ""}`}
+                  className={`inline-flex min-h-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-base font-bold text-slate-800 shadow-xs transition hover:bg-indigo-100 sm:min-h-9 sm:text-lg ${
+                    keyValue === "="
+                      ? "col-span-3"
+                      : keyValue === "0" && disabledSet.has("<")
+                      ? "col-start-2"
+                      : ""
+                  }`}
                 >
                   {keyValue}
                 </button>

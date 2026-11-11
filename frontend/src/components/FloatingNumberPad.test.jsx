@@ -42,5 +42,21 @@ describe("FloatingNumberPad", () => {
 
     expect(html).toContain('id="floating-number-pad-key-comma"');
   });
+
+  it("masque les touches passées dans disabledKeys et centre le zéro", () => {
+    const html = renderToStaticMarkup(
+      <FloatingNumberPad
+        isOpen={true}
+        disabledKeys={["<", "=", ">"]}
+        onKeyPress={() => {}}
+      />
+    );
+
+    expect(html).not.toContain('id="floating-number-pad-key-lt"');
+    expect(html).not.toContain('id="floating-number-pad-key-gt"');
+    expect(html).not.toContain('id="floating-number-pad-key-equal"');
+    expect(html).toContain('id="floating-number-pad-key-0"');
+    expect(html).toContain("col-start-2");
+  });
 });
 
