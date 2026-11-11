@@ -295,8 +295,14 @@ body {
 
 h1 {
   color: #2d3a4b;
-  text-align: center;
-  margin-top: 2rem;
+}
+
+#student-view-title {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.25 !important;
 }
 
 @page {

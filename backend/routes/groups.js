@@ -12,7 +12,7 @@ function normalizeNullableNumber(value) {
 }
 
 function getGroupById(groupId, callback) {
-  db.get('SELECT id, name, class_id FROM groups WHERE id = ?', [groupId], (err, row) => {
+  db.get('SELECT id, name, class_id, COALESCE(color, \'#6b7280\') AS color FROM groups WHERE id = ?', [groupId], (err, row) => {
     if (err) return callback(err);
     if (!row) return callback(new Error('Groupe non trouvé'));
     return callback(null, row);
@@ -22,6 +22,7 @@ function getGroupById(groupId, callback) {
 router.post('/', (req, res) => {
   const name = String(req.body?.name || '').trim();
   const classId = Number(req.body?.class_id);
+  const color = req.body?.color ? String(req.body.color).trim() : '#6b7280';
 
   if (!name) {
     return res.status(400).json({ error: 'Le nom du groupe est obligatoire' });
@@ -44,9 +45,9 @@ router.post('/', (req, res) => {
           return res.status(400).json({ error: 'Un groupe portant ce nom existe déjà dans cette classe' });
         }
 
-        db.run('INSERT INTO groups (name, class_id) VALUES (?, ?)', [name, classId], function onInsert(insertErr) {
+        db.run('INSERT INTO groups (name, class_id, color) VALUES (?, ?, ?)', [name, classId, color], function onInsert(insertErr) {
           if (insertErr) return res.status(500).json({ error: insertErr.message });
-          return res.json({ id: this.lastID, name, class_id: classId });
+          return res.json({ id: this.lastID, name, class_id: classId, color });
         });
       }
     );
@@ -61,11 +62,11 @@ router.get('/', (req, res) => {
 
   const hasClassFilter = classId !== null;
   const sql = `
-    SELECT g.id, g.name, g.class_id, COUNT(s.id) AS student_count
+    SELECT g.id, g.name, g.class_id, COALESCE(g.color, '#6b7280') AS color, COUNT(s.id) AS student_count
     FROM groups g
     LEFT JOIN students s ON s.group_id = g.id
     ${hasClassFilter ? 'WHERE g.class_id = ?' : ''}
-    GROUP BY g.id, g.name, g.class_id
+    GROUP BY g.id, g.name, g.class_id, g.color
     ORDER BY LOWER(g.name) ASC, g.id ASC
   `;
 
@@ -89,11 +90,11 @@ router.get('/:id/students', (req, res) => {
 router.get('/:id', (req, res) => {
   db.get(
     `
-      SELECT g.id, g.name, g.class_id, COUNT(s.id) AS student_count
+      SELECT g.id, g.name, g.class_id, COALESCE(g.color, '#6b7280') AS color, COUNT(s.id) AS student_count
       FROM groups g
       LEFT JOIN students s ON s.group_id = g.id
       WHERE g.id = ?
-      GROUP BY g.id, g.name, g.class_id
+      GROUP BY g.id, g.name, g.class_id, g.color
     `,
     [req.params.id],
     (err, row) => {
@@ -107,6 +108,7 @@ router.get('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
   const name = String(req.body?.name || '').trim();
   const classId = Number(req.body?.class_id);
+  const color = req.body?.color !== undefined ? String(req.body.color).trim() || '#6b7280' : null;
 
   if (!name) {
     return res.status(400).json({ error: 'Le nom du groupe est obligatoire' });
@@ -129,12 +131,63 @@ router.put('/:id', (req, res) => {
           return res.status(400).json({ error: 'Un groupe portant ce nom existe déjà dans cette classe' });
         }
 
+        const updateSql = color !== null
+          ? 'UPDATE groups SET name = ?, class_id = ?, color = ? WHERE id = ?'
+          : 'UPDATE groups SET name = ?, class_id = ? WHERE id = ?';
+        const updateParams = color !== null
+          ? [name, classId, color, req.params.id]
+          : [name, classId, req.params.id];
+
         db.run(
-          'UPDATE groups SET name = ?, class_id = ? WHERE id = ?',
-          [name, classId, req.params.id],
+          updateSql,
+          updateParams,
           function onUpdate(updateErr) {
             if (updateErr) return res.status(500).json({ error: updateErr.message });
-            return res.json({ updated: this.changes });
+            return res.json({ updated: this.changes, color });
+          }
+        );
+      }
+    );
+  });
+});
+
+router.patch('/:id', (req, res) => {
+  const groupId = Number(req.params.id);
+  if (Number.isNaN(groupId)) {
+    return res.status(400).json({ error: 'Identifiant invalide' });
+  }
+
+  getGroupById(groupId, (err, existingGroup) => {
+    if (err) {
+      return res.status(err.message === 'Groupe non trouvé' ? 404 : 500).json({ error: err.message });
+    }
+
+    const name = req.body?.name !== undefined ? String(req.body.name).trim() : existingGroup.name;
+    const classId = req.body?.class_id !== undefined ? Number(req.body.class_id) : existingGroup.class_id;
+    const color = req.body?.color !== undefined ? String(req.body.color).trim() || '#6b7280' : existingGroup.color;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Le nom du groupe ne peut pas être vide' });
+    }
+    if (Number.isNaN(classId)) {
+      return res.status(400).json({ error: 'class_id invalide' });
+    }
+
+    db.get(
+      'SELECT id FROM groups WHERE LOWER(name) = LOWER(?) AND class_id = ? AND id <> ?',
+      [name, classId, groupId],
+      (existingErr, existingRow) => {
+        if (existingErr) return res.status(500).json({ error: existingErr.message });
+        if (existingRow) {
+          return res.status(400).json({ error: 'Un groupe portant ce nom existe déjà dans cette classe' });
+        }
+
+        db.run(
+          'UPDATE groups SET name = ?, class_id = ?, color = ? WHERE id = ?',
+          [name, classId, color, groupId],
+          function onPatch(patchErr) {
+            if (patchErr) return res.status(500).json({ error: patchErr.message });
+            return res.json({ updated: this.changes, id: groupId, name, class_id: classId, color });
           }
         );
       }

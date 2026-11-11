@@ -83,7 +83,7 @@ router.post('/', (req, res) => {
 router.get('/', (req, res) => {
   db.all(
     `
-      SELECT students.*, groups.name AS group_name
+      SELECT students.*, groups.name AS group_name, COALESCE(groups.color, '#6b7280') AS group_color
       FROM students
       LEFT JOIN groups ON groups.id = students.group_id
       ORDER BY LOWER(students.firstname) ASC, LOWER(students.name) ASC, students.id ASC
@@ -100,7 +100,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   db.get(
     `
-      SELECT students.*, groups.name AS group_name
+      SELECT students.*, groups.name AS group_name, COALESCE(groups.color, '#6b7280') AS group_color
       FROM students
       LEFT JOIN groups ON groups.id = students.group_id
       WHERE students.id = ?

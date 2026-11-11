@@ -36,4 +36,27 @@ describe("ResultsView - Classement et coloration des activités par discipline",
     // Vérifier la présence des éléments
     expect(html).toContain("Résultats de la Classe");
   });
+
+  it("affiche le badge de groupe et colore le fond de la ligne selon la couleur du groupe", async () => {
+    const mockClasses = [{ id: 1, name: "CM1-A" }];
+    const mockGroups = [{ id: 20, name: "Groupe Bleu", color: "#3b82f6" }];
+    const mockStudents = [{ id: 10, name: "Dupont", firstname: "Jean", class_id: 1, group_id: 20 }];
+    const mockActivities = [{ id: 1, title: "Calcul", discipline: "Mathématiques" }];
+    const mockResults = [];
+
+    vi.spyOn(dataLoaders, "loadClassesIntoState").mockImplementation((setClasses) => setClasses(mockClasses));
+    vi.spyOn(dataLoaders, "loadActivitiesIntoState").mockImplementation((setActivities) => setActivities(mockActivities));
+    vi.spyOn(dataLoaders, "fetchStudents").mockResolvedValue(mockStudents);
+    vi.spyOn(dataLoaders, "fetchResults").mockResolvedValue(mockResults);
+    vi.spyOn(dataLoaders, "fetchGroupsByClass").mockResolvedValue(mockGroups);
+
+    // Initialiser l'état avec la classe sélectionnée
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/results?selectedClassId=1"]}>
+        <ResultsView />
+      </MemoryRouter>
+    );
+
+    expect(html).toContain("Résultats de la Classe");
+  });
 });

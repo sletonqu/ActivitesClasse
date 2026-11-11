@@ -12,6 +12,7 @@ import {
 import StudentPanel from "../components/StudentPanel";
 import LeaderboardPanel from "../components/LeaderboardPanel";
 import { DISCIPLINE_CONFIG, FIXED_DISCIPLINES } from "../utils/activityDiscipline";
+import { DEFAULT_GROUP_COLOR, getGroupBadgeStyle } from "../utils/groupColors";
 
 const DEFAULT_ACTIVITY_CONTENT = {};
 const HEADER_COLLAPSE_DELAY = 5000;
@@ -95,11 +96,18 @@ const StudentView = () => {
     selectedClass?.name
     || classes.find((cls) => String(cls.id) === String(selectedStudent?.class_id))?.name
     || "-";
+  const focusedGroup =
+    selectedGroup
+    || groups.find((group) => String(group.id) === String(selectedStudent?.group_id))
+    || null;
   const focusedGroupName =
-    selectedGroup?.name
+    focusedGroup?.name
     || selectedStudent?.group_name
-    || groups.find((group) => String(group.id) === String(selectedStudent?.group_id))?.name
     || "-";
+  const focusedGroupColor =
+    focusedGroup?.color
+    || selectedStudent?.group_color
+    || DEFAULT_GROUP_COLOR;
   const activeActivities = activities.filter((a) => !a.status || a.status === "Active");
   const hasAutreActivities = activeActivities.some(
     (a) => !a.discipline || !FIXED_DISCIPLINES.includes(a.discipline)
@@ -555,9 +563,11 @@ const StudentView = () => {
 
         {/* Header Glassy Unifié - Version Compacte */}
         {isFocusedMode ? (
-          <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-4 px-3 py-2 sm:px-4 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1.2fr_1fr] md:items-center">
-            <div id="student-title-block" className="flex flex-col min-w-0 items-start text-left">
-              <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none">Espace Élève</h1>
+          <header id="student-header" className="glass-panel sticky top-3 z-50 w-full mb-2 px-3 py-2 sm:px-4 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1.2fr_1fr] items-center">
+            <div id="student-title-block" className="flex flex-col min-w-0 items-start text-left justify-center my-auto">
+              <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 p-0 inline-flex items-center leading-tight">
+                Espace Élève
+              </h1>
               <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight">
                 {selectedActivity?.title || "Choisir une activité"}
               </span>
@@ -569,12 +579,20 @@ const StudentView = () => {
                 : "Élève ciblé"}
             </div>
 
-            <div id="student-focused-student-meta" className="flex flex-col min-w-0 items-start md:items-end text-left md:text-right">
+            <div id="student-focused-student-meta" className="flex flex-col min-w-0 items-start md:items-end text-left md:text-right gap-1">
               <span id="student-focused-class" className="text-[11px] sm:text-xs text-slate-700 font-bold truncate leading-tight w-full md:w-auto">
                 Classe: {focusedClassName}
               </span>
-              <span id="student-focused-group" className="text-[10px] sm:text-xs text-slate-600 font-semibold truncate leading-tight w-full md:w-auto">
-                Groupe: {focusedGroupName}
+              <span
+                id="student-focused-group"
+                className="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-[10px] sm:text-xs font-semibold leading-tight shrink-0 self-start md:self-end"
+                style={getGroupBadgeStyle(focusedGroupColor)}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: focusedGroupColor }}
+                />
+                {focusedGroupName}
               </span>
             </div>
           </header>
@@ -596,133 +614,135 @@ const StudentView = () => {
 
             {/* Title Block */}
             <div className="flex items-center gap-3 self-start lg:self-auto min-w-0 w-full lg:w-auto">
-              <div id="student-title-block" className="flex flex-col min-w-0 items-start">
-                <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 leading-none text-left">Espace Élève</h1>
-                <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
-                  {selectedActivity?.title || "Choisir une activité"}
-                </span>
-              </div>
-            </div>
-
-            <div id="student-controls" className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
-              {/* Groupe Classe/Groupe */}
-              <div id="student-grouping-controls" className="flex gap-2 flex-1 sm:flex-initial">
-                <div className="relative group flex-1 sm:w-32">
-                  <select
-                    id="student-class-selector"
-                    value={selectedClassId}
-                    onChange={(e) => {
-                      setSelectedClassId(e.target.value);
-                      setSelectedGroupId("");
-                    }}
-                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
-                  >
-                    <option value="">Classe</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>{cls.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="relative group flex-1 sm:w-28">
-                  <select
-                    id="student-group-selector"
-                    value={selectedGroupId}
-                    onChange={(e) => setSelectedGroupId(e.target.value)}
-                    disabled={!selectedClassId || loadingGroups}
-                    className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
-                  >
-                    <option value="">Groupes</option>
-                    {groups.map((group) => (
-                      <option key={group.id} value={group.id}>{group.name}</option>
-                    ))}
-                  </select>
+                <div id="student-title-block" className="flex flex-col min-w-0 items-start justify-center my-auto">
+                  <h1 id="student-view-title" className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight m-0 p-0 inline-flex items-center leading-tight text-left">
+                    Espace Élève
+                  </h1>
+                  <span id="student-active-activity-label" className="text-[10px] sm:text-xs text-slate-500 font-semibold truncate leading-tight text-left">
+                    {selectedActivity?.title || "Choisir une activité"}
+                  </span>
                 </div>
               </div>
 
-              {/* Groupe Discipline/Activité – menus déroulants par discipline */}
-              <div id="student-activity-controls" ref={disciplineDropdownRef} className="flex gap-1 flex-wrap justify-end flex-1 sm:flex-initial">
-                {[...FIXED_DISCIPLINES, ...(hasAutreActivities ? ["Autres"] : [])].map((disc) => {
-                  const cfg = DISCIPLINE_CONFIG[disc];
-                  const discActivities = activitiesByDiscipline[disc] || [];
-                  const isOpen = openDisciplineDropdown === disc;
-                  const hasSelectedInDisc = discActivities.some((a) => String(a.id) === String(selectedActivityId));
-                  return (
-                    <div key={disc} className="relative">
-                      <button
-                        id={`student-discipline-btn-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
-                        type="button"
-                        onClick={() => setOpenDisciplineDropdown(isOpen ? "" : disc)}
-                        className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all shrink-0 flex items-center gap-1 ${hasSelectedInDisc || isOpen ? cfg.active : cfg.inactive
-                          }`}
-                      >
-                        {disc}
-                        {hasSelectedInDisc && !isOpen && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80 shrink-0" />
-                        )}
-                        <svg className={`w-2.5 h-2.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 1l4 4 4-4" /></svg>
-                      </button>
-                      {isOpen && (
-                        <div
-                          id={`student-discipline-dropdown-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
-                          className={`absolute right-0 top-full mt-1.5 z-200 rounded-xl shadow-xl min-w-[250px] ${MAX_ACTIVITY_LIST_HEIGHT} overflow-y-auto py-1 ${cfg.dropdown}`}
+              <div id="student-controls" className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end">
+                {/* Groupe Classe/Groupe */}
+                <div id="student-grouping-controls" className="flex gap-2 flex-1 sm:flex-initial">
+                  <div className="relative group flex-1 sm:w-32">
+                    <select
+                      id="student-class-selector"
+                      value={selectedClassId}
+                      onChange={(e) => {
+                        setSelectedClassId(e.target.value);
+                        setSelectedGroupId("");
+                      }}
+                      className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer"
+                    >
+                      <option value="">Classe</option>
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id}>{cls.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="relative group flex-1 sm:w-28">
+                    <select
+                      id="student-group-selector"
+                      value={selectedGroupId}
+                      onChange={(e) => setSelectedGroupId(e.target.value)}
+                      disabled={!selectedClassId || loadingGroups}
+                      className="w-full border border-slate-200 bg-white/60 backdrop-blur-xs rounded-lg px-2 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-400 appearance-none cursor-pointer disabled:opacity-50"
+                    >
+                      <option value="">Groupes</option>
+                      {groups.map((group) => (
+                        <option key={group.id} value={group.id}>{group.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Groupe Discipline/Activité – menus déroulants par discipline */}
+                <div id="student-activity-controls" ref={disciplineDropdownRef} className="flex gap-1 flex-wrap justify-end flex-1 sm:flex-initial">
+                  {[...FIXED_DISCIPLINES, ...(hasAutreActivities ? ["Autres"] : [])].map((disc) => {
+                    const cfg = DISCIPLINE_CONFIG[disc];
+                    const discActivities = activitiesByDiscipline[disc] || [];
+                    const isOpen = openDisciplineDropdown === disc;
+                    const hasSelectedInDisc = discActivities.some((a) => String(a.id) === String(selectedActivityId));
+                    return (
+                      <div key={disc} className="relative">
+                        <button
+                          id={`student-discipline-btn-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
+                          type="button"
+                          onClick={() => setOpenDisciplineDropdown(isOpen ? "" : disc)}
+                          className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all shrink-0 flex items-center gap-1 ${hasSelectedInDisc || isOpen ? cfg.active : cfg.inactive
+                            }`}
                         >
-                          {discActivities.length === 0 ? (
-                            <p className="px-3 py-2 text-xs text-slate-400 italic">Aucune activité</p>
-                          ) : (
-                            discActivities.map((activity) => (
-                              <button
-                                key={activity.id}
-                                id={`student-activity-item-${activity.id}`}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedActivityId(String(activity.id));
-                                  setOpenDisciplineDropdown("");
-                                }}
-                                className={`w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${String(activity.id) === String(selectedActivityId)
+                          {disc}
+                          {hasSelectedInDisc && !isOpen && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80 shrink-0" />
+                          )}
+                          <svg className={`w-2.5 h-2.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 1l4 4 4-4" /></svg>
+                        </button>
+                        {isOpen && (
+                          <div
+                            id={`student-discipline-dropdown-${disc.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
+                            className={`absolute right-0 top-full mt-1.5 z-200 rounded-xl shadow-xl min-w-[250px] ${MAX_ACTIVITY_LIST_HEIGHT} overflow-y-auto py-1 ${cfg.dropdown}`}
+                          >
+                            {discActivities.length === 0 ? (
+                              <p className="px-3 py-2 text-xs text-slate-400 italic">Aucune activité</p>
+                            ) : (
+                              discActivities.map((activity) => (
+                                <button
+                                  key={activity.id}
+                                  id={`student-activity-item-${activity.id}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedActivityId(String(activity.id));
+                                    setOpenDisciplineDropdown("");
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${String(activity.id) === String(selectedActivityId)
                                     ? cfg.itemSelected
                                     : cfg.item
-                                  }`}
-                              >
-                                {activity.title}
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                                    }`}
+                                >
+                                  {activity.title}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mode Démo Toggle */}
+                <button
+                  id="student-demo-mode-toggle"
+                  type="button"
+                  onClick={() => setIsDemoMode(!isDemoMode)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${isDemoMode
+                    ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-xs"
+                    : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
+                    }`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
+                  Mode Démo
+                </button>
+
+                {/* Logo Button */}
+                <button
+                  id="student-logo"
+                  type="button"
+                  onClick={() => setHeaderCollapsed(true)}
+                  title="Masquer les contrôles"
+                  className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
+                    ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
+                    : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+                    }`}
+                >
+                  <StudentIcon />
+                </button>
               </div>
-
-              {/* Mode Démo Toggle */}
-              <button
-                id="student-demo-mode-toggle"
-                type="button"
-                onClick={() => setIsDemoMode(!isDemoMode)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${isDemoMode
-                  ? "bg-amber-100 text-amber-700 border border-amber-200 shadow-xs"
-                  : "bg-white/60 text-slate-600 border border-slate-200 hover:bg-white"
-                  }`}
-              >
-                <div className={`w-1.5 h-1.5 rounded-full ${isDemoMode ? "bg-amber-500 animate-pulse" : "bg-slate-300"}`}></div>
-                Mode Démo
-              </button>
-
-              {/* Logo Button */}
-              <button
-                id="student-logo"
-                type="button"
-                onClick={() => setHeaderCollapsed(true)}
-                title="Masquer les contrôles"
-                className={`h-8 w-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors cursor-pointer ${isDemoMode
-                  ? "bg-orange-500 shadow-orange-200 hover:bg-orange-600"
-                  : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
-                  }`}
-              >
-                <StudentIcon />
-              </button>
-            </div>
           </header>
         ))}
 

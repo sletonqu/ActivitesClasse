@@ -18,6 +18,11 @@ import {
   getDisciplineStyles,
   sortActivityColumns,
 } from "../utils/activityDiscipline";
+import {
+  DEFAULT_GROUP_COLOR,
+  getGroupBadgeStyle,
+  getGroupRowBg,
+} from "../utils/groupColors";
 
 const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
@@ -42,19 +47,7 @@ const ResultsView = () => {
   const tableScrollRef = useRef(null);
   const [tableScrollEdges, setTableScrollEdges] = useState({ left: false, right: false });
 
-  // Couleurs subtiles de fond pour les groupes
-  const groupColors = [
-    "bg-blue-50",
-    "bg-green-50",
-    "bg-purple-50",
-    "bg-pink-50",
-    "bg-yellow-50",
-    "bg-orange-50",
-    "bg-red-50",
-    "bg-teal-50",
-    "bg-cyan-50",
-    "bg-indigo-50",
-  ];
+  // Couleurs de groupe gérées via utils/groupColors
 
   // Charger les classes et activités au démarrage
   useEffect(() => {
@@ -137,10 +130,11 @@ const ResultsView = () => {
     return "text-red-600 bg-red-50";
   };
 
-  // Récupérer la couleur de fond du groupe
+  // Récupérer la couleur associée au groupe
   const getGroupColor = (groupId) => {
-    const groupIndex = groups.findIndex((g) => String(g.id) === String(groupId));
-    return groupIndex >= 0 ? groupColors[groupIndex % groupColors.length] : "bg-white";
+    if (!groupId) return null;
+    const group = groups.find((g) => String(g.id) === String(groupId));
+    return group?.color || DEFAULT_GROUP_COLOR;
   };
 
   const getGroupName = (groupId) => {
@@ -559,49 +553,63 @@ const ResultsView = () => {
 
               {/* Corps du tableau */}
               <tbody id="results-view-table-body">
-                {visibleStudents.map((student) => (
-                  <tr
-                    id={`results-student-row-${student.id}`}
-                    key={student.id}
-                    className={`border-b border-slate-200 hover:bg-slate-50 transition-colors ${getGroupColor(
-                      student.group_id
-                    )}`}
-                  >
-                    {/* Cellule de l'élève */}
-                    <td id={`results-student-cell-${student.id}`} className="px-4 py-3 font-medium text-slate-800 sticky left-0 z-10 min-w-[180px] bg-inherit">
-                      <div id={`results-student-info-${student.id}`} className="flex flex-col">
-                        <button
-                          id={`results-student-name-${student.id}`}
-                          type="button"
-                          aria-pressed={String(pinnedStudentId) === String(student.id)}
-                          title={
-                            String(pinnedStudentId) === String(student.id)
-                              ? "Afficher tous les élèves"
-                              : "Isoler cet élève"
-                          }
-                          onClick={() =>
-                            setPinnedStudentId((currentStudentId) =>
-                              String(currentStudentId) === String(student.id)
-                                ? null
-                                : String(student.id)
-                            )
-                          }
-                          className="inline-flex items-center gap-1 self-start text-left font-semibold hover:text-indigo-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
-                        >
-                          {student.firstname} {student.name}
-                          {String(pinnedStudentId) === String(student.id) && (
-                            <span id={`results-student-pin-${student.id}`} aria-hidden="true">
-                              📌
+                {visibleStudents.map((student) => {
+                  const studentGroupColor = student.group_id ? getGroupColor(student.group_id) : null;
+                  const rowBg = studentGroupColor ? getGroupRowBg(studentGroupColor) : undefined;
+                  return (
+                    <tr
+                      id={`results-student-row-${student.id}`}
+                      key={student.id}
+                      className="border-b border-slate-200 hover:brightness-95 transition-all"
+                      style={rowBg ? { backgroundColor: rowBg } : undefined}
+                    >
+                      {/* Cellule de l'élève */}
+                      <td
+                        id={`results-student-cell-${student.id}`}
+                        className="px-4 py-3 font-medium text-slate-800 sticky left-0 z-10 min-w-[180px]"
+                        style={{ backgroundColor: rowBg || "#ffffff" }}
+                      >
+                        <div id={`results-student-info-${student.id}`} className="flex flex-col">
+                          <button
+                            id={`results-student-name-${student.id}`}
+                            type="button"
+                            aria-pressed={String(pinnedStudentId) === String(student.id)}
+                            title={
+                              String(pinnedStudentId) === String(student.id)
+                                ? "Afficher tous les élèves"
+                                : "Isoler cet élève"
+                            }
+                            onClick={() =>
+                              setPinnedStudentId((currentStudentId) =>
+                                String(currentStudentId) === String(student.id)
+                                  ? null
+                                  : String(student.id)
+                              )
+                            }
+                            className="inline-flex items-center gap-1 self-start text-left font-semibold hover:text-indigo-700 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+                          >
+                            {student.firstname} {student.name}
+                            {String(pinnedStudentId) === String(student.id) && (
+                              <span id={`results-student-pin-${student.id}`} aria-hidden="true">
+                                📌
+                              </span>
+                            )}
+                          </button>
+                          {student.group_id && (
+                            <span
+                              id={`results-student-group-${student.id}`}
+                              className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-sm text-[11px] font-semibold border self-start"
+                              style={getGroupBadgeStyle(studentGroupColor)}
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ backgroundColor: studentGroupColor }}
+                              />
+                              {getGroupName(student.group_id)}
                             </span>
                           )}
-                        </button>
-                        {student.group_id && (
-                          <span id={`results-student-group-${student.id}`} className="text-xs text-slate-500">
-                            {getGroupName(student.group_id)}
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                        </div>
+                      </td>
 
                     {/* Cellules de résultats */}
                     {visibleActivityColumns.map((col) => {
@@ -637,7 +645,8 @@ const ResultsView = () => {
                       });
                     })}
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
               </table>
             </div>

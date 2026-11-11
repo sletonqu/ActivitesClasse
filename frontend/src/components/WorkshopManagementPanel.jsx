@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
+import { DEFAULT_GROUP_COLOR, getGroupBadgeStyle } from "../utils/groupColors";
 
 const buildFocusedActivityUrl = ({ classId, groupId, activityId, studentId }) => {
   const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost";
@@ -170,8 +171,9 @@ const WorkshopManagementPanel = ({
         <ul id="workshop-management-links-list" className="mt-3 space-y-2">
           {studentLinks.map(({ student, url }) => {
             const studentName = `${student.firstname || ""} ${student.name || ""}`.trim() || "Élève";
-            const studentGroupName =
-              student.group_name || groups.find((g) => String(g.id) === String(student.group_id))?.name;
+            const studentGroup = groups.find((g) => String(g.id) === String(student.group_id));
+            const studentGroupName = student.group_name || studentGroup?.name;
+            const studentGroupColor = studentGroup?.color || student.group_color || DEFAULT_GROUP_COLOR;
             return (
               <li
                 id={`workshop-management-link-row-${student.id}`}
@@ -186,8 +188,13 @@ const WorkshopManagementPanel = ({
                     {selectedGroupId === "ALL" && studentGroupName && (
                       <span
                         id={`workshop-management-group-badge-${student.id}`}
-                        className="shrink-0 rounded-sm bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700"
+                        className="shrink-0 inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold"
+                        style={getGroupBadgeStyle(studentGroupColor)}
                       >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: studentGroupColor }}
+                        />
                         {studentGroupName}
                       </span>
                     )}

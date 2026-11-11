@@ -1,4 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import {
+  DEFAULT_GROUP_COLOR,
+  PRESET_GROUP_COLORS,
+  getGroupBadgeStyle,
+} from "../utils/groupColors";
 
 const GroupManagementPanel = ({
   groupName,
@@ -31,8 +36,21 @@ const GroupManagementPanel = ({
   onAssignStudentToGroup,
   onRemoveStudentFromGroup,
   onRemoveAllStudentsFromGroup,
+  onUpdateGroupColor,
+  savingGroupColor = false,
   hideTitle = false,
 }) => {
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [pendingColor, setPendingColor] = useState(
+    selectedGroup?.color || DEFAULT_GROUP_COLOR
+  );
+
+  useEffect(() => {
+    if (selectedGroup) {
+      setPendingColor(selectedGroup.color || DEFAULT_GROUP_COLOR);
+      setIsPaletteOpen(false);
+    }
+  }, [selectedGroup?.id, selectedGroup?.color]);
   return (
     <div id="groups-panel-root" className="w-full flex flex-col gap-6 mb-6 lg:flex-row">
       <section
@@ -144,11 +162,19 @@ const GroupManagementPanel = ({
                   }`}
                 >
                   <div id={`group-row-actions-${group.id}`} className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-slate-800">{group.name}</p>
-                      <p className="text-sm text-slate-500">
-                        {group.student_count || 0} élève{Number(group.student_count || 0) > 1 ? "s" : ""}
-                      </p>
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        id={`group-row-color-${group.id}`}
+                        className="w-4 h-4 rounded-full shrink-0 border border-black/15 shadow-xs"
+                        style={{ backgroundColor: group.color || DEFAULT_GROUP_COLOR }}
+                        title={group.color || DEFAULT_GROUP_COLOR}
+                      />
+                      <div>
+                        <p className="font-semibold text-slate-800">{group.name}</p>
+                        <p className="text-sm text-slate-500">
+                          {group.student_count || 0} élève{Number(group.student_count || 0) > 1 ? "s" : ""}
+                        </p>
+                      </div>
                     </div>
                     {String(selectedGroupId) === String(group.id) && (
                       <button
@@ -178,7 +204,19 @@ const GroupManagementPanel = ({
               <h3 id="groups-panel-students-title" className="text-xl font-bold text-slate-800">
                 Modifier le Groupe
               </h3>
-              <p className="text-sm text-slate-500">{selectedGroup.name}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  id="groups-panel-selected-group-badge"
+                  className="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-semibold"
+                  style={getGroupBadgeStyle(selectedGroup.color || DEFAULT_GROUP_COLOR)}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: selectedGroup.color || DEFAULT_GROUP_COLOR }}
+                  />
+                  {selectedGroup.name}
+                </span>
+              </div>
             </div>
             <button
               type="button"
@@ -188,6 +226,108 @@ const GroupManagementPanel = ({
             >
               {removingAllGroupStudents ? "Retrait..." : "Retirer Tout"}
             </button>
+          </div>
+
+          {/* Bloc de sélection de la couleur du groupe */}
+          <div id="groups-panel-color-section" className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-700">Couleur :</span>
+                <span
+                  id="groups-panel-current-color-dot"
+                  className="w-4 h-4 rounded-full border border-black/20 shadow-xs shrink-0"
+                  style={{ backgroundColor: selectedGroup.color || DEFAULT_GROUP_COLOR }}
+                  title={selectedGroup.color || DEFAULT_GROUP_COLOR}
+                />
+                <span id="groups-panel-current-color-label" className="text-xs font-mono text-slate-500">
+                  {selectedGroup.color || DEFAULT_GROUP_COLOR}
+                </span>
+              </div>
+              <button
+                id="groups-panel-open-palette-btn"
+                type="button"
+                onClick={() => {
+                  setPendingColor(selectedGroup.color || DEFAULT_GROUP_COLOR);
+                  setIsPaletteOpen((prev) => !prev);
+                }}
+                className="px-2.5 py-1 text-xs font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-100 text-slate-700 shadow-xs flex items-center gap-1.5 transition-colors"
+              >
+                <span>🎨</span> {isPaletteOpen ? "Fermer la palette" : "Choisir une couleur"}
+              </button>
+            </div>
+
+            {isPaletteOpen && (
+              <div id="groups-panel-color-palette" className="mt-3 pt-3 border-t border-slate-200">
+                <p className="text-xs font-medium text-slate-600 mb-2">Choisir une couleur pour ce groupe :</p>
+                <div className="grid grid-cols-6 gap-2 mb-3">
+                  {PRESET_GROUP_COLORS.map((preset) => {
+                    const isSelected =
+                      (pendingColor || "").toLowerCase() === preset.value.toLowerCase();
+                    return (
+                      <button
+                        key={preset.value}
+                        id={`group-color-preset-${preset.value.replace("#", "")}`}
+                        type="button"
+                        title={preset.name}
+                        onClick={() => setPendingColor(preset.value)}
+                        className={`h-7 w-7 rounded-full border-2 transition-transform flex items-center justify-center cursor-pointer ${
+                          isSelected
+                            ? "ring-2 ring-indigo-500 ring-offset-1 border-white scale-110 shadow-sm"
+                            : "border-black/10 hover:scale-105"
+                        }`}
+                        style={{ backgroundColor: preset.value }}
+                      >
+                        {isSelected && (
+                          <span className="text-white text-[10px] font-bold drop-shadow-sm">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center gap-2 mb-3">
+                  <label htmlFor="group-custom-color-input" className="text-xs text-slate-600">
+                    Couleur personnalisée :
+                  </label>
+                  <input
+                    id="group-custom-color-input"
+                    type="color"
+                    value={pendingColor}
+                    onChange={(e) => setPendingColor(e.target.value)}
+                    className="w-7 h-7 rounded border border-slate-300 cursor-pointer p-0.5 bg-white"
+                  />
+                  <span className="text-xs font-mono text-slate-500">{pendingColor}</span>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+                  <button
+                    id="groups-panel-cancel-color-btn"
+                    type="button"
+                    onClick={() => {
+                      setIsPaletteOpen(false);
+                      setPendingColor(selectedGroup.color || DEFAULT_GROUP_COLOR);
+                    }}
+                    className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-800"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    id="groups-panel-save-color-btn"
+                    type="button"
+                    disabled={savingGroupColor}
+                    onClick={async () => {
+                      if (onUpdateGroupColor) {
+                        await onUpdateGroupColor(selectedGroup.id, pendingColor);
+                        setIsPaletteOpen(false);
+                      }
+                    }}
+                    className="px-3 py-1 text-xs font-semibold bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60 shadow-xs"
+                  >
+                    {savingGroupColor ? "Enregistrement..." : "Valider"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <form id="groups-panel-assign-form" onSubmit={onAssignStudentToGroup} className="space-y-3 mb-4">

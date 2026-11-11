@@ -21,6 +21,7 @@ import {
   ACTIVITY_FILES,
   normalizeActivityContentForEditor,
 } from "../utils/activityManagement";
+import { DEFAULT_GROUP_COLOR } from "../utils/groupColors";
 
 const VIEW_BACKGROUND_ICON = `${import.meta.env.BASE_URL}images/favicon_io/favicon.png`;
 
@@ -56,6 +57,7 @@ const TeacherView = () => {
   const [assigningStudentToGroup, setAssigningStudentToGroup] = useState(false);
   const [removingGroupStudentId, setRemovingGroupStudentId] = useState("");
   const [removingAllGroupStudents, setRemovingAllGroupStudents] = useState(false);
+  const [savingGroupColor, setSavingGroupColor] = useState(false);
   const [activities, setActivities] = useState([]);
   const [selectedResultStudentId, setSelectedResultStudentId] = useState("");
   const [loadingResults, setLoadingResults] = useState(false);
@@ -587,6 +589,34 @@ const TeacherView = () => {
     }
   };
 
+  const handleUpdateGroupColor = async (groupId, color) => {
+    setSavingGroupColor(true);
+    setGroupError("");
+    setGroupMessage("");
+
+    try {
+      const targetColor = color || DEFAULT_GROUP_COLOR;
+      const res = await fetch(`${API_URL}/groups/${groupId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ color: targetColor }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de l'enregistrement de la couleur");
+      }
+
+      setGroups((prevGroups) =>
+        prevGroups.map((g) => (String(g.id) === String(groupId) ? { ...g, color: targetColor } : g))
+      );
+      setGroupMessage("Couleur du groupe enregistrée");
+    } catch (err) {
+      setGroupError(err.message || "Erreur inconnue");
+    } finally {
+      setSavingGroupColor(false);
+    }
+  };
+
   const loadResultsForStudent = async (studentId) => {
     if (!studentId) {
       setStudentResults([]);
@@ -1099,6 +1129,8 @@ const TeacherView = () => {
             onAssignStudentToGroup={handleAssignStudentToGroup}
             onRemoveStudentFromGroup={handleRemoveStudentFromGroup}
             onRemoveAllStudentsFromGroup={handleRemoveAllStudentsFromGroup}
+            onUpdateGroupColor={handleUpdateGroupColor}
+            savingGroupColor={savingGroupColor}
             hideTitle
           />
         </CollapsibleSection>}

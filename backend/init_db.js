@@ -16,11 +16,28 @@ function ensureGroupsSchema(done) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         class_id INTEGER NOT NULL,
+        color TEXT DEFAULT '#6b7280',
         FOREIGN KEY (class_id) REFERENCES classes(id)
       )
     `);
 
     db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_name_class ON groups(name, class_id)');
+
+    db.all('PRAGMA table_info(groups)', [], (groupsErr, groupColumns) => {
+      if (groupsErr) {
+        console.error('Erreur lors de la vérification du schéma groups:', groupsErr.message);
+        return;
+      }
+
+      const hasColor = Array.isArray(groupColumns) && groupColumns.some((column) => column.name === 'color');
+      if (!hasColor) {
+        db.run("ALTER TABLE groups ADD COLUMN color TEXT DEFAULT '#6b7280'", (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration color sur groups:', alterErr.message);
+          }
+        });
+      }
+    });
 
     db.all('PRAGMA table_info(students)', [], (err, columns) => {
       if (err) {
