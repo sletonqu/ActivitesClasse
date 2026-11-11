@@ -2,7 +2,8 @@ import React, { useMemo, useState } from "react";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
 const buildFocusedActivityUrl = ({ classId, groupId, activityId, studentId }) => {
-  const url = new URL("/", window.location.origin);
+  const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "http://localhost";
+  const url = new URL("/", origin);
   url.searchParams.set("classId", String(classId));
   url.searchParams.set("groupId", String(groupId));
   url.searchParams.set("activityId", String(activityId));
@@ -49,7 +50,7 @@ const WorkshopManagementPanel = ({
       student,
       url: buildFocusedActivityUrl({
         classId: selectedClass.id,
-        groupId: selectedGroup.id,
+        groupId: student.group_id || selectedGroup.id,
         activityId: selectedActivity.id,
         studentId: student.id,
       }),
@@ -116,6 +117,7 @@ const WorkshopManagementPanel = ({
               className="w-full border border-slate-300 bg-white/80 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
             >
               <option value="">Sélectionner un groupe</option>
+              {groups.length > 0 && <option value="ALL">Tous les groupes</option>}
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -160,12 +162,16 @@ const WorkshopManagementPanel = ({
         </p>
       ) : studentLinks.length === 0 ? (
         <p id="workshop-management-empty-students" className="mt-3 rounded-lg border border-dashed border-slate-300 bg-white/30 px-3 py-2 text-xs text-slate-600">
-          Aucun élève trouvé dans ce groupe.
+          {selectedGroupId === "ALL"
+            ? "Aucun élève trouvé dans les groupes de cette classe."
+            : "Aucun élève trouvé dans ce groupe."}
         </p>
       ) : (
         <ul id="workshop-management-links-list" className="mt-3 space-y-2">
           {studentLinks.map(({ student, url }) => {
             const studentName = `${student.firstname || ""} ${student.name || ""}`.trim() || "Élève";
+            const studentGroupName =
+              student.group_name || groups.find((g) => String(g.id) === String(student.group_id))?.name;
             return (
               <li
                 id={`workshop-management-link-row-${student.id}`}
@@ -173,9 +179,19 @@ const WorkshopManagementPanel = ({
                 className="rounded-lg border border-slate-200 bg-white/70 p-2.5"
               >
                 <div className="grid items-center gap-2 md:grid-cols-[180px_minmax(0,1fr)_auto]">
-                  <p id={`workshop-management-student-${student.id}`} className="truncate text-xs sm:text-sm font-bold text-slate-800">
-                    {studentName}
-                  </p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p id={`workshop-management-student-${student.id}`} className="truncate text-xs sm:text-sm font-bold text-slate-800">
+                      {studentName}
+                    </p>
+                    {selectedGroupId === "ALL" && studentGroupName && (
+                      <span
+                        id={`workshop-management-group-badge-${student.id}`}
+                        className="shrink-0 rounded-sm bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700"
+                      >
+                        {studentGroupName}
+                      </span>
+                    )}
+                  </div>
 
                   <a
                     id={`workshop-management-url-${student.id}`}

@@ -638,9 +638,12 @@ const TeacherView = () => {
   }, [selectedClassId]);
 
   useEffect(() => {
-    setSelectedWorkshopGroupId((previousGroupId) =>
-      groups.some((group) => String(group.id) === String(previousGroupId)) ? previousGroupId : ""
-    );
+    setSelectedWorkshopGroupId((previousGroupId) => {
+      if (previousGroupId === "ALL") {
+        return groups.length > 0 ? "ALL" : "";
+      }
+      return groups.some((group) => String(group.id) === String(previousGroupId)) ? previousGroupId : "";
+    });
   }, [groups]);
 
   useEffect(() => {
@@ -684,19 +687,28 @@ const TeacherView = () => {
   const selectedStudent = students.find(
     (student) => String(student.id) === String(selectedStudentId)
   ) || null;
-  const selectedWorkshopGroup = groups.find(
-    (group) => String(group.id) === String(selectedWorkshopGroupId)
-  ) || null;
+  const selectedWorkshopGroup =
+    selectedWorkshopGroupId === "ALL"
+      ? { id: "ALL", name: "Tous les groupes" }
+      : groups.find((group) => String(group.id) === String(selectedWorkshopGroupId)) || null;
   const selectedWorkshopActivity = activities.find(
     (activity) => String(activity.id) === String(selectedWorkshopActivityId)
   ) || null;
-  const workshopGroupStudents = students
-    .filter((student) => String(student.group_id) === String(selectedWorkshopGroupId))
-    .sort((a, b) => {
-      const left = `${a.firstname || ""} ${a.name || ""}`.trim().toLowerCase();
-      const right = `${b.firstname || ""} ${b.name || ""}`.trim().toLowerCase();
-      return left.localeCompare(right, "fr");
-    });
+  const workshopGroupStudents = (
+    selectedWorkshopGroupId === "ALL"
+      ? students.filter((student) => Boolean(student.group_id))
+      : students.filter((student) => String(student.group_id) === String(selectedWorkshopGroupId))
+  ).sort((a, b) => {
+    if (selectedWorkshopGroupId === "ALL") {
+      const groupA = groups.find((g) => String(g.id) === String(a.group_id))?.name || a.group_name || "";
+      const groupB = groups.find((g) => String(g.id) === String(b.group_id))?.name || b.group_name || "";
+      const groupCompare = groupA.localeCompare(groupB, "fr");
+      if (groupCompare !== 0) return groupCompare;
+    }
+    const left = `${a.firstname || ""} ${a.name || ""}`.trim().toLowerCase();
+    const right = `${b.firstname || ""} ${b.name || ""}`.trim().toLowerCase();
+    return left.localeCompare(right, "fr");
+  });
 
   const getActivityLabel = (activityId) => {
     const activity = activities.find((a) => String(a.id) === String(activityId));
