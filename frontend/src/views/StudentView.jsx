@@ -365,11 +365,19 @@ const StudentView = () => {
     try {
       const element = document.getElementById("activity-container");
       if (element) {
+        // Detect Firefox (Gecko) — its foreignObject/canvas pipeline is stricter,
+        // especially on Android tablets where it often produces blank images.
+        const isFirefox = /firefox|FxiOS/i.test(navigator.userAgent);
+
         // html-to-image uses SVG foreignObject which is sensitive to CORS.
         // We configure it to skip external resources and retry on failure.
         const captureOptions = {
           cacheBust: true,
           style: { transform: 'scale(1)', transformOrigin: 'top left' },
+          // Firefox Android: reduce canvas memory pressure and skip font inlining
+          // that causes tainted canvas / blank image issues
+          pixelRatio: isFirefox ? 1 : undefined,
+          skipFonts: isFirefox,
           // Ignore cross-origin images/resources that taint the canvas
           filter: (node) => {
             // Skip external link[rel=stylesheet] (Google Fonts, etc.)
@@ -378,7 +386,7 @@ const StudentView = () => {
             }
             return true;
           },
-          // Skip images that fail to load (CORS errors)
+          // Replace images that fail to load (CORS errors) with a transparent pixel
           imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
         };
 
@@ -391,15 +399,31 @@ const StudentView = () => {
           await new Promise((r) => setTimeout(r, 200));
           screenshotBase64 = await htmlToImage.toPng(element, captureOptions);
         }
+
+        // Firefox on Android may still produce a blank PNG despite no error thrown.
+        // Detect blank images: a valid capture of an activity is always > 5 KB.
+        if (isFirefox && screenshotBase64 && screenshotBase64.length < 5000) {
+          console.warn("Capture PNG trop petite sur Firefox, tentative SVG...");
+          screenshotBase64 = null; // force SVG fallback below
+          throw new Error("Firefox blank PNG fallback");
+        }
       }
     } catch (e) {
       console.error("Erreur lors de la capture d'écran:", e);
-      // Fallback: if toPng fails entirely (CORS tainted canvas), try toSvg
+      // Fallback: if toPng fails entirely (CORS tainted canvas / Firefox blank),
+      // try toSvg which doesn't need canvas and works on all browsers
       try {
         const element = document.getElementById("activity-container");
         if (element) {
           screenshotBase64 = await htmlToImage.toSvg(element, {
             style: { transform: 'scale(1)', transformOrigin: 'top left' },
+            skipFonts: true,
+            filter: (node) => {
+              if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && !node.href.startsWith(window.location.origin)) {
+                return false;
+              }
+              return true;
+            },
           });
         }
       } catch (e2) {
