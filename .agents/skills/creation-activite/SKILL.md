@@ -239,10 +239,10 @@ Le rendu doit suivre strictement cet ordre vertical :
 
 Modifier [`frontend/src/activities/ActivityContainer.jsx`](file:///h:/ProjetsCODE/ActivitesClasse/frontend/src/activities/ActivityContainer.jsx) :
 
-1. **Ajouter l'import** en haut du fichier :
+1. **Ajouter l'import asynchrone (lazy)** en haut du fichier avec `React.lazy` :
 
 ```jsx
-import <NomActivite>Activity from "./<NomActivite>Activity";
+const <NomActivite>Activity = lazy(() => import("./<NomActivite>Activity"));
 ```
 
 2. **Ajouter les 3 entrées** dans `componentRegistry` (respecter le pattern

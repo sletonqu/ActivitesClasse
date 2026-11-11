@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import ActivityHero from "../components/ActivityHero";
 import ActivityActionsBar from "../components/ActivityActionsBar";
 import ActivityStatus from "../components/ActivityStatus";
 import ActivitySummaryCard from "../components/ActivitySummaryCard";
 import BaseTenBlocksVisuals from "../components/BaseTenBlocksVisuals";
 import FloatingNumberPad from "../components/FloatingNumberPad";
-import HandwritingOCRModal from "../components/HandwritingOCRModal";
-import MyScriptHandwritingModal from "../components/MyScriptHandwritingModal";
+
+const HandwritingOCRModal = lazy(() => import("../components/HandwritingOCRModal"));
+const MyScriptHandwritingModal = lazy(() => import("../components/MyScriptHandwritingModal"));
 import {
   getSafeDisplayText,
   handleRoundRestart,
@@ -1038,37 +1039,41 @@ const BaseTenBlocksActivity = ({
       )}
 
       {inputType === "OCR" && (
-        <HandwritingOCRModal
-          isOpen={Boolean(activeInput) && !finished}
-          activeFieldLabel={
-            activeInput
-              ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
-              : ""
-          }
-          mode="minimal"
-          maxWidth="max-w-[340px]"
-          overlayType="Normal"
-          position={ocrPosition}
-          onRecognized={handleOCRRecognized}
-          onClose={closeNumberPad}
-        />
+        <Suspense fallback={null}>
+          <HandwritingOCRModal
+            isOpen={Boolean(activeInput) && !finished}
+            activeFieldLabel={
+              activeInput
+                ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+                : ""
+            }
+            mode="minimal"
+            maxWidth="max-w-[340px]"
+            overlayType="Normal"
+            position={ocrPosition}
+            onRecognized={handleOCRRecognized}
+            onClose={closeNumberPad}
+          />
+        </Suspense>
       )}
 
       {inputType === "MyScript" && (
-        <MyScriptHandwritingModal
-          isOpen={Boolean(activeInput) && !finished}
-          activeFieldLabel={
-            activeInput
-              ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
-              : ""
-          }
-          mode="minimal"
-          maxWidth="max-w-[448px]"
-          overlayType="Normal"
-          position={ocrPosition}
-          onRecognized={handleOCRRecognized}
-          onClose={closeNumberPad}
-        />
+        <Suspense fallback={null}>
+          <MyScriptHandwritingModal
+            isOpen={Boolean(activeInput) && !finished}
+            activeFieldLabel={
+              activeInput
+                ? `Exercice ${activeInput.exerciseId} — ${activeInput.label}`
+                : ""
+            }
+            mode="minimal"
+            maxWidth="max-w-[448px]"
+            overlayType="Normal"
+            position={ocrPosition}
+            onRecognized={handleOCRRecognized}
+            onClose={closeNumberPad}
+          />
+        </Suspense>
       )}
 
       {finished && (

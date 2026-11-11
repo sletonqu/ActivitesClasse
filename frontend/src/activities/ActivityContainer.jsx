@@ -1,26 +1,27 @@
-import React from "react";
-import SortNumbersActivity from "./SortNumbersActivity";
-import MatchAdditionsActivity from "./MatchAdditionsActivity";
-import CountPencilsByTensActivity from "./CountPencilsByTensActivity";
-import CompareNumbersActivity from "./CompareNumbersActivity";
-import FractionsVisualSelectionActivity from "./FractionsVisualSelectionActivity";
-import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
-import WordClassificationActivity from "./WordClassificationActivity";
-import SentenceWordClassificationActivity from "./SentenceWordClassificationActivity";
-import ReadNumbersActivity from "./ReadNumbersActivity";
-import MakeChangeActivity from "./MakeChangeActivity";
-import AlphabeticalSortActivity from "./AlphabeticalSortActivity";
-import ClassSoundMeterActivity from "./ClassSoundMeterActivity";
-import CodeJuniorActivity from "./CodeJuniorActivity";
-import VerbEndingCompletionActivity from "./VerbEndingCompletionActivity";
-import EvenOddClassificationActivity from "./EvenOddClassificationActivity";
-import HomophonesActivity from "./HomophonesActivity";
-import NumberLineActivity from "./NumberLineActivity";
-import ColumnOperationActivity from "./ColumnOperationActivity";
-import BaseTenBlocksActivity from "./BaseTenBlocksActivity";
-import VerbConjugationActivity from "./VerbConjugationActivity";
-import WriteFractionsActivity from "./WriteFractionsActivity";
-import FindVerbAndInfinitiveActivity from "./FindVerbAndInfinitiveActivity";
+import React, { Suspense, lazy } from "react";
+
+const SortNumbersActivity = lazy(() => import("./SortNumbersActivity"));
+const MatchAdditionsActivity = lazy(() => import("./MatchAdditionsActivity"));
+const CountPencilsByTensActivity = lazy(() => import("./CountPencilsByTensActivity"));
+const CompareNumbersActivity = lazy(() => import("./CompareNumbersActivity"));
+const FractionsVisualSelectionActivity = lazy(() => import("./FractionsVisualSelectionActivity"));
+const InteractiveWhiteboardActivity = lazy(() => import("./InteractiveWhiteboardActivity"));
+const WordClassificationActivity = lazy(() => import("./WordClassificationActivity"));
+const SentenceWordClassificationActivity = lazy(() => import("./SentenceWordClassificationActivity"));
+const ReadNumbersActivity = lazy(() => import("./ReadNumbersActivity"));
+const MakeChangeActivity = lazy(() => import("./MakeChangeActivity"));
+const AlphabeticalSortActivity = lazy(() => import("./AlphabeticalSortActivity"));
+const ClassSoundMeterActivity = lazy(() => import("./ClassSoundMeterActivity"));
+const CodeJuniorActivity = lazy(() => import("./CodeJuniorActivity"));
+const VerbEndingCompletionActivity = lazy(() => import("./VerbEndingCompletionActivity"));
+const EvenOddClassificationActivity = lazy(() => import("./EvenOddClassificationActivity"));
+const HomophonesActivity = lazy(() => import("./HomophonesActivity"));
+const NumberLineActivity = lazy(() => import("./NumberLineActivity"));
+const ColumnOperationActivity = lazy(() => import("./ColumnOperationActivity"));
+const BaseTenBlocksActivity = lazy(() => import("./BaseTenBlocksActivity"));
+const VerbConjugationActivity = lazy(() => import("./VerbConjugationActivity"));
+const WriteFractionsActivity = lazy(() => import("./WriteFractionsActivity"));
+const FindVerbAndInfinitiveActivity = lazy(() => import("./FindVerbAndInfinitiveActivity"));
 
 
 const componentRegistry = {
@@ -112,13 +113,22 @@ const ActivityContainer = ({ student, content, onComplete, activityJsFile, activ
         id="activity-container"
         className="activity-print-zone mx-auto w-full min-w-0 max-w-full overflow-x-auto rounded-lg bg-white px-1.5 pt-1.5 pb-0 shadow-sm sm:px-2 sm:pt-2 sm:pb-0 print:max-w-[300mm] print:overflow-visible print:p-6"
       >
-        <SelectedActivityComponent
-          key={activityProps?.activityId ? `activity-comp-${activityProps.activityId}` : undefined}
-          student={student}
-          content={content}
-          onComplete={onComplete}
-          {...activityProps}
-        />
+        <Suspense
+          fallback={
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 py-12 text-slate-500">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+              <p className="text-sm font-medium">Chargement de l'activité...</p>
+            </div>
+          }
+        >
+          <SelectedActivityComponent
+            key={activityProps?.activityId ? `activity-comp-${activityProps.activityId}` : undefined}
+            student={student}
+            content={content}
+            onComplete={onComplete}
+            {...activityProps}
+          />
+        </Suspense>
       </div>
     </div>
   );
