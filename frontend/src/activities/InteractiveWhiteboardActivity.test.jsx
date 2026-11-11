@@ -2,7 +2,9 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as fabric from "fabric";
-import InteractiveWhiteboardActivity from "./InteractiveWhiteboardActivity";
+import InteractiveWhiteboardActivity, {
+  defaultInteractiveWhiteboardActivityContent,
+} from "./InteractiveWhiteboardActivity";
 
 describe("InteractiveWhiteboardActivity", () => {
   it("s'initialise correctement avec une prop content vide ({}) conformément au contrat de robustesse", () => {
@@ -104,5 +106,61 @@ describe("InteractiveWhiteboardActivity", () => {
     expect(html).not.toMatch(/id="interactive-whiteboard-text-preview"[^>]*px-/);
     expect(html).not.toMatch(/id="interactive-whiteboard-text-preview"[^>]*py-/);
     expect(html).toContain("outline");
+  });
+
+  it("aligne le interactive-whiteboard-canvas-frame sur la gauche sans classe mx-auto", () => {
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={{}} onComplete={() => {}} />
+    );
+
+    expect(html).toContain('id="interactive-whiteboard-canvas-frame"');
+    // Le conteneur du canevas ne doit pas contenir mx-auto pour éviter l'espace perdu à gauche
+    const canvasFrameMatch = html.match(/id="interactive-whiteboard-canvas-frame"[^>]*class="([^"]*)"/);
+    expect(canvasFrameMatch).toBeTruthy();
+    expect(canvasFrameMatch[1]).not.toContain("mx-auto");
+    expect(canvasFrameMatch[1]).toContain("m-0");
+  });
+
+  it("définit les paramètres 'color-select' et 'size-select' par défaut à 'blue' et '2'", () => {
+    expect(defaultInteractiveWhiteboardActivityContent["color-select"]).toBe("blue");
+    expect(defaultInteractiveWhiteboardActivityContent["size-select"]).toBe("2");
+  });
+
+  it("sélectionne la couleur bleue et la taille 2 par défaut au démarrage de l'activité", () => {
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={{}} onComplete={() => {}} />
+    );
+
+    // Le bouton de sélection de couleur affiche l'emoji bleu '🔵' par défaut
+    expect(html).toContain('id="interactive-whiteboard-color-select-trigger"');
+    expect(html).toContain('aria-label="🔵"');
+    expect(html).toContain("<span>🔵</span>");
+
+    // Le bouton de sélection de taille affiche l'option de taille 2px par défaut
+    expect(html).toContain('id="interactive-whiteboard-size-select-trigger"');
+    expect(html).toContain('aria-label="2px"');
+    expect(html).toContain('title="2px"');
+    expect(html).toContain("background-color:blue");
+  });
+
+  it("permet de surcharger la couleur et la taille par défaut via les paramètres de l'activité", () => {
+    const customConfig = {
+      "color-select": "red",
+      "size-select": "5",
+    };
+    const html = renderToStaticMarkup(
+      <InteractiveWhiteboardActivity student={null} content={customConfig} onComplete={() => {}} />
+    );
+
+    // Couleur rouge sélectionnée (🔴)
+    expect(html).toContain('id="interactive-whiteboard-color-select-trigger"');
+    expect(html).toContain('aria-label="🔴"');
+    expect(html).toContain("<span>🔴</span>");
+
+    // Taille 5px sélectionnée
+    expect(html).toContain('id="interactive-whiteboard-size-select-trigger"');
+    expect(html).toContain('aria-label="5px"');
+    expect(html).toContain('title="5px"');
+    expect(html).toContain("background-color:red");
   });
 });

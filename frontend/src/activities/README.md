@@ -489,7 +489,9 @@ Exemple de configuration :
   "backgroundColor": "#ffffff",
   "paperStyle": "seyes",
   "defaultZoom": 2.0,
-  "storageKey": "TBTS_INTERACTIVE_WHITEBOARD"
+  "storageKey": "TBTS_INTERACTIVE_WHITEBOARD",
+  "color-select": "blue",
+  "size-select": "2"
 }
 ```
 
@@ -508,7 +510,9 @@ Paramètres de contenu :
 - `paperStyle` : type de papier parmi les valeurs ci-dessus ; l'ancien booléen `showGrid: true` active aussi le quadrillage si `paperStyle` n'est pas défini ;
 - `fontFamily` : police du texte (`Cursif`, `Cursive Standard` ou `Inter, Arial, sans-serif`) ;
 - `defaultZoom` : zoom initial (valeur de la configuration par défaut : `2.0`) ;
-- `storageKey` : clé de sauvegarde dans `localStorage`.
+- `storageKey` : clé de sauvegarde dans `localStorage` ;
+- `color-select` : couleur initiale du crayon (`"blue"` par défaut, ex: `"blue"`, `"black"`, `"red"`, `"green"`, etc.) ;
+- `size-select` : taille initiale du trait du crayon (`"2"` par défaut, ex: `"1"`, `"2"`, `"3"`, `"5"`, `"8"`, etc.).
 
 Notes :
 

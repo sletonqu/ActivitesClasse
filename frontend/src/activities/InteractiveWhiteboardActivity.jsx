@@ -19,6 +19,8 @@ export const defaultInteractiveWhiteboardActivityContent = {
   fontFamily: "Cursif",
   defaultZoom: 2.0,
   storageKey: "TBTS_INTERACTIVE_WHITEBOARD",
+  "color-select": "blue",
+  "size-select": "2",
 };
 
 function sanitizeFileNamePart(value) {
@@ -88,6 +90,27 @@ function resolveFontFamilyValue(rawFontFamily, fallback = DEFAULT_TEXT_FONT_FAMI
   }
 
   return rawFontFamily.trim();
+}
+
+function resolveColorSelectValue(
+  rawColor,
+  fallback = defaultInteractiveWhiteboardActivityContent["color-select"] || "blue"
+) {
+  if (typeof rawColor === "string" && WHITEBOARD_COLOR_OPTIONS.some((opt) => opt.value === rawColor)) {
+    return rawColor;
+  }
+  return fallback;
+}
+
+function resolveSizeSelectValue(
+  rawSize,
+  fallback = defaultInteractiveWhiteboardActivityContent["size-select"] || "2"
+) {
+  const strSize = String(rawSize ?? "");
+  if (WHITEBOARD_BRUSH_SIZE_OPTIONS.some((opt) => opt.value === strSize)) {
+    return strSize;
+  }
+  return fallback;
 }
 
 function getInitialPaperStyle(activityContent) {
@@ -825,6 +848,12 @@ const applyLiveEraserSegment = (canvas, fabricApi, fromPoint, toPoint, brushWidt
 const InteractiveWhiteboardActivity = ({ content, student }) => {
   const configuredPaperStyle = getInitialPaperStyle(content);
   const configuredFontFamily = resolveFontFamilyValue(content?.fontFamily, DEFAULT_TEXT_FONT_FAMILY);
+  const configuredColor = resolveColorSelectValue(
+    content?.["color-select"] ?? content?.colorSelect ?? content?.color
+  );
+  const configuredBrushSize = resolveSizeSelectValue(
+    content?.["size-select"] ?? content?.sizeSelect ?? content?.brushSize ?? content?.size
+  );
 
   const canvasRef = useRef(null);
   const canvasFrameRef = useRef(null);
@@ -843,8 +872,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const toolbarDragOffsetRef = useRef(null);
   const eraserFallbackLoggedRef = useRef(false);
   const modeRef = useRef("draw");
-  const colorRef = useRef("black");
-  const brushSizeRef = useRef("1");
+  const colorRef = useRef(configuredColor);
+  const brushSizeRef = useRef(configuredBrushSize);
   const paperStyleRef = useRef(configuredPaperStyle);
   const fontFamilyRef = useRef(configuredFontFamily);
   const isPanningRef = useRef(false);
@@ -868,8 +897,8 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [mode, setMode] = useState("draw");
-  const [color, setColor] = useState("black");
-  const [brushSize, setBrushSize] = useState("1");
+  const [color, setColor] = useState(configuredColor);
+  const [brushSize, setBrushSize] = useState(configuredBrushSize);
   const [paperStyle, setPaperStyle] = useState(configuredPaperStyle);
   const [fontFamily, setFontFamily] = useState(configuredFontFamily);
   const [shapeType, setShapeType] = useState("line");
@@ -2722,7 +2751,7 @@ const InteractiveWhiteboardActivity = ({ content, student }) => {
           ref={canvasFrameRef}
           onPointerMove={handleCanvasFramePointerMove}
           onPointerLeave={handleCanvasFramePointerLeave}
-          className="relative mx-auto overflow-hidden rounded-lg bg-white shadow-2xl"
+          className="relative m-0 overflow-hidden rounded-lg bg-white shadow-2xl"
           style={{
             width: `${canvasWidth}px`,
             transform: `scale(${currentZoom})`,
