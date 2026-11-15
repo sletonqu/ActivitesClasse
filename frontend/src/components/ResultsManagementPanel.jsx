@@ -1,4 +1,5 @@
 import React from "react";
+import { ClearIcon, DeleteAllIcon, DeleteIcon } from "./ActionIcons";
 
 const ResultsManagementPanel = ({
   selectedClassId,
@@ -108,8 +109,9 @@ const ResultsManagementPanel = ({
                   onSelectResultGroupId("");
                   onSelectResultActivityId("");
                 }}
-                className="text-sm text-sky-600 hover:text-sky-700 font-medium self-start"
+                className="inline-flex items-center gap-1.5 text-sm text-sky-600 hover:text-sky-700 font-medium self-start"
               >
+                <ClearIcon />
                 Réinitialiser les filtres
               </button>
             )}
@@ -146,8 +148,9 @@ const ResultsManagementPanel = ({
                 type="button"
                 onClick={onDeleteAllResults}
                 disabled={deletingAllResults || filteredResults.length === 0}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
               >
+                <DeleteAllIcon />
                 {deletingAllResults ? "Suppression..." : "Supprimer Tout"}
               </button>
             </div>

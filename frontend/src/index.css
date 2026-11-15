@@ -269,7 +269,7 @@ body {
   }
 }
 
-:where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view) > * {
+:where(#student-view-root, #admin-view-root, #teacher-view-root, #results-view) > *:not([role="dialog"]):not([class*="fixed"]) {
   position: relative;
   z-index: 1;
 }

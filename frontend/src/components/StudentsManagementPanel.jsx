@@ -1,4 +1,5 @@
 import React from "react";
+import { AddIcon, DeleteAllIcon, DeleteIcon, EditIcon } from "./ActionIcons";
 
 const StudentsManagementPanel = ({
   studentName,
@@ -76,8 +77,9 @@ const StudentsManagementPanel = ({
             <button
               type="submit"
               disabled={submittingStudent}
-              className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
             >
+              <AddIcon />
               {submittingStudent ? "Ajout en cours..." : "Ajouter"}
             </button>
 
@@ -94,9 +96,8 @@ const StudentsManagementPanel = ({
         {showStudentMessage && studentMessage && (
           <div
             id="students-panel-message"
-            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-              fadeStudentMessage ? "opacity-0" : "opacity-100"
-            }`}
+            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeStudentMessage ? "opacity-0" : "opacity-100"
+              }`}
           >
             {studentMessage}
           </div>
@@ -116,10 +117,12 @@ const StudentsManagementPanel = ({
             <button
               type="button"
               onClick={onDeleteAllStudents}
+              title="Supprimer tous les élèves"
               disabled={!selectedClassId || students.length === 0 || deletingAllStudents}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
-              {deletingAllStudents ? "Suppression..." : "Supprimer Tout"}
+              <DeleteAllIcon />
+              {deletingAllStudents ? "Suppression..." : ""}
             </button>
           </div>
 
@@ -144,11 +147,10 @@ const StudentsManagementPanel = ({
                       onSelectStudent(student);
                     }
                   }}
-                  className={`border rounded-lg p-3 cursor-pointer ${
-                    String(selectedStudentId) === String(student.id)
-                      ? "border-indigo-400 bg-indigo-50"
-                      : "border-slate-200"
-                  }`}
+                  className={`border rounded-lg p-3 cursor-pointer ${String(selectedStudentId) === String(student.id)
+                    ? "border-indigo-400 bg-indigo-50"
+                    : "border-slate-200"
+                    }`}
                 >
                   <div id={`student-row-actions-${student.id}`} className="flex items-center justify-between gap-3">
                     <div>
@@ -169,10 +171,12 @@ const StudentsManagementPanel = ({
                             event.stopPropagation();
                             onDeleteStudent(student);
                           }}
+                          title="Supprimer l'élève"
                           disabled={deletingStudentId === String(student.id) || deletingAllStudents || editingStudentId === String(student.id)}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
-                          {deletingStudentId === String(student.id) ? "Suppression..." : "Supprimer"}
+                          <DeleteIcon />
+                          {deletingStudentId === String(student.id) ? "Suppression..." : ""}
                         </button>
                       </div>
                     )}
@@ -222,8 +226,9 @@ const StudentsManagementPanel = ({
               <button
                 type="submit"
                 disabled={editingStudentId === String(selectedStudent.id) || deletingAllStudents}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
               >
+                <EditIcon />
                 {editingStudentId === String(selectedStudent.id) ? "Modification..." : "Modifier"}
               </button>
             </div>

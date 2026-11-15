@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { CopyIcon, ExternalLinkIcon } from "./ActionIcons";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import { DEFAULT_GROUP_COLOR, getGroupBadgeStyle } from "../utils/groupColors";
 
@@ -11,21 +12,6 @@ const buildFocusedActivityUrl = ({ classId, groupId, activityId, studentId }) =>
   url.searchParams.set("studentId", String(studentId));
   return url.toString();
 };
-
-const CopyIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-  </svg>
-);
-
-const ExternalLinkIcon = () => (
-  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M14 3h7v7" />
-    <path d="M10 14L21 3" />
-    <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-  </svg>
-);
 
 const WorkshopManagementPanel = ({
   selectedClass,

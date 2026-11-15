@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { DeleteAllIcon, DeleteIcon, EditIcon, ExportIcon, ImportIcon, SearchIcon } from "./ActionIcons";
 import ConfirmModal from "./ConfirmModal";
 import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
@@ -359,36 +360,38 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
           id="words-management-import-button"
           type="button"
           onClick={handleFilePick}
+          title="Importer le CSV"
           disabled={loadingImport || loadingExport || deletingAllWords}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
         >
-          {loadingImport ? "Import en cours..." : "Importer le CSV Dubois-Buyse"}
+          <ImportIcon />
+          {loadingImport ? "Import en cours..." : ""}
         </button>
 
         <button
           id="words-management-export-button"
           type="button"
           onClick={handleExportCsv}
+          title="Exporter le CSV"
           disabled={loadingExport || loadingImport || deletingAllWords}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
         >
-          {loadingExport ? "Export en cours..." : "Exporter CSV"}
+          <ExportIcon />
+          {loadingExport ? "Export en cours..." : ""}
         </button>
 
         <button
           id="words-management-delete-all-button"
           type="button"
           onClick={handleDeleteAllWords}
+          title="Supprimer tous les mots"
           disabled={deletingAllWords || loadingImport || loadingExport || stats.total === 0}
-          className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 disabled:opacity-60"
         >
-          {deletingAllWords ? "Suppression..." : "Supprimer Tout"}
+          <DeleteAllIcon />
+          {deletingAllWords ? "Suppression..." : ""}
         </button>
       </div>
-
-      <p id="words-management-format" className="mt-3 text-sm text-slate-500">
-        Colonnes attendues : <span className="font-mono">Mot, EchelonDB, Nature, Categorie, Classe, Niveau</span>
-      </p>
 
       <form id="words-management-search-form" className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={handleSearchWords}>
         <div>
@@ -408,8 +411,9 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
             id="words-management-search-button"
             type="submit"
             disabled={loadingSearch || loadingImport || deletingAllWords}
-            className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
           >
+            <SearchIcon />
             {loadingSearch ? "Recherche..." : "Rechercher"}
           </button>
         </div>
@@ -418,9 +422,8 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
       {showMessage && message && (
         <div
           id="words-management-message"
-          className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-            fadeMessage ? "opacity-0" : "opacity-100"
-          }`}
+          className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeMessage ? "opacity-0" : "opacity-100"
+            }`}
         >
           {message}
         </div>
@@ -492,11 +495,10 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                   handleSelectWord(item);
                 }
               }}
-              className={`rounded-lg border p-3 cursor-pointer ${
-                String(selectedWordId) === String(item.id)
-                  ? "border-indigo-400 bg-indigo-50"
-                  : "border-slate-200 bg-slate-50"
-              }`}
+              className={`rounded-lg border p-3 cursor-pointer ${String(selectedWordId) === String(item.id)
+                ? "border-indigo-400 bg-indigo-50"
+                : "border-slate-200 bg-slate-50"
+                }`}
             >
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="w-full space-y-2">
@@ -603,8 +605,9 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                         void handleUpdateWord(item);
                       }}
                       disabled={savingWordId === String(item.id) || deletingAllWords || loadingImport}
-                      className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-white hover:bg-amber-700 disabled:opacity-60"
                     >
+                      <EditIcon />
                       {savingWordId === String(item.id) ? "Modification..." : "Modifier"}
                     </button>
 
@@ -615,8 +618,9 @@ const WordsManagementPanel = ({ hideTitle = false }) => {
                         void handleDeleteWord(item);
                       }}
                       disabled={deletingWordId === String(item.id) || deletingAllWords || loadingImport}
-                      className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
                     >
+                      <DeleteIcon />
                       {deletingWordId === String(item.id) ? "Suppression..." : "Supprimer"}
                     </button>
                   </div>

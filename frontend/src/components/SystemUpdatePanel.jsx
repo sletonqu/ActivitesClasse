@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { RefreshIcon } from "./ActionIcons";
 import ConfirmModal from "./ConfirmModal";
 import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
@@ -123,8 +124,9 @@ const SystemUpdatePanel = ({ hideTitle = false }) => {
             type="button"
             onClick={loadSystemInfo}
             disabled={loadingInfo}
-            className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
           >
+            <RefreshIcon />
             {loadingInfo ? "Vérification..." : "Vérifier les mises à jour"}
           </button>
 

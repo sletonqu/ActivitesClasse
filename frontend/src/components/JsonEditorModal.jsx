@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { SaveIcon } from "./ActionIcons";
 
 export const JSON_EDITOR_MODAL_DEFAULT_WIDTH = 900;
 export const JSON_EDITOR_MODAL_DEFAULT_HEIGHT = 700;
@@ -85,8 +86,9 @@ const JsonEditorModal = ({
               id="json-editor-modal-save-button"
               type="button"
               onClick={handleSave}
-              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
             >
+              <SaveIcon />
               Enregistrer
             </button>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ExportIcon, ImportIcon } from "./ActionIcons";
 import { API_URL } from "../config/api";
 
 const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClassSelection = false, hideTitle = false }) => {
@@ -101,16 +102,18 @@ const StudentsImportExportPanel = ({ title, selectedClassId = null, requireClass
         <button
           onClick={handleImport}
           disabled={loadingImport || mustSelectClass}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
         >
+          <ImportIcon />
           {loadingImport ? "Import en cours..." : "Importer CSV"}
         </button>
 
         <button
           onClick={handleExport}
           disabled={loadingExport || mustSelectClass}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
         >
+          <ExportIcon />
           {loadingExport ? "Export en cours..." : "Exporter CSV"}
         </button>
       </div>

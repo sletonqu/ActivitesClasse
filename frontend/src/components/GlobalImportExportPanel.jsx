@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { ExportIcon, ImportIcon } from "./ActionIcons";
 import { API_URL } from "../config/api";
 
 const GlobalImportExportPanel = ({ hideTitle = false }) => {
@@ -93,8 +94,9 @@ const GlobalImportExportPanel = ({ hideTitle = false }) => {
           type="button"
           onClick={handleFilePick}
           disabled={loadingImport}
-          className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
         >
+          <ImportIcon />
           {loadingImport ? "Import en cours..." : "Importer CSV"}
         </button>
 
@@ -102,8 +104,9 @@ const GlobalImportExportPanel = ({ hideTitle = false }) => {
           type="button"
           onClick={handleExport}
           disabled={loadingExport}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
         >
+          <ExportIcon />
           {loadingExport ? "Export en cours..." : "Exporter CSV"}
         </button>
       </div>

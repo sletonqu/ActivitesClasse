@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { AddIcon, DeleteAllIcon, DeleteIcon, RemoveAllIcon, RemoveIcon } from "./ActionIcons";
 import {
   DEFAULT_GROUP_COLOR,
   PRESET_GROUP_COLORS,
@@ -79,8 +80,9 @@ const GroupManagementPanel = ({
             <button
               type="submit"
               disabled={submittingGroup}
-              className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
             >
+              <AddIcon />
               {submittingGroup ? "Ajout en cours..." : "Ajouter"}
             </button>
 
@@ -97,9 +99,8 @@ const GroupManagementPanel = ({
         {showGroupMessage && groupMessage && (
           <div
             id="groups-panel-message"
-            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-              fadeGroupMessage ? "opacity-0" : "opacity-100"
-            }`}
+            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeGroupMessage ? "opacity-0" : "opacity-100"
+              }`}
           >
             {groupMessage}
           </div>
@@ -127,10 +128,12 @@ const GroupManagementPanel = ({
             <button
               type="button"
               onClick={onDeleteAllGroups}
+              title="Supprimer tous les groupes"
               disabled={!selectedClassId || groups.length === 0 || deletingAllGroups}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
-              {deletingAllGroups ? "Suppression..." : "Supprimer Tout"}
+              <DeleteAllIcon />
+              {deletingAllGroups ? "Suppression..." : ""}
             </button>
           </div>
 
@@ -155,11 +158,10 @@ const GroupManagementPanel = ({
                       onSelectGroup(String(group.id));
                     }
                   }}
-                  className={`border rounded-lg p-3 cursor-pointer ${
-                    String(selectedGroupId) === String(group.id)
-                      ? "border-indigo-400 bg-indigo-50"
-                      : "border-slate-200"
-                  }`}
+                  className={`border rounded-lg p-3 cursor-pointer ${String(selectedGroupId) === String(group.id)
+                    ? "border-indigo-400 bg-indigo-50"
+                    : "border-slate-200"
+                    }`}
                 >
                   <div id={`group-row-actions-${group.id}`} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
@@ -183,10 +185,12 @@ const GroupManagementPanel = ({
                           event.stopPropagation();
                           onDeleteGroup(group);
                         }}
+                        title="Supprimer le groupe"
                         disabled={deletingGroupId === String(group.id) || deletingAllGroups}
-                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                       >
-                        {deletingGroupId === String(group.id) ? "Suppression..." : "Supprimer"}
+                        <DeleteIcon />
+                        {deletingGroupId === String(group.id) ? "Suppression..." : ""}
                       </button>
                     )}
                   </div>
@@ -222,8 +226,9 @@ const GroupManagementPanel = ({
               type="button"
               onClick={onRemoveAllStudentsFromGroup}
               disabled={groupStudents.length === 0 || removingAllGroupStudents}
-              className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-sm hover:bg-amber-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-amber-600 text-white rounded-sm hover:bg-amber-700 disabled:opacity-60"
             >
+              <RemoveAllIcon />
               {removingAllGroupStudents ? "Retrait..." : "Retirer Tout"}
             </button>
           </div>
@@ -270,11 +275,10 @@ const GroupManagementPanel = ({
                         type="button"
                         title={preset.name}
                         onClick={() => setPendingColor(preset.value)}
-                        className={`h-7 w-7 rounded-full border-2 transition-transform flex items-center justify-center cursor-pointer ${
-                          isSelected
-                            ? "ring-2 ring-indigo-500 ring-offset-1 border-white scale-110 shadow-sm"
-                            : "border-black/10 hover:scale-105"
-                        }`}
+                        className={`h-7 w-7 rounded-full border-2 transition-transform flex items-center justify-center cursor-pointer ${isSelected
+                          ? "ring-2 ring-indigo-500 ring-offset-1 border-white scale-110 shadow-sm"
+                          : "border-black/10 hover:scale-105"
+                          }`}
                         style={{ backgroundColor: preset.value }}
                       >
                         {isSelected && (
@@ -350,8 +354,9 @@ const GroupManagementPanel = ({
             <button
               type="submit"
               disabled={!selectedAvailableStudentId || assigningStudentToGroup}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-60"
             >
+              <AddIcon />
               {assigningStudentToGroup ? "Ajout..." : "Ajouter au groupe"}
             </button>
           </form>
@@ -374,8 +379,9 @@ const GroupManagementPanel = ({
                       type="button"
                       onClick={() => onRemoveStudentFromGroup(student)}
                       disabled={removingGroupStudentId === String(student.id) || removingAllGroupStudents}
-                      className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                     >
+                      <RemoveIcon />
                       {removingGroupStudentId === String(student.id) ? "Retrait..." : "Retirer"}
                     </button>
                   </div>

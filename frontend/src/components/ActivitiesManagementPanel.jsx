@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AddIcon, DeleteAllIcon, DeleteIcon, EditIcon } from "./ActionIcons";
 import { ACTIVITY_FILES } from "../utils/activityManagement";
 import JsonEditorModal from "./JsonEditorModal";
 
@@ -109,9 +110,10 @@ const ActivitiesManagementPanel = ({
               <button
                 type="submit"
                 disabled={submittingActivity}
-                className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
                 form="activities-panel-add-form"
               >
+                <AddIcon />
                 {submittingActivity ? "Ajout en cours..." : "Ajouter"}
               </button>
             )}
@@ -128,123 +130,122 @@ const ActivitiesManagementPanel = ({
 
           {showAddForm && (
             <form id="activities-panel-add-form" onSubmit={onAddActivity} className="space-y-4">
-            <div id="activities-panel-title-field">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
-              <input
-                type="text"
-                value={activityTitle}
-                onChange={(e) => onActivityTitleChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-                placeholder="Ex: Nombres croissants"
-              />
-            </div>
-
-            <div id="activities-panel-description-field">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-              <input
-                type="text"
-                value={activityDescription}
-                onChange={(e) => onActivityDescriptionChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-                placeholder="Description de l'activité"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div id="activities-panel-discipline-field">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Discipline</label>
+              <div id="activities-panel-title-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Titre</label>
                 <input
                   type="text"
-                  value={activityDiscipline}
-                  onChange={(e) => onActivityDisciplineChange(e.target.value)}
+                  value={activityTitle}
+                  onChange={(e) => onActivityTitleChange(e.target.value)}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-                  placeholder="Ex: Mathématiques"
-                  autoComplete="on"
-                  list="disciplines-list"
+                  placeholder="Ex: Nombres croissants"
                 />
               </div>
 
-              <div id="activities-panel-category-field">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Catégorie</label>
+              <div id="activities-panel-description-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
                 <input
                   type="text"
-                  value={activityCategory}
-                  onChange={(e) => onActivityCategoryChange(e.target.value)}
+                  value={activityDescription}
+                  onChange={(e) => onActivityDescriptionChange(e.target.value)}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-                  placeholder="Ex: Calcul"
-                  autoComplete="on"
-                  list="categories-list"
+                  placeholder="Description de l'activité"
                 />
               </div>
-            </div>
 
-            <datalist id="disciplines-list">
-              <option value="Mathématiques" />
-              <option value="Français" />
-              <option value="Questionner le monde" />
-              <option value="Outils" />
-            </datalist>
-
-            <datalist id="categories-list">
-              <option value="Calcul" />
-              <option value="Numération" />
-              <option value="Grandeurs et Mesures" />
-              <option value="Grammaire" />
-              <option value="Lecture" />
-              <option value="TNI" />
-            </datalist>
-
-            <div id="activities-panel-status-field">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
-              <select
-                value={activityStatus}
-                onChange={(e) => onActivityStatusChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-
-            <div id="activities-panel-js-file-field">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
-              <select
-                value={activityJsFile}
-                onChange={(e) => onActivityJsFileChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
-              >
-                {ACTIVITY_FILES.map((file) => (
-                  <option key={file} value={file}>
-                    {file}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div id="activities-panel-content-field">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
-              <button
-                type="button"
-                onClick={() => openJsonEditor(activityContentText, (nextValue) => onActivityContentChange?.(nextValue))}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-xs transition hover:border-sky-400 hover:bg-sky-50"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium">Éditer le JSON</span>
-                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
-                    Ouvrir
-                  </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div id="activities-panel-discipline-field">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Discipline</label>
+                  <input
+                    type="text"
+                    value={activityDiscipline}
+                    onChange={(e) => onActivityDisciplineChange(e.target.value)}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
+                    placeholder="Ex: Mathématiques"
+                    autoComplete="on"
+                    list="disciplines-list"
+                  />
                 </div>
-              </button>
-            </div>
+
+                <div id="activities-panel-category-field">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Catégorie</label>
+                  <input
+                    type="text"
+                    value={activityCategory}
+                    onChange={(e) => onActivityCategoryChange(e.target.value)}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
+                    placeholder="Ex: Calcul"
+                    autoComplete="on"
+                    list="categories-list"
+                  />
+                </div>
+              </div>
+
+              <datalist id="disciplines-list">
+                <option value="Mathématiques" />
+                <option value="Français" />
+                <option value="Questionner le monde" />
+                <option value="Outils" />
+              </datalist>
+
+              <datalist id="categories-list">
+                <option value="Calcul" />
+                <option value="Numération" />
+                <option value="Grandeurs et Mesures" />
+                <option value="Grammaire" />
+                <option value="Lecture" />
+                <option value="TNI" />
+              </datalist>
+
+              <div id="activities-panel-status-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Statut</label>
+                <select
+                  value={activityStatus}
+                  onChange={(e) => onActivityStatusChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div id="activities-panel-js-file-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Fichier JS de l'activité</label>
+                <select
+                  value={activityJsFile}
+                  onChange={(e) => onActivityJsFileChange(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
+                >
+                  {ACTIVITY_FILES.map((file) => (
+                    <option key={file} value={file}>
+                      {file}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div id="activities-panel-content-field">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contenu JSON</label>
+                <button
+                  type="button"
+                  onClick={() => openJsonEditor(activityContentText, (nextValue) => onActivityContentChange?.(nextValue))}
+                  className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-left text-sm text-slate-700 shadow-xs transition hover:border-sky-400 hover:bg-sky-50"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-medium">Éditer le JSON</span>
+                    <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
+                      Ouvrir
+                    </span>
+                  </div>
+                </button>
+              </div>
             </form>
           )}
 
           {showActivityMessage && activityMessage && (
             <div
               id="activities-panel-message"
-              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-                fadeActivityMessage ? "opacity-0" : "opacity-100"
-              }`}
+              className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeActivityMessage ? "opacity-0" : "opacity-100"
+                }`}
             >
               {activityMessage}
             </div>
@@ -264,10 +265,12 @@ const ActivitiesManagementPanel = ({
                 id="activities-panel-delete-all-button"
                 type="button"
                 onClick={onDeleteAllActivities}
+                title="Supprimer toutes les activités"
                 disabled={loadingActivities || activities.length === 0 || deletingAllActivities}
-                className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
               >
-                {deletingAllActivities ? "Suppression..." : "Supprimer Tout"}
+                <DeleteAllIcon />
+                {deletingAllActivities ? "Suppression..." : ""}
               </button>
             )}
           </div>
@@ -291,11 +294,10 @@ const ActivitiesManagementPanel = ({
                       onSelectActivityToEdit(activity);
                     }
                   }}
-                  className={`border rounded-lg p-3 cursor-pointer ${
-                    String(selectedActivityEditId) === String(activity.id)
-                      ? "border-indigo-400 bg-indigo-50"
-                      : "border-slate-200"
-                  }`}
+                  className={`border rounded-lg p-3 cursor-pointer ${String(selectedActivityEditId) === String(activity.id)
+                    ? "border-indigo-400 bg-indigo-50"
+                    : "border-slate-200"
+                    }`}
                 >
                   <div id={`activity-card-actions-${activity.id}`} className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-800">
@@ -315,20 +317,21 @@ const ActivitiesManagementPanel = ({
                           event.stopPropagation();
                           onDeleteActivity(activity);
                         }}
+                        title="Supprimer l'activité"
                         disabled={deletingActivityId === String(activity.id) || deletingAllActivities}
-                        className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                       >
-                        {deletingActivityId === String(activity.id) ? "Suppression..." : "Supprimer"}
+                        <DeleteIcon />
+                        {deletingActivityId === String(activity.id) ? "Suppression..." : ""}
                       </button>
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                        activity.status === "Inactive"
-                          ? "bg-rose-50 text-rose-700 ring-rose-600/20"
-                          : "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
-                      }`}
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${activity.status === "Inactive"
+                        ? "bg-rose-50 text-rose-700 ring-rose-600/20"
+                        : "bg-emerald-50 text-emerald-700 ring-emerald-600/20"
+                        }`}
                     >
                       {activity.status === "Inactive" ? "● Inactive" : "● Active"}
                     </span>
@@ -437,8 +440,9 @@ const ActivitiesManagementPanel = ({
               <button
                 type="submit"
                 disabled={submittingEditActivity}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
               >
+                <EditIcon />
                 {submittingEditActivity ? "Modification..." : "Modifier"}
               </button>
             </div>

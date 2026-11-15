@@ -1,4 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ClearIcon,
+  DeleteAllIcon,
+  DeleteIcon,
+  ExportIcon,
+  ImportIcon,
+  RefreshIcon,
+  ResetIcon,
+  SaveIcon,
+} from "./ActionIcons";
 import ConfirmModal from "./ConfirmModal";
 import useConfirm from "../hooks/useConfirm";
 import { API_URL } from "../config/api";
@@ -554,8 +564,8 @@ const GeneratedSentencesManagementPanel = () => {
 
       <form id="generated-sentences-management-filters" className="space-y-4" onSubmit={handleApplyFilters}>
         {/* Filtres généraux */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
+        <div id="generated-sentences-general-filters" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div id="generated-sentences-level-filter-field">
             <label htmlFor="generated-sentences-level-filter" className="mb-1 block text-sm font-semibold text-slate-700">
               Niveau
             </label>
@@ -573,7 +583,7 @@ const GeneratedSentencesManagementPanel = () => {
             </select>
           </div>
 
-          <div>
+          <div id="generated-sentences-theme-filter-field">
             <label htmlFor="generated-sentences-theme-filter" className="mb-1 block text-sm font-semibold text-slate-700">
               Thème
             </label>
@@ -587,7 +597,7 @@ const GeneratedSentencesManagementPanel = () => {
             />
           </div>
 
-          <div>
+          <div id="generated-sentences-search-filter-field">
             <label htmlFor="generated-sentences-search-filter" className="mb-1 block text-sm font-semibold text-slate-700">
               Recherche texte
             </label>
@@ -601,7 +611,7 @@ const GeneratedSentencesManagementPanel = () => {
             />
           </div>
 
-          <div>
+          <div id="generated-sentences-sort-order-field">
             <label htmlFor="generated-sentences-sort-order" className="mb-1 block text-sm font-semibold text-slate-700">
               Tri
             </label>
@@ -621,9 +631,9 @@ const GeneratedSentencesManagementPanel = () => {
         </div>
 
         {/* Filtres de requêtes activités */}
-        <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <div>
+        <div id="generated-sentences-activity-query-filters" className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
+          <div id="generated-sentences-activity-query-filters-grid" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div id="generated-sentences-tense-filter-field">
               <label htmlFor="generated-sentences-tense-filter" className="mb-1 block text-xs font-semibold text-slate-700">
                 Temps du verbe
               </label>
@@ -641,7 +651,7 @@ const GeneratedSentencesManagementPanel = () => {
               </select>
             </div>
 
-            <div>
+            <div id="generated-sentences-infinitive-filter-field">
               <label htmlFor="generated-sentences-infinitive-filter" className="mb-1 block text-xs font-semibold text-slate-700">
                 Infinitif en
               </label>
@@ -655,7 +665,7 @@ const GeneratedSentencesManagementPanel = () => {
               />
             </div>
 
-            <div>
+            <div id="generated-sentences-endings-filter-field">
               <label htmlFor="generated-sentences-endings-filter" className="mb-1 block text-xs font-semibold text-slate-700">
                 Terminaisons verbe
               </label>
@@ -669,7 +679,7 @@ const GeneratedSentencesManagementPanel = () => {
               />
             </div>
 
-            <div>
+            <div id="generated-sentences-words-filter-field">
               <label htmlFor="generated-sentences-words-filter" className="mb-1 block text-xs font-semibold text-slate-700">
                 Mots / Homophones
               </label>
@@ -683,7 +693,7 @@ const GeneratedSentencesManagementPanel = () => {
               />
             </div>
 
-            <div>
+            <div id="generated-sentences-natures-filter-field">
               <label htmlFor="generated-sentences-natures-filter" className="mb-1 block text-xs font-semibold text-slate-700">
                 Natures requises
               </label>
@@ -700,14 +710,15 @@ const GeneratedSentencesManagementPanel = () => {
         </div>
 
         {/* Boutons d'action */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <div className="flex flex-wrap items-center gap-2">
+        <div id="generated-sentences-filters-actions" className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div id="generated-sentences-filters-primary-actions" className="flex flex-wrap items-center gap-2">
             <button
               id="generated-sentences-apply-filters-button"
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
             >
+              <RefreshIcon />
               {loading ? "Chargement..." : "Actualiser"}
             </button>
 
@@ -716,8 +727,9 @@ const GeneratedSentencesManagementPanel = () => {
               type="button"
               onClick={handleResetFilters}
               disabled={loading}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-60"
             >
+              <ClearIcon />
               Effacer les filtres
             </button>
 
@@ -728,45 +740,49 @@ const GeneratedSentencesManagementPanel = () => {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div id="generated-sentences-filters-secondary-actions" className="flex flex-wrap items-center gap-2">
             <button
               id="generated-sentences-reset-counters-button"
               type="button"
               onClick={handleResetCounters}
+              title="Réinitialiser les compteurs"
               disabled={resettingCounters || deletingAll || loading || total === 0}
-              className="rounded-lg bg-amber-500 px-4 py-2 text-white hover:bg-amber-600 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-white hover:bg-amber-700 disabled:opacity-60"
             >
-              {resettingCounters ? "Réinitialisation..." : "Réinitialiser les compteurs"}
+              <ResetIcon />
             </button>
 
             <button
               id="generated-sentences-import-json-button"
               type="button"
               onClick={handlePickImportJson}
+              title="Importer les phrases au format JSON"
               disabled={loadingImportJson || deletingAll || resettingCounters || loading}
-              className="rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60"
             >
-              {loadingImportJson ? "Import JSON..." : "Importer JSON"}
+              <ImportIcon />
             </button>
 
             <button
               id="generated-sentences-export-json-button"
               type="button"
               onClick={handleExportJson}
+              title="Exporter les phrases au format JSON"
               disabled={loadingExportJson || deletingAll || resettingCounters || loading || total === 0}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
             >
-              {loadingExportJson ? "Export JSON..." : "Exporter JSON"}
+              <ExportIcon />
             </button>
 
             <button
               id="generated-sentences-delete-all-button"
               type="button"
               onClick={handleDeleteAll}
+              title="Supprimer toutes les phrases"
               disabled={deletingAll || resettingCounters || loading || total === 0}
-              className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
             >
-              {deletingAll ? "Suppression..." : "Supprimer Tout"}
+              <DeleteAllIcon />
             </button>
           </div>
         </div>
@@ -826,8 +842,8 @@ const GeneratedSentencesManagementPanel = () => {
                 id={`generated-sentences-item-${sentence.id}`}
                 onClick={() => handleSelectSentence(sentence.id)}
                 className={`cursor-pointer rounded-lg border p-4 transition ${isSelected
-                    ? "border-violet-300 bg-violet-50 shadow-xs"
-                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                  ? "border-violet-300 bg-violet-50 shadow-xs"
+                  : "border-slate-200 bg-slate-50 hover:border-slate-300"
                   }`}
               >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -870,14 +886,15 @@ const GeneratedSentencesManagementPanel = () => {
                           event.stopPropagation();
                           void handleSaveSelectedCorrections();
                         }}
+                        title="Enregistrer les corrections"
                         disabled={
                           loadingSentenceDetails ||
                           savingSentenceId === String(sentence.id) ||
                           deletingSentenceId === String(sentence.id)
                         }
-                        className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
                       >
-                        {savingSentenceId === String(sentence.id) ? "Enregistrement..." : "Enregistrer les corrections"}
+                        <SaveIcon />
                       </button>
 
                       <button
@@ -887,10 +904,11 @@ const GeneratedSentencesManagementPanel = () => {
                           event.stopPropagation();
                           void handleDeleteSelected();
                         }}
+                        title="Supprimer la phrase"
                         disabled={deletingSentenceId === String(sentence.id) || savingSentenceId === String(sentence.id)}
-                        className="rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700 disabled:opacity-60"
                       >
-                        {deletingSentenceId === String(sentence.id) ? "Suppression..." : "Supprimer"}
+                        <DeleteIcon />
                       </button>
                     </div>
                   )}

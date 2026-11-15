@@ -1,4 +1,5 @@
 import React from "react";
+import { AddIcon, DeleteAllIcon, DeleteIcon, EditIcon } from "./ActionIcons";
 
 const ClassesManagementPanel = ({
   className,
@@ -80,8 +81,9 @@ const ClassesManagementPanel = ({
             <button
               type="submit"
               disabled={submittingClass}
-              className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 disabled:opacity-60"
             >
+              <AddIcon />
               {submittingClass ? "Ajout en cours..." : "Ajouter"}
             </button>
 
@@ -98,9 +100,8 @@ const ClassesManagementPanel = ({
         {showClassMessage && classMessage && (
           <div
             id="classes-panel-message"
-            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${
-              fadeClassMessage ? "opacity-0" : "opacity-100"
-            }`}
+            className={`mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800 transition-opacity duration-500 ${fadeClassMessage ? "opacity-0" : "opacity-100"
+              }`}
           >
             {classMessage}
           </div>
@@ -120,10 +121,12 @@ const ClassesManagementPanel = ({
             <button
               type="button"
               onClick={onDeleteAllClasses}
+              title="Supprimer toutes les Classes"
               disabled={classes.length === 0 || deletingAllClasses}
-              className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
             >
-              {deletingAllClasses ? "Suppression..." : "Supprimer Tout"}
+              <DeleteAllIcon />
+              {deletingAllClasses ? "Suppression..." : ""}
             </button>
           </div>
 
@@ -150,11 +153,10 @@ const ClassesManagementPanel = ({
                         onSelectClass(cls);
                       }
                     }}
-                    className={`border rounded-lg p-3 cursor-pointer ${
-                      String(selectedClassId) === String(cls.id)
-                        ? "border-indigo-400 bg-indigo-50"
-                        : "border-slate-200"
-                    }`}
+                    className={`border rounded-lg p-3 cursor-pointer ${String(selectedClassId) === String(cls.id)
+                      ? "border-indigo-400 bg-indigo-50"
+                      : "border-slate-200"
+                      }`}
                   >
                     <div id={`class-row-actions-${cls.id}`} className="flex items-center justify-between gap-3">
                       <div>
@@ -168,10 +170,12 @@ const ClassesManagementPanel = ({
                             event.stopPropagation();
                             onDeleteClass(cls);
                           }}
+                          title="Supprimer la Classe"
                           disabled={deletingClassId === String(cls.id) || deletingAllClasses}
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
                         >
-                          {deletingClassId === String(cls.id) ? "Suppression..." : "Supprimer"}
+                          <DeleteIcon />
+                          {deletingClassId === String(cls.id) ? "Suppression..." : ""}
                         </button>
                       )}
                     </div>
@@ -219,8 +223,9 @@ const ClassesManagementPanel = ({
               <button
                 type="submit"
                 disabled={deletingAllClasses}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-60"
               >
+                <EditIcon />
                 Modifier
               </button>
             </div>
