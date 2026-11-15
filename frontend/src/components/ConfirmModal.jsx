@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 
 const ConfirmModal = ({
   isOpen,
@@ -12,9 +13,13 @@ const ConfirmModal = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-1000 flex items-center justify-center bg-slate-950/70 px-4 py-4 backdrop-blur-xs">
+  const modalContent = (
+    <div
+      id="confirm-modal-backdrop"
+      className="fixed inset-0 z-1000 flex items-center justify-center bg-slate-950/70 px-4 py-4 backdrop-blur-xs"
+    >
       <div
+        id="confirm-modal-dialog"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -22,16 +27,17 @@ const ConfirmModal = ({
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+            <h3 id="confirm-modal-title" className="text-lg font-semibold text-slate-800">{title}</h3>
           </div>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col px-4 py-6">
-          <p className="text-slate-600">{message}</p>
+          <p id="confirm-modal-message" className="text-slate-600">{message}</p>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-4 py-3">
           <button
+            id="confirm-modal-cancel-button"
             type="button"
             onClick={onCancel}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
@@ -39,6 +45,7 @@ const ConfirmModal = ({
             {cancelText}
           </button>
           <button
+            id="confirm-modal-confirm-button"
             type="button"
             onClick={onConfirm}
             className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
@@ -53,6 +60,12 @@ const ConfirmModal = ({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined" && document.body) {
+    return createPortal(modalContent, document.body);
+  }
+
+  return modalContent;
 };
 
 export default ConfirmModal;
