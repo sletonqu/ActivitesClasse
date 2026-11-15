@@ -1078,6 +1078,7 @@ const AdminView = () => {
             activities={activities}
             onActivitiesUpdated={refreshActivities}
             hideTitle
+            isAdmin
           />
         </CollapsibleSection>
 

@@ -34,11 +34,13 @@ const VocabularyCreatorPanel = ({
   activities = [],
   onActivitiesUpdated,
   hideTitle = false,
+  isAdmin = false,
+  initialSequences = null,
 }) => {
   const [providers, setProviders] = useState(DEFAULT_PROVIDERS);
   const [selectedProvider, setSelectedProvider] = useState("gemini");
 
-  const [sequences, setSequences] = useState([]);
+  const [sequences, setSequences] = useState(initialSequences || []);
   const [loadingSequences, setLoadingSequences] = useState(false);
 
   const [editingSequenceId, setEditingSequenceId] = useState(null);
@@ -103,8 +105,10 @@ const VocabularyCreatorPanel = ({
 
   useEffect(() => {
     void loadProviders();
-    void loadSequences();
-  }, [loadProviders, loadSequences]);
+    if (!initialSequences) {
+      void loadSequences();
+    }
+  }, [loadProviders, loadSequences, initialSequences]);
 
   const handleGenerateWithAi = async () => {
     const parsedWords = String(wordsInputText || "")
@@ -546,16 +550,18 @@ const VocabularyCreatorPanel = ({
                 Nouvelle séquence
               </button>
             )}
-            <button
-              id="vocabulary-creator-create-global-activity-button"
-              type="button"
-              disabled={creatingActivity}
-              onClick={() => handleCreateClassActivity(null)}
-              title={`Crée dans la bibliothèque d'activités une activité globale « Vocabulaire ${level} » (menu Français de l'Espace Élève) qui pioche automatiquement dans toutes vos séquences actives du niveau ${level} (révisions dues + nouveaux mots à découvrir).`}
-              className="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
-            >
-              {creatingActivity ? "Création..." : `🎯 Créer l'activité Vocabulaire ${level}`}
-            </button>
+            {isAdmin && (
+              <button
+                id="vocabulary-creator-create-global-activity-button"
+                type="button"
+                disabled={creatingActivity}
+                onClick={() => handleCreateClassActivity(null)}
+                title={`Crée dans la bibliothèque d'activités une activité globale « Vocabulaire ${level} » (menu Français de l'Espace Élève) qui pioche automatiquement dans toutes vos séquences actives du niveau ${level} (révisions dues + nouveaux mots à découvrir).`}
+                className="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+              >
+                {creatingActivity ? "Création..." : `🎯 Créer l'activité Vocabulaire ${level}`}
+              </button>
+            )}
           </div>
         </div>
 
@@ -924,15 +930,17 @@ const VocabularyCreatorPanel = ({
                     >
                       📝 Évaluation
                     </button>
-                    <button
-                      id={`vocabulary-sequence-activity-button-${seq.id}`}
-                      type="button"
-                      onClick={() => handleCreateClassActivity(seq)}
-                      title={`Crée dans la bibliothèque d'activités une activité ciblée uniquement sur les mots de la séquence « ${seq.title} ».`}
-                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
-                    >
-                      🎯 Créer activité
-                    </button>
+                    {isAdmin && (
+                      <button
+                        id={`vocabulary-sequence-activity-button-${seq.id}`}
+                        type="button"
+                        onClick={() => handleCreateClassActivity(seq)}
+                        title={`Crée dans la bibliothèque d'activités une activité ciblée uniquement sur les mots de la séquence « ${seq.title} ».`}
+                        className="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                      >
+                        🎯 Créer activité
+                      </button>
+                    )}
                     <button
                       id={`vocabulary-sequence-edit-button-${seq.id}`}
                       type="button"

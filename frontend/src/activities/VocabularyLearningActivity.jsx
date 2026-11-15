@@ -1044,10 +1044,14 @@ const VocabularyLearningActivity = ({
       ) : !finished && currentWord ? (
         <div
           id="vocabulary-learning-workspace"
-          className="rounded-2xl border-2 border-indigo-100 bg-white p-4 sm:p-6 shadow-xs space-y-5"
+          className="rounded-2xl border-2 border-indigo-100 bg-white p-4 sm:p-2 shadow-xs space-y-5"
         >
           {/* En-tête de la carte du mot */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div
+            id="vocabulary-learning-workspace-header"
+            className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-1 !mbe-0 !mb-0"
+            style={{ marginBlockEnd: 0 }}
+          >
             <div className="flex flex-wrap items-center gap-2">
               <span
                 id="vocabulary-word-counter"
@@ -1127,15 +1131,6 @@ const VocabularyLearningActivity = ({
               >
                 « {currentWord.definition} »
               </div>
-
-              <button
-                id="vocabulary-discovery-understand-button"
-                type="button"
-                onClick={handleValidate}
-                className="rounded-xl bg-emerald-600 px-6 py-3 text-sm sm:text-base font-extrabold text-white shadow-sm hover:bg-emerald-700"
-              >
-                👍 J'ai compris, je teste dans 2 phrases !
-              </button>
             </div>
           )}
 
