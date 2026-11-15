@@ -237,7 +237,7 @@ const GroupManagementPanel = ({
           <div id="groups-panel-color-section" className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-700">Couleur :</span>
+                <span className="text-xs font-semibold text-slate-700">Couleur</span>
                 <span
                   id="groups-panel-current-color-dot"
                   className="w-4 h-4 rounded-full border border-black/20 shadow-xs shrink-0"
