@@ -66,7 +66,6 @@ const TeacherView = () => {
   const [selectedResultId, setSelectedResultId] = useState("");
   const [deletingResultId, setDeletingResultId] = useState("");
   const [deletingAllResults, setDeletingAllResults] = useState(false);
-  const [calculatingAverageResultId, setCalculatingAverageResultId] = useState("");
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [selectedResultGroupId, setSelectedResultGroupId] = useState("");
   const [selectedResultActivityId, setSelectedResultActivityId] = useState("");
@@ -825,11 +824,6 @@ const TeacherView = () => {
     return null;
   };
 
-  const activityUsesLevels = (activityId) => {
-    const content = parseActivityContentObject(activityId);
-    return Boolean(content?.levels && typeof content.levels === "object");
-  };
-
   const getResultLevelLabel = (result) => {
     if (!result) return "";
     if (result.activity_level_label && String(result.activity_level_label).trim()) {
@@ -843,33 +837,6 @@ const TeacherView = () => {
     return content?.levels?.[levelKey]?.label || levelKey;
   };
 
-  const getNormalizedResultLevelKey = (result) => {
-    if (!result) return "";
-
-    const levelKey = String(result.activity_level || "").trim();
-    if (levelKey) {
-      return levelKey;
-    }
-
-    return String(result.activity_level_label || "").trim();
-  };
-
-  const getResultGroupingKey = (result) => {
-    if (!result) return "";
-
-    const baseKey = `activity:${String(result.activity_id)}`;
-    const levelKey = getNormalizedResultLevelKey(result);
-
-    if (levelKey) {
-      return `${baseKey}::level:${levelKey}`;
-    }
-
-    if (!activityUsesLevels(result.activity_id)) {
-      return baseKey;
-    }
-
-    return `${baseKey}::level:__no-level__`;
-  };
   const handleSelectActivityToEdit = (activity) => {
     setSelectedActivityEditId(String(activity.id));
     setEditActivityTitle(activity.title || "");
@@ -929,64 +896,6 @@ const TeacherView = () => {
       setEditActivityError(err.message || "Erreur inconnue");
     } finally {
       setSubmittingEditActivity(false);
-    }
-  };
-
-  const handleCalculateAverage = async (selectedResult) => {
-    setCalculatingAverageResultId(String(selectedResult.id));
-    setResultsError("");
-
-    try {
-      const selectedGroupingKey = getResultGroupingKey(selectedResult);
-      const sameLevelResults = studentResults.filter(
-        (result) => getResultGroupingKey(result) === selectedGroupingKey
-      );
-
-      if (sameLevelResults.length === 0) {
-        throw new Error("Aucun résultat de la même activité et du même niveau trouvé");
-      }
-
-      const totalScore = sameLevelResults.reduce((sum, result) => {
-        const numericScore = Number(result.score);
-        return sum + (Number.isNaN(numericScore) ? 0 : numericScore);
-      }, 0);
-      const averageScore = Math.round((totalScore / sameLevelResults.length) * 100) / 100;
-
-      await Promise.all(
-        sameLevelResults.map(async (result) => {
-          const res = await fetch(`${API_URL}/results/${result.id}`, {
-            method: "DELETE",
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || "Erreur lors de la suppression des résultats du même niveau");
-          }
-        })
-      );
-
-      const createRes = await fetch(`${API_URL}/results`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          student_id: Number(selectedResultStudentId),
-          activity_id: Number(selectedResult.activity_id),
-          score: averageScore,
-          activity_level: selectedResult.activity_level || null,
-          activity_level_label: getResultLevelLabel(selectedResult) || null,
-          completed_at: new Date().toISOString(),
-        }),
-      });
-      const createData = await createRes.json();
-      if (!createRes.ok) {
-        throw new Error(createData.error || "Erreur lors de la création du résultat moyen");
-      }
-
-      await loadResultsForStudent(selectedResultStudentId);
-      setSelectedResultId("");
-    } catch (err) {
-      setResultsError(err.message || "Erreur inconnue");
-    } finally {
-      setCalculatingAverageResultId("");
     }
   };
 
@@ -1178,12 +1087,10 @@ const TeacherView = () => {
             resultsError={resultsError}
             deletingAllResults={deletingAllResults}
             deletingResultId={deletingResultId}
-            calculatingAverageResultId={calculatingAverageResultId}
             onSelectResultStudent={setSelectedResultStudentId}
             onSelectResultGroupId={setSelectedResultGroupId}
             onSelectResultActivityId={setSelectedResultActivityId}
             onSelectResult={setSelectedResultId}
-            onCalculateAverage={handleCalculateAverage}
             onDeleteResult={handleDeleteResult}
             onDeleteAllResults={handleDeleteAllResults}
             getActivityLabel={getActivityLabel}

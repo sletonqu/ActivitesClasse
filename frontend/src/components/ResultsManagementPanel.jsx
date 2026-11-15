@@ -15,12 +15,10 @@ const ResultsManagementPanel = ({
   resultsError,
   deletingAllResults,
   deletingResultId,
-  calculatingAverageResultId,
   onSelectResultStudent,
   onSelectResultGroupId,
   onSelectResultActivityId,
   onSelectResult,
-  onCalculateAverage,
   onDeleteResult,
   onDeleteAllResults,
   getActivityLabel,
@@ -103,7 +101,7 @@ const ResultsManagementPanel = ({
                 ))}
               </select>
             </div>
-            
+
             {(selectedResultGroupId || selectedResultActivityId) && (
               <button
                 onClick={() => {
@@ -134,8 +132,8 @@ const ResultsManagementPanel = ({
           </div>
         ) : filteredResults.length === 0 ? (
           <p className="text-slate-500 text-sm">
-            {selectedResultActivityId 
-              ? "Aucun résultat pour cette activité." 
+            {selectedResultActivityId
+              ? "Aucun résultat pour cette activité."
               : "Aucun résultat enregistré pour cet élève."}
           </p>
         ) : (
@@ -161,49 +159,27 @@ const ResultsManagementPanel = ({
                   onMouseEnter={() => onSelectResult(String(result.id))}
                   onFocus={() => onSelectResult(String(result.id))}
                   tabIndex={0}
-                  className={`border rounded-lg p-3 cursor-default transition-colors ${
-                    String(selectedResultId) === String(result.id)
+                  className={`border rounded-lg p-3 cursor-default transition-colors ${String(selectedResultId) === String(result.id)
                       ? "border-indigo-400 bg-indigo-50"
                       : "border-slate-200"
-                  }`}
+                    }`}
                 >
                   <div id={`result-row-actions-${result.id}`} className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-800">{getActivityLabel(result.activity_id)}</p>
                     {String(selectedResultId) === String(result.id) && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onCalculateAverage(result);
-                          }}
-                          disabled={
-                            calculatingAverageResultId === String(result.id) ||
-                            deletingResultId === String(result.id) ||
-                            deletingAllResults
-                          }
-                          className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-sm hover:bg-amber-700 disabled:opacity-60"
-                        >
-                          {calculatingAverageResultId === String(result.id)
-                            ? "Calcul..."
-                            : "Calculer Moyenne"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDeleteResult(result.id);
-                          }}
-                          disabled={
-                            deletingResultId === String(result.id) ||
-                            deletingAllResults ||
-                            calculatingAverageResultId === String(result.id)
-                          }
-                          className="px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
-                        >
-                          {deletingResultId === String(result.id) ? "Suppression..." : "Supprimer"}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeleteResult(result.id);
+                        }}
+                        title="Supprimer le résultat"
+                        disabled={deletingResultId === String(result.id) || deletingAllResults}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-sm hover:bg-rose-700 disabled:opacity-60"
+                      >
+                        <DeleteIcon />
+                        {deletingResultId === String(result.id) ? "Suppression..." : ""}
+                      </button>
                     )}
                   </div>
                   {getResultLevelLabel?.(result) && (
