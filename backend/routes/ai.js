@@ -43,19 +43,19 @@ function runAsync(sql, params = []) {
 }
 
 const PROVIDERS = {
+  gemini: {
+    id: "gemini",
+    label: "Gemini",
+    apiKeyEnv: "GEMINI_API_KEY",
+    modelEnv: "GEMINI_MODEL",
+    defaultModel: "gemini-3.5-flash-lite",
+  },
   openai: {
     id: "openai",
     label: "ChatGPT / OpenAI",
     apiKeyEnv: "OPENAI_API_KEY",
     modelEnv: "OPENAI_MODEL",
     defaultModel: "gpt-4.1-mini",
-  },
-  gemini: {
-    id: "gemini",
-    label: "Gemini",
-    apiKeyEnv: "GEMINI_API_KEY",
-    modelEnv: "GEMINI_MODEL",
-    defaultModel: "gemini-2.0-flash",
   },
   mistral: {
     id: "mistral",

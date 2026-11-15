@@ -4,8 +4,8 @@ import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 
 const DEFAULT_PROVIDER_OPTIONS = [
-  { id: "openai", label: "ChatGPT / OpenAI", configured: false, model: "gpt-4.1-mini" },
   { id: "gemini", label: "Gemini", configured: false, model: "gemini-2.0-flash" },
+  { id: "openai", label: "ChatGPT / OpenAI", configured: false, model: "gpt-4.1-mini" },
   { id: "mistral", label: "MistralAI", configured: false, model: "mistral-small-latest" },
 ];
 
@@ -97,7 +97,7 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
   const [providers, setProviders] = useState(DEFAULT_PROVIDER_OPTIONS);
   const [loadingProviders, setLoadingProviders] = useState(false);
   const [loadingGeneration, setLoadingGeneration] = useState(false);
-  const [provider, setProvider] = useState("openai");
+  const [provider, setProvider] = useState("gemini");
   const [schoolLevel, setSchoolLevel] = useState("CE1");
   const [theme, setTheme] = useState("animaux");
   const [maxWords, setMaxWords] = useState(15);
@@ -145,9 +145,15 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
           throw new Error(data.error || "Erreur lors du chargement des fournisseurs IA");
         }
 
-        const nextProviders = Array.isArray(data.providers) && data.providers.length > 0
+        const rawProviders = Array.isArray(data.providers) && data.providers.length > 0
           ? data.providers
           : DEFAULT_PROVIDER_OPTIONS;
+
+        const nextProviders = [...rawProviders].sort((a, b) => {
+          if (a.id === "gemini") return -1;
+          if (b.id === "gemini") return 1;
+          return 0;
+        });
 
         setProviders(nextProviders);
       } catch (err) {
@@ -168,7 +174,8 @@ const AISentenceGeneratorPanel = ({ onSentenceGenerated = null, onUseAsActivityT
 
     const selectedProviderStillAvailable = configuredProviders.some((item) => item.id === provider);
     if (!selectedProviderStillAvailable) {
-      setProvider(configuredProviders[0].id);
+      const geminiConfigured = configuredProviders.find((item) => item.id === "gemini");
+      setProvider(geminiConfigured ? "gemini" : configuredProviders[0].id);
     }
   }, [configuredProviders, provider]);
 
