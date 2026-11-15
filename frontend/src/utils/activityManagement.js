@@ -20,9 +20,11 @@ import { defaultBaseTenBlocksActivityContent } from "../activities/BaseTenBlocks
 import { defaultVerbConjugationActivityContent } from "../activities/VerbConjugationActivity";
 import { defaultWriteFractionsActivityContent } from "../activities/WriteFractionsActivity";
 import { defaultFindVerbAndInfinitiveActivityContent } from "../activities/FindVerbAndInfinitiveActivity";
+import { defaultVocabularyLearningActivityContent } from "../activities/VocabularyLearningActivity";
 
 
 export const ACTIVITY_FILES = [
+  "src/activities/VocabularyLearningActivity.js",
   "src/activities/FindVerbAndInfinitiveActivity.js",
   "src/activities/WriteFractionsActivity.js",
   "src/activities/BaseTenBlocksActivity.js",
@@ -48,6 +50,7 @@ export const ACTIVITY_FILES = [
 ];
 
 const DEFAULT_ACTIVITY_CONTENT_BY_FILE = {
+  "src/activities/VocabularyLearningActivity.js": defaultVocabularyLearningActivityContent,
   "src/activities/FindVerbAndInfinitiveActivity.js": defaultFindVerbAndInfinitiveActivityContent,
   "src/activities/WriteFractionsActivity.js": defaultWriteFractionsActivityContent,
   "src/activities/BaseTenBlocksActivity.js": defaultBaseTenBlocksActivityContent,

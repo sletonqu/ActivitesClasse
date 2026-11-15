@@ -4,11 +4,29 @@ const path = require('path');
 const fs = require('fs');
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'database.sqlite');
+
+// Si on utilise une base de développement dédiée à la branche (ex: database-dev-vocab.sqlite)
+// et qu'elle n'existe pas encore, on la clone une seule fois depuis database.sqlite (main)
+// afin de conserver la base main intacte tout en ayant les données existantes.
+try {
+  const baseFileName = path.basename(dbPath);
+  if (baseFileName !== 'database.sqlite' && !fs.existsSync(dbPath)) {
+    const mainDbPath = path.join(path.dirname(dbPath), 'database.sqlite');
+    if (fs.existsSync(mainDbPath)) {
+      fs.copyFileSync(mainDbPath, dbPath);
+      console.log(`Base de développement initialisée par copie de ${mainDbPath} vers ${dbPath}`);
+    }
+  }
+} catch (copyErr) {
+  console.warn('Impossible de cloner database.sqlite vers la base de dev:', copyErr.message);
+}
+
 const db = new SqliteDatabase(dbPath, (err) => {
   if (err) {
     console.error('Erreur de connexion à SQLite:', err.message);
   } else {
     console.log('Connecté à SQLite');
+    db.run('PRAGMA foreign_keys = ON');
     // Initialiser les tables au démarrage
     initializeTables();
   }
@@ -34,6 +52,7 @@ function initializeTables() {
     ensureGroupsSchema();
     ensureActivitiesSchema();
     ensureGeneratedSentencesSchema();
+    ensureVocabularySchema();
   });
 }
 
@@ -150,15 +169,100 @@ function ensureGeneratedSentencesSchema() {
         model TEXT,
         payload TEXT NOT NULL,
         compteur INTEGER DEFAULT 0,
+        type TEXT DEFAULT 'grammaire',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    db.all('PRAGMA table_info(generated_sentences)', [], (err, columns) => {
+      if (err) {
+        console.error('Erreur lors de la vérification du schéma generated_sentences:', err.message);
+        return;
+      }
+
+      const hasType = Array.isArray(columns) && columns.some((column) => column.name === 'type');
+      if (!hasType) {
+        db.run("ALTER TABLE generated_sentences ADD COLUMN type TEXT DEFAULT 'grammaire'", (alterErr) => {
+          if (alterErr && !String(alterErr.message).toLowerCase().includes('duplicate column')) {
+            console.error('Erreur lors de la migration type sur generated_sentences:', alterErr.message);
+          }
+        });
+      }
+    });
 
     db.run(
       'CREATE INDEX IF NOT EXISTS idx_generated_sentences_lookup ON generated_sentences(level, theme, compteur, id)'
     );
     db.run(
       'CREATE INDEX IF NOT EXISTS idx_generated_sentences_compteur ON generated_sentences(compteur, id)'
+    );
+  });
+}
+
+function ensureVocabularySchema() {
+  db.serialize(() => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS vocabulary_sequences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        theme TEXT DEFAULT '',
+        level TEXT NOT NULL DEFAULT 'CE1',
+        position INTEGER NOT NULL DEFAULT 1,
+        status TEXT NOT NULL DEFAULT 'draft',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    db.run(
+      'CREATE INDEX IF NOT EXISTS idx_vocabulary_sequences_level_pos ON vocabulary_sequences(level, status, position, id)'
+    );
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS vocabulary_words (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sequence_id INTEGER NOT NULL,
+        word TEXT NOT NULL,
+        nature TEXT DEFAULT '',
+        definition TEXT NOT NULL DEFAULT '',
+        sentence1_cloze TEXT NOT NULL DEFAULT '',
+        sentence1_id INTEGER,
+        sentence2_cloze TEXT NOT NULL DEFAULT '',
+        sentence2_id INTEGER,
+        distractors TEXT NOT NULL DEFAULT '[]',
+        image_url TEXT DEFAULT '',
+        image_prompt TEXT DEFAULT '',
+        position INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY (sequence_id) REFERENCES vocabulary_sequences(id) ON DELETE CASCADE,
+        FOREIGN KEY (sentence1_id) REFERENCES generated_sentences(id) ON DELETE SET NULL,
+        FOREIGN KEY (sentence2_id) REFERENCES generated_sentences(id) ON DELETE SET NULL
+      )
+    `);
+
+    db.run(
+      'CREATE INDEX IF NOT EXISTS idx_vocabulary_words_sequence ON vocabulary_words(sequence_id, position, id)'
+    );
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS vocabulary_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER NOT NULL,
+        word_id INTEGER NOT NULL,
+        sequence_id INTEGER NOT NULL,
+        stage TEXT NOT NULL DEFAULT 'learning',
+        tier_index INTEGER NOT NULL DEFAULT 0,
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        next_review_date TEXT,
+        consecutive_successes INTEGER NOT NULL DEFAULT 0,
+        last_reviewed_at TEXT,
+        UNIQUE(student_id, word_id),
+        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+        FOREIGN KEY (word_id) REFERENCES vocabulary_words(id) ON DELETE CASCADE,
+        FOREIGN KEY (sequence_id) REFERENCES vocabulary_sequences(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.run(
+      'CREATE INDEX IF NOT EXISTS idx_vocabulary_progress_student ON vocabulary_progress(student_id, stage, next_review_date)'
     );
   });
 }
@@ -300,6 +404,8 @@ function createTables() {
 
     ensureGroupsSchema();
     ensureActivitiesSchema();
+    ensureGeneratedSentencesSchema();
+    ensureVocabularySchema();
   });
 }
 

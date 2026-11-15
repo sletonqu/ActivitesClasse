@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS generated_sentences (
   model TEXT,
   payload TEXT NOT NULL,
   compteur INTEGER DEFAULT 0,
+  type TEXT DEFAULT 'grammaire',
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -79,6 +80,61 @@ ON generated_sentences(level, theme, compteur, id);
 
 CREATE INDEX IF NOT EXISTS idx_generated_sentences_compteur
 ON generated_sentences(compteur, id);
+
+CREATE TABLE IF NOT EXISTS vocabulary_sequences (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  theme TEXT DEFAULT '',
+  level TEXT NOT NULL DEFAULT 'CE1',
+  position INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_vocabulary_sequences_level_pos
+ON vocabulary_sequences(level, status, position, id);
+
+CREATE TABLE IF NOT EXISTS vocabulary_words (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sequence_id INTEGER NOT NULL,
+  word TEXT NOT NULL,
+  nature TEXT DEFAULT '',
+  definition TEXT NOT NULL DEFAULT '',
+  sentence1_cloze TEXT NOT NULL DEFAULT '',
+  sentence1_id INTEGER,
+  sentence2_cloze TEXT NOT NULL DEFAULT '',
+  sentence2_id INTEGER,
+  distractors TEXT NOT NULL DEFAULT '[]',
+  image_url TEXT DEFAULT '',
+  image_prompt TEXT DEFAULT '',
+  position INTEGER NOT NULL DEFAULT 1,
+  FOREIGN KEY (sequence_id) REFERENCES vocabulary_sequences(id) ON DELETE CASCADE,
+  FOREIGN KEY (sentence1_id) REFERENCES generated_sentences(id) ON DELETE SET NULL,
+  FOREIGN KEY (sentence2_id) REFERENCES generated_sentences(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_vocabulary_words_sequence
+ON vocabulary_words(sequence_id, position, id);
+
+CREATE TABLE IF NOT EXISTS vocabulary_progress (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id INTEGER NOT NULL,
+  word_id INTEGER NOT NULL,
+  sequence_id INTEGER NOT NULL,
+  stage TEXT NOT NULL DEFAULT 'learning',
+  tier_index INTEGER NOT NULL DEFAULT 0,
+  interval_days INTEGER NOT NULL DEFAULT 1,
+  next_review_date TEXT,
+  consecutive_successes INTEGER NOT NULL DEFAULT 0,
+  last_reviewed_at TEXT,
+  UNIQUE(student_id, word_id),
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (word_id) REFERENCES vocabulary_words(id) ON DELETE CASCADE,
+  FOREIGN KEY (sequence_id) REFERENCES vocabulary_sequences(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_vocabulary_progress_student
+ON vocabulary_progress(student_id, stage, next_review_date);
 
 CREATE TABLE IF NOT EXISTS results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

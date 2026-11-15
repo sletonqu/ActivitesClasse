@@ -330,6 +330,7 @@ Documentation détaillée : [README des activités](./frontend/src/activities/RE
 | Code Junior | `frontend/src/activities/CodeJuniorActivity.jsx` | Découvrir la programmation au moyen d'un jeu interactif et suivre sa progression. |
 | Terminaisons des verbes en `-er` | `frontend/src/activities/VerbEndingCompletionActivity.jsx` | Compléter des phrases en choisissant la terminaison correcte des verbes en `-er`. |
 | Trouver le verbe et son infinitif | `frontend/src/activities/FindVerbAndInfinitiveActivity.jsx` | Identifier le ou les verbes dans des phrases et écrire leur forme à l'infinitif. |
+| Apprentissage du vocabulaire | `frontend/src/activities/VocabularyLearningActivity.jsx` | Découvrir des mots nouveaux illustrés en contexte et les mémoriser à long terme par répétition espacée (CE1/CE2). |
 | Tri de nombres pairs ou impairs | `frontend/src/activities/EvenOddClassificationActivity.jsx` | Classer des nombres dans la catégorie « pair » ou « impair ». |
 | Homophones | `frontend/src/activities/HomophonesActivity.jsx` | Choisir le bon homophone pour compléter une phrase. |
 | Droite graduée | `frontend/src/activities/NumberLineActivity.jsx` | Trouver les nombres manquants sur une droite graduée à partir des repères affichés. |

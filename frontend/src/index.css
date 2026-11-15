@@ -321,27 +321,36 @@ h1 {
   }
 
   #activity-container,
-  #activity-container * {
+  #activity-container *,
+  #vocabulary-evaluation-view,
+  #vocabulary-evaluation-view * {
     visibility: visible;
   }
 
-  #activity-container {
+  #activity-container,
+  #vocabulary-evaluation-view {
     position: absolute;
     left: 0;
     top: 0;
     width: 190mm;
     max-width: 190mm;
-    min-height: 277mm;
     margin: 0;
     padding: 6mm;
     border-radius: 0;
     box-shadow: none;
     background: #fff;
+  }
+
+  #activity-container {
+    min-height: 277mm;
     overflow: hidden;
   }
 
-  #activity-print-button {
-    display: none;
+  #activity-print-button,
+  #vocabulary-evaluation-toolbar,
+  #vocabulary-evaluation-toolbar * {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   #count-pencils-by-tens-activity,

@@ -1390,4 +1390,60 @@ Activité interactive de grammaire permettant d'identifier le ou les verbes conj
 - **Résumé et rappels d'accents** : En fin d'activité, affichage du score sur 20, des statistiques, de la liste des erreurs éventuelles et d'un bloc récapitulatif bienveillant rappelant l'orthographe exacte des infinitifs où un accent manquait.
 - **Mode Démo (`student = null`)** : Aucun résultat envoyé au backend, bouton « Recommencer » disponible à tout moment.
 
+---
+
+### 27. `VocabularyLearningActivity.jsx`
+
+**Discipline** : Français  
+**Catégorie** : Lexique / Vocabulaire (avec répétition espacée et génération IA)  
+**But** : découvrir des mots nouveaux illustrés et définis simplement, les employer dans 2 phrases en contexte, puis les ancrer à long terme grâce à un algorithme de répétition espacée en jours d'école (J+1, J+3, J+7, J+14, J+30, J+60).
+
+#### Configuration JSON type :
+
+```json
+{
+  "title": "Apprentissage du vocabulaire",
+  "skill": "Comprendre, retenir et utiliser des mots nouveaux en contexte",
+  "instruction": "Observe bien la carte de découverte ou la question, puis clique sur le bon mot !",
+  "defaultLevel": "level1",
+  "level": "CE1",
+  "wordCount": 10,
+  "maxRevisionsPerSession": 6,
+  "evaluationSentenceCount": 6,
+  "sequenceId": null,
+  "levels": {
+    "level1": {
+      "label": "CE1",
+      "schoolLevel": "CE1",
+      "wordCount": 10,
+      "maxRevisionsPerSession": 6,
+      "skill": "Comprendre et mémoriser le vocabulaire CE1 en contexte"
+    },
+    "level2": {
+      "label": "CE2",
+      "schoolLevel": "CE2",
+      "wordCount": 10,
+      "maxRevisionsPerSession": 6,
+      "skill": "Comprendre et mémoriser le vocabulaire CE2 en contexte"
+    }
+  }
+}
+```
+
+#### Fonctionnalités & ergonomie :
+- **Session adaptative mixte (10 mots par défaut, configurable)** : Combine automatiquement jusqu'à `maxRevisionsPerSession` (`6` par défaut) mots en retard de révision avec au moins `4` nouveaux mots à découvrir (ou jusqu'à 100 % de révision si tous les mots ont été découverts).
+- **Phase Découverte (`phase === "discovery"`)** :
+  - **Carte Découverte** (mot + nature grammaticale + illustration + définition simple) + bouton « 👍 J'ai compris, je teste dans 2 phrases ! ».
+  - **2 phrases à trous (`_____`)** avec QCM à 3 choix (le mot cible + 2 intrus de même nature grammaticale).
+  - Un mot passe au statut **Appris (`🔁`)** uniquement s'il obtient **2/2 sans aucune erreur**.
+- **Phase Révision (`phase === "revision"`)** :
+  - **3 étapes de rappel actif** : 1 QCM de définition illustrée (sans afficher le mot) + 2 phrases à trous.
+  - **Répétition espacée infinie en jours d'école (lundi-vendredi)** : paliers `[1, 3, 7, 14, 30, 60]`. Après 3 révisions parfaites consécutives (`3/3`), le mot obtient le badge **Maîtrisé `👑`** tout en restant révisé périodiquement.
+- **Feedback immédiat et 2e chance** : 1er essai juste = `1 pt` (vert) ; 1er essai faux = opción barrée + 2e chance ; 2e essai juste = `0,5 pt` (orange) ; 2e échec = `0 pt` et affichage de la bonne réponse.
+- **Outils Enseignant / Admin (`VocabularyCreatorPanel`)** :
+  - Génération IA des définitions, des 2 phrases complètes (intégrées dans `generated_sentences` avec `type = 'vocabulaire'`), des 2 intrus et des illustrations (ou import externe Drag & Drop / Parcourir dans le dossier dédié `/app/data/vocabulary-images/`).
+  - **Vue Évaluation sur cahier (`VocabularyEvaluationView`)** : affiche tous les mots de la séquence en en-tête et tire aléatoirement `6` phrases à trous (configurable) à recopier dans le cahier (sans calcul de score).
+  - **Suivi de classe, liens Mode Focus et réinitialisation de début d'année (`VocabularyReviewDashboard`)**.
+
+
 

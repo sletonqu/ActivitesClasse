@@ -22,9 +22,13 @@ const BaseTenBlocksActivity = lazy(() => import("./BaseTenBlocksActivity"));
 const VerbConjugationActivity = lazy(() => import("./VerbConjugationActivity"));
 const WriteFractionsActivity = lazy(() => import("./WriteFractionsActivity"));
 const FindVerbAndInfinitiveActivity = lazy(() => import("./FindVerbAndInfinitiveActivity"));
+const VocabularyLearningActivity = lazy(() => import("./VocabularyLearningActivity"));
 
 
 const componentRegistry = {
+  "src/activities/VocabularyLearningActivity.js": VocabularyLearningActivity,
+  "VocabularyLearningActivity": VocabularyLearningActivity,
+  "VocabularyLearningActivity.js": VocabularyLearningActivity,
   "src/activities/FindVerbAndInfinitiveActivity.js": FindVerbAndInfinitiveActivity,
   "FindVerbAndInfinitiveActivity": FindVerbAndInfinitiveActivity,
   "FindVerbAndInfinitiveActivity.js": FindVerbAndInfinitiveActivity,

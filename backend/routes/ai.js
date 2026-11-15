@@ -552,9 +552,9 @@ function buildGeneratedSentenceFromRow(row) {
   const payload = parsedPayload && typeof parsedPayload === "object"
     ? parsedPayload
     : {
-        sentence: row?.sentence || "",
-        words: [],
-      };
+      sentence: row?.sentence || "",
+      words: [],
+    };
 
   return {
     id: row?.id,
@@ -877,13 +877,13 @@ function buildGeneratedSentenceExportItem(row) {
   const payload = parsedPayload && typeof parsedPayload === "object"
     ? parsedPayload
     : {
-        sentence: row.sentence,
-        level: row.level || "",
-        theme: row.theme || "",
-        provider: row.provider || "",
-        model: row.model || "",
-        words: [],
-      };
+      sentence: row.sentence,
+      level: row.level || "",
+      theme: row.theme || "",
+      provider: row.provider || "",
+      model: row.model || "",
+      words: [],
+    };
 
   const normalized = normalizeGeneratedPayload(payload, {
     level: row.level || payload.level || "CE1",
@@ -945,32 +945,32 @@ async function storeImportedGeneratedSentences(sentences) {
 
     const insertResult = sentenceEntry.createdAt
       ? await runAsync(
-          `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur, created_at)
+        `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur, created_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            sentenceEntry.sentence,
-            sentenceEntry.level || null,
-            sentenceEntry.theme || null,
-            sentenceEntry.provider || null,
-            sentenceEntry.model || null,
-            serializedPayload,
-            Number(sentenceEntry.compteur || 0),
-            sentenceEntry.createdAt,
-          ]
-        )
+        [
+          sentenceEntry.sentence,
+          sentenceEntry.level || null,
+          sentenceEntry.theme || null,
+          sentenceEntry.provider || null,
+          sentenceEntry.model || null,
+          serializedPayload,
+          Number(sentenceEntry.compteur || 0),
+          sentenceEntry.createdAt,
+        ]
+      )
       : await runAsync(
-          `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur)
+        `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [
-            sentenceEntry.sentence,
-            sentenceEntry.level || null,
-            sentenceEntry.theme || null,
-            sentenceEntry.provider || null,
-            sentenceEntry.model || null,
-            serializedPayload,
-            Number(sentenceEntry.compteur || 0),
-          ]
-        );
+        [
+          sentenceEntry.sentence,
+          sentenceEntry.level || null,
+          sentenceEntry.theme || null,
+          sentenceEntry.provider || null,
+          sentenceEntry.model || null,
+          serializedPayload,
+          Number(sentenceEntry.compteur || 0),
+        ]
+      );
 
     const insertedRow = await getAsync(
       `SELECT id, compteur, created_at
@@ -996,6 +996,7 @@ function buildGeneratedSentenceFilters(query = {}) {
   const level = normalizeText(query?.level).toUpperCase();
   const theme = normalizeText(query?.theme).toLowerCase();
   const search = normalizeText(query?.search).toLowerCase();
+  const type = normalizeText(query?.type).toLowerCase();
 
   if (level) {
     if (!ALLOWED_LEVELS.has(level)) {
@@ -1013,6 +1014,11 @@ function buildGeneratedSentenceFilters(query = {}) {
   if (search) {
     where.push('LOWER(sentence) LIKE ?');
     params.push(`%${search}%`);
+  }
+
+  if (type) {
+    where.push("COALESCE(LOWER(type), 'grammaire') = ?");
+    params.push(type);
   }
 
   return { where, params };
@@ -1232,13 +1238,13 @@ router.put('/generated-sentences/:id', async (req, res, next) => {
     const payload = parsedPayload && typeof parsedPayload === 'object'
       ? parsedPayload
       : {
-          sentence: row.sentence,
-          words: [],
-          level: row.level || 'CE1',
-          theme: row.theme || 'libre',
-          provider: row.provider || '',
-          model: row.model || '',
-        };
+        sentence: row.sentence,
+        words: [],
+        level: row.level || 'CE1',
+        theme: row.theme || 'libre',
+        provider: row.provider || '',
+        model: row.model || '',
+      };
 
     const nextSentence = normalizeText(req.body?.sentence || payload.sentence || row.sentence);
     if (!nextSentence) {
@@ -1961,13 +1967,13 @@ router.get('/generated-sentences/next', async (req, res) => {
     const sentence = payload && typeof payload === 'object'
       ? payload
       : {
-          sentence: row.sentence,
-          level: row.level || level || 'CE1',
-          theme: row.theme || theme || 'libre',
-          provider: row.provider || '',
-          model: row.model || '',
-          words: [],
-        };
+        sentence: row.sentence,
+        level: row.level || level || 'CE1',
+        theme: row.theme || theme || 'libre',
+        provider: row.provider || '',
+        model: row.model || '',
+        words: [],
+      };
 
     return res.json({
       sentence: {
@@ -2459,7 +2465,554 @@ router.post('/debug-tokenization', (req, res) => {
   }
 });
 
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const { buildClozeSentence } = require("./vocabulary");
+
+const vocabDataDir = process.env.DB_PATH
+  ? path.dirname(process.env.DB_PATH)
+  : path.join(__dirname, "..", "data");
+const vocabImagesDir = path.join(vocabDataDir, "vocabulary-images");
+
+if (!fs.existsSync(vocabImagesDir)) {
+  fs.mkdirSync(vocabImagesDir, { recursive: true });
+}
+
+function buildVocabularyGenerationPrompt({ words, level, theme, targetField }) {
+  const cleanLevel = ALLOWED_LEVELS.has(String(level || "").toUpperCase())
+    ? String(level).toUpperCase()
+    : "CE1";
+  const cleanTheme = normalizeText(theme);
+  const wordsList = Array.isArray(words) ? words.join(", ") : String(words || "");
+
+  return [
+    "Rôle : enseignant de français expert en pédagogie du vocabulaire pour l'école élémentaire (CE1/CE2).",
+    `Niveau cible : ${cleanLevel}.`,
+    cleanTheme
+      ? `Thème de la séquence : "${cleanTheme}" (oriente le contexte des phrases et le champ lexical des intrus selon ce thème).`
+      : "Aucun thème imposé : déduis le contexte le plus naturel et concret pour chaque mot.",
+    `Liste des mots à préparer : ${wordsList}.`,
+    targetField ? `Champ principalement ciblé pour la régénération : ${targetField}.` : "",
+    "Pour CHAQUE mot de la liste, produis :",
+    '1. "word" : le mot exact demandé.',
+    '2. "nature" : sa nature grammaticale simple ("nom commun", "verbe", "adjectif qualificatif", "adverbe").',
+    '3. "definition" : une définition courte, limpide et concrète adaptée à un enfant de 7-8 ans, SANS utiliser le mot cible ni un mot de la même famille.',
+    '4. "sentence1_full" : une première phrase complète, simple et vivante utilisant exactement ce mot en contexte.',
+    '5. "sentence2_full" : une deuxième phrase complète (dans une situation différente) utilisant exactement ce mot en contexte.',
+    '6. "distractors" : un tableau de 2 mots intrus qui ont OBLIGATOIREMENT la même nature grammaticale et appartiennent au même champ lexical / thème, mais dont le sens ne convient pas dans les phrases. Un intrus ne doit jamais être le mot cible lui-même.',
+    '7. "imagePrompt" : une description courte en français pour illustrer ce mot (style illustration jeunesse colorée, claire, sans texte écrit dans l\'image).',
+    "Réponds uniquement avec un objet JSON valide, sans Markdown.",
+    'Format exact attendu : {"items":[{"word":"rusé","nature":"adjectif qualificatif","definition":"Qui utilise des astuces malines pour arriver à ses fins.","sentence1_full":"Le renard est un animal très rusé.","sentence2_full":"Ce petit garçon est rusé quand il joue à cache-cache.","distractors":["courageux","timide"],"imagePrompt":"Un renard souriant à l\'air malicieux dans une forêt colorée, illustration livre jeunesse sans texte."}]}',
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function storeVocabularySentenceInPool({ sentence, word, nature, level, theme, provider, model }) {
+  const cleanSentence = normalizeText(sentence);
+  if (!cleanSentence || cleanSentence.includes("_____")) {
+    return null;
+  }
+
+  const tokens = cleanSentence.match(/\p{L}+(?:['’\-]\p{L}+)*|\p{N}+|[^\s]/gu) || [];
+  const words = tokens.map((token, idx) => {
+    const isPunct = !/[\p{L}\p{N}]/u.test(token);
+    const isTarget =
+      !isPunct &&
+      word &&
+      token.toLowerCase() === String(word).trim().toLowerCase();
+    return {
+      position: idx + 1,
+      word: token,
+      nature: isPunct ? "ponctuation" : isTarget && nature ? nature : "à préciser",
+      category: isPunct ? "ponctuation" : "mot variable",
+    };
+  });
+
+  const cleanTheme = normalizeText(theme, "vocabulaire");
+  const payloadObj = {
+    sentence: cleanSentence,
+    level,
+    theme: cleanTheme,
+    provider,
+    model,
+    words,
+  };
+
+  const insertRes = await runAsync(
+    `INSERT INTO generated_sentences (sentence, level, theme, provider, model, payload, compteur, type)
+     VALUES (?, ?, ?, ?, ?, ?, 0, 'vocabulaire')`,
+    [cleanSentence, level, cleanTheme, provider, model, JSON.stringify(payloadObj)]
+  );
+
+  return insertRes.lastID;
+}
+
+router.post("/vocabulary/generate", async (req, res) => {
+  try {
+    const providerId = normalizeText(req.body?.provider, "gemini").toLowerCase();
+    const level = normalizeText(req.body?.level, "CE1").toUpperCase();
+    const theme = normalizeText(req.body?.theme, "");
+    const targetField = normalizeText(req.body?.targetField, "");
+    const skipStoreSentences = Boolean(req.body?.skipStoreSentences);
+
+    const rawWords = req.body?.words;
+    const wordsList = Array.isArray(rawWords)
+      ? rawWords.map((w) => normalizeText(w)).filter(Boolean)
+      : String(rawWords || "")
+        .split(/[,;\n]+/)
+        .map((w) => normalizeText(w))
+        .filter(Boolean);
+
+    if (wordsList.length === 0) {
+      return res.status(400).json({ error: "Veuillez fournir au moins un mot à générer." });
+    }
+
+    if (!ALLOWED_LEVELS.has(level)) {
+      return res.status(400).json({ error: "Le niveau doit être CE1 ou CE2." });
+    }
+
+    // Choisir le provider demandé ou basculer sur le premier provider configuré
+    let resolvedProviderId = PROVIDERS[providerId] ? providerId : "gemini";
+    let providerSetup = getProviderSetup(resolvedProviderId);
+    if (!providerSetup.apiKey) {
+      const configuredAlt = Object.keys(PROVIDERS).find((id) => Boolean(getProviderSetup(id).apiKey));
+      if (configuredAlt) {
+        resolvedProviderId = configuredAlt;
+        providerSetup = getProviderSetup(configuredAlt);
+      } else {
+        return res.status(400).json({
+          error: `Aucun fournisseur IA n'est configuré (clé ${providerSetup.apiKeyEnv} absente).`,
+        });
+      }
+    }
+
+    const prompt = buildVocabularyGenerationPrompt({
+      words: wordsList,
+      level,
+      theme,
+      targetField,
+    });
+    const outputTokenLimit = Math.min(Math.max(wordsList.length * 450, 900), 6000);
+
+    let rawContent = "";
+    if (resolvedProviderId === "gemini") {
+      rawContent = await requestGeminiCompletion(providerSetup, prompt, outputTokenLimit);
+    } else if (resolvedProviderId === "mistral") {
+      const completion = await requestOpenAiLikeCompletion(
+        providerSetup,
+        prompt,
+        "https://api.mistral.ai/v1/chat/completions",
+        outputTokenLimit
+      );
+      rawContent = completion.content;
+    } else {
+      const completion = await requestOpenAiLikeCompletion(
+        providerSetup,
+        prompt,
+        "https://api.openai.com/v1/chat/completions",
+        outputTokenLimit
+      );
+      rawContent = completion.content;
+    }
+
+    const parsedPayload = extractFirstJsonObject(rawContent);
+    const rawItems = Array.isArray(parsedPayload?.items)
+      ? parsedPayload.items
+      : Array.isArray(parsedPayload?.words)
+        ? parsedPayload.words
+        : [];
+
+    if (rawItems.length === 0) {
+      throw createProviderError(
+        "Le fournisseur IA n'a renvoyé aucun mot exploitable.",
+        rawContent
+      );
+    }
+
+    const enrichedItems = [];
+    for (let idx = 0; idx < rawItems.length; idx += 1) {
+      const item = rawItems[idx] || {};
+      const wordText = normalizeText(item.word || wordsList[idx] || "");
+      if (!wordText) continue;
+
+      const nature = normalizeText(item.nature, "nom commun");
+      const definition = normalizeText(item.definition);
+      const sentence1Full = normalizeText(item.sentence1_full || item.sentence1);
+      const sentence2Full = normalizeText(item.sentence2_full || item.sentence2);
+      const sentence1Cloze = normalizeText(item.sentence1_cloze) || buildClozeSentence(sentence1Full, wordText);
+      const sentence2Cloze = normalizeText(item.sentence2_cloze) || buildClozeSentence(sentence2Full, wordText);
+      const distractors = Array.isArray(item.distractors)
+        ? item.distractors
+          .map((d) => normalizeText(d))
+          .filter((d) => Boolean(d) && d.toLowerCase() !== wordText.toLowerCase())
+          .slice(0, 2)
+        : [];
+      const imagePrompt = normalizeText(
+        item.imagePrompt || item.image_prompt,
+        `Illustration enfantine colorée représentant « ${wordText} », style livre jeunesse sans texte.`
+      );
+
+      let sentence1Id = null;
+      let sentence2Id = null;
+
+      if (!skipStoreSentences) {
+        if (sentence1Full) {
+          sentence1Id = await storeVocabularySentenceInPool({
+            sentence: sentence1Full,
+            word: wordText,
+            nature,
+            level,
+            theme,
+            provider: resolvedProviderId,
+            model: providerSetup.model,
+          });
+        }
+        if (sentence2Full) {
+          sentence2Id = await storeVocabularySentenceInPool({
+            sentence: sentence2Full,
+            word: wordText,
+            nature,
+            level,
+            theme,
+            provider: resolvedProviderId,
+            model: providerSetup.model,
+          });
+        }
+      }
+
+      enrichedItems.push({
+        word: wordText,
+        nature,
+        definition,
+        sentence1_full: sentence1Full,
+        sentence1_cloze: sentence1Cloze,
+        sentence1_id: sentence1Id,
+        sentence2_full: sentence2Full,
+        sentence2_cloze: sentence2Cloze,
+        sentence2_id: sentence2Id,
+        distractors: distractors.length >= 2 ? distractors : [...distractors, "autre", "possible"].slice(0, 2),
+        image_prompt: imagePrompt,
+        imagePrompt,
+        position: idx + 1,
+      });
+    }
+
+    return res.json({
+      provider: resolvedProviderId,
+      model: providerSetup.model,
+      level,
+      theme,
+      items: enrichedItems,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || "Erreur lors de la génération IA du vocabulaire.",
+      providerContent: normalizeText(err.providerContent),
+    });
+  }
+});
+
+function generateIllustratedSvgCard({ word, prompt }) {
+  const safeWord = String(word || "Mot").replace(/[<>&"']/g, "");
+  const safePrompt = String(prompt || "")
+    .replace(new RegExp(safeWord, "gi"), "•••")
+    .slice(0, 75)
+    .replace(/[<>&"']/g, "");
+  const palettes = [
+    ["#fef3c7", "#f59e0b", "#78350f"],
+    ["#e0f2fe", "#0284c7", "#0c4a6e"],
+    ["#dcfce7", "#16a34a", "#14532d"],
+    ["#f3e8ff", "#9333ea", "#581c87"],
+    ["#ffe4e6", "#e11d48", "#881337"],
+  ];
+  const hash = Array.from(safeWord).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const [bg, accent, textDark] = palettes[hash % palettes.length];
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" width="400" height="280">
+    <defs>
+      <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${bg}" />
+        <stop offset="100%" stop-color="#ffffff" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="280" rx="24" fill="url(#bgGrad)" stroke="${accent}" stroke-width="4"/>
+    <circle cx="80" cy="65" r="26" fill="#fde047" fill-opacity="0.85" />
+    <path d="M 30 230 Q 120 175 210 220 T 370 210 L 370 260 L 30 260 Z" fill="${accent}" fill-opacity="0.18" />
+    <circle cx="200" cy="122" r="56" fill="#ffffff" fill-opacity="0.9" stroke="${accent}" stroke-width="3"/>
+    <text x="200" y="138" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="bold" fill="${accent}">
+      🎨
+    </text>
+    <text x="200" y="238" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="${textDark}">
+      ${safePrompt}
+    </text>
+  </svg>`;
+}
+
+function extractValidSvgFromText(rawText, forbiddenWord = "") {
+  const text = String(rawText || "");
+  const match = text.match(/<svg[\s\S]*?<\/svg>/i);
+  if (!match) return null;
+  let svg = match[0].trim();
+  if (!svg.includes('xmlns="http://www.w3.org/2000/svg"')) {
+    svg = svg.replace(/^<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  // Retirer toute balise script ou événement par sécurité
+  svg = svg
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/\son[a-z]+\s*=\s*["'][^"']*["']/gi, "");
+  // Masquer le mot cible s'il apparaissait dans une balise <text> pour ne pas trahir la réponse en mode Révision
+  if (forbiddenWord && forbiddenWord.trim().length > 1) {
+    const escaped = forbiddenWord.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    svg = svg.replace(new RegExp(escaped, "gi"), "");
+  }
+  return svg;
+}
+
+router.post("/vocabulary/image", async (req, res) => {
+  try {
+    const wordId = req.body?.wordId ? Number(req.body.wordId) : null;
+    const word = normalizeText(req.body?.word, "Vocabulaire");
+    const prompt = normalizeText(
+      req.body?.prompt || req.body?.imagePrompt,
+      `Illustration enfantine pour le mot ${word}, style livre jeunesse coloré sans texte.`
+    );
+    const providerId = normalizeText(req.body?.provider, "openai").toLowerCase();
+
+    let savedRelativePath = null;
+    let usedProvider = providerId;
+
+    const openAiSetup = getProviderSetup("openai");
+    const geminiSetup = getProviderSetup("gemini");
+
+    // 1. Tenter OpenAI Images API si demandé ou disponible
+    if ((providerId === "openai" || !geminiSetup.apiKey) && openAiSetup.apiKey) {
+      try {
+        const imgResp = await fetchWithTimeout(
+          "https://api.openai.com/v1/images/generations",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${openAiSetup.apiKey}`,
+            },
+            body: JSON.stringify({
+              model: "dall-e-3",
+              prompt: `${prompt}. Style illustration pour enfants d'école primaire, doux, coloré, aucun texte dans l'image.`,
+              n: 1,
+              size: "1024x1024",
+              response_format: "b64_json",
+            }),
+          },
+          60000
+        );
+
+        if (imgResp.ok) {
+          const imgData = await imgResp.json();
+          const b64 = imgData?.data?.[0]?.b64_json;
+          if (b64) {
+            const fileName = `${crypto.randomUUID()}.png`;
+            fs.writeFileSync(path.join(vocabImagesDir, fileName), b64, { encoding: "base64" });
+            savedRelativePath = `vocabulary-images/${fileName}`;
+            usedProvider = "openai";
+          }
+        }
+      } catch (openAiErr) {
+        console.warn("[AI][vocabulary/image] Repli après erreur OpenAI Images:", openAiErr.message);
+      }
+    }
+
+    // 2. Tenter Gemini Image (generateContent sur gemini-2.5-flash-image / gemini-3.1-flash-lite-image, puis Imagen predict)
+    if (!savedRelativePath && geminiSetup.apiKey) {
+      const geminiImageModel =
+        process.env.GEMINI_IMAGE_MODEL || "gemini-2.5-flash-image";
+      try {
+        const geminiGenResp = await fetchWithTimeout(
+          `https://generativelanguage.googleapis.com/v1beta/models/${geminiImageModel}:generateContent?key=${geminiSetup.apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `${prompt}. Style illustration livre jeunesse pour enfants d'école primaire, coloré, sans aucun texte écrit dans l'image.`,
+                    },
+                  ],
+                },
+              ],
+              generationConfig: {
+                responseModalities: ["IMAGE"],
+              },
+            }),
+          },
+          60000
+        );
+
+        if (geminiGenResp.ok) {
+          const geminiGenData = await geminiGenResp.json();
+          const parts = geminiGenData?.candidates?.[0]?.content?.parts || [];
+          const imagePart = parts.find((p) => p?.inlineData?.data);
+          if (imagePart?.inlineData?.data) {
+            const mime = String(imagePart.inlineData.mimeType || "image/png");
+            const ext = mime.includes("jpeg") || mime.includes("jpg") ? "jpg" : mime.includes("webp") ? "webp" : "png";
+            const fileName = `${crypto.randomUUID()}.${ext}`;
+            fs.writeFileSync(
+              path.join(vocabImagesDir, fileName),
+              imagePart.inlineData.data,
+              { encoding: "base64" }
+            );
+            savedRelativePath = `vocabulary-images/${fileName}`;
+            usedProvider = "gemini";
+          }
+        }
+      } catch (geminiGenErr) {
+        console.warn("[AI][vocabulary/image] Repli après erreur Gemini Flash Image:", geminiGenErr.message);
+      }
+
+      if (!savedRelativePath) {
+        try {
+          const imagenModel = process.env.GEMINI_IMAGEN_MODEL || "imagen-3.0-generate-002";
+          const geminiResp = await fetchWithTimeout(
+            `https://generativelanguage.googleapis.com/v1beta/models/${imagenModel}:predict?key=${geminiSetup.apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                instances: [
+                  {
+                    prompt: `${prompt}. Illustration pour enfants, sans texte.`,
+                  },
+                ],
+                parameters: {
+                  sampleCount: 1,
+                },
+              }),
+            },
+            60000
+          );
+
+          if (geminiResp.ok) {
+            const geminiData = await geminiResp.json();
+            const b64 = geminiData?.predictions?.[0]?.bytesBase64Encoded;
+            if (b64) {
+              const fileName = `${crypto.randomUUID()}.png`;
+              fs.writeFileSync(path.join(vocabImagesDir, fileName), b64, { encoding: "base64" });
+              savedRelativePath = `vocabulary-images/${fileName}`;
+              usedProvider = "gemini";
+            }
+          }
+        } catch (geminiErr) {
+          console.warn("[AI][vocabulary/image] Repli après erreur Gemini Imagen:", geminiErr.message);
+        }
+      }
+    }
+
+    // 3. Si aucun modèle d'image matricielle (DALL-E / Imagen) n'est activé sur le compte,
+    // demander au modèle LLM configuré (Gemini, OpenAI ou Mistral) de dessiner une vraie scène SVG colorée sans texte
+    if (!savedRelativePath) {
+      const llmCandidateIds = [
+        providerId,
+        "gemini",
+        "openai",
+        "mistral",
+      ].filter((id, idx, arr) => PROVIDERS[id] && arr.indexOf(id) === idx);
+      const activeLlmId = llmCandidateIds.find((id) => Boolean(getProviderSetup(id).apiKey));
+
+      if (activeLlmId) {
+        try {
+          const llmSetup = getProviderSetup(activeLlmId);
+          const svgPrompt = [
+            "Tu es un illustrateur de livres jeunesse pour enfants de CE1/CE2.",
+            `Génère uniquement un code SVG complet et valide (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" width="400" height="280">...</svg>) qui illustre visuellement la scène suivante : "${prompt}".`,
+            "Consignes strictes :",
+            "- Utilise des formes vectorielles riches, expressives et colorées (personnages, animaux, nature, objets, décor doux).",
+            `- INTERDICTION ABSOLUE d'écrire le mot "${word}" ou tout autre texte dans le SVG (aucune balise <text>) car l'image sert d'indice devinette.`,
+            "- Réponds uniquement avec la balise <svg>...</svg> sans bloc Markdown.",
+          ].join("\n");
+
+          let svgRaw = "";
+          if (activeLlmId === "gemini") {
+            const completion = await requestGeminiCompletion(llmSetup, svgPrompt, 2200);
+            svgRaw = completion.content;
+          } else if (activeLlmId === "mistral") {
+            const completion = await requestOpenAiLikeCompletion(
+              llmSetup,
+              svgPrompt,
+              "https://api.mistral.ai/v1/chat/completions",
+              2200
+            );
+            svgRaw = completion.content;
+          } else {
+            const completion = await requestOpenAiLikeCompletion(
+              llmSetup,
+              svgPrompt,
+              "https://api.openai.com/v1/chat/completions",
+              2200
+            );
+            svgRaw = completion.content;
+          }
+
+          const extractedSvg = extractValidSvgFromText(svgRaw, word);
+          if (extractedSvg) {
+            const fileName = `${crypto.randomUUID()}.svg`;
+            fs.writeFileSync(path.join(vocabImagesDir, fileName), extractedSvg, {
+              encoding: "utf-8",
+            });
+            savedRelativePath = `vocabulary-images/${fileName}`;
+            usedProvider = `${activeLlmId}-svg`;
+          }
+        } catch (llmSvgErr) {
+          console.warn("[AI][vocabulary/image] Repli après erreur génération SVG par LLM:", llmSvgErr.message);
+        }
+      }
+    }
+
+    // 4. Fallback SVG illustré local garantissant qu'une illustration propre est toujours créée dans vocabulary-images/
+    if (!savedRelativePath) {
+      const svgContent = generateIllustratedSvgCard({ word, prompt });
+      const fileName = `${crypto.randomUUID()}.svg`;
+      fs.writeFileSync(path.join(vocabImagesDir, fileName), svgContent, { encoding: "utf-8" });
+      savedRelativePath = `vocabulary-images/${fileName}`;
+      usedProvider = "svg-fallback";
+    }
+
+    if (wordId && !Number.isNaN(wordId)) {
+      const existing = await getAsync("SELECT image_url FROM vocabulary_words WHERE id = ?", [wordId]);
+      if (existing?.image_url && existing.image_url !== savedRelativePath) {
+        const oldFile = path.basename(existing.image_url);
+        const oldPath = path.join(vocabImagesDir, oldFile);
+        if (fs.existsSync(oldPath)) {
+          try {
+            fs.unlinkSync(oldPath);
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      await runAsync(
+        "UPDATE vocabulary_words SET image_url = ?, image_prompt = ? WHERE id = ?",
+        [savedRelativePath, prompt, wordId]
+      );
+    }
+
+    return res.json({
+      imageUrl: savedRelativePath,
+      prompt,
+      provider: usedProvider,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message || "Erreur lors de la génération de l'image de vocabulaire.",
+    });
+  }
+});
+
 module.exports = router;
+module.exports.buildVocabularyGenerationPrompt = buildVocabularyGenerationPrompt;
 module.exports.processVerbEnrichment = processVerbEnrichment;
 module.exports.normalizeGeneratedPayload = normalizeGeneratedPayload;
 module.exports.buildSentencePrompt = buildSentencePrompt;

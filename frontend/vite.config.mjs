@@ -25,7 +25,8 @@ export default defineConfig({
     allowedHosts: ["founder-lettuce-overspend.ngrok-free.dev"],
     proxy: {
       "/api": "http://backend:4000",
-      "/screenshots": "http://backend:4000"
+      "/screenshots": "http://backend:4000",
+      "/vocabulary-images": "http://backend:4000"
     }
   },
   test: {

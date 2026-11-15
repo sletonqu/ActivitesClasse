@@ -6,6 +6,7 @@ const AdminView = lazy(() => import("./views/AdminView"));
 const TeacherView = lazy(() => import("./views/TeacherView"));
 const StudentView = lazy(() => import("./views/StudentView"));
 const ResultsView = lazy(() => import("./views/ResultsView"));
+const VocabularyEvaluationPage = lazy(() => import("./views/VocabularyEvaluationPage"));
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/admin" element={<AdminView />} />
           <Route path="/teacher" element={<TeacherView />} />
           <Route path="/results" element={<ResultsView />} />
+          <Route path="/vocabulary-evaluation" element={<VocabularyEvaluationPage />} />
           <Route path="/" element={<StudentView />} />
         </Routes>
       </Suspense>

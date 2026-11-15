@@ -143,9 +143,13 @@ router.put('/:id', (req, res) => {
 
 // DELETE student
 router.delete('/:id', (req, res) => {
-  db.run('DELETE FROM students WHERE id = ?', [req.params.id], function onDelete(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    return res.json({ deleted: this.changes });
+  db.serialize(() => {
+    db.run('DELETE FROM vocabulary_progress WHERE student_id = ?', [req.params.id], () => {});
+    db.run('DELETE FROM results WHERE student_id = ?', [req.params.id], () => {});
+    db.run('DELETE FROM students WHERE id = ?', [req.params.id], function onDelete(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      return res.json({ deleted: this.changes });
+    });
   });
 });
 

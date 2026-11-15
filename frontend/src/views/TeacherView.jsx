@@ -7,6 +7,7 @@ import GroupManagementPanel from "../components/GroupManagementPanel";
 import ResultsManagementPanel from "../components/ResultsManagementPanel";
 import CollapsibleSection from "../components/CollapsibleSection";
 import WorkshopManagementPanel from "../components/WorkshopManagementPanel";
+import VocabularyCreatorPanel from "../components/VocabularyCreatorPanel";
 import { API_URL } from "../config/api";
 import useAutoDismissMessage from "../hooks/useAutoDismissMessage";
 import useConfirm from "../hooks/useConfirm";
@@ -1098,6 +1099,23 @@ const TeacherView = () => {
             hideTitle
           />
         </CollapsibleSection>}
+
+        <CollapsibleSection
+          id="teacher-vocabulary-management"
+          title="Vocabulaire (Séquences, Évaluation & Suivi)"
+          isOpen={openSectionId === "vocabulary-management"}
+          onToggle={() => handleToggleSection("vocabulary-management")}
+        >
+          <div id="teacher-vocabulary-panel-wrapper" className="w-full mb-6">
+            <VocabularyCreatorPanel
+              selectedClassId={selectedClassId}
+              classes={classes}
+              activities={activities}
+              onActivitiesUpdated={refreshActivities}
+              hideTitle
+            />
+          </div>
+        </CollapsibleSection>
 
         <CollapsibleSection
           id="teacher-activities-management"

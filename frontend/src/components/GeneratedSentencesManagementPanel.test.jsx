@@ -38,20 +38,35 @@ describe("GeneratedSentencesManagementPanel", () => {
   it("rend le formulaire de filtres avec tous les champs requis pour les activités", () => {
     const html = renderToStaticMarkup(<GeneratedSentencesManagementPanel />);
 
-    // Formulaire
+    // Formulaire et conteneurs de blocs
     expect(html).toContain('id="generated-sentences-management-filters"');
+    expect(html).toContain('id="generated-sentences-general-filters"');
+    expect(html).toContain('id="generated-sentences-activity-query-filters"');
+    expect(html).toContain('id="generated-sentences-activity-query-filters-grid"');
+    expect(html).toContain('id="generated-sentences-filters-actions"');
+    expect(html).toContain('id="generated-sentences-filters-primary-actions"');
+    expect(html).toContain('id="generated-sentences-filters-secondary-actions"');
 
     // Filtres généraux
+    expect(html).toContain('id="generated-sentences-level-filter-field"');
     expect(html).toContain('id="generated-sentences-level-filter"');
+    expect(html).toContain('id="generated-sentences-theme-filter-field"');
     expect(html).toContain('id="generated-sentences-theme-filter"');
+    expect(html).toContain('id="generated-sentences-search-filter-field"');
     expect(html).toContain('id="generated-sentences-search-filter"');
+    expect(html).toContain('id="generated-sentences-sort-order-field"');
     expect(html).toContain('id="generated-sentences-sort-order"');
 
     // Filtres spécifiques aux requêtes d'activités
+    expect(html).toContain('id="generated-sentences-tense-filter-field"');
     expect(html).toContain('id="generated-sentences-tense-filter"');
+    expect(html).toContain('id="generated-sentences-infinitive-filter-field"');
     expect(html).toContain('id="generated-sentences-infinitive-filter"');
+    expect(html).toContain('id="generated-sentences-endings-filter-field"');
     expect(html).toContain('id="generated-sentences-endings-filter"');
+    expect(html).toContain('id="generated-sentences-words-filter-field"');
     expect(html).toContain('id="generated-sentences-words-filter"');
+    expect(html).toContain('id="generated-sentences-natures-filter-field"');
     expect(html).toContain('id="generated-sentences-natures-filter"');
 
     // Boutons de filtrage
